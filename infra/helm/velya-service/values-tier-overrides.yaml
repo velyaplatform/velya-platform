@@ -1,0 +1,334 @@
+# Velya Service Helm Values - Tier Specific Overrides
+# This file shows how to configure each tier with appropriate nodeSelector and tolerations
+
+---
+# Frontend Web Application
+# File: values-frontend.yaml
+frontend:
+  image:
+    repository: velya-web
+    tag: latest
+
+  replicas: 2  # min 1, max 10 based on HPA
+
+  nodeSelector:
+    velya.io/tier: frontend
+
+  tolerations: []  # No taints to tolerate
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+---
+# Backend API Gateway
+# File: values-backend.yaml
+backend:
+  image:
+    repository: velya-api-gateway
+    tag: latest
+
+  replicas: 2  # min 2, max 15 based on HPA
+
+  nodeSelector:
+    velya.io/tier: backend
+
+  tolerations: []  # No taints to tolerate
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 15
+    targetCPUUtilizationPercentage: 75
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 2
+
+---
+# Platform Services (ArgoCD, Prometheus, Grafana, Loki)
+# File: values-platform.yaml
+platform:
+  image:
+    repository: velya-platform-service
+    tag: latest
+
+  replicas: 1
+
+  nodeSelector:
+    velya.io/tier: platform
+
+  tolerations:
+    - key: "velya.io/platform"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  autoscaling:
+    enabled: false  # Fixed replicas for platform tools
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+---
+# AI Gateway & Agent Orchestrator
+# File: values-ai-agents.yaml
+ai_gateway:
+  image:
+    repository: velya-ai-gateway
+    tag: latest
+
+  replicas: 1
+
+  nodeSelector:
+    velya.io/tier: ai
+
+  tolerations:
+    - key: "velya.io/ai-workload"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+---
+agent_orchestrator:
+  image:
+    repository: velya-agent-orchestrator
+    tag: latest
+
+  replicas: 1
+
+  nodeSelector:
+    velya.io/tier: ai
+
+  tolerations:
+    - key: "velya.io/ai-workload"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+---
+policy_engine:
+  image:
+    repository: velya-policy-engine
+    tag: latest
+
+  replicas: 1
+
+  nodeSelector:
+    velya.io/tier: ai
+
+  tolerations:
+    - key: "velya.io/ai-workload"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+  autoscaling:
+    enabled: false  # Static, low load
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+---
+memory_service:
+  image:
+    repository: velya-memory-service
+    tag: latest
+
+  replicas: 1
+
+  nodeSelector:
+    velya.io/tier: ai
+
+  tolerations:
+    - key: "velya.io/ai-workload"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 1Gi
+
+  autoscaling:
+    enabled: false
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+---
+# Microservices (Patient Flow, Discharge, Tasks, Audit)
+# File: values-microservices.yaml
+patient_flow:
+  image:
+    repository: velya-patient-flow
+    tag: latest
+
+  replicas: 2
+
+  nodeSelector:
+    velya.io/tier: backend
+
+  tolerations: []
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 75
+
+---
+discharge_orchestrator:
+  image:
+    repository: velya-discharge-orchestrator
+    tag: latest
+
+  replicas: 2
+
+  nodeSelector:
+    velya.io/tier: backend
+
+  tolerations: []
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 75
+
+---
+task_inbox:
+  image:
+    repository: velya-task-inbox
+    tag: latest
+
+  replicas: 2
+
+  nodeSelector:
+    velya.io/tier: backend
+
+  tolerations: []
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 75
+
+---
+audit_service:
+  image:
+    repository: velya-audit-service
+    tag: latest
+
+  replicas: 1
+
+  nodeSelector:
+    velya.io/tier: backend
+
+  tolerations: []
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+  autoscaling:
+    enabled: false  # Low traffic, fixed replica

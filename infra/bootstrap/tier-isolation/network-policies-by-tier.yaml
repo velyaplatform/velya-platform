@@ -1,0 +1,243 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-tier-policy
+  namespace: velya-dev-core
+spec:
+  podSelector:
+    matchLabels:
+      velya.io/tier: frontend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow from ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000
+    # Allow from load balancer
+    - from:
+        - podSelector: {}
+          namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: TCP
+          port: 3000
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow to backend services
+    - to:
+        - podSelector:
+            matchLabels:
+              velya.io/tier: backend
+          namespaceSelector:
+            matchLabels:
+              name: velya-dev-core
+      ports:
+        - protocol: TCP
+          port: 3000
+    # Allow to external (for CDN, etc)
+    - to:
+        - podSelector: {}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-tier-policy
+  namespace: velya-dev-core
+spec:
+  podSelector:
+    matchLabels:
+      velya.io/tier: backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow from frontend
+    - from:
+        - podSelector:
+            matchLabels:
+              velya.io/tier: frontend
+          namespaceSelector:
+            matchLabels:
+              name: velya-dev-core
+      ports:
+        - protocol: TCP
+          port: 3000
+    # Allow from platform services (ArgoCD, monitoring)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: velya-dev-platform
+      ports:
+        - protocol: TCP
+          port: 3000
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow to other backend services
+    - to:
+        - podSelector:
+            matchLabels:
+              velya.io/tier: backend
+          namespaceSelector:
+            matchLabels:
+              name: velya-dev-core
+      ports:
+        - protocol: TCP
+          port: 3000
+    # Allow to databases (same namespace)
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow to message queue (NATS)
+    - to:
+        - podSelector:
+            matchLabels:
+              app: nats
+      ports:
+        - protocol: TCP
+          port: 4222
+    # Allow to external
+    - to:
+        - podSelector: {}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: platform-tier-policy
+  namespace: velya-dev-platform
+spec:
+  podSelector:
+    matchLabels:
+      velya.io/tier: platform
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow from backend for metrics scraping
+    - from:
+        - podSelector:
+            matchLabels:
+              velya.io/tier: backend
+          namespaceSelector:
+            matchLabels:
+              name: velya-dev-core
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 9090
+    # Allow from self
+    - from:
+        - podSelector:
+            matchLabels:
+              velya.io/tier: platform
+          namespaceSelector:
+            matchLabels:
+              name: velya-dev-platform
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow to backend for metrics
+    - to:
+        - podSelector:
+            matchLabels:
+              velya.io/tier: backend
+          namespaceSelector:
+            matchLabels:
+              name: velya-dev-core
+      ports:
+        - protocol: TCP
+          port: 3000
+    # Allow to external (for updates, webhooks, etc)
+    - to:
+        - podSelector: {}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ai-agents-tier-policy
+  namespace: velya-dev-agents
+spec:
+  podSelector:
+    matchLabels:
+      velya.io/tier: ai
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow from backend only
+    - from:
+        - podSelector:
+            matchLabels:
+              velya.io/tier: backend
+          namespaceSelector:
+            matchLabels:
+              name: velya-dev-core
+      ports:
+        - protocol: TCP
+          port: 3020
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow to message queue (NATS)
+    - to:
+        - podSelector:
+            matchLabels:
+              app: nats
+      ports:
+        - protocol: TCP
+          port: 4222
+    # Allow to backend for callbacks
+    - to:
+        - podSelector:
+            matchLabels:
+              velya.io/tier: backend
+          namespaceSelector:
+            matchLabels:
+              name: velya-dev-core
+      ports:
+        - protocol: TCP
+          port: 3000
+    # Allow to external APIs (for AI provider calls)
+    - to:
+        - namespaceSelector: {}
+          podSelector: {}
