@@ -1,0 +1,39 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: velya-service-alerts
+  namespace: velya-dev-observability
+  labels:
+    release: prometheus
+spec:
+  groups:
+    - name: velya.services
+      interval: 30s
+      rules:
+        - alert: VelyaServiceDown
+          expr: |
+            up{namespace=~"velya-dev-.*"} == 0
+          for: 1m
+          labels:
+            severity: critical
+            team: velya-ops
+          annotations:
+            summary: "Velya service {{ $labels.pod }} is down"
+            description: "Service {{ $labels.pod }} in namespace {{ $labels.namespace }} has been down for more than 1 minute."
+        - alert: VelyaHighCPU
+          expr: |
+            sum(rate(container_cpu_usage_seconds_total{namespace=~"velya-dev-.*"}[5m])) by (pod, namespace) > 0.8
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High CPU on {{ $labels.pod }}"
+        - alert: VelyaPatientFlowDown
+          expr: |
+            up{pod=~"patient-flow-.*"} == 0
+          for: 30s
+          labels:
+            severity: critical
+            team: velya-clinical
+          annotations:
+            summary: "CRITICAL: Patient Flow service is down"

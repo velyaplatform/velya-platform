@@ -1,0 +1,94 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: patient-flow-scaler
+  namespace: velya-dev-core
+spec:
+  scaleTargetRef:
+    name: patient-flow
+  minReplicaCount: 1
+  maxReplicaCount: 5
+  cooldownPeriod: 60
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090
+        metricName: container_cpu_usage_seconds_total
+        threshold: "0.5"
+        query: sum(rate(container_cpu_usage_seconds_total{namespace="velya-dev-core",pod=~"patient-flow-.*"}[2m]))
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: discharge-orchestrator-scaler
+  namespace: velya-dev-core
+spec:
+  scaleTargetRef:
+    name: discharge-orchestrator
+  minReplicaCount: 1
+  maxReplicaCount: 4
+  cooldownPeriod: 90
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090
+        metricName: container_cpu_usage_seconds_total
+        threshold: "0.5"
+        query: sum(rate(container_cpu_usage_seconds_total{namespace="velya-dev-core",pod=~"discharge-orchestrator-.*"}[2m]))
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: task-inbox-scaler
+  namespace: velya-dev-core
+spec:
+  scaleTargetRef:
+    name: task-inbox
+  minReplicaCount: 1
+  maxReplicaCount: 5
+  cooldownPeriod: 60
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090
+        metricName: container_cpu_usage_seconds_total
+        threshold: "0.5"
+        query: sum(rate(container_cpu_usage_seconds_total{namespace="velya-dev-core",pod=~"task-inbox-.*"}[2m]))
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: ai-gateway-scaler
+  namespace: velya-dev-platform
+spec:
+  scaleTargetRef:
+    name: ai-gateway
+  minReplicaCount: 1
+  maxReplicaCount: 6
+  cooldownPeriod: 120
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090
+        metricName: container_cpu_usage_seconds_total
+        threshold: "0.6"
+        query: sum(rate(container_cpu_usage_seconds_total{namespace="velya-dev-platform",pod=~"ai-gateway-.*"}[2m]))
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: agent-orchestrator-scaler
+  namespace: velya-dev-agents
+spec:
+  scaleTargetRef:
+    name: agent-orchestrator
+  minReplicaCount: 1
+  maxReplicaCount: 3
+  cooldownPeriod: 180
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090
+        metricName: container_cpu_usage_seconds_total
+        threshold: "0.7"
+        query: sum(rate(container_cpu_usage_seconds_total{namespace="velya-dev-agents",pod=~"agent-orchestrator-.*"}[2m]))
