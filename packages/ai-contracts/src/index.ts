@@ -1,4 +1,4 @@
-export {
+export type {
   AICapability,
   TokenUsage,
   AIMessage,
@@ -7,9 +7,9 @@ export {
   AIClassificationResult,
 } from './ai-request.js';
 
-export { AIProvider, AIProviderHealthStatus } from './ai-provider.js';
+export type { AIProvider, AIProviderHealthStatus } from './ai-provider.js';
 
-export {
+export type {
   CriticalityLevel,
   ModelRoutingDecision,
   RoutingContext,

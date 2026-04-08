@@ -114,7 +114,7 @@ resource "aws_eks_node_group" "platform" {
   taint {
     key    = "velya.io/platform"
     value  = "true"
-    effect = "NoSchedule"
+    effect = "NO_SCHEDULE"
   }
 
   depends_on = [aws_iam_role_policy_attachment.node_worker_policy]
@@ -161,7 +161,7 @@ resource "aws_eks_node_group" "ai_agents" {
   taint {
     key    = "velya.io/ai-workload"
     value  = "true"
-    effect = "NoSchedule"
+    effect = "NO_SCHEDULE"
   }
 
   depends_on = [aws_iam_role_policy_attachment.node_worker_policy]

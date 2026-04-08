@@ -21,7 +21,8 @@
     ".turbo/",
     "coverage/",
     "**/*.js",
-    "infra/docker/"
+    "infra/docker/",
+    "apps/web/next-env.d.ts"
   ],
   "env": {
     "node": true,
