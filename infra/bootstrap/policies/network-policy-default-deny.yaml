@@ -1,0 +1,195 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/policy: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/policy: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: velya-dev-agents
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/policy: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: velya-staging-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/policy: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: velya-staging-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/policy: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: velya-staging-agents
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/policy: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: velya-prod-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/policy: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: velya-prod-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/policy: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: velya-prod-agents
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/policy: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# Allow DNS resolution from all velya namespaces
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/policy: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/policy: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: velya-dev-agents
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/policy: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

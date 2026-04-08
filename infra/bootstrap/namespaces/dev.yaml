@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/environment: dev
+    velya.io/component: core
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/environment: dev
+    velya.io/component: platform
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velya-dev-agents
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/environment: dev
+    velya.io/component: agents
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: kubectl
+    velya.io/environment: dev
+    velya.io/component: observability

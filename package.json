@@ -1,0 +1,30 @@
+{
+  "name": "velya-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Velya - AI-Native Hospital Operations Platform",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "platform/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:integration": "turbo run test:integration",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yaml}\""
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "npm@10.9.0"
+}
