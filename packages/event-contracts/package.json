@@ -1,0 +1,26 @@
+{
+  "name": "@velya/event-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Velya Event Contracts - Domain event type definitions for inter-service communication",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "dev": "tsc --build --watch",
+    "lint": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@velya/shared-kernel": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

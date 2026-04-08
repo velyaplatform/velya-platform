@@ -1,0 +1,11 @@
+{
+  "name": "@velya/discharge-orchestrator",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node-dev src/main.ts",
+    "test": "jest",
+    "lint": "eslint src/"
+  }
+}
