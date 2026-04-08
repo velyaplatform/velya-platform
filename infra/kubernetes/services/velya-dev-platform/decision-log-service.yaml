@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: decision-log-service
+  namespace: velya-dev-platform
+  labels:
+    app: decision-log-service
+    app.kubernetes.io/name: decision-log-service
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/service: decision-log-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: decision-log-service
+  template:
+    metadata:
+      labels:
+        app: decision-log-service
+        velya.io/service: decision-log-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3050"
+        prometheus.io/path: "/metrics"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: decision-log-service
+          image: velya-decision-log-service:0.1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3050
+              name: http
+          env:
+            - name: PORT
+              value: "3050"
+            - name: SERVICE_NAME
+              value: "decision-log-service"
+            - name: SERVICE_VERSION
+              value: "0.1.0"
+            - name: NODE_ENV
+              value: "development"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3050
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3050
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: decision-log-service
+  namespace: velya-dev-platform
+  labels:
+    app: decision-log-service
+spec:
+  selector:
+    app: decision-log-service
+  ports:
+    - name: http
+      port: 3050
+      targetPort: 3050
+  type: ClusterIP

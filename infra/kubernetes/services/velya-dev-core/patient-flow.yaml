@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: patient-flow
+  namespace: velya-dev-core
+  labels:
+    app: patient-flow
+    app.kubernetes.io/name: patient-flow
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/service: patient-flow
+    velya.io/tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: patient-flow
+  template:
+    metadata:
+      labels:
+        app: patient-flow
+        app.kubernetes.io/name: patient-flow
+        velya.io/service: patient-flow
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3001"
+        prometheus.io/path: "/metrics"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: patient-flow
+          image: velya-patient-flow:0.1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3001
+              name: http
+          env:
+            - name: PORT
+              value: "3001"
+            - name: SERVICE_NAME
+              value: "patient-flow"
+            - name: SERVICE_VERSION
+              value: "0.1.0"
+            - name: NODE_ENV
+              value: "development"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3001
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: patient-flow
+  namespace: velya-dev-core
+  labels:
+    app: patient-flow
+    velya.io/service: patient-flow
+spec:
+  selector:
+    app: patient-flow
+  ports:
+    - name: http
+      port: 3001
+      targetPort: 3001
+  type: ClusterIP

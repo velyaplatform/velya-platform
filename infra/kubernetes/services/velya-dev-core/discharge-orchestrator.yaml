@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discharge-orchestrator
+  namespace: velya-dev-core
+  labels:
+    app: discharge-orchestrator
+    app.kubernetes.io/name: discharge-orchestrator
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/service: discharge-orchestrator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discharge-orchestrator
+  template:
+    metadata:
+      labels:
+        app: discharge-orchestrator
+        velya.io/service: discharge-orchestrator
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3002"
+        prometheus.io/path: "/metrics"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: discharge-orchestrator
+          image: velya-discharge-orchestrator:0.1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3002
+              name: http
+          env:
+            - name: PORT
+              value: "3002"
+            - name: SERVICE_NAME
+              value: "discharge-orchestrator"
+            - name: SERVICE_VERSION
+              value: "0.1.0"
+            - name: NODE_ENV
+              value: "development"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3002
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: discharge-orchestrator
+  namespace: velya-dev-core
+  labels:
+    app: discharge-orchestrator
+spec:
+  selector:
+    app: discharge-orchestrator
+  ports:
+    - name: http
+      port: 3002
+      targetPort: 3002
+  type: ClusterIP

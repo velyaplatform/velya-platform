@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-orchestrator
+  namespace: velya-dev-agents
+  labels:
+    app: agent-orchestrator
+    app.kubernetes.io/name: agent-orchestrator
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/service: agent-orchestrator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-orchestrator
+  template:
+    metadata:
+      labels:
+        app: agent-orchestrator
+        velya.io/service: agent-orchestrator
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3020"
+        prometheus.io/path: "/metrics"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: agent-orchestrator
+          image: velya-agent-orchestrator:0.1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3020
+              name: http
+          env:
+            - name: PORT
+              value: "3020"
+            - name: SERVICE_NAME
+              value: "agent-orchestrator"
+            - name: SERVICE_VERSION
+              value: "0.1.0"
+            - name: NODE_ENV
+              value: "development"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3020
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3020
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-orchestrator
+  namespace: velya-dev-agents
+  labels:
+    app: agent-orchestrator
+spec:
+  selector:
+    app: agent-orchestrator
+  ports:
+    - name: http
+      port: 3020
+      targetPort: 3020
+  type: ClusterIP

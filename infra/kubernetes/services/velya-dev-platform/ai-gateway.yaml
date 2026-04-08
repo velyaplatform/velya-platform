@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-gateway
+  namespace: velya-dev-platform
+  labels:
+    app: ai-gateway
+    app.kubernetes.io/name: ai-gateway
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/service: ai-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-gateway
+  template:
+    metadata:
+      labels:
+        app: ai-gateway
+        velya.io/service: ai-gateway
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3010"
+        prometheus.io/path: "/metrics"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: ai-gateway
+          image: velya-ai-gateway:0.1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3010
+              name: http
+          env:
+            - name: PORT
+              value: "3010"
+            - name: SERVICE_NAME
+              value: "ai-gateway"
+            - name: SERVICE_VERSION
+              value: "0.1.0"
+            - name: NODE_ENV
+              value: "development"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3010
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3010
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-gateway
+  namespace: velya-dev-platform
+  labels:
+    app: ai-gateway
+spec:
+  selector:
+    app: ai-gateway
+  ports:
+    - name: http
+      port: 3010
+      targetPort: 3010
+  type: ClusterIP

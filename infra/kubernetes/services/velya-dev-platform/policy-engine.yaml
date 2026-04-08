@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: policy-engine
+  namespace: velya-dev-platform
+  labels:
+    app: policy-engine
+    app.kubernetes.io/name: policy-engine
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/service: policy-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: policy-engine
+  template:
+    metadata:
+      labels:
+        app: policy-engine
+        velya.io/service: policy-engine
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3030"
+        prometheus.io/path: "/metrics"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: policy-engine
+          image: velya-policy-engine:0.1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3030
+              name: http
+          env:
+            - name: PORT
+              value: "3030"
+            - name: SERVICE_NAME
+              value: "policy-engine"
+            - name: SERVICE_VERSION
+              value: "0.1.0"
+            - name: NODE_ENV
+              value: "development"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3030
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3030
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: policy-engine
+  namespace: velya-dev-platform
+  labels:
+    app: policy-engine
+spec:
+  selector:
+    app: policy-engine
+  ports:
+    - name: http
+      port: 3030
+      targetPort: 3030
+  type: ClusterIP

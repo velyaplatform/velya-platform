@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-inbox
+  namespace: velya-dev-core
+  labels:
+    app: task-inbox
+    app.kubernetes.io/name: task-inbox
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/service: task-inbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: task-inbox
+  template:
+    metadata:
+      labels:
+        app: task-inbox
+        velya.io/service: task-inbox
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3003"
+        prometheus.io/path: "/metrics"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: task-inbox
+          image: velya-task-inbox:0.1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3003
+              name: http
+          env:
+            - name: PORT
+              value: "3003"
+            - name: SERVICE_NAME
+              value: "task-inbox"
+            - name: SERVICE_VERSION
+              value: "0.1.0"
+            - name: NODE_ENV
+              value: "development"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3003
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3003
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-inbox
+  namespace: velya-dev-core
+  labels:
+    app: task-inbox
+spec:
+  selector:
+    app: task-inbox
+  ports:
+    - name: http
+      port: 3003
+      targetPort: 3003
+  type: ClusterIP
