@@ -148,7 +148,7 @@ jobs:
 
       - name: Lint Helm charts
         run: |
-          for chart in infra/helm/charts/*/; do
+          for chart in infra/helm/*/; do
             if [ -f "$chart/Chart.yaml" ]; then
               echo "Linting $chart..."
               helm lint "$chart"
@@ -168,7 +168,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: |
-      contains(github.event.pull_request.changed_files_names || '', 'infra/tofu/') ||
+      contains(github.event.pull_request.changed_files_names || '', 'infra/opentofu/') ||
       github.event_name == 'push'
     steps:
       - name: Checkout
@@ -181,7 +181,7 @@ jobs:
 
       - name: Validate OpenTofu modules
         run: |
-          for module in infra/tofu/modules/*/; do
+          for module in infra/opentofu/modules/*/; do
             if [ -f "$module/main.tf" ]; then
               echo "Validating $module..."
               cd "$module"

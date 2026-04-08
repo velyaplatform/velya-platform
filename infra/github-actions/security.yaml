@@ -195,7 +195,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: |
-      contains(github.event.pull_request.changed_files_names || '', 'infra/tofu/') ||
+      contains(github.event.pull_request.changed_files_names || '', 'infra/opentofu/') ||
       github.event_name == 'push'
     steps:
       - name: Checkout
@@ -209,7 +209,7 @@ jobs:
           # Check for public access patterns
           PUBLIC_PATTERNS='publicly_accessible\s*=\s*true|acl\s*=\s*"public|block_public_access\s*=\s*false|ingress.*0\.0\.0\.0/0'
           
-          TF_FILES=$(find infra/tofu/ -name '*.tf' 2>/dev/null || true)
+          TF_FILES=$(find infra/opentofu/ -name '*.tf' 2>/dev/null || true)
           
           for file in $TF_FILES; do
             FINDINGS=$(grep -nE "$PUBLIC_PATTERNS" "$file" 2>/dev/null || true)
