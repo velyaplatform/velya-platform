@@ -124,6 +124,13 @@ Enforce resource limits per tier:
 | Platform | 2 | 2Gi | 4 | 4Gi | 30 | 10 |
 | AI/Agents | 8 | 16Gi | 16 | 32Gi | 40 | 10 |
 
+> **Implementation note — no `scopeSelector`**: Quotas for frontend, backend, and ai-agents do **not**
+> use `scopeSelector`. Kubernetes only allows `PriorityClass` scope on compute resources (`pods`,
+> `cpu`, `memory`). Mixing it with `services` or `persistentvolumeclaims` causes the API server to
+> reject the entire quota object. Tier isolation is enforced at the node level (labels + taints), so
+> namespace-wide quotas are correct and sufficient here. See
+> [ADR-0013](../../../docs/adr/0013-resource-quota-scope-selector.md) for full rationale.
+
 ### 3. Pod Disruption Budgets (PDBs)
 **File**: `resource-quotas-by-tier.yaml`
 

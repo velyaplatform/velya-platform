@@ -287,6 +287,43 @@ cd .ministack/repo && docker-compose down
 
 ## Troubleshooting
 
+### kube-proxy CrashLoopBackOff: "too many open files" (Linux)
+
+**Symptom**: `kubectl get pods -n kube-system` shows kube-proxy pods in `CrashLoopBackOff`.
+`kubectl logs -n kube-system <kube-proxy-pod> --previous` shows `too many open files`.
+
+**Cause**: The Linux kernel default for `fs.inotify.max_user_instances` (128) is too low for a
+multi-node kind cluster. Each node container needs its own inotify instances.
+
+**Fix (persists until reboot):**
+```bash
+# Apply to all kind node containers
+for node in $(kind get nodes --name velya-local); do
+  docker exec $node sysctl -w fs.inotify.max_user_watches=524288 fs.inotify.max_user_instances=512
+done
+
+# Restart the affected pods
+kubectl delete pod -n kube-system -l k8s-app=kube-proxy
+```
+
+**Fix (permanent — survives reboot):**
+```bash
+echo "fs.inotify.max_user_watches=524288" | sudo tee -a /etc/sysctl.conf
+echo "fs.inotify.max_user_instances=512"  | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
+```
+
+### velya-init.sh fails: "node(s) already exist for a cluster with the name velya-local"
+
+**Cause**: The cluster was created in a previous run. The init script is now idempotent and skips
+cluster creation if the cluster already exists (fixed in `scripts/kind-setup.sh`).
+
+If you are running an older version, either update from main or delete the cluster first:
+```bash
+kind delete cluster --name velya-local
+bash scripts/velya-init.sh
+```
+
 ### kind cluster won't start
 ```bash
 # Check Docker is running

@@ -66,19 +66,23 @@ setup() {
     log_info "Creating kind cluster configuration..."
     create_kind_config
 
-    # Create cluster
-    log_info "Creating kind cluster '${CLUSTER_NAME}' (this takes ~30 seconds)..."
-    kind create cluster \
-        --name "${CLUSTER_NAME}" \
-        --config "${PROJECT_ROOT}/.kind/cluster-config.yaml" \
-        --image kindest/node:"${KIND_VERSION}" \
-        --wait 120s
+    # Create cluster (skip if already exists)
+    if kind get clusters 2>/dev/null | grep -q "^${CLUSTER_NAME}$"; then
+        log_success "kind cluster '${CLUSTER_NAME}' already exists, skipping creation"
+    else
+        log_info "Creating kind cluster '${CLUSTER_NAME}' (this takes ~30 seconds)..."
+        kind create cluster \
+            --name "${CLUSTER_NAME}" \
+            --config "${PROJECT_ROOT}/.kind/cluster-config.yaml" \
+            --image kindest/node:"${KIND_VERSION}" \
+            --wait 120s
 
-    if [ $? -ne 0 ]; then
-        log_error "Failed to create kind cluster"
-        exit 1
+        if [ $? -ne 0 ]; then
+            log_error "Failed to create kind cluster"
+            exit 1
+        fi
+        log_success "kind cluster created"
     fi
-    log_success "kind cluster created"
 
     # Set kubeconfig context
     kubectl config use-context kind-"${CLUSTER_NAME}"

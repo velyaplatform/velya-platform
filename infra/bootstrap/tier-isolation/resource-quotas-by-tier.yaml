@@ -12,11 +12,6 @@ spec:
     pods: "20"
     services: "10"
     services.loadbalancers: "2"
-  scopeSelector:
-    matchExpressions:
-      - operator: In
-        scopeName: PriorityClass
-        values: ["default"]
 
 ---
 apiVersion: v1
@@ -32,11 +27,6 @@ spec:
     limits.memory: "32Gi"
     pods: "50"
     services: "20"
-  scopeSelector:
-    matchExpressions:
-      - operator: In
-        scopeName: PriorityClass
-        values: ["default"]
 
 ---
 apiVersion: v1
@@ -68,11 +58,6 @@ spec:
     limits.memory: "32Gi"
     pods: "40"
     services: "10"
-  scopeSelector:
-    matchExpressions:
-      - operator: In
-        scopeName: PriorityClass
-        values: ["default"]
 
 ---
 # Pod Disruption Budgets for HA
