@@ -1,217 +1,408 @@
 /**
- * Common metrics for the Velya platform.
+ * Common metrics helpers for the Velya platform.
  *
- * Provides a standardized metrics interface that wraps OpenTelemetry
- * metrics API, exposing counters, histograms, and gauges for common
- * operational patterns across all services.
+ * Provides RED (Rate, Error, Duration) metrics and hospital-specific
+ * operational metrics aligned with OpenTelemetry conventions.
  */
 
 /**
- * Configuration for the metrics collector.
+ * Metric instrument types aligned with OpenTelemetry.
  */
-export interface MetricsConfig {
-  /** Service name used as a metric label. */
-  readonly serviceName: string;
+export type MetricType = 'counter' | 'up-down-counter' | 'histogram' | 'gauge';
 
-  /** OTLP collector endpoint for metrics. Defaults to http://localhost:4318. */
-  readonly collectorEndpoint?: string;
-
-  /** Export interval in milliseconds. Defaults to 60000 (1 minute). */
-  readonly exportIntervalMs?: number;
-
-  /** Metric prefix applied to all metric names. */
-  readonly prefix?: string;
+/**
+ * A recorded metric data point.
+ */
+export interface MetricDataPoint {
+  readonly name: string;
+  readonly type: MetricType;
+  readonly value: number;
+  readonly unit: string;
+  readonly labels: Readonly<Record<string, string>>;
+  readonly timestamp: number;
 }
 
 /**
- * Counter metric that only goes up.
+ * Configuration for a metric instrument.
  */
-export interface Counter {
-  /** Increment the counter by 1 or a specified value. */
-  add(value?: number, labels?: Readonly<Record<string, string>>): void;
+export interface MetricDefinition {
+  readonly name: string;
+  readonly type: MetricType;
+  readonly description: string;
+  readonly unit: string;
 }
 
 /**
- * Histogram metric for recording distributions (e.g., request duration).
+ * Counter that can only increase.
  */
-export interface Histogram {
-  /** Record a value in the histogram. */
-  record(value: number, labels?: Readonly<Record<string, string>>): void;
+export class Counter {
+  private readonly metricName: string;
+  private readonly unit: string;
+  private readonly buckets = new Map<string, number>();
+
+  constructor(definition: MetricDefinition) {
+    this.metricName = definition.name;
+    this.unit = definition.unit;
+  }
+
+  /**
+   * Increment the counter by a given value (default 1).
+   */
+  increment(value: number = 1, labels: Record<string, string> = {}): void {
+    const key = labelsToKey(labels);
+    const current = this.buckets.get(key) ?? 0;
+    this.buckets.set(key, current + value);
+  }
+
+  /**
+   * Get the current counter value for given labels.
+   */
+  getValue(labels: Record<string, string> = {}): number {
+    return this.buckets.get(labelsToKey(labels)) ?? 0;
+  }
+
+  /**
+   * Export all data points.
+   */
+  collect(): ReadonlyArray<MetricDataPoint> {
+    const now = Date.now();
+    const points: MetricDataPoint[] = [];
+
+    for (const [key, value] of this.buckets) {
+      points.push({
+        name: this.metricName,
+        type: 'counter',
+        value,
+        unit: this.unit,
+        labels: keyToLabels(key),
+        timestamp: now,
+      });
+    }
+
+    return points;
+  }
 }
 
 /**
- * Gauge metric for recording a current value that can go up or down.
+ * Histogram for recording distributions (e.g., latency).
  */
-export interface Gauge {
-  /** Set the current gauge value. */
-  set(value: number, labels?: Readonly<Record<string, string>>): void;
+export class Histogram {
+  private readonly metricName: string;
+  private readonly unit: string;
+  private readonly boundaries: ReadonlyArray<number>;
+  private readonly observations = new Map<string, number[]>();
+
+  constructor(definition: MetricDefinition, boundaries?: number[]) {
+    this.metricName = definition.name;
+    this.unit = definition.unit;
+    this.boundaries = boundaries ?? [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
+  }
+
+  /**
+   * Record a value observation.
+   */
+  record(value: number, labels: Record<string, string> = {}): void {
+    const key = labelsToKey(labels);
+    const values = this.observations.get(key) ?? [];
+    values.push(value);
+    this.observations.set(key, values);
+  }
+
+  /**
+   * Get summary statistics for given labels.
+   */
+  getSummary(labels: Record<string, string> = {}): HistogramSummary {
+    const key = labelsToKey(labels);
+    const values = this.observations.get(key) ?? [];
+
+    if (values.length === 0) {
+      return {
+        count: 0,
+        sum: 0,
+        min: 0,
+        max: 0,
+        avg: 0,
+        p50: 0,
+        p95: 0,
+        p99: 0,
+      };
+    }
+
+    const sorted = [...values].sort((a, b) => a - b);
+    const sum = sorted.reduce((acc, v) => acc + v, 0);
+
+    return {
+      count: sorted.length,
+      sum,
+      min: sorted[0],
+      max: sorted[sorted.length - 1],
+      avg: sum / sorted.length,
+      p50: percentile(sorted, 0.50),
+      p95: percentile(sorted, 0.95),
+      p99: percentile(sorted, 0.99),
+    };
+  }
+
+  /**
+   * Export bucket counts for the histogram.
+   */
+  collect(): ReadonlyArray<MetricDataPoint> {
+    const now = Date.now();
+    const points: MetricDataPoint[] = [];
+
+    for (const [key, values] of this.observations) {
+      const labels = keyToLabels(key);
+
+      points.push({
+        name: `${this.metricName}.count`,
+        type: 'histogram',
+        value: values.length,
+        unit: this.unit,
+        labels,
+        timestamp: now,
+      });
+
+      points.push({
+        name: `${this.metricName}.sum`,
+        type: 'histogram',
+        value: values.reduce((acc, v) => acc + v, 0),
+        unit: this.unit,
+        labels,
+        timestamp: now,
+      });
+
+      for (const boundary of this.boundaries) {
+        const count = values.filter((v) => v <= boundary).length;
+        points.push({
+          name: `${this.metricName}.bucket`,
+          type: 'histogram',
+          value: count,
+          unit: this.unit,
+          labels: { ...labels, le: String(boundary) },
+          timestamp: now,
+        });
+      }
+    }
+
+    return points;
+  }
 }
 
 /**
- * Standard HTTP request metrics.
+ * Summary statistics for a histogram.
  */
-export interface HttpMetrics {
-  /** Total number of HTTP requests. */
-  readonly requestCount: Counter;
+export interface HistogramSummary {
+  readonly count: number;
+  readonly sum: number;
+  readonly min: number;
+  readonly max: number;
+  readonly avg: number;
+  readonly p50: number;
+  readonly p95: number;
+  readonly p99: number;
+}
 
-  /** HTTP request duration in milliseconds. */
+/**
+ * Gauge that records a current value (can go up or down).
+ */
+export class Gauge {
+  private readonly metricName: string;
+  private readonly unit: string;
+  private readonly values = new Map<string, number>();
+
+  constructor(definition: MetricDefinition) {
+    this.metricName = definition.name;
+    this.unit = definition.unit;
+  }
+
+  /**
+   * Set the gauge to a specific value.
+   */
+  set(value: number, labels: Record<string, string> = {}): void {
+    this.values.set(labelsToKey(labels), value);
+  }
+
+  /**
+   * Get the current gauge value.
+   */
+  getValue(labels: Record<string, string> = {}): number {
+    return this.values.get(labelsToKey(labels)) ?? 0;
+  }
+
+  /**
+   * Export all gauge data points.
+   */
+  collect(): ReadonlyArray<MetricDataPoint> {
+    const now = Date.now();
+    const points: MetricDataPoint[] = [];
+
+    for (const [key, value] of this.values) {
+      points.push({
+        name: this.metricName,
+        type: 'gauge',
+        value,
+        unit: this.unit,
+        labels: keyToLabels(key),
+        timestamp: now,
+      });
+    }
+
+    return points;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Label serialization helpers
+// ---------------------------------------------------------------------------
+
+function labelsToKey(labels: Record<string, string>): string {
+  const sorted = Object.entries(labels).sort(([a], [b]) => a.localeCompare(b));
+  return sorted.map(([k, v]) => `${k}=${v}`).join(',');
+}
+
+function keyToLabels(key: string): Record<string, string> {
+  if (key === '') return {};
+  const labels: Record<string, string> = {};
+  for (const pair of key.split(',')) {
+    const eqIndex = pair.indexOf('=');
+    if (eqIndex > 0) {
+      labels[pair.slice(0, eqIndex)] = pair.slice(eqIndex + 1);
+    }
+  }
+  return labels;
+}
+
+function percentile(sorted: number[], p: number): number {
+  if (sorted.length === 0) return 0;
+  const index = Math.ceil(p * sorted.length) - 1;
+  return sorted[Math.max(0, index)];
+}
+
+// ---------------------------------------------------------------------------
+// Pre-defined RED metrics for microservices
+// ---------------------------------------------------------------------------
+
+/**
+ * Standard RED (Rate, Errors, Duration) metrics for a service.
+ */
+export interface ServiceMetrics {
+  readonly requestRate: Counter;
+  readonly errorRate: Counter;
   readonly requestDuration: Histogram;
-
-  /** Number of HTTP errors (4xx and 5xx). */
-  readonly errorCount: Counter;
-
-  /** Number of currently active requests. */
   readonly activeRequests: Gauge;
 }
 
 /**
- * Standard domain operation metrics.
+ * Create standard RED metrics for a service.
  */
-export interface DomainMetrics {
-  /** Number of domain events emitted. */
-  readonly eventsEmitted: Counter;
-
-  /** Number of domain events consumed. */
-  readonly eventsConsumed: Counter;
-
-  /** Event processing duration in milliseconds. */
-  readonly eventProcessingDuration: Histogram;
-
-  /** Number of event processing failures. */
-  readonly eventProcessingErrors: Counter;
+export function createServiceMetrics(serviceName: string): ServiceMetrics {
+  return {
+    requestRate: new Counter({
+      name: `${serviceName}.http.requests.total`,
+      type: 'counter',
+      description: `Total HTTP requests handled by ${serviceName}`,
+      unit: 'requests',
+    }),
+    errorRate: new Counter({
+      name: `${serviceName}.http.errors.total`,
+      type: 'counter',
+      description: `Total HTTP errors returned by ${serviceName}`,
+      unit: 'errors',
+    }),
+    requestDuration: new Histogram(
+      {
+        name: `${serviceName}.http.request.duration`,
+        type: 'histogram',
+        description: `HTTP request duration for ${serviceName}`,
+        unit: 'ms',
+      },
+      [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000],
+    ),
+    activeRequests: new Gauge({
+      name: `${serviceName}.http.requests.active`,
+      type: 'gauge',
+      description: `Currently active HTTP requests in ${serviceName}`,
+      unit: 'requests',
+    }),
+  };
 }
 
+// ---------------------------------------------------------------------------
+// Hospital-specific operational metrics
+// ---------------------------------------------------------------------------
+
 /**
- * Hospital-specific operational metrics.
+ * Metrics specific to hospital patient flow operations.
  */
-export interface HospitalMetrics {
-  /** Current bed occupancy rate (0-1). */
-  readonly bedOccupancyRate: Gauge;
-
-  /** Number of active encounters. */
-  readonly activeEncounters: Gauge;
-
-  /** Number of active discharge blockers. */
-  readonly activeDischargeBlockers: Gauge;
-
-  /** Discharge blocker resolution time in minutes. */
-  readonly blockerResolutionTime: Histogram;
-
-  /** Number of overdue tasks. */
-  readonly overdueTasks: Gauge;
-
-  /** Task completion time in minutes. */
-  readonly taskCompletionTime: Histogram;
-
-  /** Average length of stay in days. */
+export interface PatientFlowMetrics {
+  readonly bedOccupancy: Gauge;
+  readonly pendingDischarges: Gauge;
+  readonly activeBlockers: Gauge;
   readonly averageLengthOfStay: Gauge;
-
-  /** Number of pending admissions. */
-  readonly pendingAdmissions: Gauge;
+  readonly dischargeBlockerResolutionTime: Histogram;
+  readonly taskCompletionTime: Histogram;
+  readonly encountersCreated: Counter;
+  readonly encountersDischarged: Counter;
 }
 
 /**
- * Metrics collector wrapping all service metrics.
+ * Create hospital patient flow metrics.
  */
-export interface MetricsCollector {
-  readonly http: HttpMetrics;
-  readonly domain: DomainMetrics;
-  readonly hospital: HospitalMetrics;
-}
-
-/**
- * Create a stub counter for use before OTel SDK is initialized.
- */
-function createStubCounter(): Counter {
+export function createPatientFlowMetrics(): PatientFlowMetrics {
   return {
-    add(_value?: number, _labels?: Readonly<Record<string, string>>): void {
-      // Stub -- replaced by OTel MeterProvider in production
-    },
+    bedOccupancy: new Gauge({
+      name: 'velya.patient_flow.bed_occupancy',
+      type: 'gauge',
+      description: 'Current bed occupancy rate (0-1)',
+      unit: 'ratio',
+    }),
+    pendingDischarges: new Gauge({
+      name: 'velya.patient_flow.pending_discharges',
+      type: 'gauge',
+      description: 'Number of patients with pending discharges',
+      unit: 'patients',
+    }),
+    activeBlockers: new Gauge({
+      name: 'velya.patient_flow.active_blockers',
+      type: 'gauge',
+      description: 'Number of active discharge blockers',
+      unit: 'blockers',
+    }),
+    averageLengthOfStay: new Gauge({
+      name: 'velya.patient_flow.average_length_of_stay',
+      type: 'gauge',
+      description: 'Average length of stay in days',
+      unit: 'days',
+    }),
+    dischargeBlockerResolutionTime: new Histogram(
+      {
+        name: 'velya.patient_flow.blocker_resolution_time',
+        type: 'histogram',
+        description: 'Time to resolve discharge blockers',
+        unit: 'minutes',
+      },
+      [15, 30, 60, 120, 240, 480, 720, 1440],
+    ),
+    taskCompletionTime: new Histogram(
+      {
+        name: 'velya.patient_flow.task_completion_time',
+        type: 'histogram',
+        description: 'Time to complete clinical tasks',
+        unit: 'minutes',
+      },
+      [5, 15, 30, 60, 120, 240, 480],
+    ),
+    encountersCreated: new Counter({
+      name: 'velya.patient_flow.encounters_created',
+      type: 'counter',
+      description: 'Total encounters created',
+      unit: 'encounters',
+    }),
+    encountersDischarged: new Counter({
+      name: 'velya.patient_flow.encounters_discharged',
+      type: 'counter',
+      description: 'Total encounters discharged',
+      unit: 'encounters',
+    }),
   };
 }
-
-/**
- * Create a stub histogram for use before OTel SDK is initialized.
- */
-function createStubHistogram(): Histogram {
-  return {
-    record(_value: number, _labels?: Readonly<Record<string, string>>): void {
-      // Stub -- replaced by OTel MeterProvider in production
-    },
-  };
-}
-
-/**
- * Create a stub gauge for use before OTel SDK is initialized.
- */
-function createStubGauge(): Gauge {
-  return {
-    set(_value: number, _labels?: Readonly<Record<string, string>>): void {
-      // Stub -- replaced by OTel MeterProvider in production
-    },
-  };
-}
-
-/**
- * Initialize the metrics collector for a Velya service.
- *
- * In a full implementation, this would configure:
- *   - @opentelemetry/sdk-metrics MeterProvider
- *   - @opentelemetry/exporter-metrics-otlp-http OTLPMetricExporter
- *   - PeriodicExportingMetricReader
- *
- * The stub implementation provided here is safe for use in tests
- * and during bootstrap before the OTel SDK is available.
- *
- * @example
- * ```typescript
- * const metrics = initMetrics({
- *   serviceName: 'patient-flow',
- * });
- *
- * metrics.http.requestCount.add(1, { method: 'GET', path: '/encounters' });
- * metrics.http.requestDuration.record(42, { method: 'GET', status: '200' });
- * metrics.hospital.activeEncounters.set(127);
- * ```
- */
-export function initMetrics(_config: MetricsConfig): MetricsCollector {
-  return {
-    http: {
-      requestCount: createStubCounter(),
-      requestDuration: createStubHistogram(),
-      errorCount: createStubCounter(),
-      activeRequests: createStubGauge(),
-    },
-    domain: {
-      eventsEmitted: createStubCounter(),
-      eventsConsumed: createStubCounter(),
-      eventProcessingDuration: createStubHistogram(),
-      eventProcessingErrors: createStubCounter(),
-    },
-    hospital: {
-      bedOccupancyRate: createStubGauge(),
-      activeEncounters: createStubGauge(),
-      activeDischargeBlockers: createStubGauge(),
-      blockerResolutionTime: createStubHistogram(),
-      overdueTasks: createStubGauge(),
-      taskCompletionTime: createStubHistogram(),
-      averageLengthOfStay: createStubGauge(),
-      pendingAdmissions: createStubGauge(),
-    },
-  };
-}
-
-/**
- * Standard histogram bucket boundaries for HTTP request duration (ms).
- */
-export const HTTP_DURATION_BUCKETS = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000] as const;
-
-/**
- * Standard histogram bucket boundaries for domain event processing (ms).
- */
-export const EVENT_PROCESSING_BUCKETS = [1, 5, 10, 25, 50, 100, 250, 500, 1000] as const;
-
-/**
- * Standard histogram bucket boundaries for blocker resolution time (minutes).
- */
-export const BLOCKER_RESOLUTION_BUCKETS = [15, 30, 60, 120, 240, 480, 720, 1440] as const;

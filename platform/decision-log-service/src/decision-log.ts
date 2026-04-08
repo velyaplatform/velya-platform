@@ -1,109 +1,196 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-export type DecisionRiskLevel = 'low' | 'medium' | 'high' | 'critical';
-export type DecisionOutcome = 'success' | 'failure' | 'pending' | 'escalated' | 'rolled-back';
+/**
+ * The type of decision recorded in the log.
+ */
+export type DecisionType =
+  | 'agent-action'
+  | 'policy-evaluation'
+  | 'escalation'
+  | 'delegation'
+  | 'approval'
+  | 'rejection'
+  | 'override'
+  | 'fallback'
+  | 'recommendation';
 
+/**
+ * Outcome of a decision.
+ */
+export type DecisionOutcome =
+  | 'executed'
+  | 'approved'
+  | 'denied'
+  | 'deferred'
+  | 'escalated'
+  | 'timed-out'
+  | 'failed';
+
+/**
+ * Risk classification at the time of decision.
+ */
+export type DecisionRisk = 'low' | 'medium' | 'high' | 'critical';
+
+/**
+ * Immutable decision log entry.
+ *
+ * Decision entries are append-only and must never be modified or deleted.
+ * They provide a complete audit trail of all agent and system decisions
+ * for governance, compliance, and retrospective analysis.
+ */
 export interface DecisionEntry {
+  /** Unique decision entry identifier. */
   readonly id: string;
-  readonly agentId: string;
-  readonly agentLayer: string;
-  readonly action: DecisionAction;
-  readonly context: DecisionContext;
-  readonly reasoning: string;
-  readonly riskLevel: DecisionRiskLevel;
-  readonly outcome: DecisionOutcome;
-  readonly timestamp: Date;
+
+  /** ISO-8601 timestamp of when the decision was made. */
+  readonly timestamp: string;
+
+  /** Type of decision. */
+  readonly type: DecisionType;
+
+  /** ID of the agent or service that made the decision. */
+  readonly deciderId: string;
+
+  /** Human-readable name of the decider. */
+  readonly deciderName: string;
+
+  /** Whether the decider is an agent, service, or human. */
+  readonly deciderType: 'agent' | 'service' | 'user';
+
+  /** Correlation ID linking to the broader transaction or workflow. */
   readonly correlationId: string;
-  readonly parentDecisionId?: string;
-  readonly delegationChain: string[];
-  readonly policyChecks: PolicyCheckRecord[];
-  readonly durationMs: number;
-  readonly tokensUsed: number;
-  readonly cost: number;
-}
 
-export interface DecisionAction {
-  type: string;
-  resource: string;
-  parameters: Record<string, unknown>;
-  impact: string;
-}
+  /** Causation ID linking to the direct trigger of this decision. */
+  readonly causationId: string | null;
 
-export interface DecisionContext {
-  environment: 'development' | 'staging' | 'production';
-  triggerSource: string;
-  inputSummary: string;
-  outputSummary: string;
-  metadata: Record<string, string>;
-}
+  /** The action or operation being decided upon. */
+  readonly action: string;
 
-export interface PolicyCheckRecord {
-  policyId: string;
-  policyName: string;
-  result: 'passed' | 'failed' | 'skipped';
-  reason: string;
-}
+  /** The resource affected by this decision. */
+  readonly resource: string;
 
-export interface LogDecisionRequest {
-  agentId: string;
-  agentLayer: string;
-  action: DecisionAction;
-  context: DecisionContext;
-  reasoning: string;
-  riskLevel: DecisionRiskLevel;
-  outcome: DecisionOutcome;
-  correlationId: string;
-  parentDecisionId?: string;
-  delegationChain: string[];
-  policyChecks: PolicyCheckRecord[];
-  durationMs: number;
-  tokensUsed: number;
-  cost: number;
-}
+  /** Resource identifier. */
+  readonly resourceId: string;
 
-export interface DecisionLogQuery {
-  agentId?: string;
-  agentLayer?: string;
-  actionType?: string;
-  riskLevel?: DecisionRiskLevel;
-  outcome?: DecisionOutcome;
-  correlationId?: string;
-  environment?: 'development' | 'staging' | 'production';
-  fromTimestamp?: Date;
-  toTimestamp?: Date;
-  limit?: number;
-  offset?: number;
-}
+  /** The reasoning or rationale behind the decision. */
+  readonly reasoning: string;
 
-export interface DecisionAuditExport {
-  exportedAt: Date;
-  exportedBy: string;
-  totalEntries: number;
-  query: DecisionLogQuery;
-  entries: DecisionEntry[];
-  summary: DecisionAuditSummary;
-  integrityHash: string;
-}
+  /** Confidence score (0-1) for AI-driven decisions. */
+  readonly confidence: number | null;
 
-export interface DecisionAuditSummary {
-  totalDecisions: number;
-  outcomeBreakdown: Record<DecisionOutcome, number>;
-  riskBreakdown: Record<DecisionRiskLevel, number>;
-  agentBreakdown: Map<string, number>;
-  averageDurationMs: number;
-  totalTokensUsed: number;
-  totalCost: number;
-  policyViolations: number;
-  timeRange: {
-    earliest: Date | null;
-    latest: Date | null;
-  };
+  /** Risk classification at decision time. */
+  readonly risk: DecisionRisk;
+
+  /** Outcome of the decision. */
+  readonly outcome: DecisionOutcome;
+
+  /** Whether the decision required human approval. */
+  readonly requiredApproval: boolean;
+
+  /** ID of the human approver, if approval was required. */
+  readonly approvedBy: string | null;
+
+  /** Input data considered for the decision (redacted of PHI). */
+  readonly inputs: Readonly<Record<string, unknown>>;
+
+  /** Output or result of the decision. */
+  readonly outputs: Readonly<Record<string, unknown>>;
+
+  /** Alternatives considered but not chosen. */
+  readonly alternativesConsidered: ReadonlyArray<DecisionAlternative>;
+
+  /** Policy IDs that were evaluated for this decision. */
+  readonly policiesEvaluated: ReadonlyArray<string>;
+
+  /** Time in milliseconds to reach the decision. */
+  readonly decisionDurationMs: number;
+
+  /** Additional context. */
+  readonly metadata: Readonly<Record<string, unknown>>;
 }
 
 /**
- * Immutable decision log that records every agent decision with full context.
- * Entries cannot be modified or deleted once written, ensuring a complete
- * audit trail for governance and compliance.
+ * An alternative that was considered but not chosen during decision-making.
+ */
+export interface DecisionAlternative {
+  /** Description of the alternative action. */
+  readonly action: string;
+
+  /** Why this alternative was not chosen. */
+  readonly rejectionReason: string;
+
+  /** Confidence score for this alternative (0-1). */
+  readonly confidence: number;
+
+  /** Risk classification for this alternative. */
+  readonly risk: DecisionRisk;
+}
+
+/**
+ * Filter criteria for querying decision log entries.
+ */
+export interface DecisionLogQuery {
+  readonly deciderId?: string;
+  readonly deciderType?: 'agent' | 'service' | 'user';
+  readonly type?: DecisionType;
+  readonly outcome?: DecisionOutcome;
+  readonly risk?: DecisionRisk;
+  readonly resource?: string;
+  readonly resourceId?: string;
+  readonly correlationId?: string;
+  readonly requiredApproval?: boolean;
+  readonly fromTimestamp?: string;
+  readonly toTimestamp?: string;
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
+/**
+ * Statistics summary for decision log entries.
+ */
+export interface DecisionLogStats {
+  readonly totalDecisions: number;
+  readonly byType: Readonly<Record<DecisionType, number>>;
+  readonly byOutcome: Readonly<Record<DecisionOutcome, number>>;
+  readonly byRisk: Readonly<Record<DecisionRisk, number>>;
+  readonly averageDecisionDurationMs: number;
+  readonly approvalRate: number;
+  readonly escalationRate: number;
+  readonly computedAt: string;
+}
+
+/**
+ * Request to record a new decision.
+ */
+export interface RecordDecisionRequest {
+  readonly type: DecisionType;
+  readonly deciderId: string;
+  readonly deciderName: string;
+  readonly deciderType: 'agent' | 'service' | 'user';
+  readonly correlationId: string;
+  readonly causationId?: string;
+  readonly action: string;
+  readonly resource: string;
+  readonly resourceId: string;
+  readonly reasoning: string;
+  readonly confidence?: number;
+  readonly risk: DecisionRisk;
+  readonly outcome: DecisionOutcome;
+  readonly requiredApproval: boolean;
+  readonly approvedBy?: string;
+  readonly inputs: Record<string, unknown>;
+  readonly outputs: Record<string, unknown>;
+  readonly alternativesConsidered?: DecisionAlternative[];
+  readonly policiesEvaluated?: string[];
+  readonly decisionDurationMs: number;
+  readonly metadata?: Record<string, unknown>;
+}
+
+/**
+ * Immutable decision log service.
+ *
+ * All entries are append-only. The log supports querying, filtering,
+ * and statistical aggregation for governance dashboards and compliance audits.
  */
 @Injectable()
 export class DecisionLog {
@@ -112,85 +199,101 @@ export class DecisionLog {
   private entryCounter = 0;
 
   /**
-   * Log a decision. Once written, the entry is immutable.
+   * Record a new decision. Entries are immutable once recorded.
    */
-  log(request: LogDecisionRequest): DecisionEntry {
-    const id = this.generateEntryId();
+  record(request: RecordDecisionRequest): DecisionEntry {
+    this.entryCounter++;
+    const id = `dec-${Date.now().toString(36)}-${this.entryCounter.toString(36).padStart(4, '0')}`;
 
-    const entry: DecisionEntry = Object.freeze({
+    const entry: DecisionEntry = {
       id,
-      agentId: request.agentId,
-      agentLayer: request.agentLayer,
-      action: Object.freeze({ ...request.action }),
-      context: Object.freeze({
-        ...request.context,
-        metadata: Object.freeze({ ...request.context.metadata }),
-      }),
-      reasoning: request.reasoning,
-      riskLevel: request.riskLevel,
-      outcome: request.outcome,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
+      type: request.type,
+      deciderId: request.deciderId,
+      deciderName: request.deciderName,
+      deciderType: request.deciderType,
       correlationId: request.correlationId,
-      parentDecisionId: request.parentDecisionId,
-      delegationChain: Object.freeze([...request.delegationChain]) as readonly string[] as string[],
-      policyChecks: Object.freeze(
-        request.policyChecks.map((pc) => Object.freeze({ ...pc })),
-      ) as readonly PolicyCheckRecord[] as PolicyCheckRecord[],
-      durationMs: request.durationMs,
-      tokensUsed: request.tokensUsed,
-      cost: request.cost,
-    });
+      causationId: request.causationId ?? null,
+      action: request.action,
+      resource: request.resource,
+      resourceId: request.resourceId,
+      reasoning: request.reasoning,
+      confidence: request.confidence ?? null,
+      risk: request.risk,
+      outcome: request.outcome,
+      requiredApproval: request.requiredApproval,
+      approvedBy: request.approvedBy ?? null,
+      inputs: { ...request.inputs },
+      outputs: { ...request.outputs },
+      alternativesConsidered: request.alternativesConsidered
+        ? [...request.alternativesConsidered]
+        : [],
+      policiesEvaluated: request.policiesEvaluated
+        ? [...request.policiesEvaluated]
+        : [],
+      decisionDurationMs: request.decisionDurationMs,
+      metadata: request.metadata ? { ...request.metadata } : {},
+    };
 
     this.entries.push(entry);
 
     this.logger.log(
-      `Decision logged: id="${id}" agent="${request.agentId}" ` +
-        `action="${request.action.type}" risk="${request.riskLevel}" ` +
-        `outcome="${request.outcome}" correlationId="${request.correlationId}"`,
+      `Decision recorded: id="${id}" type="${entry.type}" ` +
+        `decider="${entry.deciderId}" action="${entry.action}" ` +
+        `outcome="${entry.outcome}" risk="${entry.risk}" ` +
+        `correlationId="${entry.correlationId}"`,
     );
 
     return entry;
   }
 
   /**
-   * Retrieve a single decision entry by ID.
+   * Get a single decision entry by ID.
    */
   get(decisionId: string): DecisionEntry | undefined {
     return this.entries.find((e) => e.id === decisionId);
   }
 
   /**
-   * Query decision entries with filtering and pagination.
+   * Query decision entries with filters and pagination.
    */
-  query(query: DecisionLogQuery): DecisionEntry[] {
+  query(query: DecisionLogQuery): ReadonlyArray<DecisionEntry> {
     let results = [...this.entries];
 
-    if (query.agentId) {
-      results = results.filter((e) => e.agentId === query.agentId);
+    if (query.deciderId) {
+      results = results.filter((e) => e.deciderId === query.deciderId);
     }
 
-    if (query.agentLayer) {
-      results = results.filter((e) => e.agentLayer === query.agentLayer);
+    if (query.deciderType) {
+      results = results.filter((e) => e.deciderType === query.deciderType);
     }
 
-    if (query.actionType) {
-      results = results.filter((e) => e.action.type === query.actionType);
-    }
-
-    if (query.riskLevel) {
-      results = results.filter((e) => e.riskLevel === query.riskLevel);
+    if (query.type) {
+      results = results.filter((e) => e.type === query.type);
     }
 
     if (query.outcome) {
       results = results.filter((e) => e.outcome === query.outcome);
     }
 
+    if (query.risk) {
+      results = results.filter((e) => e.risk === query.risk);
+    }
+
+    if (query.resource) {
+      results = results.filter((e) => e.resource === query.resource);
+    }
+
+    if (query.resourceId) {
+      results = results.filter((e) => e.resourceId === query.resourceId);
+    }
+
     if (query.correlationId) {
       results = results.filter((e) => e.correlationId === query.correlationId);
     }
 
-    if (query.environment) {
-      results = results.filter((e) => e.context.environment === query.environment);
+    if (query.requiredApproval !== undefined) {
+      results = results.filter((e) => e.requiredApproval === query.requiredApproval);
     }
 
     if (query.fromTimestamp) {
@@ -201,144 +304,104 @@ export class DecisionLog {
       results = results.filter((e) => e.timestamp <= query.toTimestamp!);
     }
 
+    // Sort by timestamp descending (most recent first)
+    results.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+
     const offset = query.offset ?? 0;
-    const limit = query.limit ?? 100;
+    const limit = query.limit ?? 50;
     return results.slice(offset, offset + limit);
   }
 
   /**
-   * Get the complete decision chain for a correlation ID,
-   * useful for tracing a request through multiple agents.
+   * Get all decisions in a correlation chain.
    */
-  getDecisionChain(correlationId: string): DecisionEntry[] {
+  getDecisionChain(correlationId: string): ReadonlyArray<DecisionEntry> {
     return this.entries
       .filter((e) => e.correlationId === correlationId)
-      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
   }
 
   /**
-   * Get child decisions spawned from a parent decision (delegation).
+   * Get aggregate statistics for decision entries.
    */
-  getChildDecisions(parentDecisionId: string): DecisionEntry[] {
-    return this.entries.filter((e) => e.parentDecisionId === parentDecisionId);
-  }
+  getStats(query?: Pick<DecisionLogQuery, 'deciderId' | 'fromTimestamp' | 'toTimestamp'>): DecisionLogStats {
+    let entries = [...this.entries];
 
-  /**
-   * Export decision log entries for audit purposes.
-   */
-  exportForAudit(query: DecisionLogQuery, exportedBy: string): DecisionAuditExport {
-    const entries = this.query(query);
-    const summary = this.buildSummary(entries);
-    const integrityHash = this.computeIntegrityHash(entries);
+    if (query?.deciderId) {
+      entries = entries.filter((e) => e.deciderId === query.deciderId);
+    }
+    if (query?.fromTimestamp) {
+      entries = entries.filter((e) => e.timestamp >= query.fromTimestamp!);
+    }
+    if (query?.toTimestamp) {
+      entries = entries.filter((e) => e.timestamp <= query.toTimestamp!);
+    }
 
-    return {
-      exportedAt: new Date(),
-      exportedBy,
-      totalEntries: entries.length,
-      query,
-      entries,
-      summary,
-      integrityHash,
-    };
-  }
-
-  /**
-   * Build summary statistics for a set of decision entries.
-   */
-  buildSummary(entries: DecisionEntry[]): DecisionAuditSummary {
-    const outcomeBreakdown: Record<DecisionOutcome, number> = {
-      success: 0,
-      failure: 0,
-      pending: 0,
-      escalated: 0,
-      'rolled-back': 0,
+    const byType: Record<DecisionType, number> = {
+      'agent-action': 0,
+      'policy-evaluation': 0,
+      'escalation': 0,
+      'delegation': 0,
+      'approval': 0,
+      'rejection': 0,
+      'override': 0,
+      'fallback': 0,
+      'recommendation': 0,
     };
 
-    const riskBreakdown: Record<DecisionRiskLevel, number> = {
+    const byOutcome: Record<DecisionOutcome, number> = {
+      'executed': 0,
+      'approved': 0,
+      'denied': 0,
+      'deferred': 0,
+      'escalated': 0,
+      'timed-out': 0,
+      'failed': 0,
+    };
+
+    const byRisk: Record<DecisionRisk, number> = {
       low: 0,
       medium: 0,
       high: 0,
       critical: 0,
     };
 
-    const agentBreakdown = new Map<string, number>();
-    let totalDuration = 0;
-    let totalTokens = 0;
-    let totalCost = 0;
-    let policyViolations = 0;
-    let earliest: Date | null = null;
-    let latest: Date | null = null;
+    let totalDurationMs = 0;
+    let approvalCount = 0;
+    let escalationCount = 0;
 
     for (const entry of entries) {
-      outcomeBreakdown[entry.outcome]++;
-      riskBreakdown[entry.riskLevel]++;
+      byType[entry.type]++;
+      byOutcome[entry.outcome]++;
+      byRisk[entry.risk]++;
+      totalDurationMs += entry.decisionDurationMs;
 
-      const agentCount = agentBreakdown.get(entry.agentId) ?? 0;
-      agentBreakdown.set(entry.agentId, agentCount + 1);
-
-      totalDuration += entry.durationMs;
-      totalTokens += entry.tokensUsed;
-      totalCost += entry.cost;
-
-      const failedPolicies = entry.policyChecks.filter((pc) => pc.result === 'failed');
-      policyViolations += failedPolicies.length;
-
-      if (!earliest || entry.timestamp < earliest) {
-        earliest = entry.timestamp;
+      if (entry.requiredApproval) {
+        approvalCount++;
       }
-      if (!latest || entry.timestamp > latest) {
-        latest = entry.timestamp;
+      if (entry.outcome === 'escalated') {
+        escalationCount++;
       }
     }
 
     return {
       totalDecisions: entries.length,
-      outcomeBreakdown,
-      riskBreakdown,
-      agentBreakdown,
-      averageDurationMs: entries.length > 0 ? totalDuration / entries.length : 0,
-      totalTokensUsed: totalTokens,
-      totalCost,
-      policyViolations,
-      timeRange: {
-        earliest,
-        latest,
-      },
+      byType,
+      byOutcome,
+      byRisk,
+      averageDecisionDurationMs: entries.length > 0
+        ? Math.round(totalDurationMs / entries.length)
+        : 0,
+      approvalRate: entries.length > 0 ? approvalCount / entries.length : 0,
+      escalationRate: entries.length > 0 ? escalationCount / entries.length : 0,
+      computedAt: new Date().toISOString(),
     };
   }
 
   /**
-   * Get total entry count (unfiltered).
+   * Get the total number of recorded decisions.
    */
   count(): number {
     return this.entries.length;
-  }
-
-  /**
-   * Compute a simple integrity hash over entries for tamper detection.
-   * In production, this would use a cryptographic hash chain (Merkle tree).
-   */
-  private computeIntegrityHash(entries: DecisionEntry[]): string {
-    let hash = 0;
-    const content = entries
-      .map(
-        (e) =>
-          `${e.id}|${e.agentId}|${e.action.type}|${e.outcome}|${e.timestamp.toISOString()}`,
-      )
-      .join('\n');
-
-    for (let i = 0; i < content.length; i++) {
-      const char = content.charCodeAt(i);
-      hash = ((hash << 5) - hash + char) | 0;
-    }
-
-    return `sha256-stub-${Math.abs(hash).toString(16).padStart(8, '0')}`;
-  }
-
-  private generateEntryId(): string {
-    this.entryCounter++;
-    const timestamp = Date.now().toString(36);
-    const counter = this.entryCounter.toString(36).padStart(4, '0');
-    return `dec-${timestamp}-${counter}`;
   }
 }
