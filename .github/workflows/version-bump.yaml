@@ -1,0 +1,79 @@
+name: Version Bump
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: version-bump-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    name: Bump patch version and tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Skip if the commit is itself a version bump (avoid infinite loop)
+    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: 22
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine next version
+        id: next_version
+        run: |
+          # Get latest tag; default to v0.0.0 if none
+          LATEST=$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          if [ -z "$LATEST" ]; then
+            LATEST="v0.0.0"
+          fi
+          echo "Latest tag: $LATEST"
+
+          # Parse semver
+          MAJOR=$(echo "$LATEST" | sed 's/v\([0-9]*\)\..*/\1/')
+          MINOR=$(echo "$LATEST" | sed 's/v[0-9]*\.\([0-9]*\)\..*/\1/')
+          PATCH=$(echo "$LATEST" | sed 's/v[0-9]*\.[0-9]*\.\([0-9]*\)/\1/')
+
+          # Determine bump type from commit message keywords
+          MSG="${{ github.event.head_commit.message }}"
+          if echo "$MSG" | grep -qiE '^\s*(feat!|fix!|BREAKING CHANGE)'; then
+            MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+          elif echo "$MSG" | grep -qiE '^\s*feat(\(.*\))?:'; then
+            MINOR=$((MINOR + 1)); PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+
+          NEXT="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "Next version: $NEXT"
+          echo "tag=${NEXT}" >> "$GITHUB_OUTPUT"
+          echo "version=${NEXT#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Bump version in root package.json
+        run: |
+          npm version "${{ steps.next_version.outputs.version }}" --no-git-tag-version
+
+      - name: Commit and tag
+        run: |
+          git add package.json
+          git commit -m "chore(release): ${{ steps.next_version.outputs.tag }}" \
+            --author "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+          git tag -a "${{ steps.next_version.outputs.tag }}" \
+            -m "chore(release): ${{ steps.next_version.outputs.tag }}"
+          git push origin main --follow-tags
