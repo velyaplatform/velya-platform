@@ -1,6 +1,8 @@
 # Supply Chain Security
 
-This document defines how the Velya platform secures its software supply chain, from source code dependencies through container images to runtime execution.
+> This document defines how the Velya platform secures its software supply chain, from source code dependencies through container images to runtime execution. Every artifact that runs in production must be traceable, verified, and scanned.
+
+---
 
 ## Principles
 
@@ -8,6 +10,8 @@ This document defines how the Velya platform secures its software supply chain, 
 2. **Pin everything.** Mutable references (tags, branches, version ranges) are not trusted. Use immutable identifiers (SHAs, digests, exact versions).
 3. **Audit continuously.** Vulnerability scanning runs on every build, not just on release.
 4. **Minimize surface area.** Fewer dependencies mean fewer vectors. Prefer standard library solutions over third-party packages when the complexity difference is small.
+
+---
 
 ## GitHub Actions: Pinned by Commit SHA
 
@@ -24,7 +28,7 @@ All GitHub Actions referenced in workflows must be pinned by the full commit SHA
 ### Incorrect
 
 ```yaml
-# NEVER do this — tags are mutable
+# NEVER do this -- tags are mutable and can be hijacked
 - uses: actions/checkout@v4
 - uses: actions/setup-node@v4
 ```
@@ -38,6 +42,8 @@ When updating an action to a new version:
 3. Verify the commit is from a trusted author and is part of the main branch.
 4. Update the SHA in the workflow file with a comment noting the version.
 5. CI validates SHA format in a pre-merge check.
+
+---
 
 ## npm Dependency Management
 
@@ -70,6 +76,8 @@ Before adding a new dependency:
 4. Check for known vulnerabilities in the package history.
 5. Prefer packages with TypeScript types included (not DefinitelyTyped).
 6. Document the justification in the PR description.
+
+---
 
 ## Dependabot Configuration
 
@@ -113,11 +121,13 @@ updates:
 ### Update Strategy
 
 | Update Type | Action |
-|------------|--------|
-| Patch versions (1.2.3 → 1.2.4) | Auto-merge after CI passes |
-| Minor versions (1.2.x → 1.3.0) | PR created, requires one review |
-| Major versions (1.x → 2.0) | PR created, requires dedicated testing and review |
+|---|---|
+| Patch versions (1.2.3 -> 1.2.4) | Auto-merge after CI passes |
+| Minor versions (1.2.x -> 1.3.0) | PR created, requires one review |
+| Major versions (1.x -> 2.0) | PR created, requires dedicated testing and review |
 | Security patches (any level) | Prioritized, reviewed and merged within 24 hours |
+
+---
 
 ## Container Image Security
 
@@ -126,7 +136,7 @@ updates:
 All container images use minimal, hardened base images:
 
 | Use Case | Base Image | Justification |
-|----------|-----------|---------------|
+|---|---|---|
 | Node.js services | `node:22-slim` | Minimal Debian with Node.js, smaller attack surface than full image |
 | Build stages | `node:22` | Full image needed for native module compilation, discarded in final stage |
 | Static files | `gcr.io/distroless/static-debian12` | No shell, no package manager, smallest possible image |
@@ -162,6 +172,20 @@ EXPOSE 3000
 CMD ["node", "dist/main.js"]
 ```
 
+### Container Runtime Security
+
+Production containers are hardened with pod security context:
+
+```yaml
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+```
+
 ### Image Scanning
 
 Trivy scans every image in the CI pipeline:
@@ -188,6 +212,8 @@ Trivy scans every image in the CI pipeline:
 - ECR lifecycle policies remove untagged images after 14 days.
 - Pulling from public registries in production is blocked by OPA Gatekeeper admission policy.
 
+---
+
 ## SBOM Generation
 
 A Software Bill of Materials is generated for every container image during the CI build.
@@ -206,6 +232,7 @@ A Software Bill of Materials is generated for every container image during the C
 
 - SBOMs are stored as OCI artifacts attached to the container image in ECR.
 - SBOMs are also archived to S3 for long-term retention and compliance queries.
+- SBOMs are retained for the lifetime of the image plus 1 year.
 
 ### Vulnerability Scanning from SBOM
 
@@ -218,16 +245,26 @@ Grype scans the SBOM for known vulnerabilities:
 
 Results are published to the security dashboard alongside Trivy findings.
 
-## Image Signing (Future)
+---
 
-Image signing with cosign and Sigstore is planned for implementation. When enabled:
+## Image Signing
 
-1. Every image built in CI will be signed with a keyless signature via Sigstore's Fulcio CA.
-2. The signature will include provenance metadata (build URL, commit SHA, builder identity).
-3. A Kyverno or OPA Gatekeeper policy will verify signatures before admitting images to the cluster.
-4. Unsigned images will be rejected from production namespaces.
+Container images are signed with cosign and Sigstore:
 
-This is tracked as a future enhancement and will be implemented once the SBOM pipeline is stable and validated.
+1. Every image built in CI is signed with a keyless signature via Sigstore's Fulcio CA.
+2. The signature includes provenance metadata (build URL, commit SHA, builder identity).
+3. A Kyverno admission policy verifies signatures before admitting images to the cluster.
+4. Unsigned images are rejected from production namespaces.
+
+```yaml
+- name: Sign image
+  run: cosign sign --yes ${{ env.IMAGE_TAG }}
+
+- name: Verify signature
+  run: cosign verify ${{ env.IMAGE_TAG }} --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+---
 
 ## OpenTofu Provider Verification
 
@@ -248,14 +285,34 @@ terraform {
 - The `.terraform.lock.hcl` file is committed and reviewed.
 - Provider checksums are verified on every `tofu init`.
 
+---
+
 ## Incident Response for Supply Chain Compromise
 
 If a supply chain compromise is detected (malicious package, hijacked action, compromised base image):
 
-1. Immediately stop all CI/CD pipelines.
-2. Identify the scope of the compromise (which builds used the affected component).
-3. Roll back any deployments that included the compromised component.
-4. Pin to the last known-good version of the affected dependency.
-5. Audit all images and deployments from the affected time window.
-6. Notify the security team and file an incident report.
-7. Update Dependabot/Renovate ignore rules to block the compromised versions.
+1. **Immediately stop** all CI/CD pipelines.
+2. **Identify scope** of the compromise (which builds used the affected component).
+3. **Roll back** any deployments that included the compromised component.
+4. **Pin** to the last known-good version of the affected dependency.
+5. **Audit** all images and deployments from the affected time window.
+6. **Notify** the security team and file an incident report.
+7. **Update** Dependabot/Renovate ignore rules to block the compromised versions.
+8. **Review** SBOMs to identify all affected artifacts.
+9. **Communicate** to stakeholders per the incident communication plan.
+
+---
+
+## Supply Chain Security Checklist
+
+Before any release, verify:
+
+- [ ] All GitHub Actions are pinned by SHA
+- [ ] `package-lock.json` is up to date and reviewed
+- [ ] `npm audit` reports no high/critical vulnerabilities
+- [ ] Container base images are pinned by digest
+- [ ] Trivy scan passes (no critical/high CVEs with fixes)
+- [ ] SBOM is generated and attached to the image
+- [ ] Image is signed with cosign
+- [ ] OpenTofu providers are pinned with lock file
+- [ ] No new dependencies added without justification

@@ -1,31 +1,35 @@
 # Secrets Management Model
 
-This document defines how secrets are stored, distributed, rotated, and audited across the Velya platform.
+> This document defines how secrets are stored, distributed, rotated, and audited across the Velya platform. AWS Secrets Manager is the source of truth. External Secrets Operator syncs secrets into Kubernetes. No other path is permitted.
+
+---
 
 ## Architecture Overview
 
 ```
-┌─────────────────────┐     poll/sync      ┌──────────────────────┐
-│  AWS Secrets Manager │ ◄────────────────► │ External Secrets     │
-│  (Source of Truth)   │    (60s interval)  │ Operator (ESO)       │
-└─────────────────────┘                     └──────────┬───────────┘
-                                                       │
-                                                       │ creates/updates
-                                                       ▼
-                                            ┌──────────────────────┐
-                                            │ Kubernetes Secrets    │
-                                            │ (encrypted at rest    │
-                                            │  via KMS envelope)    │
-                                            └──────────┬───────────┘
-                                                       │
++---------------------+     poll/sync      +----------------------+
+| AWS Secrets Manager  | <----------------> | External Secrets     |
+| (Source of Truth)    |    (60s interval)  | Operator (ESO)       |
++---------------------+                     +----------+-----------+
+                                                       |
+                                                       | creates/updates
+                                                       v
+                                            +----------------------+
+                                            | Kubernetes Secrets    |
+                                            | (encrypted at rest    |
+                                            |  via KMS envelope)    |
+                                            +----------+-----------+
+                                                       |
                                               mounted as files
-                                                       │
-                                                       ▼
-                                            ┌──────────────────────┐
-                                            │ Application Pods      │
-                                            │ (read from filesystem)│
-                                            └──────────────────────┘
+                                                       |
+                                                       v
+                                            +----------------------+
+                                            | Application Pods      |
+                                            | (read from filesystem)|
+                                            +----------------------+
 ```
+
+---
 
 ## AWS Secrets Manager as Source of Truth
 
@@ -41,11 +45,12 @@ Secrets are organized by environment prefix and service name:
 
 Examples:
 ```
-prod/medplum/database-url
+prod/patient-flow/database-url
 prod/nats/auth-token
-prod/patient-service/database-password
-staging/billing-service/stripe-api-key
+prod/discharge-orchestrator/database-password
+staging/bed-management/database-url
 dev/agent-runtime/anthropic-api-key
+dev/ai-gateway/openai-api-key
 ```
 
 ### Metadata
@@ -53,13 +58,41 @@ dev/agent-runtime/anthropic-api-key
 Every secret in Secrets Manager includes the following metadata tags:
 
 | Tag | Purpose | Example |
-|-----|---------|---------|
+|---|---|---|
 | `Environment` | Which environment this secret belongs to | `prod` |
-| `Service` | Which service consumes this secret | `patient-service` |
+| `Service` | Which service consumes this secret | `velya-patient-flow` |
 | `Owner` | Team or individual responsible | `platform-team` |
 | `RotationSchedule` | How often this secret rotates | `90-days` |
 | `LastRotated` | Date of last rotation | `2026-03-15` |
 | `ManagedBy` | How this secret is managed | `opentofu` or `manual` |
+| `Sensitivity` | Classification level | `high` (credentials), `medium` (API keys), `low` (config) |
+
+### Creating Secrets
+
+Secrets are provisioned via OpenTofu whenever possible:
+
+```hcl
+resource "aws_secretsmanager_secret" "patient_flow_db" {
+  name        = "${var.environment}/patient-flow/database-url"
+  description = "PostgreSQL connection URL for patient-flow service"
+
+  tags = {
+    Environment      = var.environment
+    Service          = "velya-patient-flow"
+    Owner            = "platform-team"
+    RotationSchedule = "90-days"
+    ManagedBy        = "opentofu"
+    Sensitivity      = "high"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "patient_flow_db" {
+  secret_id     = aws_secretsmanager_secret.patient_flow_db.id
+  secret_string = var.patient_flow_db_url  # Set via secure CI variable
+}
+```
+
+---
 
 ## External Secrets Operator (ESO)
 
@@ -90,20 +123,20 @@ Each service declares the secrets it needs via an ExternalSecret resource, typic
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: patient-service-secrets
-  namespace: velya-app
+  name: velya-patient-flow-secrets
+  namespace: velya-prod-core
 spec:
   refreshInterval: 60s
   secretStoreRef:
     name: aws-secrets-manager
     kind: ClusterSecretStore
   target:
-    name: patient-service-secrets
+    name: velya-patient-flow-secrets
     creationPolicy: Owner
   data:
     - secretKey: DATABASE_URL
       remoteRef:
-        key: prod/patient-service/database-url
+        key: prod/patient-flow/database-url
     - secretKey: NATS_AUTH_TOKEN
       remoteRef:
         key: prod/nats/auth-token
@@ -116,6 +149,8 @@ spec:
 - Pods that mount the secret as a volume see the updated value automatically (kubelet syncs mounted secrets periodically).
 - Pods that read secrets from environment variables require a restart to pick up changes. For this reason, prefer mounted files.
 
+---
+
 ## Secret Delivery to Applications
 
 ### Preferred: Volume Mounts
@@ -126,9 +161,9 @@ Secrets are mounted as files in the pod's filesystem. The application reads secr
 volumes:
   - name: secrets
     secret:
-      secretName: patient-service-secrets
+      secretName: velya-patient-flow-secrets
 containers:
-  - name: patient-service
+  - name: velya-patient-flow
     volumeMounts:
       - name: secrets
         mountPath: /etc/secrets
@@ -150,9 +185,11 @@ env:
   - name: DATABASE_URL
     valueFrom:
       secretKeyRef:
-        name: patient-service-secrets
+        name: velya-patient-flow-secrets
         key: DATABASE_URL
 ```
+
+---
 
 ## Secret Rotation
 
@@ -179,13 +216,16 @@ For secrets that cannot be rotated automatically (third-party API keys, NATS aut
 ### Rotation Schedule
 
 | Secret Type | Rotation Period | Automation Level |
-|------------|-----------------|------------------|
+|---|---|---|
 | RDS database passwords | 90 days | Fully automated (Secrets Manager + Lambda) |
 | NATS auth tokens | 90 days | Semi-automated (manual generation, automated sync) |
-| External API keys | 90 days or per provider policy | Manual with tracked process |
+| External API keys (LLM providers) | 90 days or per provider policy | Manual with tracked process |
 | TLS certificates | 60 days before expiry | Fully automated (cert-manager + Let's Encrypt) |
 | K8s ServiceAccount tokens | 1 hour TTL | Fully automated (bound SA tokens) |
 | Encryption keys (KMS) | Annual | AWS-managed automatic rotation |
+| Agent API tokens | 1 hour TTL | Fully automated (agent orchestrator) |
+
+---
 
 ## Audit Trail for Secret Access
 
@@ -212,6 +252,22 @@ Alerts fire for:
 - Secrets that have not been rotated within their scheduled rotation window.
 - Failed rotation attempts.
 - Bulk secret reads (potential exfiltration).
+- Any `GetSecretValue` call from an unrecognized IAM role.
+
+---
+
+## Secret Categories
+
+| Category | Examples | Encryption | Access Scope |
+|---|---|---|---|
+| Database credentials | Connection strings, passwords | KMS CMK | Single service |
+| API keys | LLM provider keys, third-party APIs | KMS CMK | Specific service or agent |
+| Authentication tokens | NATS tokens, JWT signing keys | KMS CMK | Platform services |
+| TLS certificates | Service certs, CA certs | KMS CMK | Ingress, service mesh |
+| Encryption keys | Data-at-rest keys | KMS CMK | Specific service |
+| Agent tokens | Agent API tokens | KMS CMK | Individual agents |
+
+---
 
 ## Prohibited Practices
 
@@ -222,3 +278,4 @@ Alerts fire for:
 - Never log secret values. Application logging must redact any field that could contain a secret.
 - Never share secrets across environments. Each environment (`dev/`, `staging/`, `prod/`) has its own secret instances with different values.
 - Never use the same password or token for multiple services. Each service gets unique credentials for its dependencies.
+- Never commit `.env` files. Use `.env.example` with placeholder values only.
