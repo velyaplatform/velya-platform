@@ -1,14 +1,39 @@
 export {
   Patient,
   PatientIdentifier,
+  IdentifierType,
+  PatientContact,
+  HumanName,
+  PatientAddress,
   AdministrativeGender,
-  EncounterStatus,
-  AcuityLevel,
-  createPatient,
-  addDischargeBlocker,
-  resolveDischargeBlocker,
-  dischargePatient,
-} from './patient/patient.js';
+  formatPatientName,
+  calculateAge,
+} from './patient.js';
+
+export {
+  PatientId,
+  EncounterId,
+  TaskId,
+  UserId,
+  BedId,
+  WardId,
+  Timestamp,
+  MRN,
+  createPatientId,
+  createEncounterId,
+  createTaskId,
+  createUserId,
+  createBedId,
+  createWardId,
+  createTimestamp,
+  createMRN,
+  PaginationParams,
+  PaginatedResponse,
+  SortDirection,
+  SortSpec,
+  DateRange,
+  ErrorResponse,
+} from './types.js';
 
 export {
   DischargeBlocker,
