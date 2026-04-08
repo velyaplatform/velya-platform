@@ -15,10 +15,10 @@ export type AgentLayer =
   | 'validation';
 
 export type AutonomyLevel =
-  | 'full'           // Agent can act without human approval
-  | 'supervised'     // Agent acts but decisions are reviewed
-  | 'assisted'       // Agent proposes, human approves
-  | 'manual';        // Agent advises, human executes
+  | 'full' // Agent can act without human approval
+  | 'supervised' // Agent acts but decisions are reviewed
+  | 'assisted' // Agent proposes, human approves
+  | 'manual'; // Agent advises, human executes
 
 export type AgentLifecycleStage =
   | 'draft'

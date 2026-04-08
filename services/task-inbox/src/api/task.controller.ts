@@ -126,9 +126,7 @@ export class TaskController {
    * GET /api/v1/tasks?status=pending&assignedTo=user-123&overdueOnly=true
    */
   @Get()
-  async listTasks(
-    @Query() query: TaskQueryParams,
-  ): Promise<TaskListResponse> {
+  async listTasks(@Query() query: TaskQueryParams): Promise<TaskListResponse> {
     const limit = Math.min(parseInt(query.limit ?? '20', 10) || 20, 100);
     const offset = parseInt(query.offset ?? '0', 10) || 0;
 
@@ -147,12 +145,10 @@ export class TaskController {
    * GET /api/v1/tasks/:id
    */
   @Get(':id')
-  async getTask(
-    @Param('id') id: string,
-  ): Promise<Task | { error: string; statusCode: number }> {
+  async getTask(@Param('id') _id: string): Promise<Task | { error: string; statusCode: number }> {
     // TODO: Wire to task repository
     return {
-      error: `Task ${id} not found`,
+      error: 'Task not found',
       statusCode: 404,
     };
   }
@@ -164,8 +160,8 @@ export class TaskController {
    */
   @Get('summary')
   async getInboxSummary(
-    @Query('assignedTo') assignedTo?: string,
-    @Query('assignedTeam') assignedTeam?: string,
+    @Query('assignedTo') _assignedTo?: string,
+    @Query('assignedTeam') _assignedTeam?: string,
   ): Promise<TaskInboxSummary> {
     // TODO: Wire to aggregation service
     return {
@@ -192,7 +188,7 @@ export class TaskController {
    */
   @Post()
   async createTask(
-    @Body() body: CreateTaskRequest,
+    @Body() _body: CreateTaskRequest,
   ): Promise<Task | { error: string; statusCode: number }> {
     // TODO: Wire to task creation service
     // - Validate required fields
@@ -211,12 +207,12 @@ export class TaskController {
    */
   @Patch(':id')
   async updateTask(
-    @Param('id') id: string,
-    @Body() body: UpdateTaskRequest,
+    @Param('id') _id: string,
+    @Body() _body: UpdateTaskRequest,
   ): Promise<Task | { error: string; statusCode: number }> {
     // TODO: Wire to task update service
     return {
-      error: `Task ${id} not found`,
+      error: 'Task not found',
       statusCode: 404,
     };
   }
@@ -228,15 +224,15 @@ export class TaskController {
    */
   @Patch(':id/status')
   async updateTaskStatus(
-    @Param('id') id: string,
-    @Body() body: UpdateTaskStatusRequest,
+    @Param('id') _id: string,
+    @Body() _body: UpdateTaskStatusRequest,
   ): Promise<Task | { error: string; statusCode: number }> {
     // TODO: Wire to task status transition service
     // - Validate status transition
     // - Record audit trail entry
     // - Emit appropriate domain event
     return {
-      error: `Task ${id} not found`,
+      error: 'Task not found',
       statusCode: 404,
     };
   }
@@ -248,15 +244,15 @@ export class TaskController {
    */
   @Patch(':id/assignment')
   async assignTask(
-    @Param('id') id: string,
-    @Body() body: AssignTaskRequest,
+    @Param('id') _id: string,
+    @Body() _body: AssignTaskRequest,
   ): Promise<Task | { error: string; statusCode: number }> {
     // TODO: Wire to task assignment service
     // - Validate assignee exists
     // - Record audit trail entry
     // - Notify new assignee
     return {
-      error: `Task ${id} not found`,
+      error: 'Task not found',
       statusCode: 404,
     };
   }
@@ -268,13 +264,13 @@ export class TaskController {
    */
   @Delete(':id')
   async deleteTask(
-    @Param('id') id: string,
-    @Query('actor') actor: string,
+    @Param('id') _id: string,
+    @Query('actor') _actor: string,
   ): Promise<{ success: boolean } | { error: string; statusCode: number }> {
     // TODO: Wire to task cancellation service
     // Tasks are soft-deleted (status -> cancelled) for audit trail preservation
     return {
-      error: `Task ${id} not found`,
+      error: 'Task not found',
       statusCode: 404,
     };
   }
@@ -285,20 +281,18 @@ export class TaskController {
    * POST /api/v1/tasks/bulk
    */
   @Post('bulk')
-  async bulkOperation(
-    @Body() body: BulkTaskOperationRequest,
-  ): Promise<BulkOperationResponse> {
+  async bulkOperation(@Body() _body: BulkTaskOperationRequest): Promise<BulkOperationResponse> {
     // TODO: Wire to bulk task operation service
     // - Process each task independently
     // - Collect successes and failures
     // - Emit events for each successful operation
     return {
       succeeded: [],
-      failed: body.taskIds.map((taskId) => ({
+      failed: _body.taskIds.map((taskId) => ({
         taskId,
         reason: 'Not implemented',
       })),
-      totalProcessed: body.taskIds.length,
+      totalProcessed: _body.taskIds.length,
     };
   }
 
@@ -308,9 +302,7 @@ export class TaskController {
    * GET /api/v1/tasks/:id/subtasks
    */
   @Get(':id/subtasks')
-  async getSubtasks(
-    @Param('id') id: string,
-  ): Promise<ReadonlyArray<Task>> {
+  async getSubtasks(@Param('id') _id: string): Promise<ReadonlyArray<Task>> {
     // TODO: Wire to task repository filtered by parentTaskId
     return [];
   }

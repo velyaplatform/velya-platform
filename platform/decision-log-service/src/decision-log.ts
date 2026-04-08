@@ -228,9 +228,7 @@ export class DecisionLog {
       alternativesConsidered: request.alternativesConsidered
         ? [...request.alternativesConsidered]
         : [],
-      policiesEvaluated: request.policiesEvaluated
-        ? [...request.policiesEvaluated]
-        : [],
+      policiesEvaluated: request.policiesEvaluated ? [...request.policiesEvaluated] : [],
       decisionDurationMs: request.decisionDurationMs,
       metadata: request.metadata ? { ...request.metadata } : {},
     };
@@ -324,7 +322,9 @@ export class DecisionLog {
   /**
    * Get aggregate statistics for decision entries.
    */
-  getStats(query?: Pick<DecisionLogQuery, 'deciderId' | 'fromTimestamp' | 'toTimestamp'>): DecisionLogStats {
+  getStats(
+    query?: Pick<DecisionLogQuery, 'deciderId' | 'fromTimestamp' | 'toTimestamp'>,
+  ): DecisionLogStats {
     let entries = [...this.entries];
 
     if (query?.deciderId) {
@@ -340,23 +340,23 @@ export class DecisionLog {
     const byType: Record<DecisionType, number> = {
       'agent-action': 0,
       'policy-evaluation': 0,
-      'escalation': 0,
-      'delegation': 0,
-      'approval': 0,
-      'rejection': 0,
-      'override': 0,
-      'fallback': 0,
-      'recommendation': 0,
+      escalation: 0,
+      delegation: 0,
+      approval: 0,
+      rejection: 0,
+      override: 0,
+      fallback: 0,
+      recommendation: 0,
     };
 
     const byOutcome: Record<DecisionOutcome, number> = {
-      'executed': 0,
-      'approved': 0,
-      'denied': 0,
-      'deferred': 0,
-      'escalated': 0,
+      executed: 0,
+      approved: 0,
+      denied: 0,
+      deferred: 0,
+      escalated: 0,
       'timed-out': 0,
-      'failed': 0,
+      failed: 0,
     };
 
     const byRisk: Record<DecisionRisk, number> = {
@@ -389,9 +389,8 @@ export class DecisionLog {
       byType,
       byOutcome,
       byRisk,
-      averageDecisionDurationMs: entries.length > 0
-        ? Math.round(totalDurationMs / entries.length)
-        : 0,
+      averageDecisionDurationMs:
+        entries.length > 0 ? Math.round(totalDurationMs / entries.length) : 0,
       approvalRate: entries.length > 0 ? approvalCount / entries.length : 0,
       escalationRate: entries.length > 0 ? escalationCount / entries.length : 0,
       computedAt: new Date().toISOString(),

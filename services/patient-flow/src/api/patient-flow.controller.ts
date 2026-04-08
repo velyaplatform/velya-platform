@@ -63,9 +63,7 @@ export class PatientFlowController {
    * GET /api/v1/encounters?status=in-progress&department=ICU&limit=20&offset=0
    */
   @Get()
-  async listEncounters(
-    @Query() query: EncounterQueryParams,
-  ): Promise<EncounterListResponse> {
+  async listEncounters(@Query() query: EncounterQueryParams): Promise<EncounterListResponse> {
     const limit = Math.min(parseInt(query.limit ?? '20', 10) || 20, 100);
     const offset = parseInt(query.offset ?? '0', 10) || 0;
 

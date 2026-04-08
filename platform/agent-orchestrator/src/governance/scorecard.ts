@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AgentExecutionResult, ExecutionStatus } from '../core/agent-definition.js';
+import { AgentExecutionResult } from '../core/agent-definition.js';
 
 export interface ScorecardMetrics {
   agentId: string;
@@ -142,8 +142,7 @@ export class AgentScorecard {
       const errorCount = records.filter(
         (r) => r.result.status === 'failure' || r.result.status === 'timeout',
       ).length;
-      const avgLatency =
-        records.reduce((sum, r) => sum + r.result.durationMs, 0) / records.length;
+      const avgLatency = records.reduce((sum, r) => sum + r.result.durationMs, 0) / records.length;
 
       dataPoints.push({
         timestamp: new Date(bucketStart),
@@ -189,10 +188,7 @@ export class AgentScorecard {
       .slice(0, limit);
   }
 
-  getUnderperformers(
-    successRateThreshold: number,
-    windowMs?: number,
-  ): ScorecardMetrics[] {
+  getUnderperformers(successRateThreshold: number, windowMs?: number): ScorecardMetrics[] {
     const allMetrics: ScorecardMetrics[] = [];
 
     for (const agentId of this.executionHistory.keys()) {
@@ -218,15 +214,9 @@ export class AgentScorecard {
     return records.filter((r) => r.timestamp.getTime() >= cutoff);
   }
 
-  private getRecordsInRange(
-    agentId: string,
-    startMs: number,
-    endMs: number,
-  ): ExecutionRecord[] {
+  private getRecordsInRange(agentId: string, startMs: number, endMs: number): ExecutionRecord[] {
     const records = this.executionHistory.get(agentId) ?? [];
-    return records.filter(
-      (r) => r.timestamp.getTime() >= startMs && r.timestamp.getTime() < endMs,
-    );
+    return records.filter((r) => r.timestamp.getTime() >= startMs && r.timestamp.getTime() < endMs);
   }
 
   private calculateQualityScore(
@@ -244,7 +234,7 @@ export class AgentScorecard {
 
     // Cost efficiency (normalized per execution)
     const costPerExecution = executionCount > 0 ? totalCost / executionCount : 0;
-    const costScore = Math.max(0, 1 - costPerExecution / 0.10); // $0.10 baseline
+    const costScore = Math.max(0, 1 - costPerExecution / 0.1); // $0.10 baseline
 
     const score =
       QUALITY_WEIGHTS.successRate * successRate +
@@ -274,11 +264,11 @@ export class AgentScorecard {
 
   private periodToBucketCount(period: TrendPeriod): number {
     const map: Record<TrendPeriod, number> = {
-      '1h': 12,    // 5-minute buckets
-      '6h': 24,    // 15-minute buckets
-      '24h': 24,   // 1-hour buckets
-      '7d': 28,    // 6-hour buckets
-      '30d': 30,   // 1-day buckets
+      '1h': 12, // 5-minute buckets
+      '6h': 24, // 15-minute buckets
+      '24h': 24, // 1-hour buckets
+      '7d': 28, // 6-hour buckets
+      '30d': 30, // 1-day buckets
     };
     return map[period];
   }

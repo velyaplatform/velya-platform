@@ -6,22 +6,12 @@ export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 /**
  * Task lifecycle status.
  */
-export type TaskStatus =
-  | 'pending'
-  | 'in-progress'
-  | 'completed'
-  | 'cancelled'
-  | 'escalated';
+export type TaskStatus = 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'escalated';
 
 /**
  * How the task was originated.
  */
-export type TaskSource =
-  | 'system'
-  | 'ai-suggestion'
-  | 'manual'
-  | 'integration'
-  | 'workflow';
+export type TaskSource = 'system' | 'ai-suggestion' | 'manual' | 'integration' | 'workflow';
 
 /**
  * Audit trail entry recording a state change on a task.

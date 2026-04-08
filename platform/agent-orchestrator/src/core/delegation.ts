@@ -142,9 +142,7 @@ export class DelegationManager {
       record.updatedAt = new Date();
       record.completedAt = new Date();
 
-      this.logger.error(
-        `Delegation failed: id="${delegationId}" error="${errorMessage}"`,
-      );
+      this.logger.error(`Delegation failed: id="${delegationId}" error="${errorMessage}"`);
 
       return record;
     }
@@ -210,11 +208,7 @@ export class DelegationManager {
   ): Promise<AgentExecutionResult> {
     return new Promise<AgentExecutionResult>((resolve, reject) => {
       const timeoutId = setTimeout(() => {
-        reject(
-          new Error(
-            `Delegation "${delegationId}" timed out after ${request.timeoutMs}ms`,
-          ),
-        );
+        reject(new Error(`Delegation "${delegationId}" timed out after ${request.timeoutMs}ms`));
       }, request.timeoutMs);
 
       this.executeDelegate(request, delegationId)

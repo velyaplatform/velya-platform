@@ -6,19 +6,7 @@ import { PolicyGate } from './governance/policy-gate.js';
 import { AgentScorecard } from './governance/scorecard.js';
 
 @Module({
-  providers: [
-    AgentRuntime,
-    AgentLifecycleManager,
-    DelegationManager,
-    PolicyGate,
-    AgentScorecard,
-  ],
-  exports: [
-    AgentRuntime,
-    AgentLifecycleManager,
-    DelegationManager,
-    PolicyGate,
-    AgentScorecard,
-  ],
+  providers: [AgentRuntime, AgentLifecycleManager, DelegationManager, PolicyGate, AgentScorecard],
+  exports: [AgentRuntime, AgentLifecycleManager, DelegationManager, PolicyGate, AgentScorecard],
 })
 export class OrchestratorModule {}

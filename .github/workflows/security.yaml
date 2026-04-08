@@ -30,10 +30,10 @@ jobs:
         language: [javascript-typescript]
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@1b1aada464948af03b950897e5eb522f92603cc2  # v3.24.9
+        uses: github/codeql-action/init@1b1aada464948af03b950897e5eb522f92603cc2 # v3.24.9
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
@@ -41,10 +41,10 @@ jobs:
           # packs: velya/codeql-queries
 
       - name: Build (for compiled analysis)
-        uses: github/codeql-action/autobuild@1b1aada464948af03b950897e5eb522f92603cc2  # v3.24.9
+        uses: github/codeql-action/autobuild@1b1aada464948af03b950897e5eb522f92603cc2 # v3.24.9
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@1b1aada464948af03b950897e5eb522f92603cc2  # v3.24.9
+        uses: github/codeql-action/analyze@1b1aada464948af03b950897e5eb522f92603cc2 # v3.24.9
         with:
           category: /language:${{ matrix.language }}
 
@@ -58,10 +58,10 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Dependency Review
-        uses: actions/dependency-review-action@9129d7d40b8c12c1ed0f60f46571c66571266571  # v4.3.2
+        uses: actions/dependency-review-action@9129d7d40b8c12c1ed0f60f46571c66571266571 # v4.3.2
         with:
           fail-on-severity: high
           deny-licenses: GPL-3.0, AGPL-3.0
@@ -73,10 +73,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8  # v4.0.2
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: 22
           cache: npm
@@ -93,21 +93,21 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Check for unpinned GitHub Actions
         run: |
           echo "Checking for GitHub Actions not pinned by SHA..."
           VIOLATIONS=0
-          
+
           # Find all workflow files
           WORKFLOW_FILES=$(find .github/workflows/ infra/github-actions/ -name '*.yml' -o -name '*.yaml' 2>/dev/null || true)
-          
+
           if [ -z "$WORKFLOW_FILES" ]; then
             echo "No workflow files found."
             exit 0
           fi
-          
+
           for file in $WORKFLOW_FILES; do
             echo "Checking $file..."
             # Find 'uses:' lines that reference actions with tags instead of SHAs
@@ -122,7 +122,7 @@ jobs:
               VIOLATIONS=$((VIOLATIONS + 1))
             fi
           done
-          
+
           if [ "$VIOLATIONS" -gt 0 ]; then
             echo ""
             echo "FAILED: Found $VIOLATIONS file(s) with unpinned GitHub Actions."
@@ -139,9 +139,9 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          fetch-depth: 0  # Full history for comprehensive scan
+          fetch-depth: 0 # Full history for comprehensive scan
 
       - name: Run secrets scan
         run: bash .claude/hooks/pre-commit-secrets.sh --all
@@ -153,7 +153,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Find Dockerfiles
         id: find-dockerfiles
@@ -172,7 +172,7 @@ jobs:
         if: steps.find-dockerfiles.outputs.skip != 'true'
         run: |
           DOCKERFILES=$(find . -name 'Dockerfile' -not -path '*/node_modules/*')
-          
+
           for dockerfile in $DOCKERFILES; do
             dir=$(dirname "$dockerfile")
             service_name=$(basename "$dir")
@@ -195,18 +195,18 @@ jobs:
       github.event_name == 'push'
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Check for security issues in OpenTofu
         run: |
           echo "Checking OpenTofu modules for security issues..."
           VIOLATIONS=0
-          
+
           # Check for public access patterns
           PUBLIC_PATTERNS='publicly_accessible\s*=\s*true|acl\s*=\s*"public|block_public_access\s*=\s*false|ingress.*0\.0\.0\.0/0'
-          
+
           TF_FILES=$(find infra/opentofu/ -name '*.tf' 2>/dev/null || true)
-          
+
           for file in $TF_FILES; do
             FINDINGS=$(grep -nE "$PUBLIC_PATTERNS" "$file" 2>/dev/null || true)
             if [ -n "$FINDINGS" ]; then
@@ -215,7 +215,7 @@ jobs:
               VIOLATIONS=$((VIOLATIONS + 1))
             fi
           done
-          
+
           # Check for wildcard resource ARNs
           for file in $TF_FILES; do
             WILDCARD=$(grep -nE '"Resource"\s*:\s*"\*"' "$file" 2>/dev/null || true)
@@ -225,7 +225,7 @@ jobs:
               VIOLATIONS=$((VIOLATIONS + 1))
             fi
           done
-          
+
           if [ "$VIOLATIONS" -gt 0 ]; then
             echo "FAILED: Found $VIOLATIONS security issue(s) in OpenTofu modules."
             exit 1

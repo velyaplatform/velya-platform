@@ -12,12 +12,7 @@ export type BedStatus =
 /**
  * Isolation requirements for a bed or patient.
  */
-export type IsolationType =
-  | 'none'
-  | 'contact'
-  | 'droplet'
-  | 'airborne'
-  | 'protective';
+export type IsolationType = 'none' | 'contact' | 'droplet' | 'airborne' | 'protective';
 
 /**
  * A single bed within a hospital ward.

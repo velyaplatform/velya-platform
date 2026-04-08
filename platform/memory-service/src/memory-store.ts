@@ -136,12 +136,7 @@ export class MemoryStore {
     return memory;
   }
 
-  update(
-    memoryId: string,
-    content: string,
-    changedBy: string,
-    changeReason: string,
-  ): Memory {
+  update(memoryId: string, content: string, changedBy: string, changeReason: string): Memory {
     const memory = this.memories.get(memoryId);
     if (!memory) {
       throw new Error(`Memory "${memoryId}" not found`);
@@ -187,9 +182,7 @@ export class MemoryStore {
     }
 
     if (query.tags && query.tags.length > 0) {
-      results = results.filter((m) =>
-        query.tags!.some((tag) => m.tags.includes(tag)),
-      );
+      results = results.filter((m) => query.tags!.some((tag) => m.tags.includes(tag)));
     }
 
     if (query.fromTimestamp) {

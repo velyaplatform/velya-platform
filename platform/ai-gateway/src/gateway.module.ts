@@ -13,10 +13,6 @@ import { RequestLogger } from './telemetry/request-logger.js';
     RoutingPolicyEvaluator,
     RequestLogger,
   ],
-  exports: [
-    ProviderRegistry,
-    ModelRouter,
-    RequestLogger,
-  ],
+  exports: [ProviderRegistry, ModelRouter, RequestLogger],
 })
 export class GatewayModule {}

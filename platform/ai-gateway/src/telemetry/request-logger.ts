@@ -127,12 +127,9 @@ export class RequestLogger {
       providerBreakdown.set(provider, {
         provider,
         requestCount: providerEntries.length,
-        successRate: providerEntries.length > 0
-          ? successEntries.length / providerEntries.length
-          : 0,
-        averageLatencyMs: providerEntries.length > 0
-          ? totalLatency / providerEntries.length
-          : 0,
+        successRate:
+          providerEntries.length > 0 ? successEntries.length / providerEntries.length : 0,
+        averageLatencyMs: providerEntries.length > 0 ? totalLatency / providerEntries.length : 0,
         totalCost,
       });
     }

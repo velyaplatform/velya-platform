@@ -60,53 +60,69 @@ const VALID_TRANSITIONS: ReadonlyMap<AgentLifecycleStage, AgentLifecycleStage[]>
   ['retired', []],
 ]);
 
-const DEFAULT_PROMOTION_REQUIREMENTS: ReadonlyMap<AgentLifecycleStage, PromotionRequirements> = new Map([
-  ['testing', {
-    stage: 'testing',
-    minimumDurationMs: 0,
-    requiredSuccessRate: 0,
-    requiredMinimumExecutions: 0,
-    requiresApproval: false,
-    approverRoles: [],
-    healthChecks: ['syntax', 'schema-validation'],
-  }],
-  ['shadow', {
-    stage: 'shadow',
-    minimumDurationMs: 24 * 60 * 60 * 1000, // 24 hours
-    requiredSuccessRate: 0.90,
-    requiredMinimumExecutions: 10,
-    requiresApproval: false,
-    approverRoles: [],
-    healthChecks: ['syntax', 'schema-validation', 'shadow-comparison'],
-  }],
-  ['sandbox', {
-    stage: 'sandbox',
-    minimumDurationMs: 48 * 60 * 60 * 1000, // 48 hours
-    requiredSuccessRate: 0.95,
-    requiredMinimumExecutions: 50,
-    requiresApproval: true,
-    approverRoles: ['agent-manager'],
-    healthChecks: ['syntax', 'schema-validation', 'integration'],
-  }],
-  ['staging', {
-    stage: 'staging',
-    minimumDurationMs: 72 * 60 * 60 * 1000, // 72 hours
-    requiredSuccessRate: 0.98,
-    requiredMinimumExecutions: 100,
-    requiresApproval: true,
-    approverRoles: ['agent-manager', 'platform-admin'],
-    healthChecks: ['syntax', 'schema-validation', 'integration', 'performance'],
-  }],
-  ['production', {
-    stage: 'production',
-    minimumDurationMs: 7 * 24 * 60 * 60 * 1000, // 7 days
-    requiredSuccessRate: 0.99,
-    requiredMinimumExecutions: 500,
-    requiresApproval: true,
-    approverRoles: ['platform-admin', 'cto'],
-    healthChecks: ['syntax', 'schema-validation', 'integration', 'performance', 'security'],
-  }],
-]);
+const DEFAULT_PROMOTION_REQUIREMENTS: ReadonlyMap<AgentLifecycleStage, PromotionRequirements> =
+  new Map([
+    [
+      'testing',
+      {
+        stage: 'testing',
+        minimumDurationMs: 0,
+        requiredSuccessRate: 0,
+        requiredMinimumExecutions: 0,
+        requiresApproval: false,
+        approverRoles: [],
+        healthChecks: ['syntax', 'schema-validation'],
+      },
+    ],
+    [
+      'shadow',
+      {
+        stage: 'shadow',
+        minimumDurationMs: 24 * 60 * 60 * 1000, // 24 hours
+        requiredSuccessRate: 0.9,
+        requiredMinimumExecutions: 10,
+        requiresApproval: false,
+        approverRoles: [],
+        healthChecks: ['syntax', 'schema-validation', 'shadow-comparison'],
+      },
+    ],
+    [
+      'sandbox',
+      {
+        stage: 'sandbox',
+        minimumDurationMs: 48 * 60 * 60 * 1000, // 48 hours
+        requiredSuccessRate: 0.95,
+        requiredMinimumExecutions: 50,
+        requiresApproval: true,
+        approverRoles: ['agent-manager'],
+        healthChecks: ['syntax', 'schema-validation', 'integration'],
+      },
+    ],
+    [
+      'staging',
+      {
+        stage: 'staging',
+        minimumDurationMs: 72 * 60 * 60 * 1000, // 72 hours
+        requiredSuccessRate: 0.98,
+        requiredMinimumExecutions: 100,
+        requiresApproval: true,
+        approverRoles: ['agent-manager', 'platform-admin'],
+        healthChecks: ['syntax', 'schema-validation', 'integration', 'performance'],
+      },
+    ],
+    [
+      'production',
+      {
+        stage: 'production',
+        minimumDurationMs: 7 * 24 * 60 * 60 * 1000, // 7 days
+        requiredSuccessRate: 0.99,
+        requiredMinimumExecutions: 500,
+        requiresApproval: true,
+        approverRoles: ['platform-admin', 'cto'],
+        healthChecks: ['syntax', 'schema-validation', 'integration', 'performance', 'security'],
+      },
+    ],
+  ]);
 
 @Injectable()
 export class AgentLifecycleManager {
@@ -168,7 +184,14 @@ export class AgentLifecycleManager {
     // Find the forward (non-rollback) target
     const forwardTarget = validTargets.find((target) => {
       const stageOrder: AgentLifecycleStage[] = [
-        'draft', 'testing', 'shadow', 'sandbox', 'staging', 'production', 'deprecated', 'retired',
+        'draft',
+        'testing',
+        'shadow',
+        'sandbox',
+        'staging',
+        'production',
+        'deprecated',
+        'retired',
       ];
       return stageOrder.indexOf(target) > stageOrder.indexOf(currentStage);
     });
@@ -222,9 +245,7 @@ export class AgentLifecycleManager {
     }
 
     if (requirements.requiresApproval) {
-      blockers.push(
-        `Requires approval from: ${requirements.approverRoles.join(', ')}`,
-      );
+      blockers.push(`Requires approval from: ${requirements.approverRoles.join(', ')}`);
     }
 
     return {

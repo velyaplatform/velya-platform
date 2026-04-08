@@ -177,9 +177,7 @@ export class PolicyGate {
     record.approvedAt = new Date();
     record.approvedBy = approvedBy;
 
-    this.logger.log(
-      `Four-eyes approved: id="${recordId}" approvedBy="${approvedBy}"`,
-    );
+    this.logger.log(`Four-eyes approved: id="${recordId}" approvedBy="${approvedBy}"`);
 
     return record;
   }
@@ -198,9 +196,7 @@ export class PolicyGate {
     record.approvedBy = rejectedBy;
     record.approvedAt = new Date();
 
-    this.logger.log(
-      `Four-eyes rejected: id="${recordId}" rejectedBy="${rejectedBy}"`,
-    );
+    this.logger.log(`Four-eyes rejected: id="${recordId}" rejectedBy="${rejectedBy}"`);
 
     return record;
   }
@@ -242,8 +238,8 @@ export class PolicyGate {
     const requiredActions = request.action.requiredPermissions;
     const resource = request.action.resource;
 
-    const matchingPermissions = request.permissions.filter((p) =>
-      p.resource === resource || p.resource === '*',
+    const matchingPermissions = request.permissions.filter(
+      (p) => p.resource === resource || p.resource === '*',
     );
 
     if (matchingPermissions.length === 0) {
@@ -315,7 +311,8 @@ export class PolicyGate {
         return {
           name: 'environment-restrictions',
           passed: false,
-          reason: `Agent layer "${request.agentLayer}" cannot perform ${request.riskLevel}-risk ` +
+          reason:
+            `Agent layer "${request.agentLayer}" cannot perform ${request.riskLevel}-risk ` +
             `actions in production environment`,
         };
       }

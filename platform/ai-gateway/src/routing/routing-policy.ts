@@ -80,9 +80,7 @@ export class RoutingPolicyEvaluator {
     }
 
     if (constraints.preferredProviders && constraints.preferredProviders.length > 0) {
-      const preferred = filtered.filter((p) =>
-        constraints.preferredProviders!.includes(p.name),
-      );
+      const preferred = filtered.filter((p) => constraints.preferredProviders!.includes(p.name));
       if (preferred.length > 0) {
         filtered = preferred;
       }
@@ -163,8 +161,7 @@ export class RoutingPolicyEvaluator {
     // Estimate: assume input tokens roughly equal to output tokens as a heuristic
     const estimatedInputTokens = Math.floor(maxOutputTokens * 0.5);
     return (
-      estimatedInputTokens * config.costPerInputToken +
-      maxOutputTokens * config.costPerOutputToken
+      estimatedInputTokens * config.costPerInputToken + maxOutputTokens * config.costPerOutputToken
     );
   }
 }

@@ -19,9 +19,14 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yaml}\""
   },
   "devDependencies": {
-    "turbo": "^2.3.0",
+    "@anthropic-ai/sdk": "^0.86.1",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
     "prettier": "^3.4.0",
-    "typescript": "^5.7.0"
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0",
+    "vitest": "^1.6.0"
   },
   "engines": {
     "node": ">=22.0.0"

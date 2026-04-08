@@ -277,9 +277,7 @@ export class AgentRuntime {
     if (!state) return;
 
     if (state.state === 'open') {
-      const timeSinceOpen = state.openedAt
-        ? Date.now() - state.openedAt.getTime()
-        : 0;
+      const timeSinceOpen = state.openedAt ? Date.now() - state.openedAt.getTime() : 0;
 
       if (timeSinceOpen >= CIRCUIT_BREAKER_RESET_MS) {
         state.state = 'half-open';

@@ -277,10 +277,7 @@ export class PolicyEngine {
           return false;
         }
 
-        if (
-          policy.scope.resourcePatterns &&
-          policy.scope.resourcePatterns.length > 0
-        ) {
+        if (policy.scope.resourcePatterns && policy.scope.resourcePatterns.length > 0) {
           const matchesResource = policy.scope.resourcePatterns.some((pattern) =>
             this.matchResourcePattern(context.resource, pattern),
           );
@@ -355,9 +352,7 @@ export class PolicyEngine {
 
   private matchResourcePattern(resource: string, pattern: string): boolean {
     // Simple glob matching: * matches any segment, ** matches any path
-    const regexPattern = pattern
-      .replace(/\*\*/g, '.*')
-      .replace(/\*/g, '[^/]*');
+    const regexPattern = pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(resource);
   }

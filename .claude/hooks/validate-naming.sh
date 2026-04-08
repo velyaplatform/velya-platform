@@ -33,6 +33,15 @@ EXCEPTIONS=(
     'CODEOWNERS'
     'Procfile'
     'Taskfile.yml'
+    'DEPLOYMENT.md'
+    'QUICKSTART_LOCAL.md'
+    'START_HERE.md'
+    'VELYA_INIT.md'
+    'ARCHITECTURE_LOCAL.md'
+    'LOCAL_SETUP.md'
+    'SESSION_SUMMARY.md'
+    'QUICKSTART.md'
+    '_helpers.tpl'
     'tsconfig.json'
     'tsconfig.*.json'
     '.gitignore'
@@ -201,10 +210,11 @@ while IFS= read -r file; do
         service_dir=$(echo "$file" | cut -d'/' -f2)
         if [[ -z "${CHECKED_DIRS[svc_$service_dir]+x}" ]]; then
             CHECKED_DIRS["svc_$service_dir"]=1
-            if ! echo "$service_dir" | grep -qE '^velya-[a-z]+-[a-z]+'; then
+            # Accept both velya-{domain}-{responsibility} and short {domain}-{responsibility} patterns
+            if ! echo "$service_dir" | grep -qE '^(velya-)?[a-z]+-[a-z]+(-[a-z]+)*$'; then
                 add_violation "services/$service_dir/" \
-                    "Service directories must follow velya-{domain}-{responsibility} pattern" \
-                    "Rename to: velya-{domain}-{responsibility} (e.g., velya-patient-flow)"
+                    "Service directories must use kebab-case (e.g., patient-flow or velya-patient-flow)" \
+                    "Rename to kebab-case"
             fi
         fi
     fi

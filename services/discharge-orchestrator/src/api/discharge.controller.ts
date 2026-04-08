@@ -80,9 +80,7 @@ export class DischargeController {
    * GET /api/v1/blockers?encounterId=enc-123&status=identified&overdueOnly=true
    */
   @Get()
-  async listBlockers(
-    @Query() query: BlockerQueryParams,
-  ): Promise<BlockerListResponse> {
+  async listBlockers(@Query() query: BlockerQueryParams): Promise<BlockerListResponse> {
     const limit = Math.min(parseInt(query.limit ?? '20', 10) || 20, 100);
     const offset = parseInt(query.offset ?? '0', 10) || 0;
 
@@ -118,8 +116,8 @@ export class DischargeController {
    */
   @Get('summary')
   async getBlockerSummary(
-    @Query('assignedTeam') assignedTeam?: string,
-    @Query('encounterId') encounterId?: string,
+    @Query('assignedTeam') _assignedTeam?: string,
+    @Query('encounterId') _encounterId?: string,
   ): Promise<BlockerSummary> {
     // TODO: Wire to aggregation service
     return {
@@ -130,15 +128,15 @@ export class DischargeController {
         'clinical-clearance': 0,
         'pending-labs': 0,
         'pending-imaging': 0,
-        'authorization': 0,
+        authorization: 0,
         'social-work': 0,
-        'pharmacy': 0,
-        'equipment': 0,
-        'transport': 0,
+        pharmacy: 0,
+        equipment: 0,
+        transport: 0,
         'family-education': 0,
         'follow-up-appointment': 0,
-        'insurance': 0,
-        'other': 0,
+        insurance: 0,
+        other: 0,
       },
       byPriority: {
         low: 0,
@@ -158,7 +156,7 @@ export class DischargeController {
    */
   @Post()
   async createBlocker(
-    @Body() body: CreateBlockerRequest,
+    @Body() _body: CreateBlockerRequest,
   ): Promise<DischargeBlocker | { error: string; statusCode: number }> {
     // TODO: Wire to blocker creation service
     // - Validate encounter exists
@@ -178,7 +176,7 @@ export class DischargeController {
   @Patch(':id/status')
   async updateBlockerStatus(
     @Param('id') id: string,
-    @Body() body: UpdateBlockerStatusRequest,
+    @Body() _body: UpdateBlockerStatusRequest,
   ): Promise<DischargeBlocker | { error: string; statusCode: number }> {
     // TODO: Wire to blocker status transition service
     // - Validate status transition is allowed
@@ -198,7 +196,7 @@ export class DischargeController {
   @Patch(':id/assignment')
   async reassignBlocker(
     @Param('id') id: string,
-    @Body() body: ReassignBlockerRequest,
+    @Body() _body: ReassignBlockerRequest,
   ): Promise<DischargeBlocker | { error: string; statusCode: number }> {
     // TODO: Wire to blocker reassignment service
     // - Validate new assignee/team
@@ -217,7 +215,7 @@ export class DischargeController {
    */
   @Get('by-encounter/:encounterId')
   async getBlockersByEncounter(
-    @Param('encounterId') encounterId: string,
+    @Param('encounterId') _encounterId: string,
   ): Promise<ReadonlyArray<DischargeBlocker>> {
     // TODO: Wire to blocker repository
     return [];

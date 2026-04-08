@@ -2,12 +2,7 @@
  * Encounter status aligned with FHIR Encounter.status, tailored for
  * hospital operational workflows (admission through discharge).
  */
-export type EncounterStatus =
-  | 'planned'
-  | 'in-progress'
-  | 'on-hold'
-  | 'discharged'
-  | 'cancelled';
+export type EncounterStatus = 'planned' | 'in-progress' | 'on-hold' | 'discharged' | 'cancelled';
 
 /**
  * Patient acuity level used for operational prioritization and

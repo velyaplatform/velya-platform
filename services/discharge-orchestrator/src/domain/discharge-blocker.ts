@@ -24,12 +24,7 @@ export type BlockerPriority = 'low' | 'medium' | 'high' | 'critical';
 /**
  * Blocker lifecycle status.
  */
-export type BlockerStatus =
-  | 'identified'
-  | 'in-progress'
-  | 'resolved'
-  | 'escalated'
-  | 'cancelled';
+export type BlockerStatus = 'identified' | 'in-progress' | 'resolved' | 'escalated' | 'cancelled';
 
 /**
  * Audit trail entry recording a state change on a discharge blocker.
@@ -186,13 +181,13 @@ export const DEFAULT_SLA_MINUTES: Readonly<Record<BlockerCategory, number>> = {
   'clinical-clearance': 120,
   'pending-labs': 180,
   'pending-imaging': 240,
-  'authorization': 480,
+  authorization: 480,
   'social-work': 360,
-  'pharmacy': 120,
-  'equipment': 240,
-  'transport': 120,
+  pharmacy: 120,
+  equipment: 240,
+  transport: 120,
   'family-education': 180,
   'follow-up-appointment': 240,
-  'insurance': 480,
-  'other': 360,
+  insurance: 480,
+  other: 360,
 };
