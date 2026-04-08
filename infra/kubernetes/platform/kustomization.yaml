@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: velya-platform
+
+namespace: velya-platform
+
+commonLabels:
+  app.kubernetes.io/part-of: velya-platform
+  app.kubernetes.io/managed-by: kustomize
+  velya.io/component: platform
+
+resources: []
+# Resources will be added as platform services are defined, e.g.:
+# - ai-gateway/
+# - agent-orchestrator/
+# - workflow-engine/

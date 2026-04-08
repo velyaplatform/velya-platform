@@ -1,0 +1,23 @@
+{
+  "name": "@velya/config",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Velya Configuration - Environment validation and config loading",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "dev": "tsc --build --watch",
+    "lint": "tsc --noEmit",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

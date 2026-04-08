@@ -1,0 +1,41 @@
+# OpenTofu
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+*.tfplan
+
+# Node
+node_modules/
+dist/
+.next/
+coverage/
+*.tsbuildinfo
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+build/
+out/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Turbo
+.turbo/

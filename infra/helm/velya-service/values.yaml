@@ -1,0 +1,67 @@
+## Velya Service - Default Values
+
+## Number of pod replicas
+replicaCount: 1
+
+## Container image configuration
+image:
+  repository: ""  # Required: set to the container image repository
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+## Override the chart name
+nameOverride: ""
+fullnameOverride: ""
+
+## Service configuration
+service:
+  type: ClusterIP
+  port: 3000
+
+## Resource requests and limits
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+## Health check configuration (used by liveness and readiness probes)
+healthCheck:
+  path: /health
+  port: 3000
+
+## Environment variables
+env: []
+# - name: LOG_LEVEL
+#   value: info
+# - name: DATABASE_URL
+#   valueFrom:
+#     secretKeyRef:
+#       name: db-credentials
+#       key: url
+
+## Service account configuration
+serviceAccount:
+  create: true
+  annotations: {}
+  # eks.amazonaws.com/role-arn: arn:aws:iam::role/my-role
+
+## Horizontal Pod Autoscaler
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilization: 80
+
+## Pod Disruption Budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+## Node selector
+nodeSelector: {}
+
+## Tolerations
+tolerations: []
