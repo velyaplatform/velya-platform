@@ -57,14 +57,14 @@ interface AgentTool {
 
 ### Tool Categories
 
-| Category | Examples | Access Control |
-|----------|----------|---------------|
-| FHIR Read | `fhir-read-patient`, `fhir-search-encounter` | Read-only access to specific FHIR resource types per agent |
-| FHIR Write | `fhir-create-document-reference`, `fhir-update-condition` | Write access requires supervisory approval |
-| Clinical Reference | `lookup-icd-code`, `search-drug-interactions` | Read-only, no PHI involved |
-| Communication | `send-nats-event`, `request-human-review` | Subject restrictions per agent role |
-| Web Research | `web-search`, `fetch-clinical-guideline` | Available only to research-designated agents |
-| Internal API | `call-billing-api`, `call-scheduling-api` | Scoped to specific API endpoints per agent |
+| Category           | Examples                                                  | Access Control                                             |
+| ------------------ | --------------------------------------------------------- | ---------------------------------------------------------- |
+| FHIR Read          | `fhir-read-patient`, `fhir-search-encounter`              | Read-only access to specific FHIR resource types per agent |
+| FHIR Write         | `fhir-create-document-reference`, `fhir-update-condition` | Write access requires supervisory approval                 |
+| Clinical Reference | `lookup-icd-code`, `search-drug-interactions`             | Read-only, no PHI involved                                 |
+| Communication      | `send-nats-event`, `request-human-review`                 | Subject restrictions per agent role                        |
+| Web Research       | `web-search`, `fetch-clinical-guideline`                  | Available only to research-designated agents               |
+| Internal API       | `call-billing-api`, `call-scheduling-api`                 | Scoped to specific API endpoints per agent                 |
 
 ### Tool Execution Sandbox
 
@@ -133,22 +133,22 @@ Every agent decision is logged to a structured audit trail. The decision log cap
 
 Each entry contains:
 
-| Field | Description |
-|-------|-------------|
-| `agentId` | Unique identifier for the agent instance |
-| `taskId` | The task being processed |
-| `timestamp` | ISO 8601 timestamp |
-| `stage` | Lifecycle stage (observing, reasoning, acting, evaluating) |
-| `action` | What the agent decided to do |
-| `reasoning` | Summary of why the agent chose this action |
-| `toolName` | Tool invoked (if any) |
-| `toolInput` | Input provided to the tool (PHI redacted) |
-| `toolOutput` | Output received from the tool (PHI redacted) |
-| `confidence` | Agent's self-assessed confidence (0.0-1.0) |
-| `policyChecks` | List of policy checks performed and their results |
-| `delegatedTo` | Target agent if delegation occurred |
-| `escalatedTo` | Escalation target if escalation occurred |
-| `duration` | Time spent on this decision step |
+| Field          | Description                                                |
+| -------------- | ---------------------------------------------------------- |
+| `agentId`      | Unique identifier for the agent instance                   |
+| `taskId`       | The task being processed                                   |
+| `timestamp`    | ISO 8601 timestamp                                         |
+| `stage`        | Lifecycle stage (observing, reasoning, acting, evaluating) |
+| `action`       | What the agent decided to do                               |
+| `reasoning`    | Summary of why the agent chose this action                 |
+| `toolName`     | Tool invoked (if any)                                      |
+| `toolInput`    | Input provided to the tool (PHI redacted)                  |
+| `toolOutput`   | Output received from the tool (PHI redacted)               |
+| `confidence`   | Agent's self-assessed confidence (0.0-1.0)                 |
+| `policyChecks` | List of policy checks performed and their results          |
+| `delegatedTo`  | Target agent if delegation occurred                        |
+| `escalatedTo`  | Escalation target if escalation occurred                   |
+| `duration`     | Time spent on this decision step                           |
 
 ### Storage
 
@@ -223,17 +223,17 @@ Every agent follows a defined lifecycle state machine:
 
 ### Stage Descriptions
 
-| Stage | Description |
-|-------|-------------|
-| **Deploying** | Pod is starting, container image pulled, process initializing |
-| **Initializing** | Agent connects to NATS, registers with supervisor, loads policies |
-| **Ready** | Agent is idle, waiting for tasks on its subject queue |
-| **Processing** | Agent is actively working on a task (observe-reason-act loop) |
-| **Evaluating** | Agent is assessing the quality of its own output before publishing |
-| **Delegating** | Agent has delegated a subtask and is waiting for results |
-| **Restarting** | Agent encountered a recoverable error and is reinitializing |
-| **Suspended** | Agent has been suspended due to policy violations or error threshold breach |
-| **Terminated** | Agent is shutting down gracefully, completing in-flight tasks |
+| Stage            | Description                                                                 |
+| ---------------- | --------------------------------------------------------------------------- |
+| **Deploying**    | Pod is starting, container image pulled, process initializing               |
+| **Initializing** | Agent connects to NATS, registers with supervisor, loads policies           |
+| **Ready**        | Agent is idle, waiting for tasks on its subject queue                       |
+| **Processing**   | Agent is actively working on a task (observe-reason-act loop)               |
+| **Evaluating**   | Agent is assessing the quality of its own output before publishing          |
+| **Delegating**   | Agent has delegated a subtask and is waiting for results                    |
+| **Restarting**   | Agent encountered a recoverable error and is reinitializing                 |
+| **Suspended**    | Agent has been suspended due to policy violations or error threshold breach |
+| **Terminated**   | Agent is shutting down gracefully, completing in-flight tasks               |
 
 ### Health Reporting
 

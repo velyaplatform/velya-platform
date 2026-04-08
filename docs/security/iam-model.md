@@ -21,23 +21,23 @@
 
 Human users authenticate via an identity provider (IdP) using OIDC/SAML.
 
-| Attribute | Value |
-|---|---|
-| Authentication | OIDC with MFA (hardware key preferred) |
-| Session duration | 1 hour access token, 8 hour refresh token |
-| Provider | Organization IdP (Okta/Azure AD) via AWS IAM Identity Center |
-| Production access | Just-in-time via access request workflow |
+| Attribute         | Value                                                        |
+| ----------------- | ------------------------------------------------------------ |
+| Authentication    | OIDC with MFA (hardware key preferred)                       |
+| Session duration  | 1 hour access token, 8 hour refresh token                    |
+| Provider          | Organization IdP (Okta/Azure AD) via AWS IAM Identity Center |
+| Production access | Just-in-time via access request workflow                     |
 
 **Roles**:
 
-| Role | Scope | Typical Assignment |
-|---|---|---|
-| `platform-admin` | Full platform access (break-glass only) | SRE leads, on-call escalation |
-| `developer` | Read access to non-prod, deploy to dev | All engineers |
-| `operator` | Read access to prod, deploy to staging | SRE, DevOps |
-| `security-reviewer` | Read access to all environments, security tooling | Security team |
-| `auditor` | Read-only access to logs, configs, and audit trails | Compliance team |
-| `viewer` | Read-only access to dashboards and non-sensitive data | Product, design |
+| Role                | Scope                                                 | Typical Assignment            |
+| ------------------- | ----------------------------------------------------- | ----------------------------- |
+| `platform-admin`    | Full platform access (break-glass only)               | SRE leads, on-call escalation |
+| `developer`         | Read access to non-prod, deploy to dev                | All engineers                 |
+| `operator`          | Read access to prod, deploy to staging                | SRE, DevOps                   |
+| `security-reviewer` | Read access to all environments, security tooling     | Security team                 |
+| `auditor`           | Read-only access to logs, configs, and audit trails   | Compliance team               |
+| `viewer`            | Read-only access to dashboards and non-sensitive data | Product, design               |
 
 ### Service Accounts (Kubernetes)
 
@@ -50,11 +50,12 @@ metadata:
   name: velya-patient-flow
   namespace: velya-prod-core
   annotations:
-    eks.amazonaws.com/pod-identity-association: "true"
-automountServiceAccountToken: false  # unless Kubernetes API access is needed
+    eks.amazonaws.com/pod-identity-association: 'true'
+automountServiceAccountToken: false # unless Kubernetes API access is needed
 ```
 
 **Rules**:
+
 - One service account per service per namespace.
 - No service uses the `default` ServiceAccount.
 - `automountServiceAccountToken: false` by default. Only set to `true` when the pod needs Kubernetes API access.
@@ -86,15 +87,15 @@ spec:
 
 ### IAM Role Per Service
 
-| Service | IAM Role | Permissions |
-|---|---|---|
-| patient-flow | `velya-patient-flow-{env}-role` | RDS read/write (own database only), S3 read/write (`velya-patient-docs-{env}/*`) |
-| medplum | `velya-medplum-{env}-role` | RDS read/write (Medplum database), S3 read/write (FHIR binary storage bucket) |
-| discharge-orchestrator | `velya-discharge-orch-{env}-role` | RDS read/write (discharge database), SES send email (notifications) |
-| bed-management | `velya-bed-mgmt-{env}-role` | RDS read/write (bed database) |
-| agent-runtime | `velya-agent-runtime-{env}-role` | Bedrock InvokeModel, S3 read (agent configs), Secrets Manager read (`{env}/agents/*`) |
-| external-secrets | `velya-eso-{env}-role` | Secrets Manager read/write (`{env}/*`), KMS decrypt (secrets encryption key) |
-| argocd | `velya-argocd-{env}-role` | ECR pull, S3 read (Helm charts if applicable) |
+| Service                | IAM Role                          | Permissions                                                                           |
+| ---------------------- | --------------------------------- | ------------------------------------------------------------------------------------- |
+| patient-flow           | `velya-patient-flow-{env}-role`   | RDS read/write (own database only), S3 read/write (`velya-patient-docs-{env}/*`)      |
+| medplum                | `velya-medplum-{env}-role`        | RDS read/write (Medplum database), S3 read/write (FHIR binary storage bucket)         |
+| discharge-orchestrator | `velya-discharge-orch-{env}-role` | RDS read/write (discharge database), SES send email (notifications)                   |
+| bed-management         | `velya-bed-mgmt-{env}-role`       | RDS read/write (bed database)                                                         |
+| agent-runtime          | `velya-agent-runtime-{env}-role`  | Bedrock InvokeModel, S3 read (agent configs), Secrets Manager read (`{env}/agents/*`) |
+| external-secrets       | `velya-eso-{env}-role`            | Secrets Manager read/write (`{env}/*`), KMS decrypt (secrets encryption key)          |
+| argocd                 | `velya-argocd-{env}-role`         | ECR pull, S3 read (Helm charts if applicable)                                         |
 
 ### IAM Policy Example
 
@@ -105,28 +106,19 @@ spec:
     {
       "Sid": "AllowOwnDatabaseAccess",
       "Effect": "Allow",
-      "Action": [
-        "rds-db:connect"
-      ],
+      "Action": ["rds-db:connect"],
       "Resource": "arn:aws:rds-db:us-east-1:ACCOUNT:dbuser:*/patient_flow"
     },
     {
       "Sid": "AllowOwnSecretsAccess",
       "Effect": "Allow",
-      "Action": [
-        "secretsmanager:GetSecretValue"
-      ],
-      "Resource": [
-        "arn:aws:secretsmanager:us-east-1:ACCOUNT:secret:prod/patient-flow/*"
-      ]
+      "Action": ["secretsmanager:GetSecretValue"],
+      "Resource": ["arn:aws:secretsmanager:us-east-1:ACCOUNT:secret:prod/patient-flow/*"]
     },
     {
       "Sid": "AllowOwnS3Prefix",
       "Effect": "Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:PutObject"
-      ],
+      "Action": ["s3:GetObject", "s3:PutObject"],
       "Resource": "arn:aws:s3:::velya-patient-docs-prod/*"
     }
   ]
@@ -134,6 +126,7 @@ spec:
 ```
 
 **Prohibited**:
+
 - No wildcard (`*`) resource ARNs in production IAM policies
 - No `iam:*` or `s3:*` action wildcards
 - No shared IAM roles across services
@@ -142,13 +135,13 @@ spec:
 
 Agents are authenticated as service principals with scoped API tokens managed by the agent orchestrator.
 
-| Attribute | Value |
-|---|---|
-| Identity | Registered in agent registry with unique agent ID |
-| Authentication | Scoped API token issued by agent orchestrator |
-| Token lifetime | 1 hour, auto-renewed |
-| Permissions | Per-agent tool access manifest |
-| Rate limits | Per-agent rate limits enforced at AI Gateway |
+| Attribute      | Value                                             |
+| -------------- | ------------------------------------------------- |
+| Identity       | Registered in agent registry with unique agent ID |
+| Authentication | Scoped API token issued by agent orchestrator     |
+| Token lifetime | 1 hour, auto-renewed                              |
+| Permissions    | Per-agent tool access manifest                    |
+| Rate limits    | Per-agent rate limits enforced at AI Gateway      |
 
 Agent permissions are defined in the agent's tool access manifest:
 
@@ -157,20 +150,21 @@ agentId: security-office-reviewer-agent
 tools:
   - name: code-search
     access: read-only
-    scope: "**/*"
+    scope: '**/*'
   - name: file-read
     access: read-only
-    scope: "**/*"
+    scope: '**/*'
   - name: pr-comment
     access: write
     scope: own-reviews
   - name: pr-approve
     access: write
     scope: own-reviews
-    constraint: "cannot approve own PRs"
+    constraint: 'cannot approve own PRs'
 ```
 
 **Agent identity rules**:
+
 - Each agent gets a unique service account in Kubernetes
 - Agent tokens are scoped to the agent's office and tools
 - Agent-to-AWS access goes through the agent-runtime IAM role, further scoped by agent ID at the application layer
@@ -182,11 +176,11 @@ GitHub Actions authenticates to AWS via OIDC federation. No long-lived access ke
 
 ```yaml
 permissions:
-  id-token: write   # Required for OIDC
+  id-token: write # Required for OIDC
   contents: read
 
 steps:
-  - uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502  # v4.0.2
+  - uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
     with:
       role-to-assume: arn:aws:iam::ACCOUNT:role/velya-ci-deploy
       aws-region: us-east-1
@@ -194,13 +188,13 @@ steps:
 
 CI roles are scoped per workflow:
 
-| Workflow | Role | Permissions |
-|---|---|---|
-| CI (lint, test, build) | `velya-ci-build` | ECR push, S3 artifact upload |
-| Deploy to dev | `velya-ci-deploy-dev` | EKS describe, Helm deploy to dev namespace |
-| Deploy to staging | `velya-ci-deploy-staging` | EKS describe, Helm deploy to staging namespace |
-| Deploy to prod | `velya-ci-deploy-prod` | EKS describe, Helm deploy to prod namespace (requires approval) |
-| Security scan | `velya-ci-security` | ECR image scan, CodeQL access |
+| Workflow               | Role                      | Permissions                                                     |
+| ---------------------- | ------------------------- | --------------------------------------------------------------- |
+| CI (lint, test, build) | `velya-ci-build`          | ECR push, S3 artifact upload                                    |
+| Deploy to dev          | `velya-ci-deploy-dev`     | EKS describe, Helm deploy to dev namespace                      |
+| Deploy to staging      | `velya-ci-deploy-staging` | EKS describe, Helm deploy to staging namespace                  |
+| Deploy to prod         | `velya-ci-deploy-prod`    | EKS describe, Helm deploy to prod namespace (requires approval) |
+| Security scan          | `velya-ci-security`       | ECR image scan, CodeQL access                                   |
 
 ---
 
@@ -210,12 +204,12 @@ CI roles are scoped per workflow:
 
 ClusterRoles are reserved for platform-level operators that need cross-namespace access:
 
-| ClusterRole | Bound To | Justification |
-|---|---|---|
-| `argocd-application-controller` | ArgoCD ServiceAccount | Manages applications across all namespaces |
-| `external-secrets-controller` | ESO ServiceAccount | Creates Secrets in all service namespaces |
-| `cert-manager-controller` | cert-manager ServiceAccount | Manages certificates across namespaces |
-| `kube-prometheus-stack` | Prometheus ServiceAccount | Scrapes metrics from all namespaces |
+| ClusterRole                     | Bound To                    | Justification                              |
+| ------------------------------- | --------------------------- | ------------------------------------------ |
+| `argocd-application-controller` | ArgoCD ServiceAccount       | Manages applications across all namespaces |
+| `external-secrets-controller`   | ESO ServiceAccount          | Creates Secrets in all service namespaces  |
+| `cert-manager-controller`       | cert-manager ServiceAccount | Manages certificates across namespaces     |
+| `kube-prometheus-stack`         | Prometheus ServiceAccount   | Scrapes metrics from all namespaces        |
 
 ### Namespace-Scoped Roles (Services)
 
@@ -228,21 +222,21 @@ metadata:
   name: velya-patient-flow
   namespace: velya-prod-core
 rules:
-  - apiGroups: [""]
-    resources: ["configmaps", "secrets"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["get", "list"]
+  - apiGroups: ['']
+    resources: ['configmaps', 'secrets']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['']
+    resources: ['pods']
+    verbs: ['get', 'list']
 ```
 
 ### Human Access by Environment
 
-| Namespace Pattern | Developer Access | Operator Access | Admin Access |
-|---|---|---|---|
-| `velya-dev-*` | Read + port-forward + exec | Full | Full |
-| `velya-staging-*` | Read only | Read + deploy | Full |
-| `velya-prod-*` | No access (JIT only) | Read only (JIT) | Full (JIT, break-glass) |
+| Namespace Pattern | Developer Access           | Operator Access | Admin Access            |
+| ----------------- | -------------------------- | --------------- | ----------------------- |
+| `velya-dev-*`     | Read + port-forward + exec | Full            | Full                    |
+| `velya-staging-*` | Read only                  | Read + deploy   | Full                    |
+| `velya-prod-*`    | No access (JIT only)       | Read only (JIT) | Full (JIT, break-glass) |
 
 ---
 
@@ -250,16 +244,17 @@ rules:
 
 The Velya application uses role-based access control for clinical users:
 
-| Role | Description | Access |
-|---|---|---|
-| `physician` | Attending physician | Full read/write on own patients, read on unit census |
-| `nurse` | Registered nurse | Read/write on assigned patients, read on unit census |
-| `case-manager` | Discharge planner | Read/write on discharge workflows, read on all unit patients |
-| `charge-nurse` | Unit operations | Full read/write on unit patients and beds |
-| `bed-manager` | Hospital-wide beds | Full read/write on bed assignments across units |
-| `admin` | Command center | Read-only on all data, manage configurations |
+| Role           | Description         | Access                                                       |
+| -------------- | ------------------- | ------------------------------------------------------------ |
+| `physician`    | Attending physician | Full read/write on own patients, read on unit census         |
+| `nurse`        | Registered nurse    | Read/write on assigned patients, read on unit census         |
+| `case-manager` | Discharge planner   | Read/write on discharge workflows, read on all unit patients |
+| `charge-nurse` | Unit operations     | Full read/write on unit patients and beds                    |
+| `bed-manager`  | Hospital-wide beds  | Full read/write on bed assignments across units              |
+| `admin`        | Command center      | Read-only on all data, manage configurations                 |
 
 **Constraints**:
+
 - Users can only access patients at facilities they are credentialed for.
 - PHI access is logged per HIPAA requirements (access audit trail).
 - Role assignments are managed by facility administrators, not self-service.

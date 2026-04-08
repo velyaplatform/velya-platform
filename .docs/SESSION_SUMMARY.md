@@ -6,6 +6,7 @@
 ## What Was Created
 
 ### 1. **Local Kubernetes (kind) Setup**
+
 - **File**: `scripts/kind-setup.sh`
 - **Purpose**: Automatically creates a 5-node kind cluster that mirrors AWS EKS architecture
 - **Features**:
@@ -18,6 +19,7 @@
   - Observability stack (Prometheus, Grafana, ArgoCD)
 
 ### 2. **kind Testing Guide**
+
 - **File**: `scripts/kind-local-testing.md`
 - **Purpose**: Comprehensive test suite for validating tier isolation
 - **Tests Included**:
@@ -31,6 +33,7 @@
   - Debugging procedures
 
 ### 3. **Multi-Environment Orchestration**
+
 - **File**: `scripts/multistack-setup.sh`
 - **Purpose**: Single script to manage both kind and ministack
 - **Commands**:
@@ -41,6 +44,7 @@
   - `./scripts/multistack-setup.sh teardown` - Cleanup
 
 ### 4. **Comprehensive Setup Documentation**
+
 - **File**: `docs/LOCAL_SETUP.md`
 - **Sections**:
   - Prerequisites and installation
@@ -52,6 +56,7 @@
   - Troubleshooting guide
 
 ### 5. **Architecture Visual Guide**
+
 - **File**: `docs/ARCHITECTURE_LOCAL.md`
 - **Content**:
   - ASCII diagrams of both environments
@@ -62,6 +67,7 @@
   - Complete files reference
 
 ### 6. **Quick Start Guide for Developers**
+
 - **File**: `QUICKSTART_LOCAL.md`
 - **Audience**: First-time developers
 - **Content**:
@@ -76,6 +82,7 @@
 ## Architecture Delivered
 
 ### Tier Isolation Strategy
+
 ```
 Frontend Tier (t3.medium)
 ├── 2 nodes (1-10 replicas)
@@ -103,6 +110,7 @@ AI/Agents Tier (t3.large)
 ```
 
 ### Network Policies
+
 ```
 Allowed:
 ✓ Frontend ↔ Backend (bidirectional)
@@ -117,22 +125,25 @@ Blocked:
 ```
 
 ### Resource Quotas (kind)
-| Tier | CPU Request | Memory Request | Pods | Services |
-|---|---|---|---|---|
-| Frontend | 4 | 4Gi | 20 | 10 |
-| Backend | 8 | 16Gi | 50 | 20 |
-| Platform | 2 | 2Gi | 30 | 10 |
-| AI/Agents | 8 | 16Gi | 40 | 10 |
+
+| Tier      | CPU Request | Memory Request | Pods | Services |
+| --------- | ----------- | -------------- | ---- | -------- |
+| Frontend  | 4           | 4Gi            | 20   | 10       |
+| Backend   | 8           | 16Gi           | 50   | 20       |
+| Platform  | 2           | 2Gi            | 30   | 10       |
+| AI/Agents | 8           | 16Gi           | 40   | 10       |
 
 ## Two Development Environments
 
 ### kind (Local Kubernetes)
+
 - **Speed**: 1-2 min setup, 30 sec teardown
 - **Use**: Day-to-day development
 - **Simulates**: EKS cluster with 4 node groups
 - **Perfect for**: Service development, testing tier isolation, K8s manifests
 
 ### ministack (AWS Simulation)
+
 - **Speed**: 2-3 min setup, 1-2 min teardown
 - **Use**: Infrastructure validation
 - **Simulates**: Full AWS stack (VPC, EKS, RDS, ECR, CloudWatch)
@@ -141,6 +152,7 @@ Blocked:
 ## Usage Patterns
 
 ### Pattern 1: Backend Service Development
+
 ```bash
 ./scripts/multistack-setup.sh kind           # Fast K8s cluster
 # Code locally, deploy to kind
@@ -150,6 +162,7 @@ kubectl get nodes -L velya.io/tier
 ```
 
 ### Pattern 2: Infrastructure Validation
+
 ```bash
 ./scripts/multistack-setup.sh ministack      # AWS simulation
 # Test OpenTofu templates
@@ -161,6 +174,7 @@ aws eks describe-clusters
 ```
 
 ### Pattern 3: Full Integration Testing
+
 ```bash
 ./scripts/multistack-setup.sh both           # Both environments
 # Run comprehensive test suite
@@ -203,6 +217,7 @@ All commits pushed to `main` branch.
 ## Next Steps for Users
 
 ### Immediate (5 minutes)
+
 ```bash
 cd velya-platform
 ./scripts/multistack-setup.sh both
@@ -210,6 +225,7 @@ cd velya-platform
 ```
 
 ### Short-term (30 minutes)
+
 - Deploy test services to kind
 - Test tier isolation constraints
 - Run test suite from kind-local-testing.md
@@ -217,12 +233,14 @@ cd velya-platform
 - Check resource quota enforcement
 
 ### Medium-term (1-2 hours)
+
 - Deploy actual Velya services (frontend, backend, etc.)
 - Test inter-tier communication
 - Validate observability (Prometheus, Grafana)
 - Test ArgoCD GitOps workflow
 
 ### Validation before AWS (2-4 hours)
+
 - Run full integration test suite
 - Test ministack infrastructure templates
 - Verify IaC deployment on ministack
@@ -267,17 +285,17 @@ cd velya-platform
 ✅ Comprehensive testing procedures  
 ✅ Clear developer documentation  
 ✅ Multiple usage patterns documented  
-✅ Quick start for first-time users  
+✅ Quick start for first-time users
 
 ## Status
 
 **COMPLETE**: Local development environment fully implemented and documented.
 
 Developers can now:
+
 - Setup and test locally in 5 minutes
 - Validate entire architecture before AWS
 - Test tier isolation constraints
 - Simulate AWS infrastructure
 - Run full integration tests
 - Deploy to AWS with confidence
-

@@ -20,9 +20,9 @@ All GitHub Actions referenced in workflows must be pinned by the full commit SHA
 ### Correct
 
 ```yaml
-- uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
-- uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8  # v4.0.2
-- uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502  # v4.0.2
+- uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+- uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+- uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
 ```
 
 ### Incorrect
@@ -88,7 +88,7 @@ Dependabot is enabled for all package ecosystems in the repository:
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: "/"
+    directory: '/'
     schedule:
       interval: weekly
       day: monday
@@ -100,7 +100,7 @@ updates:
       - security
 
   - package-ecosystem: github-actions
-    directory: "/"
+    directory: '/'
     schedule:
       interval: weekly
     reviewers:
@@ -110,7 +110,7 @@ updates:
       - ci
 
   - package-ecosystem: docker
-    directory: "/"
+    directory: '/'
     schedule:
       interval: weekly
     labels:
@@ -120,12 +120,12 @@ updates:
 
 ### Update Strategy
 
-| Update Type | Action |
-|---|---|
-| Patch versions (1.2.3 -> 1.2.4) | Auto-merge after CI passes |
-| Minor versions (1.2.x -> 1.3.0) | PR created, requires one review |
-| Major versions (1.x -> 2.0) | PR created, requires dedicated testing and review |
-| Security patches (any level) | Prioritized, reviewed and merged within 24 hours |
+| Update Type                     | Action                                            |
+| ------------------------------- | ------------------------------------------------- |
+| Patch versions (1.2.3 -> 1.2.4) | Auto-merge after CI passes                        |
+| Minor versions (1.2.x -> 1.3.0) | PR created, requires one review                   |
+| Major versions (1.x -> 2.0)     | PR created, requires dedicated testing and review |
+| Security patches (any level)    | Prioritized, reviewed and merged within 24 hours  |
 
 ---
 
@@ -135,11 +135,11 @@ updates:
 
 All container images use minimal, hardened base images:
 
-| Use Case | Base Image | Justification |
-|---|---|---|
-| Node.js services | `node:22-slim` | Minimal Debian with Node.js, smaller attack surface than full image |
-| Build stages | `node:22` | Full image needed for native module compilation, discarded in final stage |
-| Static files | `gcr.io/distroless/static-debian12` | No shell, no package manager, smallest possible image |
+| Use Case         | Base Image                          | Justification                                                             |
+| ---------------- | ----------------------------------- | ------------------------------------------------------------------------- |
+| Node.js services | `node:22-slim`                      | Minimal Debian with Node.js, smaller attack surface than full image       |
+| Build stages     | `node:22`                           | Full image needed for native module compilation, discarded in final stage |
+| Static files     | `gcr.io/distroless/static-debian12` | No shell, no package manager, smallest possible image                     |
 
 ### Image Pinning
 
@@ -183,7 +183,7 @@ securityContext:
   readOnlyRootFilesystem: true
   allowPrivilegeEscalation: false
   capabilities:
-    drop: ["ALL"]
+    drop: ['ALL']
 ```
 
 ### Image Scanning

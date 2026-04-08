@@ -41,11 +41,11 @@ Velya operates three environments with strict isolation, progressive promotion, 
 
 ### AWS Account Isolation
 
-| Environment | AWS Account | Purpose |
-|-------------|-------------|---------|
-| dev | `velya-dev` (111111111111) | Development and CI workloads |
-| staging | `velya-staging` (222222222222) | Pre-production validation |
-| prod | `velya-prod` (333333333333) | Production workloads and PHI |
+| Environment | AWS Account                    | Purpose                      |
+| ----------- | ------------------------------ | ---------------------------- |
+| dev         | `velya-dev` (111111111111)     | Development and CI workloads |
+| staging     | `velya-staging` (222222222222) | Pre-production validation    |
+| prod        | `velya-prod` (333333333333)    | Production workloads and PHI |
 
 Each account has its own VPC, EKS clusters, RDS instances, and IAM boundaries. Cross-account access is denied by default. The CI/CD pipeline uses OIDC federation to assume environment-specific IAM roles.
 
@@ -103,33 +103,33 @@ Each account has its own VPC, EKS clusters, RDS instances, and IAM boundaries. C
 
 ### Kubernetes Resources
 
-| Resource | Pattern | Example |
-|----------|---------|---------|
-| Namespace | `{service}-{env}` or `{service}` | `velya-app`, `medplum`, `agents` |
-| Deployment | `{service}` | `patient-service`, `scheduling-api` |
-| Service | `{service}` | `patient-service`, `scheduling-api` |
-| ConfigMap | `{service}-config` | `patient-service-config` |
-| Secret | `{service}-secrets` | `patient-service-secrets` |
-| Ingress | `{service}-ingress` | `patient-service-ingress` |
+| Resource   | Pattern                          | Example                             |
+| ---------- | -------------------------------- | ----------------------------------- |
+| Namespace  | `{service}-{env}` or `{service}` | `velya-app`, `medplum`, `agents`    |
+| Deployment | `{service}`                      | `patient-service`, `scheduling-api` |
+| Service    | `{service}`                      | `patient-service`, `scheduling-api` |
+| ConfigMap  | `{service}-config`               | `patient-service-config`            |
+| Secret     | `{service}-secrets`              | `patient-service-secrets`           |
+| Ingress    | `{service}-ingress`              | `patient-service-ingress`           |
 
 ### AWS Resources
 
-| Resource | Pattern | Example |
-|----------|---------|---------|
-| RDS Instance | `velya-{service}-{env}` | `velya-medplum-prod`, `velya-temporal-staging` |
-| S3 Bucket | `velya-{purpose}-{env}-{account-id}` | `velya-fhir-blobs-prod-333333333333` |
-| KMS Key Alias | `alias/velya-{purpose}-{env}` | `alias/velya-rds-prod`, `alias/velya-s3-staging` |
-| Secrets Manager | `{env}/{service}/{secret-name}` | `prod/medplum/database-url`, `dev/nats/auth-token` |
-| IAM Role | `velya-{service}-{env}-role` | `velya-patient-service-prod-role` |
-| ECR Repository | `velya/{service}` | `velya/patient-service`, `velya/scheduling-api` |
+| Resource        | Pattern                              | Example                                            |
+| --------------- | ------------------------------------ | -------------------------------------------------- |
+| RDS Instance    | `velya-{service}-{env}`              | `velya-medplum-prod`, `velya-temporal-staging`     |
+| S3 Bucket       | `velya-{purpose}-{env}-{account-id}` | `velya-fhir-blobs-prod-333333333333`               |
+| KMS Key Alias   | `alias/velya-{purpose}-{env}`        | `alias/velya-rds-prod`, `alias/velya-s3-staging`   |
+| Secrets Manager | `{env}/{service}/{secret-name}`      | `prod/medplum/database-url`, `dev/nats/auth-token` |
+| IAM Role        | `velya-{service}-{env}-role`         | `velya-patient-service-prod-role`                  |
+| ECR Repository  | `velya/{service}`                    | `velya/patient-service`, `velya/scheduling-api`    |
 
 ### DNS
 
-| Environment | Domain Pattern | Example |
-|-------------|---------------|---------|
-| dev | `{service}.dev.velya.health` | `api.dev.velya.health`, `app.dev.velya.health` |
-| staging | `{service}.staging.velya.health` | `api.staging.velya.health` |
-| prod | `{service}.velya.health` | `api.velya.health`, `app.velya.health` |
+| Environment | Domain Pattern                   | Example                                        |
+| ----------- | -------------------------------- | ---------------------------------------------- |
+| dev         | `{service}.dev.velya.health`     | `api.dev.velya.health`, `app.dev.velya.health` |
+| staging     | `{service}.staging.velya.health` | `api.staging.velya.health`                     |
+| prod        | `{service}.velya.health`         | `api.velya.health`, `app.velya.health`         |
 
 ### Container Images
 

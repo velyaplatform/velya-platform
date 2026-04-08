@@ -4,25 +4,27 @@ Full taxonomy: `docs/product/naming-taxonomy.md`
 
 ## Case Rules
 
-| Context | Convention | Example |
-|---|---|---|
-| Files and directories | `kebab-case` | `patient-intake-handler.ts` |
-| TypeScript types, classes, interfaces | `PascalCase` | `PatientAdmission`, `IClinicalEvent` |
-| Variables, functions, properties | `camelCase` | `calculateDosage`, `patientName` |
-| Constants | `SCREAMING_SNAKE_CASE` | `MAX_RETRY_COUNT`, `DEFAULT_TIMEOUT_MS` |
-| Environment variables | `SCREAMING_SNAKE_CASE` | `DATABASE_URL`, `NATS_CLUSTER_URL` |
-| Kubernetes resources | `kebab-case` | `velya-clinical-intake` |
-| Helm charts | `kebab-case` | `velya-patient-service` |
-| Database tables | `snake_case` | `patient_encounters` |
-| Database columns | `snake_case` | `created_at`, `patient_id` |
-| NATS subjects | `dot.separated.kebab` | `clinical.patient-intake.created` |
-| Temporal workflows | `PascalCase` | `PatientDischargeWorkflow` |
-| Temporal activities | `camelCase` | `sendDischargeNotification` |
+| Context                               | Convention             | Example                                 |
+| ------------------------------------- | ---------------------- | --------------------------------------- |
+| Files and directories                 | `kebab-case`           | `patient-intake-handler.ts`             |
+| TypeScript types, classes, interfaces | `PascalCase`           | `PatientAdmission`, `IClinicalEvent`    |
+| Variables, functions, properties      | `camelCase`            | `calculateDosage`, `patientName`        |
+| Constants                             | `SCREAMING_SNAKE_CASE` | `MAX_RETRY_COUNT`, `DEFAULT_TIMEOUT_MS` |
+| Environment variables                 | `SCREAMING_SNAKE_CASE` | `DATABASE_URL`, `NATS_CLUSTER_URL`      |
+| Kubernetes resources                  | `kebab-case`           | `velya-clinical-intake`                 |
+| Helm charts                           | `kebab-case`           | `velya-patient-service`                 |
+| Database tables                       | `snake_case`           | `patient_encounters`                    |
+| Database columns                      | `snake_case`           | `created_at`, `patient_id`              |
+| NATS subjects                         | `dot.separated.kebab`  | `clinical.patient-intake.created`       |
+| Temporal workflows                    | `PascalCase`           | `PatientDischargeWorkflow`              |
+| Temporal activities                   | `camelCase`            | `sendDischargeNotification`             |
 
 ## Resource Naming Patterns
 
 ### Services
+
 Pattern: `velya-{domain}-{responsibility}`
+
 ```
 velya-clinical-intake
 velya-billing-claims
@@ -31,7 +33,9 @@ velya-scheduling-appointments
 ```
 
 ### Agents
+
 Pattern: `{office}-{role}-agent`
+
 ```
 clinical-triage-agent
 quality-audit-agent
@@ -40,7 +44,9 @@ ops-deployment-agent
 ```
 
 ### Kubernetes Namespaces
+
 Pattern: `velya-{env}-{domain}`
+
 ```
 velya-dev-clinical
 velya-staging-billing
@@ -48,7 +54,9 @@ velya-prod-platform
 ```
 
 ### OpenTofu Modules
+
 Pattern: `{provider}-{resource-type}`
+
 ```
 aws-eks-cluster
 aws-rds-postgres
@@ -56,7 +64,9 @@ aws-ecr-registry
 ```
 
 ### Helm Value Files
+
 Pattern: `values-{env}.yaml`
+
 ```
 values-dev.yaml
 values-staging.yaml
@@ -78,6 +88,7 @@ values-prod.yaml
 ## Prohibited Names
 
 Do not use these as standalone module, directory, or file names:
+
 - `utils`, `helpers`, `common`, `shared`, `misc`, `lib`, `core` (too vague)
 - `manager`, `handler`, `processor` without domain qualifier (too generic)
 - `data`, `info`, `stuff`, `thing` (meaningless)

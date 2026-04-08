@@ -85,6 +85,7 @@ Visual guide to kind (local K8s) vs ministack (AWS simulation).
 ## Tier Isolation Comparison
 
 ### kind (In-Cluster Isolation)
+
 ```yaml
 Node Labels:
   velya.io/tier: frontend|backend|platform|ai
@@ -93,12 +94,12 @@ Node Labels:
 Taints:
   # Platform tier (system tools)
   - key: velya.io/platform
-    value: "true"
+    value: 'true'
     effect: NoSchedule
-  
+
   # AI tier (agent workloads)
   - key: velya.io/ai-workload
-    value: "true"
+    value: 'true'
     effect: NoSchedule
 
 Network Policies:
@@ -116,6 +117,7 @@ Resource Quotas:
 ```
 
 ### ministack (AWS-Level Isolation)
+
 ```yaml
 VPC Architecture:
   CIDR: 10.0.0.0/16
@@ -127,7 +129,7 @@ Security Groups:
   Backend SG: Allow 3000 from Frontend
   Platform SG: Allow 9090 from Backend (metrics)
   AI SG: Allow internal communication only
-  
+
 Network ACLs:
   Deny: Platform ↔ AI cross-communication
   Allow: Backend → all (via load balancer)
@@ -148,6 +150,7 @@ RDS PostgreSQL:
 ## Development Workflows
 
 ### Scenario 1: Develop a Backend Service (kind-focused)
+
 ```bash
 # 1. Setup kind cluster
 ./scripts/multistack-setup.sh kind
@@ -200,6 +203,7 @@ kubectl apply -f scripts/../infra/bootstrap/tier-isolation/network-policies-by-t
 ```
 
 ### Scenario 2: Validate IaC Before AWS Deployment (ministack-focused)
+
 ```bash
 # 1. Setup ministack
 ./scripts/multistack-setup.sh ministack
@@ -229,6 +233,7 @@ tofu apply -var-file=envs/dev/terraform.tfvars
 ```
 
 ### Scenario 3: Full Integration Test (both)
+
 ```bash
 # 1. Setup both environments
 ./scripts/multistack-setup.sh both
@@ -257,17 +262,18 @@ aws logs tail /aws/ecs/velya --follow
 
 ### Local Machine Requirements
 
-| Component | kind | ministack | both |
-|---|---|---|---|
-| Docker memory | 2-4 GB | 4-6 GB | 6-8 GB |
-| Disk space | 2-3 GB | 3-5 GB | 5-8 GB |
-| CPU cores | 2 | 2 | 4+ |
-| Setup time | 1-2 min | 2-3 min | 3-5 min |
-| Teardown time | 30 sec | 1 min | 1-2 min |
+| Component     | kind    | ministack | both    |
+| ------------- | ------- | --------- | ------- |
+| Docker memory | 2-4 GB  | 4-6 GB    | 6-8 GB  |
+| Disk space    | 2-3 GB  | 3-5 GB    | 5-8 GB  |
+| CPU cores     | 2       | 2         | 4+      |
+| Setup time    | 1-2 min | 2-3 min   | 3-5 min |
+| Teardown time | 30 sec  | 1 min     | 1-2 min |
 
 ### When to Use Which
 
 **Use kind when:**
+
 - Developing services locally
 - Testing tier isolation quickly
 - Running integration tests
@@ -275,6 +281,7 @@ aws logs tail /aws/ecs/velya --follow
 - No need to test AWS-specific features
 
 **Use ministack when:**
+
 - Validating infrastructure as code (Tofu)
 - Testing AWS networking (VPC, security groups, ACLs)
 - Simulating RDS/ECR/CloudWatch
@@ -282,6 +289,7 @@ aws logs tail /aws/ecs/velya --follow
 - Testing auto-scaling group configurations
 
 **Use both when:**
+
 - Validating complete end-to-end flows
 - Ensuring consistency between K8s and AWS
 - Running full integration test suites
@@ -309,13 +317,12 @@ git tag -a v0.1.0-rc1 -m "Release candidate"
 
 ## Files Reference
 
-| File | Purpose | Environment |
-|---|---|---|
-| `scripts/kind-setup.sh` | Create kind cluster | kind |
-| `scripts/kind-local-testing.md` | Test suite | kind |
-| `scripts/multistack-setup.sh` | Orchestrate both | both |
-| `docs/LOCAL_SETUP.md` | Setup guide | both |
-| `infra/bootstrap/tier-isolation/` | Network + quotas | kind (applies to both) |
-| `infra/opentofu/` | Infrastructure templates | ministack → AWS |
-| `infra/kubernetes/` | K8s manifests | kind → AWS EKS |
-
+| File                              | Purpose                  | Environment            |
+| --------------------------------- | ------------------------ | ---------------------- |
+| `scripts/kind-setup.sh`           | Create kind cluster      | kind                   |
+| `scripts/kind-local-testing.md`   | Test suite               | kind                   |
+| `scripts/multistack-setup.sh`     | Orchestrate both         | both                   |
+| `docs/LOCAL_SETUP.md`             | Setup guide              | both                   |
+| `infra/bootstrap/tier-isolation/` | Network + quotas         | kind (applies to both) |
+| `infra/opentofu/`                 | Infrastructure templates | ministack → AWS        |
+| `infra/kubernetes/`               | K8s manifests            | kind → AWS EKS         |

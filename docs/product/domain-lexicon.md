@@ -176,25 +176,25 @@ The degree of independence granted to an agent or system feature. Ranges from L0
 
 ## Abbreviations
 
-| Abbreviation | Full Term |
-|---|---|
-| ADT | Admission, Discharge, Transfer |
-| AMA | Against Medical Advice |
-| CC | Command Center |
-| CM | Case Manager |
-| DC | Discharge |
-| ED | Emergency Department |
-| EHR | Electronic Health Record |
-| EVS | Environmental Services |
-| GMLOS | Geometric Mean Length of Stay |
-| LOS | Length of Stay |
-| OBS | Observation |
-| PAC | Post-Acute Care |
-| PT/OT | Physical Therapy / Occupational Therapy |
-| SLA | Service Level Agreement |
-| SNF | Skilled Nursing Facility |
-| SW | Social Worker |
-| UM | Utilization Management |
+| Abbreviation | Full Term                               |
+| ------------ | --------------------------------------- |
+| ADT          | Admission, Discharge, Transfer          |
+| AMA          | Against Medical Advice                  |
+| CC           | Command Center                          |
+| CM           | Case Manager                            |
+| DC           | Discharge                               |
+| ED           | Emergency Department                    |
+| EHR          | Electronic Health Record                |
+| EVS          | Environmental Services                  |
+| GMLOS        | Geometric Mean Length of Stay           |
+| LOS          | Length of Stay                          |
+| OBS          | Observation                             |
+| PAC          | Post-Acute Care                         |
+| PT/OT        | Physical Therapy / Occupational Therapy |
+| SLA          | Service Level Agreement                 |
+| SNF          | Skilled Nursing Facility                |
+| SW           | Social Worker                           |
+| UM           | Utilization Management                  |
 
 ---
 

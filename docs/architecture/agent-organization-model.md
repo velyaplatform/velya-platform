@@ -17,6 +17,7 @@ The key insight is that scaling AI-assisted software development is fundamentall
 ### Agent
 
 An agent is a software entity that:
+
 - Has a defined **identity** (name, office, role)
 - Operates under a **system prompt** that defines its persona, capabilities, and constraints
 - Has access to **tools** (code search, file editing, API calls, shell commands)
@@ -27,6 +28,7 @@ An agent is a software entity that:
 ### Office
 
 An office is a functional unit containing agents with related responsibilities. Offices:
+
 - Have a **charter** defining their mission and scope
 - Have a **coordinator** agent that manages work distribution
 - Contain **specialist** agents that do the work
@@ -36,6 +38,7 @@ An office is a functional unit containing agents with related responsibilities. 
 ### Hierarchy
 
 The hierarchy serves three purposes:
+
 1. **Scope management**: Each layer has a defined scope of authority
 2. **Escalation path**: When an agent cannot handle a situation, it knows where to escalate
 3. **Communication structure**: Agents primarily communicate within their office and up/down the hierarchy, reducing noise
@@ -64,7 +67,7 @@ interface AgentMessage {
   type: 'task-assignment' | 'status-update' | 'completion' | 'escalation' | 'consultation';
   priority: 'low' | 'normal' | 'high' | 'critical';
   payload: Record<string, unknown>;
-  replyTo?: string;  // for threaded conversations
+  replyTo?: string; // for threaded conversations
   timestamp: string;
 }
 ```
@@ -121,10 +124,10 @@ interface AgentTask {
   assignedBy: AgentId;
   priority: 'low' | 'normal' | 'high' | 'critical';
   deadline?: string;
-  inputs: Record<string, unknown>;   // files, specs, context
-  expectedOutputs: string[];          // what artifacts to produce
-  acceptanceCriteria: string[];       // how to know it's done
-  autonomyLevel: AutonomyLevel;       // max autonomy for this task
+  inputs: Record<string, unknown>; // files, specs, context
+  expectedOutputs: string[]; // what artifacts to produce
+  acceptanceCriteria: string[]; // how to know it's done
+  autonomyLevel: AutonomyLevel; // max autonomy for this task
   status: 'pending' | 'in-progress' | 'blocked' | 'completed' | 'escalated';
 }
 ```
@@ -142,6 +145,7 @@ When multiple Specialists in an office can handle a task type, the Coordinator u
 ## Conflict Resolution
 
 Conflicts arise when:
+
 - Two agents modify the same file
 - Two offices disagree on an approach
 - An agent's output violates another office's policies
@@ -175,14 +179,14 @@ Every agent is registered in a central registry that serves as the source of tru
 
 ```typescript
 interface AgentRegistryEntry {
-  agentId: string;                    // unique identifier
-  name: string;                       // human-readable name (e.g., "security-office-reviewer-agent")
-  office: string;                     // owning office
+  agentId: string; // unique identifier
+  name: string; // human-readable name (e.g., "security-office-reviewer-agent")
+  office: string; // owning office
   role: 'executive' | 'coordinator' | 'specialist' | 'validator' | 'auditor' | 'red-team';
   autonomyLevel: AutonomyLevel;
   status: 'active' | 'shadow' | 'sandbox' | 'retired';
-  capabilities: string[];             // what tools/skills this agent has
-  systemPromptHash: string;           // hash of current system prompt for change tracking
+  capabilities: string[]; // what tools/skills this agent has
+  systemPromptHash: string; // hash of current system prompt for change tracking
   resourceLimits: {
     maxConcurrentTasks: number;
     dailyTokenBudget: number;
@@ -231,6 +235,7 @@ Agent interactions are traced end-to-end using distributed tracing (OpenTelemetr
 ### When to Add a Specialist
 
 Add a new Specialist agent to an office when:
+
 - Average task queue depth exceeds 5 for more than 24 hours
 - Task completion latency exceeds SLA
 - A new capability is needed that existing Specialists do not have
@@ -238,12 +243,14 @@ Add a new Specialist agent to an office when:
 ### When to Add a Coordinator
 
 Add a new Coordinator when:
+
 - An office has more than 10 active Specialists
 - Cross-functional coordination within the office becomes a bottleneck
 
 ### When to Create a New Office
 
 Create a new office (via ADR) when:
+
 - A new functional area emerges that does not fit existing offices
 - An existing office's charter has grown too broad
 - Separation of concerns requires organizational boundaries
@@ -251,6 +258,7 @@ Create a new office (via ADR) when:
 ### Resource Governance
 
 Total agent compute is budgeted quarterly:
+
 - Each office receives a token budget and compute allocation
 - Overspend triggers automatic tier downgrade (frontier to balanced models)
 - Underspend is not carried over (use-it-or-lose-it prevents hoarding)

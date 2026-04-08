@@ -33,40 +33,40 @@ Each office is a self-contained unit with a head agent (supervisor), specialist 
 
 ### Clinical Division
 
-| # | Office | Head Agent | Responsibilities |
-|---|--------|-----------|-----------------|
-| 1 | **Clinical Operations** | clinical-ops-supervisor | Patient intake, encounter management, clinical documentation, care coordination |
-| 2 | **Quality Assurance** | quality-supervisor | Clinical quality metrics, outcomes tracking, guideline adherence, audit |
-| 3 | **Pharmacy** | pharmacy-supervisor | Medication management, drug interaction checking, formulary management |
-| 4 | **Nursing** | nursing-supervisor | Nursing assessments, care plans, shift coordination, patient education |
-| 5 | **Laboratory** | lab-supervisor | Lab order management, result interpretation, reference range validation |
-| 6 | **Radiology** | radiology-supervisor | Imaging order management, report processing, critical finding alerts |
-| 7 | **Care Management** | care-mgmt-supervisor | Chronic disease programs, care transitions, population health |
+| #   | Office                  | Head Agent              | Responsibilities                                                                |
+| --- | ----------------------- | ----------------------- | ------------------------------------------------------------------------------- |
+| 1   | **Clinical Operations** | clinical-ops-supervisor | Patient intake, encounter management, clinical documentation, care coordination |
+| 2   | **Quality Assurance**   | quality-supervisor      | Clinical quality metrics, outcomes tracking, guideline adherence, audit         |
+| 3   | **Pharmacy**            | pharmacy-supervisor     | Medication management, drug interaction checking, formulary management          |
+| 4   | **Nursing**             | nursing-supervisor      | Nursing assessments, care plans, shift coordination, patient education          |
+| 5   | **Laboratory**          | lab-supervisor          | Lab order management, result interpretation, reference range validation         |
+| 6   | **Radiology**           | radiology-supervisor    | Imaging order management, report processing, critical finding alerts            |
+| 7   | **Care Management**     | care-mgmt-supervisor    | Chronic disease programs, care transitions, population health                   |
 
 ### Business Division
 
-| # | Office | Head Agent | Responsibilities |
-|---|--------|-----------|-----------------|
-| 8 | **Revenue Cycle** | revenue-supervisor | Coding, billing, claims submission, denial management, payment posting |
-| 9 | **Compliance** | compliance-supervisor | Regulatory compliance, policy enforcement, audit response, reporting |
-| 10 | **Finance** | finance-supervisor | Budgeting, cost analysis, financial reporting, vendor payments |
-| 11 | **Human Resources** | hr-supervisor | Credentialing, scheduling, training records, competency tracking |
-| 12 | **Legal** | legal-supervisor | Contract review, consent management, litigation support, privacy |
-| 13 | **Marketing** | marketing-supervisor | Patient engagement, outreach campaigns, reputation management |
-| 14 | **Procurement** | procurement-supervisor | Supply chain, vendor evaluation, purchase orders, inventory |
-| 15 | **Market Intelligence** | market-intel-supervisor | Competitive analysis, industry benchmarks, improvement proposals |
+| #   | Office                  | Head Agent              | Responsibilities                                                       |
+| --- | ----------------------- | ----------------------- | ---------------------------------------------------------------------- |
+| 8   | **Revenue Cycle**       | revenue-supervisor      | Coding, billing, claims submission, denial management, payment posting |
+| 9   | **Compliance**          | compliance-supervisor   | Regulatory compliance, policy enforcement, audit response, reporting   |
+| 10  | **Finance**             | finance-supervisor      | Budgeting, cost analysis, financial reporting, vendor payments         |
+| 11  | **Human Resources**     | hr-supervisor           | Credentialing, scheduling, training records, competency tracking       |
+| 12  | **Legal**               | legal-supervisor        | Contract review, consent management, litigation support, privacy       |
+| 13  | **Marketing**           | marketing-supervisor    | Patient engagement, outreach campaigns, reputation management          |
+| 14  | **Procurement**         | procurement-supervisor  | Supply chain, vendor evaluation, purchase orders, inventory            |
+| 15  | **Market Intelligence** | market-intel-supervisor | Competitive analysis, industry benchmarks, improvement proposals       |
 
 ### Platform Division
 
-| # | Office | Head Agent | Responsibilities |
-|---|--------|-----------|-----------------|
-| 16 | **Engineering** | engineering-supervisor | Service development, code review, API design, testing |
-| 17 | **Infrastructure** | infra-supervisor | Kubernetes operations, networking, storage, compute provisioning |
-| 18 | **Security** | security-supervisor | Vulnerability management, access control, incident response |
-| 19 | **Data** | data-supervisor | Data pipelines, analytics, data quality, FHIR resource management |
-| 20 | **AI/ML** | ai-ml-supervisor | Model management, training pipelines, inference optimization |
-| 21 | **DevOps** | devops-supervisor | CI/CD pipelines, deployment automation, environment management |
-| 22 | **Observability** | observability-supervisor | Monitoring, alerting, SLOs, incident detection, capacity planning |
+| #   | Office             | Head Agent               | Responsibilities                                                  |
+| --- | ------------------ | ------------------------ | ----------------------------------------------------------------- |
+| 16  | **Engineering**    | engineering-supervisor   | Service development, code review, API design, testing             |
+| 17  | **Infrastructure** | infra-supervisor         | Kubernetes operations, networking, storage, compute provisioning  |
+| 18  | **Security**       | security-supervisor      | Vulnerability management, access control, incident response       |
+| 19  | **Data**           | data-supervisor          | Data pipelines, analytics, data quality, FHIR resource management |
+| 20  | **AI/ML**          | ai-ml-supervisor         | Model management, training pipelines, inference optimization      |
+| 21  | **DevOps**         | devops-supervisor        | CI/CD pipelines, deployment automation, environment management    |
+| 22  | **Observability**  | observability-supervisor | Monitoring, alerting, SLOs, incident detection, capacity planning |
 
 ## Hierarchical Agent Structure
 
@@ -151,13 +151,13 @@ When an agent needs domain knowledge from another office:
 
 Each agent operates at a defined autonomy level that determines what actions it can take independently:
 
-| Level | Name | Description | Approval Required |
-|-------|------|-------------|-------------------|
-| 0 | **Observer** | Can read data and produce analysis. Cannot take any action. | N/A (read-only) |
-| 1 | **Advisor** | Can produce recommendations. All actions require human approval. | Human approval for all actions |
-| 2 | **Supervised** | Can execute low-impact actions independently. High-impact actions require supervisor approval. | Supervisor for high-impact |
-| 3 | **Autonomous** | Can execute most actions independently. Only critical actions require approval. | Supervisor for critical only |
-| 4 | **Trusted** | Can execute all actions within scope independently. Periodic audit only. | Audit-only |
+| Level | Name           | Description                                                                                    | Approval Required              |
+| ----- | -------------- | ---------------------------------------------------------------------------------------------- | ------------------------------ |
+| 0     | **Observer**   | Can read data and produce analysis. Cannot take any action.                                    | N/A (read-only)                |
+| 1     | **Advisor**    | Can produce recommendations. All actions require human approval.                               | Human approval for all actions |
+| 2     | **Supervised** | Can execute low-impact actions independently. High-impact actions require supervisor approval. | Supervisor for high-impact     |
+| 3     | **Autonomous** | Can execute most actions independently. Only critical actions require approval.                | Supervisor for critical only   |
+| 4     | **Trusted**    | Can execute all actions within scope independently. Periodic audit only.                       | Audit-only                     |
 
 ### Autonomy Level Assignment
 
@@ -171,13 +171,13 @@ Each agent operates at a defined autonomy level that determines what actions it 
 
 Every tool and output type is classified by impact level, which maps to the minimum autonomy level required:
 
-| Impact | Examples | Minimum Autonomy Level |
-|--------|----------|----------------------|
-| **Informational** | Read FHIR resource, search reference data | Level 0 |
-| **Low** | Generate draft documentation, suggest coding | Level 2 |
-| **Medium** | Create draft FHIR resource (requires human review), send internal notification | Level 2 + supervisor |
-| **High** | Submit billing claim, modify clinical record, send external communication | Level 3 + four-eyes |
-| **Critical** | Delete data, modify access controls, change agent configuration | Level 4 + human approval |
+| Impact            | Examples                                                                       | Minimum Autonomy Level   |
+| ----------------- | ------------------------------------------------------------------------------ | ------------------------ |
+| **Informational** | Read FHIR resource, search reference data                                      | Level 0                  |
+| **Low**           | Generate draft documentation, suggest coding                                   | Level 2                  |
+| **Medium**        | Create draft FHIR resource (requires human review), send internal notification | Level 2 + supervisor     |
+| **High**          | Submit billing claim, modify clinical record, send external communication      | Level 3 + four-eyes      |
+| **Critical**      | Delete data, modify access controls, change agent configuration                | Level 4 + human approval |
 
 ## Inter-Office Communication
 
@@ -188,6 +188,7 @@ agents.{division}.{office}.{agent-role}.{action}
 ```
 
 Examples:
+
 - `agents.clinical.ops.documentation.task-assigned`
 - `agents.business.revenue.coding.output-completed`
 - `agents.platform.engineering.review.requested`
@@ -204,12 +205,12 @@ Examples:
 
 The digital enterprise tracks aggregate metrics across all offices:
 
-| Metric | Description | Target |
-|--------|-------------|--------|
-| Task throughput | Total tasks processed per hour across all offices | Trending upward |
-| First-pass accuracy | Percentage of outputs accepted without revision | >= 88% |
-| Escalation rate | Percentage of tasks requiring human intervention | <= 12% |
-| Cross-office collaboration | Number of successful cross-office delegations per day | Stable or growing |
-| Mean time to resolution | Average time from task assignment to completion | <= 15 minutes |
-| Cost per task | Average AI token + compute cost per task | Trending downward |
-| Agent utilization | Percentage of time agents are actively processing vs. idle | 40-70% (headroom for bursts) |
+| Metric                     | Description                                                | Target                       |
+| -------------------------- | ---------------------------------------------------------- | ---------------------------- |
+| Task throughput            | Total tasks processed per hour across all offices          | Trending upward              |
+| First-pass accuracy        | Percentage of outputs accepted without revision            | >= 88%                       |
+| Escalation rate            | Percentage of tasks requiring human intervention           | <= 12%                       |
+| Cross-office collaboration | Number of successful cross-office delegations per day      | Stable or growing            |
+| Mean time to resolution    | Average time from task assignment to completion            | <= 15 minutes                |
+| Cost per task              | Average AI token + compute cost per task                   | Trending downward            |
+| Agent utilization          | Percentage of time agents are actively processing vs. idle | 40-70% (headroom for bursts) |

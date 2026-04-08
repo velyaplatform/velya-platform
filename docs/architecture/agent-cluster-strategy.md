@@ -21,12 +21,12 @@ All cross-cluster communication uses two mechanisms. No direct pod-to-pod networ
 
 NATS runs in both clusters. JetStream source/mirror streams replicate events across the cluster boundary:
 
-| Direction | Example Subject | Purpose |
-|-----------|----------------|---------|
-| App to Agent | `clinical.patient.admitted` | Trigger agent workflows on clinical events |
-| App to Agent | `agents.tasks.{agent-name}.assigned` | Assign tasks to specific agents |
+| Direction    | Example Subject                        | Purpose                                            |
+| ------------ | -------------------------------------- | -------------------------------------------------- |
+| App to Agent | `clinical.patient.admitted`            | Trigger agent workflows on clinical events         |
+| App to Agent | `agents.tasks.{agent-name}.assigned`   | Assign tasks to specific agents                    |
 | Agent to App | `agents.{agent-name}.output.completed` | Deliver agent results back to application services |
-| Agent to App | `agents.escalation.human-review` | Route decisions requiring human approval |
+| Agent to App | `agents.escalation.human-review`       | Route decisions requiring human approval           |
 
 Agents must tolerate eventual consistency in event delivery. Message ordering is guaranteed within a single stream but not across streams.
 
@@ -49,11 +49,11 @@ The agent cluster is designed so that its failure does not degrade core clinical
 
 Karpenter provisioners on the agent cluster define three node classes:
 
-| Node Class | Instance Types | Purpose | Scaling |
-|------------|---------------|---------|---------|
-| `gpu-inference` | g5.xlarge, g5.2xlarge, g6.xlarge | LLM inference serving | Scale based on request queue depth |
-| `gpu-embedding` | g5.xlarge | Embedding model serving | Scale based on embedding queue depth |
-| `cpu-agent` | m7g.xlarge, m7g.2xlarge | Agent runtime pods (no GPU needed) | Scale based on NATS subject backlog via KEDA |
+| Node Class      | Instance Types                   | Purpose                            | Scaling                                      |
+| --------------- | -------------------------------- | ---------------------------------- | -------------------------------------------- |
+| `gpu-inference` | g5.xlarge, g5.2xlarge, g6.xlarge | LLM inference serving              | Scale based on request queue depth           |
+| `gpu-embedding` | g5.xlarge                        | Embedding model serving            | Scale based on embedding queue depth         |
+| `cpu-agent`     | m7g.xlarge, m7g.2xlarge          | Agent runtime pods (no GPU needed) | Scale based on NATS subject backlog via KEDA |
 
 ### GPU Scheduling
 
@@ -81,15 +81,15 @@ Scale-to-zero is enabled for non-critical agents during off-hours. Critical agen
 
 ## Namespace Layout
 
-| Namespace | Contents | Security Posture |
-|-----------|----------|-----------------|
-| `agents` | Agent runtime pods, supervisor agents, tool executor sidecars | Controlled egress to external APIs via network policy |
-| `ai-inference` | vLLM/TGI model servers, ai-gateway, model-router | No egress; all traffic is internal |
-| `ai-embeddings` | Embedding model servers, vector indexing workers | No egress; receives documents from NATS |
-| `nats` | NATS cluster nodes, cross-cluster mirror configuration | Internal only; peer connections to app cluster NATS |
-| `monitoring` | Prometheus, Grafana agent, OpenTelemetry Collector | Egress to central Grafana in app cluster |
-| `argocd` | ArgoCD server and controllers | Egress to Git repository |
-| `keda` | KEDA operator and metrics server | Internal only |
+| Namespace       | Contents                                                      | Security Posture                                      |
+| --------------- | ------------------------------------------------------------- | ----------------------------------------------------- |
+| `agents`        | Agent runtime pods, supervisor agents, tool executor sidecars | Controlled egress to external APIs via network policy |
+| `ai-inference`  | vLLM/TGI model servers, ai-gateway, model-router              | No egress; all traffic is internal                    |
+| `ai-embeddings` | Embedding model servers, vector indexing workers              | No egress; receives documents from NATS               |
+| `nats`          | NATS cluster nodes, cross-cluster mirror configuration        | Internal only; peer connections to app cluster NATS   |
+| `monitoring`    | Prometheus, Grafana agent, OpenTelemetry Collector            | Egress to central Grafana in app cluster              |
+| `argocd`        | ArgoCD server and controllers                                 | Egress to Git repository                              |
+| `keda`          | KEDA operator and metrics server                              | Internal only                                         |
 
 ## Security Boundaries
 

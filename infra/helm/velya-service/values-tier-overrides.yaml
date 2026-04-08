@@ -9,12 +9,12 @@ frontend:
     repository: velya-web
     tag: latest
 
-  replicas: 2  # min 1, max 10 based on HPA
+  replicas: 2 # min 1, max 10 based on HPA
 
   nodeSelector:
     velya.io/tier: frontend
 
-  tolerations: []  # No taints to tolerate
+  tolerations: [] # No taints to tolerate
 
   resources:
     requests:
@@ -41,12 +41,12 @@ backend:
     repository: velya-api-gateway
     tag: latest
 
-  replicas: 2  # min 2, max 15 based on HPA
+  replicas: 2 # min 2, max 15 based on HPA
 
   nodeSelector:
     velya.io/tier: backend
 
-  tolerations: []  # No taints to tolerate
+  tolerations: [] # No taints to tolerate
 
   resources:
     requests:
@@ -79,10 +79,10 @@ platform:
     velya.io/tier: platform
 
   tolerations:
-    - key: "velya.io/platform"
-      operator: "Equal"
-      value: "true"
-      effect: "NoSchedule"
+    - key: 'velya.io/platform'
+      operator: 'Equal'
+      value: 'true'
+      effect: 'NoSchedule'
 
   resources:
     requests:
@@ -92,7 +92,7 @@ platform:
       memory: 512Mi
 
   autoscaling:
-    enabled: false  # Fixed replicas for platform tools
+    enabled: false # Fixed replicas for platform tools
 
   podDisruptionBudget:
     enabled: true
@@ -112,10 +112,10 @@ ai_gateway:
     velya.io/tier: ai
 
   tolerations:
-    - key: "velya.io/ai-workload"
-      operator: "Equal"
-      value: "true"
-      effect: "NoSchedule"
+    - key: 'velya.io/ai-workload'
+      operator: 'Equal'
+      value: 'true'
+      effect: 'NoSchedule'
 
   resources:
     requests:
@@ -146,10 +146,10 @@ agent_orchestrator:
     velya.io/tier: ai
 
   tolerations:
-    - key: "velya.io/ai-workload"
-      operator: "Equal"
-      value: "true"
-      effect: "NoSchedule"
+    - key: 'velya.io/ai-workload'
+      operator: 'Equal'
+      value: 'true'
+      effect: 'NoSchedule'
 
   resources:
     requests:
@@ -167,7 +167,6 @@ agent_orchestrator:
   podDisruptionBudget:
     enabled: true
     minAvailable: 1
-
 ---
 policy_engine:
   image:
@@ -180,10 +179,10 @@ policy_engine:
     velya.io/tier: ai
 
   tolerations:
-    - key: "velya.io/ai-workload"
-      operator: "Equal"
-      value: "true"
-      effect: "NoSchedule"
+    - key: 'velya.io/ai-workload'
+      operator: 'Equal'
+      value: 'true'
+      effect: 'NoSchedule'
 
   resources:
     requests:
@@ -193,12 +192,11 @@ policy_engine:
       memory: 512Mi
 
   autoscaling:
-    enabled: false  # Static, low load
+    enabled: false # Static, low load
 
   podDisruptionBudget:
     enabled: true
     minAvailable: 1
-
 ---
 memory_service:
   image:
@@ -211,10 +209,10 @@ memory_service:
     velya.io/tier: ai
 
   tolerations:
-    - key: "velya.io/ai-workload"
-      operator: "Equal"
-      value: "true"
-      effect: "NoSchedule"
+    - key: 'velya.io/ai-workload'
+      operator: 'Equal'
+      value: 'true'
+      effect: 'NoSchedule'
 
   resources:
     requests:
@@ -229,7 +227,6 @@ memory_service:
   podDisruptionBudget:
     enabled: true
     minAvailable: 1
-
 ---
 # Microservices (Patient Flow, Discharge, Tasks, Audit)
 # File: values-microservices.yaml
@@ -283,7 +280,6 @@ discharge_orchestrator:
     minReplicas: 2
     maxReplicas: 8
     targetCPUUtilizationPercentage: 75
-
 ---
 task_inbox:
   image:
@@ -309,7 +305,6 @@ task_inbox:
     minReplicas: 2
     maxReplicas: 8
     targetCPUUtilizationPercentage: 75
-
 ---
 audit_service:
   image:
@@ -331,4 +326,4 @@ audit_service:
       memory: 256Mi
 
   autoscaling:
-    enabled: false  # Low traffic, fixed replica
+    enabled: false # Low traffic, fixed replica

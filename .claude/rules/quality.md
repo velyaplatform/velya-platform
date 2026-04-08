@@ -3,6 +3,7 @@
 ## Testing Requirements
 
 ### Unit Tests
+
 - **Required for all business logic.** Every function with domain logic has a corresponding test.
 - Use Vitest as the test runner.
 - Minimum coverage: 80% line coverage for `services/` and `packages/`.
@@ -10,18 +11,21 @@
 - Name test files alongside source: `patient-intake.ts` -> `patient-intake.test.ts`.
 
 ### Integration Tests
+
 - **Required for every service.** Test actual database queries, NATS publishing, and HTTP endpoints.
 - Use Testcontainers for database and message broker dependencies.
 - Integration tests run in CI on every PR.
 - Test files live in `tests/integration/{service-name}/`.
 
 ### E2E Tests
+
 - **Required for critical user paths.** Patient admission, medication ordering, billing submission.
 - Use Playwright for UI flows.
 - E2E tests run nightly and on release branches.
 - Test files live in `tests/e2e/`.
 
 ### Agent Tests
+
 - Agent outputs must be tested against golden datasets.
 - Shadow mode comparison tests validate agent accuracy before promotion.
 - Test files live alongside agent definitions in `agents/{office}/{agent-name}/tests/`.
@@ -37,18 +41,21 @@
 ## Code Quality
 
 ### Linting and Formatting
+
 - **ESLint and Prettier are enforced in CI.** PRs with lint errors do not merge.
 - Use the shared config in `packages/eslint-config/` and `packages/prettier-config/`.
 - No `eslint-disable` without a comment explaining why.
 - Run `lint-staged` on pre-commit hooks.
 
 ### TypeScript Strictness
+
 - `strict: true` in all `tsconfig.json` files.
 - No `any` types. Use `unknown` and narrow with type guards.
 - No `@ts-ignore`. Use `@ts-expect-error` with explanation if absolutely necessary.
 - Prefer `interface` over `type` for object shapes. Use `type` for unions and intersections.
 
 ### Code Review
+
 - Every PR requires at least one approval.
 - Security-sensitive changes (IAM, auth, encryption) require two approvals.
 - PR descriptions must explain the "why", not just the "what".

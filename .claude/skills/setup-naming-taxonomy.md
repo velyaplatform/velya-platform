@@ -18,11 +18,13 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 **Rule**: All files and directories use `kebab-case`.
 
 **Check**:
+
 - Scan all directories under `services/`, `apps/`, `packages/`, `agents/`, `infra/`, `platform/`
 - Flag names containing uppercase letters, underscores, or spaces
 - Exceptions: `SECURITY.md`, `CLAUDE.md`, `README.md`, `LICENSE`, `Dockerfile`, `Makefile`, `.gitignore`, `node_modules/`, configuration files that require specific casing (e.g., `tsconfig.json`, `Dockerfile`, `.eslintrc.js`)
 
 **Examples**:
+
 - `patient-flow-handler.ts` (correct)
 - `patientFlowHandler.ts` (incorrect -- should be kebab-case)
 - `PatientFlow/` (incorrect -- should be `patient-flow/`)
@@ -32,11 +34,13 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 **Rule**: Services follow `velya-{domain}-{responsibility}` pattern.
 
 **Check**:
+
 - Scan `services/` directories
 - Each top-level directory under `services/` should match the pattern
 - The domain should correspond to a term in `docs/product/domain-lexicon.md`
 
 **Examples**:
+
 - `velya-patient-flow` (correct)
 - `velya-discharge-orchestrator` (correct)
 - `patient-service` (incorrect -- missing `velya-` prefix, too generic)
@@ -47,10 +51,12 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 **Rule**: Packages follow `@velya/{package-name}` pattern.
 
 **Check**:
+
 - Read `package.json` files under `packages/`
 - Verify the `name` field starts with `@velya/`
 
 **Examples**:
+
 - `@velya/ui-components` (correct)
 - `@velya/event-schemas` (correct)
 - `event-schemas` (incorrect -- missing `@velya/` scope)
@@ -60,11 +66,13 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 **Rule**: Namespaces follow `velya-{env}-{domain}` pattern.
 
 **Check**:
+
 - Scan Kubernetes manifest files and Helm values for namespace declarations
 - Env must be one of: `dev`, `staging`, `prod`
 - Domain should be one of: `core`, `agents`, `data`, `observability`, `security`, `infra`, `platform`
 
 **Examples**:
+
 - `velya-prod-core` (correct)
 - `velya-dev-agents` (correct)
 - `production` (incorrect -- not following pattern)
@@ -74,11 +82,13 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 **Rule**: Agents follow `{office}-{role}-agent` pattern.
 
 **Check**:
+
 - Scan directories under `agents/`
 - Agent directory names should end with `-agent`
 - Office should match one of the 22 offices in the org chart
 
 **Examples**:
+
 - `security-office-reviewer-agent` (correct)
 - `quality-office-test-agent` (correct)
 - `code-reviewer` (incorrect -- missing office and `-agent` suffix)
@@ -88,6 +98,7 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 **Rule**: Charts follow `velya-{service}` pattern.
 
 **Check**:
+
 - Scan `Chart.yaml` files under `infra/helm/charts/`
 - Verify the `name` field follows the pattern
 
@@ -96,6 +107,7 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 **Rule**: Modules follow `velya-{resource}` pattern.
 
 **Check**:
+
 - Scan directory names under `infra/tofu/modules/`
 
 ### Event Names
@@ -103,11 +115,13 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 **Rule**: Events follow `velya.{domain}.{entity}.{action}` pattern.
 
 **Check**:
+
 - Scan event schema files under `packages/event-schemas/`
 - Search for event name string literals in source code
 - Actions should use past tense
 
 **Examples**:
+
 - `velya.patient.discharge.blocked` (correct)
 - `patient-discharge-blocked` (incorrect -- wrong separator, not past tense)
 
@@ -116,6 +130,7 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 **Rule**: API paths follow `/api/v1/{domain}/{resource}` pattern.
 
 **Check**:
+
 - Scan route definitions in service code
 - Search for Express/Fastify route registrations
 - Verify paths are versioned and domain-scoped
@@ -125,6 +140,7 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 **Rule**: Tables follow `{domain}_{entity}` pattern using `snake_case`.
 
 **Check**:
+
 - Scan migration files for `CREATE TABLE` statements
 - Scan ORM model definitions
 
@@ -133,6 +149,7 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 **Rule**: Flags follow `velya.{domain}.{feature}` pattern.
 
 **Check**:
+
 - Search for feature flag references in code
 - Verify dot-separated naming
 
@@ -141,6 +158,7 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 **Rule**: Types/interfaces use PascalCase, variables/functions use camelCase, constants use SCREAMING_SNAKE_CASE.
 
 **Check**:
+
 - Search for exported type/interface declarations and verify PascalCase
 - This is best checked by ESLint rules rather than manual scanning, so verify ESLint config includes naming convention rules
 
@@ -153,25 +171,25 @@ Use this skill when asked to validate naming, check naming conventions, audit na
 
 ### Summary
 
-| Category | Total Checked | Violations | Status |
-|---|---|---|---|
-| Files & Directories | {n} | {n} | {PASS/FAIL} |
-| Services | {n} | {n} | {PASS/FAIL} |
-| Packages | {n} | {n} | {PASS/FAIL} |
-| Namespaces | {n} | {n} | {PASS/FAIL} |
-| Agents | {n} | {n} | {PASS/FAIL} |
-| Helm Charts | {n} | {n} | {PASS/FAIL} |
-| OpenTofu Modules | {n} | {n} | {PASS/FAIL} |
-| Events | {n} | {n} | {PASS/FAIL} |
-| API Paths | {n} | {n} | {PASS/FAIL} |
-| Database Tables | {n} | {n} | {PASS/FAIL} |
-| Feature Flags | {n} | {n} | {PASS/FAIL} |
+| Category            | Total Checked | Violations | Status      |
+| ------------------- | ------------- | ---------- | ----------- |
+| Files & Directories | {n}           | {n}        | {PASS/FAIL} |
+| Services            | {n}           | {n}        | {PASS/FAIL} |
+| Packages            | {n}           | {n}        | {PASS/FAIL} |
+| Namespaces          | {n}           | {n}        | {PASS/FAIL} |
+| Agents              | {n}           | {n}        | {PASS/FAIL} |
+| Helm Charts         | {n}           | {n}        | {PASS/FAIL} |
+| OpenTofu Modules    | {n}           | {n}        | {PASS/FAIL} |
+| Events              | {n}           | {n}        | {PASS/FAIL} |
+| API Paths           | {n}           | {n}        | {PASS/FAIL} |
+| Database Tables     | {n}           | {n}        | {PASS/FAIL} |
+| Feature Flags       | {n}           | {n}        | {PASS/FAIL} |
 
 ### Violations
 
-| # | Category | Current Name | Expected Name | Location |
-|---|---|---|---|---|
-| 1 | {category} | {current} | {suggested fix} | {file path} |
+| #   | Category   | Current Name | Expected Name   | Location    |
+| --- | ---------- | ------------ | --------------- | ----------- |
+| 1   | {category} | {current}    | {suggested fix} | {file path} |
 ```
 
 ## Rules

@@ -20,22 +20,22 @@ If you discover a security vulnerability in the Velya platform, please report it
 
 ### Severity Classification
 
-| Severity | Description | Response Time |
-|---|---|---|
+| Severity | Description                                              | Response Time         |
+| -------- | -------------------------------------------------------- | --------------------- |
 | Critical | Active exploitation, PHI exposure, authentication bypass | Immediate (< 4 hours) |
-| High | Exploitable vulnerability with significant impact | 24 hours |
-| Medium | Vulnerability requiring specific conditions to exploit | 1 week |
-| Low | Minor issue with limited impact | 30 days |
+| High     | Exploitable vulnerability with significant impact        | 24 hours              |
+| Medium   | Vulnerability requiring specific conditions to exploit   | 1 week                |
+| Low      | Minor issue with limited impact                          | 30 days               |
 
 ---
 
 ## Supported Versions
 
-| Version | Supported |
-|---|---|
-| Latest release | Yes |
+| Version                | Supported           |
+| ---------------------- | ------------------- |
+| Latest release         | Yes                 |
 | Previous minor release | Security fixes only |
-| Older versions | Not supported |
+| Older versions         | Not supported       |
 
 We strongly recommend running the latest version at all times.
 
@@ -112,11 +112,11 @@ Internet --> WAF --> ALB --> Ingress Controller --> Services (private subnet)
 
 ## Security Contacts
 
-| Role | Contact |
-|---|---|
-| Security Team | security@velya.health |
+| Role             | Contact                         |
+| ---------------- | ------------------------------- |
+| Security Team    | security@velya.health           |
 | Security On-Call | Via PagerDuty escalation policy |
-| Privacy Officer | privacy@velya.health |
+| Privacy Officer  | privacy@velya.health            |
 
 ---
 

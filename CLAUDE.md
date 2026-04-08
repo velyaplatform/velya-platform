@@ -11,19 +11,19 @@ AI-native hospital platform built on AWS EKS. TypeScript/Node.js backend, FHIR-f
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Runtime | TypeScript / Node.js |
-| IaC | OpenTofu (no Terraform) |
-| GitOps | ArgoCD |
-| Messaging | NATS JetStream |
-| Workflows | Temporal |
-| Database | PostgreSQL |
-| FHIR | Medplum |
-| Container Orchestration | AWS EKS (Auto Mode) |
-| Observability | OpenTelemetry |
-| Secrets | External Secrets Operator + AWS Secrets Manager |
-| CI | GitHub Actions |
+| Layer                   | Technology                                      |
+| ----------------------- | ----------------------------------------------- |
+| Runtime                 | TypeScript / Node.js                            |
+| IaC                     | OpenTofu (no Terraform)                         |
+| GitOps                  | ArgoCD                                          |
+| Messaging               | NATS JetStream                                  |
+| Workflows               | Temporal                                        |
+| Database                | PostgreSQL                                      |
+| FHIR                    | Medplum                                         |
+| Container Orchestration | AWS EKS (Auto Mode)                             |
+| Observability           | OpenTelemetry                                   |
+| Secrets                 | External Secrets Operator + AWS Secrets Manager |
+| CI                      | GitHub Actions                                  |
 
 ## Naming Conventions
 

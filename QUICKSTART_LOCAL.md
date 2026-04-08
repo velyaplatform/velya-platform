@@ -33,6 +33,7 @@ sudo apt-get install -y kind kubectl helm
 ```
 
 **What you get:**
+
 - 5-node Kubernetes cluster (1 control-plane + 4 workers)
 - Nodes labeled by tier: frontend, backend, platform, ai
 - Network policies between tiers
@@ -40,6 +41,7 @@ sudo apt-get install -y kind kubectl helm
 - Prometheus, Grafana, ArgoCD (optional)
 
 **Test it:**
+
 ```bash
 # See your nodes
 kubectl get nodes -L velya.io/tier
@@ -76,6 +78,7 @@ cd velya-platform
 ```
 
 **What you get:**
+
 - LocalStack: AWS API emulation
 - VPC with public/private subnets
 - Simulated EKS cluster with 4 node groups
@@ -84,6 +87,7 @@ cd velya-platform
 - CloudWatch logs
 
 **Test it:**
+
 ```bash
 # List AWS resources
 export AWS_ENDPOINT_URL=http://localhost:4566
@@ -113,6 +117,7 @@ cd velya-platform
 ```
 
 **What you get:**
+
 - Everything from Option 1 (kind)
 - Everything from Option 2 (ministack)
 - Run both simultaneously for integrated testing
@@ -221,6 +226,7 @@ kubectl get pod test-platform-good -n velya-dev-platform
 ## Access Services
 
 ### kind Services
+
 ```bash
 # Prometheus (metrics)
 kubectl port-forward -n velya-dev-observability svc/prometheus-kube-prometheus-prometheus 9090:9090
@@ -236,6 +242,7 @@ kubectl port-forward -n argocd svc/argocd-server 8080:443
 ```
 
 ### ministack Services
+
 ```bash
 # LocalStack (AWS API)
 curl http://localhost:4566
@@ -291,6 +298,7 @@ After validating locally, proceed to AWS:
 ## Troubleshooting
 
 ### Docker not running?
+
 ```bash
 # Start Docker
 docker ps   # Should work
@@ -298,6 +306,7 @@ docker ps   # Should work
 ```
 
 ### kind command not found?
+
 ```bash
 # Install kind
 brew install kind              # macOS
@@ -305,6 +314,7 @@ sudo apt-get install -y kind   # Linux
 ```
 
 ### Pods stuck in Pending?
+
 ```bash
 # Check node labels
 kubectl get nodes -L velya.io/tier
@@ -317,6 +327,7 @@ kubectl describe node <node-name> | grep Taints
 ```
 
 ### Can't connect to LocalStack?
+
 ```bash
 # Check container is running
 docker ps | grep localstack
@@ -329,6 +340,7 @@ docker-compose -f .ministack/repo/docker-compose.yml restart
 ```
 
 ### Permission denied running scripts?
+
 ```bash
 chmod +x scripts/*.sh
 ./scripts/multistack-setup.sh kind
@@ -336,15 +348,15 @@ chmod +x scripts/*.sh
 
 ## Key Commands Reference
 
-| Command | Purpose |
-|---|---|
-| `./scripts/multistack-setup.sh both` | Setup kind + ministack |
-| `./scripts/multistack-setup.sh verify` | Check both are running |
-| `./scripts/multistack-setup.sh teardown` | Stop everything |
-| `kubectl get nodes -L velya.io/tier` | View tier assignment |
-| `kubectl apply -f manifest.yaml` | Deploy to kind |
-| `kubectl describe pod <name> -n <ns>` | Debug pod issues |
-| `aws ec2 describe-instances` | Check AWS resources (ministack) |
+| Command                                  | Purpose                         |
+| ---------------------------------------- | ------------------------------- |
+| `./scripts/multistack-setup.sh both`     | Setup kind + ministack          |
+| `./scripts/multistack-setup.sh verify`   | Check both are running          |
+| `./scripts/multistack-setup.sh teardown` | Stop everything                 |
+| `kubectl get nodes -L velya.io/tier`     | View tier assignment            |
+| `kubectl apply -f manifest.yaml`         | Deploy to kind                  |
+| `kubectl describe pod <name> -n <ns>`    | Debug pod issues                |
+| `aws ec2 describe-instances`             | Check AWS resources (ministack) |
 
 ## Documentation
 
@@ -356,6 +368,7 @@ chmod +x scripts/*.sh
 ## Need Help?
 
 Check troubleshooting sections in:
+
 - `docs/LOCAL_SETUP.md` (Troubleshooting section)
 - `scripts/kind-local-testing.md` (Debugging section)
 - `ARCHITECTURE_LOCAL.md` (Development Workflows)
@@ -363,6 +376,7 @@ Check troubleshooting sections in:
 ---
 
 **Ready?** Run this now:
+
 ```bash
 cd velya-platform
 ./scripts/multistack-setup.sh both
@@ -370,6 +384,7 @@ cd velya-platform
 ```
 
 Then check what's running:
+
 ```bash
 kubectl get nodes -L velya.io/tier
 kubectl get pods -A

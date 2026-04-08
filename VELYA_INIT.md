@@ -15,13 +15,16 @@ That's it. Aquele é o único comando que você precisa executar.
 ## O Que Este Script Faz
 
 ### ✅ Detecção Automática
+
 - 🖥️ Detecta seu sistema operacional (macOS, Linux, Windows/WSL)
 - 📦 Verifica quais ferramentas você já tem instaladas
 - 💾 Valida recursos (RAM, disco)
 - 🔌 Verifica se Docker está rodando
 
 ### ✅ Instalação Automática
+
 Se algo estiver faltando, instala:
+
 - **Docker** (obrigatório) - via Homebrew ou instalador
 - **kind** (Kubernetes local) - via GitHub releases
 - **kubectl** (CLI Kubernetes) - versão estável
@@ -29,6 +32,7 @@ Se algo estiver faltando, instala:
 - **Git** (controle de versão) - se necessário
 
 ### ✅ Configuração Automática
+
 - Configura permissões de Docker (Linux)
 - Cria cluster kind com 5 nodes (1 control + 4 workers)
 - Aplica tier isolation (labels, taints, network policies)
@@ -36,7 +40,9 @@ Se algo estiver faltando, instala:
 - Verifica tudo
 
 ### ✅ Relatório Final
+
 Mostra:
+
 - Ferramentas instaladas vs já existentes
 - URLs de acesso (Prometheus, Grafana, ArgoCD)
 - Próximos passos
@@ -135,13 +141,13 @@ NEXT STEPS
 
 ## Pré-Requisitos Mínimos
 
-| Item | Obrigatório? | Como Instalar |
-|------|---|---|
-| **Docker** | ✅ SIM | https://www.docker.com/products/docker-desktop |
-| **Git** | ✅ SIM | `brew install git` ou `apt-get install git` |
-| kind | ❌ NÃO | Script instala automaticamente |
-| kubectl | ❌ NÃO | Script instala automaticamente |
-| Helm | ❌ NÃO | Script instala automaticamente (opcional) |
+| Item       | Obrigatório? | Como Instalar                                  |
+| ---------- | ------------ | ---------------------------------------------- |
+| **Docker** | ✅ SIM       | https://www.docker.com/products/docker-desktop |
+| **Git**    | ✅ SIM       | `brew install git` ou `apt-get install git`    |
+| kind       | ❌ NÃO       | Script instala automaticamente                 |
+| kubectl    | ❌ NÃO       | Script instala automaticamente                 |
+| Helm       | ❌ NÃO       | Script instala automaticamente (opcional)      |
 
 ## Pré-Requisitos de Sistema
 
@@ -161,6 +167,7 @@ NEXT STEPS
 ## O Que Fazer Se Algo Falhar
 
 ### Erro: "Docker daemon not running"
+
 ```bash
 # macOS: Abra Docker Desktop
 # Linux: sudo service docker start
@@ -168,12 +175,14 @@ NEXT STEPS
 ```
 
 ### Erro: "Permission denied: docker.sock" (Linux)
+
 ```bash
 sudo usermod -aG docker $USER
 # Depois faça logout e login
 ```
 
 ### Erro: "Failed to install kind/kubectl"
+
 ```bash
 # Tente manualmente:
 brew install kind kubectl  # macOS
@@ -181,9 +190,11 @@ sudo apt-get install kind kubectl  # Linux
 ```
 
 ### Erro: "helm installation failed"
+
 Helm é opcional. O cluster funcionará sem ele (observability stack pode não instalar).
 
 ### Erro: "kind create cluster failed"
+
 ```bash
 # Limpe e tente novamente:
 kind delete cluster --name velya-local
@@ -221,23 +232,27 @@ aws rds describe-db-instances
 ## Dicas Pro
 
 ### 1. Rodar em background
+
 ```bash
 nohup bash scripts/velya-init.sh > velya-setup.log 2>&1 &
 tail -f velya-setup.log
 ```
 
 ### 2. Ver logs detalhados
+
 ```bash
 bash scripts/velya-init.sh 2>&1 | tee velya-setup.log
 ```
 
 ### 3. Limpar tudo depois
+
 ```bash
 ./scripts/multistack-setup.sh teardown
 kind delete cluster --name velya-local
 ```
 
 ### 4. Reiniciar do zero
+
 ```bash
 ./scripts/multistack-setup.sh teardown
 bash scripts/velya-init.sh
@@ -319,6 +334,7 @@ bash scripts/velya-init.sh
 ```
 
 Depois de 3-5 minutos, você tem Velya rodando localmente com:
+
 - ✅ Kubernetes cluster (kind) com tier isolation
 - ✅ AWS simulation (ministack)
 - ✅ Observability stack (Prometheus, Grafana)

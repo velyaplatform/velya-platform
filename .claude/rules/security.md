@@ -40,7 +40,7 @@
   ```yaml
   securityContext:
     capabilities:
-      drop: ["ALL"]
+      drop: ['ALL']
   ```
 
 ## SBOM and Supply Chain

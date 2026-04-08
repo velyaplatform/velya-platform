@@ -34,6 +34,7 @@ draft --> shadow --> active --> deprecated --> retired
 ```
 
 ### Shadow Mode
+
 - **Every agent must run in shadow mode before production activation.**
 - In shadow mode, the agent produces outputs but does not execute actions.
 - Shadow outputs are compared against human decisions or existing systems.
@@ -41,11 +42,13 @@ draft --> shadow --> active --> deprecated --> retired
 - Exit criteria: accuracy threshold met, no critical failures, stakeholder sign-off.
 
 ### Active Mode
+
 - Agent actions are executed in production.
 - Continuous monitoring against KPIs.
 - Automatic fallback to shadow mode if error rate exceeds threshold.
 
 ### Deprecation
+
 - Agents are deprecated when replaced or no longer needed.
 - Deprecated agents continue running in read-only mode for 30 days.
 - Data and logs preserved per retention policy.

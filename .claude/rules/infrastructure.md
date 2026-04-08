@@ -53,11 +53,11 @@
 
 ## Environments
 
-| Environment | Purpose | Sync Policy | Approval |
-|---|---|---|---|
-| `dev` | Development and integration testing | Auto-sync | None |
-| `staging` | Pre-production validation | Manual sync | Team lead |
-| `prod` | Production | Manual sync | Two reviewers |
+| Environment | Purpose                             | Sync Policy | Approval      |
+| ----------- | ----------------------------------- | ----------- | ------------- |
+| `dev`       | Development and integration testing | Auto-sync   | None          |
+| `staging`   | Pre-production validation           | Manual sync | Team lead     |
+| `prod`      | Production                          | Manual sync | Two reviewers |
 
 - Dev may use smaller instance types and single-AZ.
 - Staging mirrors prod topology at reduced scale.

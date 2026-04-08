@@ -13,12 +13,14 @@ bash scripts/velya-init.sh
 ## What You Need Before Running
 
 ✅ **Obrigatório:**
+
 - Docker Desktop ou Docker daemon rodando
 - 6GB RAM (4GB mínimo)
 - 5GB disco livre
 - Internet
 
 ✅ **Opcional:**
+
 - Git (script instala se faltar)
 - kind, kubectl, helm (script instala automaticamente)
 
@@ -50,6 +52,7 @@ bash scripts/velya-init.sh
 ```
 
 **Isto vai:**
+
 - ✅ Detectar seu SO
 - ✅ Verificar quais ferramentas você tem
 - ✅ Instalar o que falta (Docker, kind, kubectl, helm)
@@ -92,6 +95,7 @@ aws eks describe-clusters
 ## O Que Será Criado
 
 ### Kubernetes Cluster (kind)
+
 ```
 5 nodes (1 control-plane + 4 workers)
 ├── Frontend node (t3.medium)
@@ -107,6 +111,7 @@ Recursos:
 ```
 
 ### AWS Simulation (ministack)
+
 ```
 LocalStack Services:
 ✓ VPC com subnets públicas/privadas
@@ -124,19 +129,23 @@ LocalStack Services:
 ## Troubleshooting
 
 ### ❌ Erro: "Docker daemon not running"
+
 ```bash
 # macOS/Windows: Abra Docker Desktop
 # Linux: sudo service docker start
 ```
 
 ### ❌ Erro: "Permission denied: docker.sock" (Linux)
+
 ```bash
 sudo usermod -aG docker $USER
 # Depois faça logout e login
 ```
 
 ### ❌ Erro: "kubectl: command not found"
+
 Script tenta instalar automaticamente. Se falhar:
+
 ```bash
 # macOS
 brew install kubectl
@@ -146,6 +155,7 @@ sudo apt-get install -y kubectl
 ```
 
 ### ❌ Erro: "kind create cluster failed"
+
 ```bash
 # Limpe e tente novamente
 kind delete cluster --name velya-local
@@ -153,6 +163,7 @@ bash scripts/velya-init.sh
 ```
 
 ### ❌ Erro: "Not enough resources"
+
 ```bash
 # Verifique RAM e disco
 docker system prune -a  # Limpa Docker
@@ -163,6 +174,7 @@ docker system prune -a  # Limpa Docker
 ## Próximos Passos Após Setup
 
 ### 1. Validar Cluster
+
 ```bash
 # Ver nodes
 kubectl get nodes -L velya.io/tier
@@ -175,6 +187,7 @@ kubectl get pods -A
 ```
 
 ### 2. Deploy um Serviço de Teste
+
 ```bash
 kubectl apply -f - <<'EOF'
 apiVersion: v1
@@ -203,6 +216,7 @@ kubectl get pod frontend-test -n velya-dev-core -o wide
 ```
 
 ### 3. Testar Tier Isolation
+
 ```bash
 # Tente deploy em platform tier SEM toleration (deve FALHAR)
 kubectl apply -f - <<'EOF'
@@ -249,6 +263,7 @@ kubectl get pod good-platform-pod -n velya-dev-platform
 ```
 
 ### 4. Testar Network Policies
+
 ```bash
 # Ver policies
 kubectl get networkpolicies -A
@@ -258,7 +273,9 @@ kubectl describe networkpolicy backend-tier-policy -n velya-dev-core
 ```
 
 ### 5. Deploy Real Services
+
 Depois de validado localmente, faça deploy de serviços reais:
+
 ```bash
 kubectl apply -f deploy/frontend.yaml
 kubectl apply -f deploy/backend.yaml
@@ -269,14 +286,14 @@ kubectl apply -f deploy/agents.yaml
 
 ## Documentação Disponível
 
-| Documento | Para Quem | Tempo |
-|-----------|-----------|-------|
-| **START_HERE.md** (você está aqui) | Começar rápido | 5 min |
-| **VELYA_INIT.md** | Entender o script | 10 min |
-| **QUICKSTART_LOCAL.md** | Setup rápido com opções | 5 min |
-| **docs/LOCAL_SETUP.md** | Guia completo | 30 min |
-| **docs/ARCHITECTURE_LOCAL.md** | Entender arquitetura | 20 min |
-| **scripts/kind-local-testing.md** | Teste tier isolation | 45 min |
+| Documento                          | Para Quem               | Tempo  |
+| ---------------------------------- | ----------------------- | ------ |
+| **START_HERE.md** (você está aqui) | Começar rápido          | 5 min  |
+| **VELYA_INIT.md**                  | Entender o script       | 10 min |
+| **QUICKSTART_LOCAL.md**            | Setup rápido com opções | 5 min  |
+| **docs/LOCAL_SETUP.md**            | Guia completo           | 30 min |
+| **docs/ARCHITECTURE_LOCAL.md**     | Entender arquitetura    | 20 min |
+| **scripts/kind-local-testing.md**  | Teste tier isolation    | 45 min |
 
 ---
 
@@ -340,12 +357,12 @@ R: Sim, em alguns pontos. Script pede quando necessário.
 
 ## OS Suportados
 
-| OS | Versão | Status |
-|----|--------|--------|
-| **macOS** | 12+ | ✅ Completo |
-| **Linux** | Ubuntu 20.04+ | ✅ Completo |
-| **Windows 11** | WSL2 | ✅ Completo |
-| **Windows 10** | WSL2 | ⚠️ Pode ter problemas |
+| OS             | Versão        | Status                |
+| -------------- | ------------- | --------------------- |
+| **macOS**      | 12+           | ✅ Completo           |
+| **Linux**      | Ubuntu 20.04+ | ✅ Completo           |
+| **Windows 11** | WSL2          | ✅ Completo           |
+| **Windows 10** | WSL2          | ⚠️ Pode ter problemas |
 
 ---
 
@@ -356,6 +373,7 @@ bash scripts/velya-init.sh
 ```
 
 Depois de 3-5 minutos, você tem:
+
 - ✅ Kubernetes cluster (5 nodes)
 - ✅ Tier isolation (4 tiers)
 - ✅ Observability (Prometheus, Grafana)
@@ -367,6 +385,7 @@ Depois de 3-5 minutos, você tem:
 ---
 
 **Dúvidas?** Veja os documentos listados acima ou rode:
+
 ```bash
 bash scripts/velya-init.sh --help  # Em breve
 ```

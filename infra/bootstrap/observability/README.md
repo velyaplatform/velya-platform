@@ -112,7 +112,7 @@ env:
       fieldRef:
         fieldPath: metadata.labels['app.kubernetes.io/name']
   - name: OTEL_RESOURCE_ATTRIBUTES
-    value: "service.namespace=$(NAMESPACE),k8s.pod.name=$(POD_NAME)"
+    value: 'service.namespace=$(NAMESPACE),k8s.pod.name=$(POD_NAME)'
 ```
 
 ## Accessing Grafana

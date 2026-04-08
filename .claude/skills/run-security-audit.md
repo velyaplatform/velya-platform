@@ -60,6 +60,7 @@ sk-ant-[a-zA-Z0-9\-]{20,}
 Scan workflow files in `.github/workflows/` and `infra/github-actions/`.
 
 **Check for**:
+
 - Actions referenced by mutable tag (`@v1`, `@v2`, `@main`) instead of SHA
 - Overly broad `permissions` (especially `contents: write`, `actions: write` without justification)
 - Missing `permissions` block (defaults to broad access)
@@ -74,6 +75,7 @@ Scan workflow files in `.github/workflows/` and `infra/github-actions/`.
 Scan Dockerfiles and Kubernetes manifests.
 
 **Dockerfiles**:
+
 - Base image not pinned by digest (`FROM node:22` instead of `FROM node:22@sha256:...`)
 - Running as root (no `USER` instruction or `USER root`)
 - Using `latest` tag
@@ -82,6 +84,7 @@ Scan Dockerfiles and Kubernetes manifests.
 - Installing unnecessary packages
 
 **Kubernetes manifests and Helm values**:
+
 - Missing `securityContext` on pods or containers
 - `runAsNonRoot` not set to `true`
 - `readOnlyRootFilesystem` not set to `true`
@@ -99,6 +102,7 @@ Scan Dockerfiles and Kubernetes manifests.
 Scan IAM policy files (JSON and HCL).
 
 **Check for**:
+
 - Wildcard resource ARNs (`"Resource": "*"`)
 - Overly broad action wildcards (`"Action": "s3:*"`, `"Action": "*"`)
 - `iam:PassRole` without resource constraint
@@ -113,6 +117,7 @@ Scan IAM policy files (JSON and HCL).
 Scan network-related configurations.
 
 **Check for**:
+
 - Missing NetworkPolicy resources for namespaces
 - Ingress rules allowing `0.0.0.0/0` (except for public load balancers)
 - Services exposed as `type: LoadBalancer` without WAF
@@ -128,6 +133,7 @@ Scan network-related configurations.
 Check dependency configurations.
 
 **Check for**:
+
 - `package-lock.json` exists and is committed
 - `.npmrc` does not contain auth tokens
 - No `npm audit` exclusions for critical/high vulnerabilities
@@ -141,6 +147,7 @@ Check dependency configurations.
 Scan API route handlers and controllers.
 
 **Check for**:
+
 - Missing input validation (no Zod, Joi, or similar at API boundaries)
 - SQL queries built with string concatenation (SQL injection)
 - User input passed directly to shell commands (command injection)
@@ -156,6 +163,7 @@ Scan API route handlers and controllers.
 Check logging configuration.
 
 **Check for**:
+
 - Secrets or credentials in log statements
 - PHI logged without redaction
 - `console.log` in production code (should use structured logging)
@@ -169,6 +177,7 @@ Check logging configuration.
 Check AI-related configurations.
 
 **Check for**:
+
 - Direct LLM SDK imports in services (should go through AI Gateway)
 - Hardcoded model names (should be configurable)
 - Missing prompt injection safeguards in system prompts
@@ -182,6 +191,7 @@ Check AI-related configurations.
 Check API configuration.
 
 **Check for**:
+
 - CORS `origin: '*'` in production configs
 - Missing `Content-Security-Policy` headers
 - Missing `X-Frame-Options` headers
@@ -203,18 +213,18 @@ Check API configuration.
 
 ### Summary
 
-| Category | Critical | High | Medium | Low |
-|---|---|---|---|---|
-| Secrets in Code | {n} | {n} | {n} | {n} |
-| GitHub Actions | {n} | {n} | {n} | {n} |
-| Container Security | {n} | {n} | {n} | {n} |
-| IAM Policies | {n} | {n} | {n} | {n} |
-| Network Security | {n} | {n} | {n} | {n} |
-| Dependencies | {n} | {n} | {n} | {n} |
-| Input Validation | {n} | {n} | {n} | {n} |
-| Logging | {n} | {n} | {n} | {n} |
-| AI Security | {n} | {n} | {n} | {n} |
-| API Security | {n} | {n} | {n} | {n} |
+| Category           | Critical | High | Medium | Low |
+| ------------------ | -------- | ---- | ------ | --- |
+| Secrets in Code    | {n}      | {n}  | {n}    | {n} |
+| GitHub Actions     | {n}      | {n}  | {n}    | {n} |
+| Container Security | {n}      | {n}  | {n}    | {n} |
+| IAM Policies       | {n}      | {n}  | {n}    | {n} |
+| Network Security   | {n}      | {n}  | {n}    | {n} |
+| Dependencies       | {n}      | {n}  | {n}    | {n} |
+| Input Validation   | {n}      | {n}  | {n}    | {n} |
+| Logging            | {n}      | {n}  | {n}    | {n} |
+| AI Security        | {n}      | {n}  | {n}    | {n} |
+| API Security       | {n}      | {n}  | {n}    | {n} |
 
 ### Critical Findings
 

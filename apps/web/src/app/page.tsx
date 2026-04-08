@@ -41,9 +41,18 @@ export default function HomePage() {
             flexWrap: 'wrap',
           }}
         >
-          <Feature title="Patient Flow" description="Real-time visibility into patient journeys from admission to discharge" />
-          <Feature title="Smart Tasks" description="AI-prioritized clinical task inbox with context-aware routing" />
-          <Feature title="Discharge Coordination" description="Identify and resolve discharge blockers before they cause delays" />
+          <Feature
+            title="Patient Flow"
+            description="Real-time visibility into patient journeys from admission to discharge"
+          />
+          <Feature
+            title="Smart Tasks"
+            description="AI-prioritized clinical task inbox with context-aware routing"
+          />
+          <Feature
+            title="Discharge Coordination"
+            description="Identify and resolve discharge blockers before they cause delays"
+          />
         </div>
       </div>
     </main>
@@ -62,7 +71,15 @@ function Feature({ title, description }: { title: string; description: string })
         textAlign: 'left',
       }}
     >
-      <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', marginTop: 0, marginBottom: '0.5rem' }}>
+      <h3
+        style={{
+          fontSize: '1rem',
+          fontWeight: 600,
+          color: '#0f172a',
+          marginTop: 0,
+          marginBottom: '0.5rem',
+        }}
+      >
         {title}
       </h3>
       <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0, lineHeight: 1.5 }}>

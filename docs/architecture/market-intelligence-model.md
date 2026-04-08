@@ -24,14 +24,14 @@ The Market Intelligence Office is one of the 22 offices in the Velya digital ent
 
 ### Agent Roles
 
-| Agent | Responsibility |
-|-------|---------------|
-| **market-intel-supervisor** | Coordinates research priorities, reviews proposals, manages the improvement pipeline |
-| **web-research-agent** | Searches the web for relevant information: competitor features, industry news, clinical informatics publications |
-| **benchmark-analyst-agent** | Compares Velya's capabilities against industry benchmarks and competitor feature matrices |
-| **technology-scout-agent** | Monitors emerging technologies (new AI models, infrastructure tools, clinical data standards) for applicability |
-| **regulatory-monitor-agent** | Tracks regulatory changes (CMS rules, HIPAA updates, state regulations) that affect platform requirements |
-| **proposal-writer-agent** | Synthesizes research findings into structured improvement proposals with evidence, impact analysis, and implementation estimates |
+| Agent                        | Responsibility                                                                                                                   |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **market-intel-supervisor**  | Coordinates research priorities, reviews proposals, manages the improvement pipeline                                             |
+| **web-research-agent**       | Searches the web for relevant information: competitor features, industry news, clinical informatics publications                 |
+| **benchmark-analyst-agent**  | Compares Velya's capabilities against industry benchmarks and competitor feature matrices                                        |
+| **technology-scout-agent**   | Monitors emerging technologies (new AI models, infrastructure tools, clinical data standards) for applicability                  |
+| **regulatory-monitor-agent** | Tracks regulatory changes (CMS rules, HIPAA updates, state regulations) that affect platform requirements                        |
+| **proposal-writer-agent**    | Synthesizes research findings into structured improvement proposals with evidence, impact analysis, and implementation estimates |
 
 ## Web Research Process
 
@@ -39,12 +39,12 @@ The web-research-agent performs structured web research on a continuous schedule
 
 ### Research Triggers
 
-| Trigger | Source | Example |
-|---------|--------|---------|
-| **Scheduled scan** | Cron schedule (daily, weekly) | Weekly scan of top 20 health IT news sources |
-| **Office request** | Another office supervisor | Engineering requests research on new FHIR R5 features |
-| **Gap detection** | Internal metrics | Quality office reports declining coding accuracy; research current coding tools |
-| **Technology release** | Technology scout alert | New Claude model released; research capabilities and clinical applicability |
+| Trigger                | Source                        | Example                                                                         |
+| ---------------------- | ----------------------------- | ------------------------------------------------------------------------------- |
+| **Scheduled scan**     | Cron schedule (daily, weekly) | Weekly scan of top 20 health IT news sources                                    |
+| **Office request**     | Another office supervisor     | Engineering requests research on new FHIR R5 features                           |
+| **Gap detection**      | Internal metrics              | Quality office reports declining coding accuracy; research current coding tools |
+| **Technology release** | Technology scout alert        | New Claude model released; research capabilities and clinical applicability     |
 
 ### Research Methodology
 
@@ -56,12 +56,12 @@ The web-research-agent performs structured web research on a continuous schedule
 
 ### Source Credibility Framework
 
-| Tier | Source Type | Credibility Weight | Examples |
-|------|-----------|-------------------|----------|
-| 1 | Peer-reviewed publication, regulatory guidance | Highest | JAMIA, CMS final rules, ONC regulations |
-| 2 | Major industry analyst, vendor documentation | High | KLAS, Gartner, official product docs |
-| 3 | Industry media, conference proceedings | Medium | Healthcare IT News, HIMSS proceedings |
-| 4 | Blog posts, social media, forums | Low | Individual blogs, Reddit, Twitter threads |
+| Tier | Source Type                                    | Credibility Weight | Examples                                  |
+| ---- | ---------------------------------------------- | ------------------ | ----------------------------------------- |
+| 1    | Peer-reviewed publication, regulatory guidance | Highest            | JAMIA, CMS final rules, ONC regulations   |
+| 2    | Major industry analyst, vendor documentation   | High               | KLAS, Gartner, official product docs      |
+| 3    | Industry media, conference proceedings         | Medium             | Healthcare IT News, HIMSS proceedings     |
+| 4    | Blog posts, social media, forums               | Low                | Individual blogs, Reddit, Twitter threads |
 
 Information sourced exclusively from Tier 4 sources is not used in proposals without corroboration from higher-tier sources.
 
@@ -71,14 +71,14 @@ The benchmark-analyst-agent maintains a continuous comparison of Velya's capabil
 
 ### Benchmark Dimensions
 
-| Dimension | Metrics | Comparison Targets |
-|-----------|---------|-------------------|
-| **Clinical functionality** | FHIR resource coverage, CDS capabilities, clinical workflow support | Epic, Cerner, athenahealth |
-| **AI capabilities** | Documentation accuracy, coding accuracy, ambient listening quality | Nuance DAX, Abridge, Suki |
-| **Technical architecture** | Uptime, latency, scalability, deployment frequency | Industry SLA benchmarks |
-| **Compliance** | HIPAA compliance features, audit capabilities, consent management | Regulatory requirements |
-| **Integration** | Supported standards (FHIR, HL7v2, CDA), API completeness | Interoperability benchmarks |
-| **Cost efficiency** | Cost per encounter, cost per AI inference, infrastructure cost per bed | Industry cost benchmarks |
+| Dimension                  | Metrics                                                                | Comparison Targets          |
+| -------------------------- | ---------------------------------------------------------------------- | --------------------------- |
+| **Clinical functionality** | FHIR resource coverage, CDS capabilities, clinical workflow support    | Epic, Cerner, athenahealth  |
+| **AI capabilities**        | Documentation accuracy, coding accuracy, ambient listening quality     | Nuance DAX, Abridge, Suki   |
+| **Technical architecture** | Uptime, latency, scalability, deployment frequency                     | Industry SLA benchmarks     |
+| **Compliance**             | HIPAA compliance features, audit capabilities, consent management      | Regulatory requirements     |
+| **Integration**            | Supported standards (FHIR, HL7v2, CDA), API completeness               | Interoperability benchmarks |
+| **Cost efficiency**        | Cost per encounter, cost per AI inference, infrastructure cost per bed | Industry cost benchmarks    |
 
 ### Benchmark Cadence
 
@@ -159,37 +159,37 @@ The proposal-writer-agent produces a structured improvement proposal:
 ```yaml
 proposal:
   id: PROP-2026-042
-  title: "Improve ambient documentation accuracy from 87% to 93%"
+  title: 'Improve ambient documentation accuracy from 87% to 93%'
   category: ai-capability-improvement
   priority: P2
   source-gaps: [GAP-2026-042]
-  
+
   problem-statement: |
     Current ambient documentation accuracy (87%) is below the industry
     benchmark (93%) and competitor average (91%). This gap results in
     increased clinician editing time and reduced satisfaction.
-  
+
   proposed-solution: |
     Implement a multi-pass documentation pipeline: initial transcription,
     clinical entity extraction, structured note generation, and
     self-evaluation loop with clinician feedback integration.
-  
+
   evidence-chain:
-    - claim: "Multi-pass pipeline improves accuracy by 5-8%"
+    - claim: 'Multi-pass pipeline improves accuracy by 5-8%'
       sources: [STUDY-2025-NLP-AMBIENT, COMPETITOR-X-WHITEPAPER]
       confidence: medium
-  
+
   impact-analysis:
     clinical-impact: medium
     engineering-effort: large (estimated 6-8 weeks)
     infrastructure-impact: low (uses existing GPU capacity)
     cost-impact: moderate (increased token usage per encounter)
-  
+
   target-offices: [engineering, ai-ml, clinical-ops]
-  
+
   risks:
-    - risk: "Multi-pass pipeline increases latency"
-      mitigation: "Implement streaming output for first-pass results"
+    - risk: 'Multi-pass pipeline increases latency'
+      mitigation: 'Implement streaming output for first-pass results'
 ```
 
 ### Stage 5: Review
@@ -214,13 +214,13 @@ Every proposal must maintain a complete evidence chain from claim to source:
 
 ### Evidence Quality Criteria
 
-| Criterion | Requirement |
-|-----------|-------------|
-| **Recency** | Evidence must be less than 18 months old for technology claims, less than 3 years for clinical outcomes |
-| **Relevance** | Evidence must be from a comparable context (similar patient population, similar technology stack, similar scale) |
-| **Credibility** | At least one Tier 1 or Tier 2 source per major claim |
-| **Reproducibility** | Methodology must be described well enough to validate or reproduce findings |
-| **Conflict of interest** | Vendor-sponsored research is flagged and requires corroboration from independent sources |
+| Criterion                | Requirement                                                                                                      |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| **Recency**              | Evidence must be less than 18 months old for technology claims, less than 3 years for clinical outcomes          |
+| **Relevance**            | Evidence must be from a comparable context (similar patient population, similar technology stack, similar scale) |
+| **Credibility**          | At least one Tier 1 or Tier 2 source per major claim                                                             |
+| **Reproducibility**      | Methodology must be described well enough to validate or reproduce findings                                      |
+| **Conflict of interest** | Vendor-sponsored research is flagged and requires corroboration from independent sources                         |
 
 ### Evidence Staleness
 
@@ -228,21 +228,21 @@ The market-intel-supervisor periodically reviews active proposals and their evid
 
 ## Integration with Other Offices
 
-| Interface | Direction | Content |
-|-----------|-----------|---------|
-| Engineering | Outbound | Improvement proposals with technical specifications |
-| Quality | Bidirectional | Quality gaps trigger research; research informs quality targets |
-| Compliance | Inbound | Regulatory changes that require platform updates |
-| Finance | Outbound | Cost-benefit analysis for proposed improvements |
-| AI/ML | Bidirectional | AI capability gaps trigger research; new model releases trigger technology scouting |
-| Clinical Operations | Outbound | Clinical workflow improvement proposals |
+| Interface           | Direction     | Content                                                                             |
+| ------------------- | ------------- | ----------------------------------------------------------------------------------- |
+| Engineering         | Outbound      | Improvement proposals with technical specifications                                 |
+| Quality             | Bidirectional | Quality gaps trigger research; research informs quality targets                     |
+| Compliance          | Inbound       | Regulatory changes that require platform updates                                    |
+| Finance             | Outbound      | Cost-benefit analysis for proposed improvements                                     |
+| AI/ML               | Bidirectional | AI capability gaps trigger research; new model releases trigger technology scouting |
+| Clinical Operations | Outbound      | Clinical workflow improvement proposals                                             |
 
 ## Metrics
 
-| Metric | Description | Target |
-|--------|-------------|--------|
-| Proposals generated per month | Number of complete proposals produced | 4-8 |
-| Proposal acceptance rate | Percentage of proposals accepted for implementation | >= 40% |
-| Research-to-proposal time | Time from initial signal to complete proposal | <= 10 business days |
-| Evidence quality score | Average evidence chain quality across proposals | >= 0.75 |
-| Gap detection coverage | Percentage of competitor features tracked | >= 80% of top 5 competitors |
+| Metric                        | Description                                         | Target                      |
+| ----------------------------- | --------------------------------------------------- | --------------------------- |
+| Proposals generated per month | Number of complete proposals produced               | 4-8                         |
+| Proposal acceptance rate      | Percentage of proposals accepted for implementation | >= 40%                      |
+| Research-to-proposal time     | Time from initial signal to complete proposal       | <= 10 business days         |
+| Evidence quality score        | Average evidence chain quality across proposals     | >= 0.75                     |
+| Gap detection coverage        | Percentage of competitor features tracked           | >= 80% of top 5 competitors |

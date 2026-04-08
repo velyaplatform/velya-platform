@@ -109,13 +109,13 @@ The four-eyes principle requires that no single agent can independently execute 
 
 ### Actions Requiring Four-Eyes
 
-| Action Category | Example | Approvers |
-|----------------|---------|-----------|
-| FHIR writes affecting clinical records | Creating a Condition resource | Department supervisor + clinical quality agent |
-| Financial calculations over threshold | Claim amount > $10,000 | Revenue cycle supervisor + compliance agent |
-| External communications | Sending prior auth to payer | Clinical supervisor + compliance agent |
-| Agent configuration changes | Modifying agent authority level | Agent governance reviewer + human |
-| Production deployment | Deploying a new agent version | Service architect + human |
+| Action Category                        | Example                         | Approvers                                      |
+| -------------------------------------- | ------------------------------- | ---------------------------------------------- |
+| FHIR writes affecting clinical records | Creating a Condition resource   | Department supervisor + clinical quality agent |
+| Financial calculations over threshold  | Claim amount > $10,000          | Revenue cycle supervisor + compliance agent    |
+| External communications                | Sending prior auth to payer     | Clinical supervisor + compliance agent         |
+| Agent configuration changes            | Modifying agent authority level | Agent governance reviewer + human              |
+| Production deployment                  | Deploying a new agent version   | Service architect + human                      |
 
 ## Cross-Validation Patterns
 
@@ -181,13 +181,13 @@ Every break-glass action generates:
 
 Each agent maintains a scorecard that tracks operational metrics:
 
-| Metric | Description | Threshold |
-|--------|-------------|-----------|
-| Accuracy | Percentage of outputs accepted without modification | >= 90% |
-| Escalation rate | Percentage of tasks escalated to supervisor or human | <= 15% |
-| Policy violations | Number of policy violations per 1000 tasks | <= 1 |
-| Latency | Average task completion time | <= 2x baseline |
-| Cost efficiency | Token usage per task relative to baseline | <= 1.5x baseline |
-| Self-evaluation agreement | How often self-evaluation matches supervisor evaluation | >= 85% |
+| Metric                    | Description                                             | Threshold        |
+| ------------------------- | ------------------------------------------------------- | ---------------- |
+| Accuracy                  | Percentage of outputs accepted without modification     | >= 90%           |
+| Escalation rate           | Percentage of tasks escalated to supervisor or human    | <= 15%           |
+| Policy violations         | Number of policy violations per 1000 tasks              | <= 1             |
+| Latency                   | Average task completion time                            | <= 2x baseline   |
+| Cost efficiency           | Token usage per task relative to baseline               | <= 1.5x baseline |
+| Self-evaluation agreement | How often self-evaluation matches supervisor evaluation | >= 85%           |
 
 Agents whose scorecards fall below thresholds for two consecutive review periods are suspended for review and retraining. Scorecard data is reviewed monthly by the agent governance reviewer.

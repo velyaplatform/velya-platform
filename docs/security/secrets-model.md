@@ -44,6 +44,7 @@ Secrets are organized by environment prefix and service name:
 ```
 
 Examples:
+
 ```
 prod/patient-flow/database-url
 prod/nats/auth-token
@@ -57,15 +58,15 @@ dev/ai-gateway/openai-api-key
 
 Every secret in Secrets Manager includes the following metadata tags:
 
-| Tag | Purpose | Example |
-|---|---|---|
-| `Environment` | Which environment this secret belongs to | `prod` |
-| `Service` | Which service consumes this secret | `velya-patient-flow` |
-| `Owner` | Team or individual responsible | `platform-team` |
-| `RotationSchedule` | How often this secret rotates | `90-days` |
-| `LastRotated` | Date of last rotation | `2026-03-15` |
-| `ManagedBy` | How this secret is managed | `opentofu` or `manual` |
-| `Sensitivity` | Classification level | `high` (credentials), `medium` (API keys), `low` (config) |
+| Tag                | Purpose                                  | Example                                                   |
+| ------------------ | ---------------------------------------- | --------------------------------------------------------- |
+| `Environment`      | Which environment this secret belongs to | `prod`                                                    |
+| `Service`          | Which service consumes this secret       | `velya-patient-flow`                                      |
+| `Owner`            | Team or individual responsible           | `platform-team`                                           |
+| `RotationSchedule` | How often this secret rotates            | `90-days`                                                 |
+| `LastRotated`      | Date of last rotation                    | `2026-03-15`                                              |
+| `ManagedBy`        | How this secret is managed               | `opentofu` or `manual`                                    |
+| `Sensitivity`      | Classification level                     | `high` (credentials), `medium` (API keys), `low` (config) |
 
 ### Creating Secrets
 
@@ -175,6 +176,7 @@ The application reads `/etc/secrets/DATABASE_URL` at startup. This approach allo
 ### When Environment Variables Are Acceptable
 
 Environment variables are acceptable for secrets that:
+
 - Are consumed by third-party software that only reads environment variables (e.g., some database drivers).
 - Are consumed at container startup and do not change during the pod's lifetime.
 
@@ -215,15 +217,15 @@ For secrets that cannot be rotated automatically (third-party API keys, NATS aut
 
 ### Rotation Schedule
 
-| Secret Type | Rotation Period | Automation Level |
-|---|---|---|
-| RDS database passwords | 90 days | Fully automated (Secrets Manager + Lambda) |
-| NATS auth tokens | 90 days | Semi-automated (manual generation, automated sync) |
-| External API keys (LLM providers) | 90 days or per provider policy | Manual with tracked process |
-| TLS certificates | 60 days before expiry | Fully automated (cert-manager + Let's Encrypt) |
-| K8s ServiceAccount tokens | 1 hour TTL | Fully automated (bound SA tokens) |
-| Encryption keys (KMS) | Annual | AWS-managed automatic rotation |
-| Agent API tokens | 1 hour TTL | Fully automated (agent orchestrator) |
+| Secret Type                       | Rotation Period                | Automation Level                                   |
+| --------------------------------- | ------------------------------ | -------------------------------------------------- |
+| RDS database passwords            | 90 days                        | Fully automated (Secrets Manager + Lambda)         |
+| NATS auth tokens                  | 90 days                        | Semi-automated (manual generation, automated sync) |
+| External API keys (LLM providers) | 90 days or per provider policy | Manual with tracked process                        |
+| TLS certificates                  | 60 days before expiry          | Fully automated (cert-manager + Let's Encrypt)     |
+| K8s ServiceAccount tokens         | 1 hour TTL                     | Fully automated (bound SA tokens)                  |
+| Encryption keys (KMS)             | Annual                         | AWS-managed automatic rotation                     |
+| Agent API tokens                  | 1 hour TTL                     | Fully automated (agent orchestrator)               |
 
 ---
 
@@ -232,6 +234,7 @@ For secrets that cannot be rotated automatically (third-party API keys, NATS aut
 ### AWS Secrets Manager Access Logs
 
 All access to Secrets Manager is logged via CloudTrail. Each log entry includes:
+
 - Who accessed the secret (IAM role ARN)
 - Which secret was accessed (secret ARN)
 - What operation was performed (GetSecretValue, PutSecretValue, RotateSecret)
@@ -241,6 +244,7 @@ All access to Secrets Manager is logged via CloudTrail. Each log entry includes:
 ### Kubernetes Secret Access Logs
 
 Kubernetes audit logging captures all access to Secret resources:
+
 - Reading secrets via the API (`kubectl get secret`)
 - Mounting secrets in pods (recorded in pod creation audit events)
 - Modifications to ExternalSecret resources
@@ -248,6 +252,7 @@ Kubernetes audit logging captures all access to Secret resources:
 ### Alerting
 
 Alerts fire for:
+
 - Unexpected access to production secrets from non-production IAM roles.
 - Secrets that have not been rotated within their scheduled rotation window.
 - Failed rotation attempts.
@@ -258,14 +263,14 @@ Alerts fire for:
 
 ## Secret Categories
 
-| Category | Examples | Encryption | Access Scope |
-|---|---|---|---|
-| Database credentials | Connection strings, passwords | KMS CMK | Single service |
-| API keys | LLM provider keys, third-party APIs | KMS CMK | Specific service or agent |
-| Authentication tokens | NATS tokens, JWT signing keys | KMS CMK | Platform services |
-| TLS certificates | Service certs, CA certs | KMS CMK | Ingress, service mesh |
-| Encryption keys | Data-at-rest keys | KMS CMK | Specific service |
-| Agent tokens | Agent API tokens | KMS CMK | Individual agents |
+| Category              | Examples                            | Encryption | Access Scope              |
+| --------------------- | ----------------------------------- | ---------- | ------------------------- |
+| Database credentials  | Connection strings, passwords       | KMS CMK    | Single service            |
+| API keys              | LLM provider keys, third-party APIs | KMS CMK    | Specific service or agent |
+| Authentication tokens | NATS tokens, JWT signing keys       | KMS CMK    | Platform services         |
+| TLS certificates      | Service certs, CA certs             | KMS CMK    | Ingress, service mesh     |
+| Encryption keys       | Data-at-rest keys                   | KMS CMK    | Specific service          |
+| Agent tokens          | Agent API tokens                    | KMS CMK    | Individual agents         |
 
 ---
 

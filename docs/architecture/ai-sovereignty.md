@@ -91,22 +91,22 @@ Requests are routed based on a routing policy that considers task type, quality 
 
 ### Model Tiers
 
-| Tier | Use Case | Example Models | Cost |
-|---|---|---|---|
-| **Tier 1: Frontier** | Complex reasoning, multi-step planning, code generation, architecture decisions | Claude Opus, GPT-4o | High |
-| **Tier 2: Balanced** | Standard chat, summarization, structured extraction, most agent tasks | Claude Sonnet, GPT-4o-mini | Medium |
-| **Tier 3: Fast** | Classification, simple extraction, routing decisions, low-latency needs | Claude Haiku, GPT-4o-mini | Low |
-| **Tier 4: Embedding** | Vector search, semantic similarity, retrieval | text-embedding-3-large, Cohere embed | Lowest |
-| **Tier 5: Self-Hosted** | PHI processing, high-volume batch, cost-sensitive workloads | Llama 3, Mistral (via vLLM) | Infrastructure only |
+| Tier                    | Use Case                                                                        | Example Models                       | Cost                |
+| ----------------------- | ------------------------------------------------------------------------------- | ------------------------------------ | ------------------- |
+| **Tier 1: Frontier**    | Complex reasoning, multi-step planning, code generation, architecture decisions | Claude Opus, GPT-4o                  | High                |
+| **Tier 2: Balanced**    | Standard chat, summarization, structured extraction, most agent tasks           | Claude Sonnet, GPT-4o-mini           | Medium              |
+| **Tier 3: Fast**        | Classification, simple extraction, routing decisions, low-latency needs         | Claude Haiku, GPT-4o-mini            | Low                 |
+| **Tier 4: Embedding**   | Vector search, semantic similarity, retrieval                                   | text-embedding-3-large, Cohere embed | Lowest              |
+| **Tier 5: Self-Hosted** | PHI processing, high-volume batch, cost-sensitive workloads                     | Llama 3, Mistral (via vLLM)          | Infrastructure only |
 
 ### Routing Rules
 
 ```yaml
 routing_rules:
   - name: phi-processing
-    condition: "request.metadata.containsPHI == true"
+    condition: 'request.metadata.containsPHI == true'
     route: self-hosted
-    fallback: none  # PHI must never leave controlled infra
+    fallback: none # PHI must never leave controlled infra
 
   - name: complex-reasoning
     condition: "request.metadata.tier == 'frontier'"
@@ -159,6 +159,7 @@ Degrade: Return cached response, or escalate to human
 ```
 
 **Failure modes handled**:
+
 - Provider API timeout (30s default)
 - Provider rate limiting (429)
 - Provider server error (500/502/503)
@@ -190,13 +191,13 @@ The long-term vision is to run a significant portion of AI workloads on self-hos
 
 ### Phased Rollout
 
-| Phase | Timeline | Scope |
-|---|---|---|
-| Phase 1 | Current | All workloads use cloud providers via AI Gateway |
-| Phase 2 | Q3 2026 | Embeddings move to self-hosted (low risk, high volume) |
-| Phase 3 | Q4 2026 | Classification and simple extraction move to self-hosted |
-| Phase 4 | Q1 2027 | PHI-containing workloads move to self-hosted |
-| Phase 5 | Q2 2027 | Balanced-tier agent workloads partially move to self-hosted |
+| Phase   | Timeline | Scope                                                       |
+| ------- | -------- | ----------------------------------------------------------- |
+| Phase 1 | Current  | All workloads use cloud providers via AI Gateway            |
+| Phase 2 | Q3 2026  | Embeddings move to self-hosted (low risk, high volume)      |
+| Phase 3 | Q4 2026  | Classification and simple extraction move to self-hosted    |
+| Phase 4 | Q1 2027  | PHI-containing workloads move to self-hosted                |
+| Phase 5 | Q2 2027  | Balanced-tier agent workloads partially move to self-hosted |
 
 ### Self-Hosted Model Selection Criteria
 

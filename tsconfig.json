@@ -9,11 +9,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": [
-    "services/*/src/**/*.ts",
-    "platform/*/src/**/*.ts",
-    "tests/**/*.ts"
-  ],
+  "include": ["services/*/src/**/*.ts", "platform/*/src/**/*.ts", "tests/**/*.ts"],
   "exclude": [
     "node_modules",
     "dist",

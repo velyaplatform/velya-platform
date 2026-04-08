@@ -18,14 +18,14 @@ spec:
         cpu: 100m
         memory: 128Mi
       max:
-        cpu: "4"
+        cpu: '4'
         memory: 4Gi
       min:
         cpu: 50m
         memory: 64Mi
     - type: Pod
       max:
-        cpu: "8"
+        cpu: '8'
         memory: 8Gi
     - type: PersistentVolumeClaim
       max:
@@ -53,14 +53,14 @@ spec:
         cpu: 100m
         memory: 128Mi
       max:
-        cpu: "4"
+        cpu: '4'
         memory: 4Gi
       min:
         cpu: 50m
         memory: 64Mi
     - type: Pod
       max:
-        cpu: "8"
+        cpu: '8'
         memory: 8Gi
     - type: PersistentVolumeClaim
       max:
@@ -88,14 +88,14 @@ spec:
         cpu: 100m
         memory: 128Mi
       max:
-        cpu: "8"
+        cpu: '8'
         memory: 8Gi
       min:
         cpu: 50m
         memory: 64Mi
     - type: Pod
       max:
-        cpu: "16"
+        cpu: '16'
         memory: 16Gi
     - type: PersistentVolumeClaim
       max:
@@ -123,14 +123,14 @@ spec:
         cpu: 50m
         memory: 64Mi
       max:
-        cpu: "2"
+        cpu: '2'
         memory: 4Gi
       min:
         cpu: 25m
         memory: 32Mi
     - type: Pod
       max:
-        cpu: "4"
+        cpu: '4'
         memory: 8Gi
     - type: PersistentVolumeClaim
       max:

@@ -10,13 +10,13 @@ metadata:
     velya.io/environment: dev
 spec:
   hard:
-    requests.cpu: "8"
+    requests.cpu: '8'
     requests.memory: 16Gi
-    limits.cpu: "16"
+    limits.cpu: '16'
     limits.memory: 32Gi
-    pods: "50"
-    services: "20"
-    persistentvolumeclaims: "10"
+    pods: '50'
+    services: '20'
+    persistentvolumeclaims: '10'
     requests.storage: 100Gi
 ---
 apiVersion: v1
@@ -31,13 +31,13 @@ metadata:
     velya.io/environment: dev
 spec:
   hard:
-    requests.cpu: "8"
+    requests.cpu: '8'
     requests.memory: 16Gi
-    limits.cpu: "16"
+    limits.cpu: '16'
     limits.memory: 32Gi
-    pods: "50"
-    services: "20"
-    persistentvolumeclaims: "10"
+    pods: '50'
+    services: '20'
+    persistentvolumeclaims: '10'
     requests.storage: 100Gi
 ---
 apiVersion: v1
@@ -52,13 +52,13 @@ metadata:
     velya.io/environment: dev
 spec:
   hard:
-    requests.cpu: "12"
+    requests.cpu: '12'
     requests.memory: 24Gi
-    limits.cpu: "24"
+    limits.cpu: '24'
     limits.memory: 48Gi
-    pods: "100"
-    services: "30"
-    persistentvolumeclaims: "15"
+    pods: '100'
+    services: '30'
+    persistentvolumeclaims: '15'
     requests.storage: 200Gi
 ---
 apiVersion: v1
@@ -73,11 +73,11 @@ metadata:
     velya.io/environment: dev
 spec:
   hard:
-    requests.cpu: "4"
+    requests.cpu: '4'
     requests.memory: 8Gi
-    limits.cpu: "8"
+    limits.cpu: '8'
     limits.memory: 16Gi
-    pods: "30"
-    services: "10"
-    persistentvolumeclaims: "10"
+    pods: '30'
+    services: '10'
+    persistentvolumeclaims: '10'
     requests.storage: 200Gi

@@ -11,6 +11,7 @@
 **Scope**: System design, technology selection, architectural standards, ADR management, design reviews.
 
 **Key Responsibilities**:
+
 - Maintain and enforce architectural decision records (ADRs)
 - Conduct design reviews for all new services and major changes
 - Define and maintain system-wide architectural standards
@@ -30,6 +31,7 @@
 **Scope**: API development, service implementation, database design, business logic, inter-service communication.
 
 **Key Responsibilities**:
+
 - Implement and maintain backend microservices
 - Design and manage database schemas and migrations
 - Implement event producers and consumers
@@ -49,6 +51,7 @@
 **Scope**: Web application development, component library, state management, frontend testing.
 
 **Key Responsibilities**:
+
 - Build and maintain the web application (Next.js/React)
 - Maintain the shared component library (`@velya/ui-components`)
 - Implement responsive and accessible interfaces
@@ -68,6 +71,7 @@
 **Scope**: CI/CD pipelines, developer tooling, monorepo management, build systems, internal frameworks.
 
 **Key Responsibilities**:
+
 - Maintain CI/CD pipelines (GitHub Actions)
 - Manage the monorepo structure and build system
 - Develop and maintain shared libraries and packages
@@ -87,6 +91,7 @@
 **Scope**: Data pipelines, data warehouse, ETL/ELT, analytics infrastructure, data quality.
 
 **Key Responsibilities**:
+
 - Design and maintain data pipelines
 - Manage the data warehouse and data models
 - Ensure data quality through validation and monitoring
@@ -106,6 +111,7 @@
 **Scope**: LLM integration, model development, prompt engineering, AI gateway, model evaluation, AI safety.
 
 **Key Responsibilities**:
+
 - Maintain the AI gateway (provider abstraction, routing, fallback)
 - Develop and optimize prompts for clinical workflows
 - Build and evaluate predictive models (readmission risk, LOS prediction)
@@ -125,6 +131,7 @@
 **Scope**: Infrastructure as code (OpenTofu), container orchestration (Kubernetes), deployment automation, environment management.
 
 **Key Responsibilities**:
+
 - Maintain OpenTofu modules for all cloud resources
 - Manage Kubernetes clusters and Helm charts
 - Automate deployment pipelines (blue-green, canary)
@@ -144,6 +151,7 @@
 **Scope**: Observability, alerting, incident response, SLO management, capacity planning, chaos engineering.
 
 **Key Responsibilities**:
+
 - Define and monitor SLOs for all services
 - Maintain observability stack (metrics, logs, traces)
 - Manage on-call rotations and incident response procedures
@@ -163,6 +171,7 @@
 **Scope**: Release planning, change management, rollback procedures, release notes, feature flag coordination.
 
 **Key Responsibilities**:
+
 - Plan and coordinate release trains
 - Manage feature flags and progressive rollouts
 - Maintain rollback procedures and validate rollback readiness
@@ -182,6 +191,7 @@
 **Scope**: Security scanning, vulnerability management, secure coding practices, penetration testing, security tooling.
 
 **Key Responsibilities**:
+
 - Run SAST, DAST, and dependency scanning in CI/CD
 - Manage vulnerability triage and remediation tracking
 - Maintain security coding guidelines and review checklists
@@ -201,6 +211,7 @@
 **Scope**: HIPAA compliance, SOC 2, HITRUST, BAA management, audit support, policy maintenance.
 
 **Key Responsibilities**:
+
 - Maintain compliance policies and procedures
 - Conduct internal compliance audits
 - Support external audit engagements
@@ -221,6 +232,7 @@
 **Scope**: IAM policies, service accounts, RBAC/ABAC, SSO integration, secret management, certificate management.
 
 **Key Responsibilities**:
+
 - Define and maintain RBAC roles and permissions
 - Manage service account lifecycle and key rotation
 - Integrate with identity providers (SSO/SAML/OIDC)
@@ -240,6 +252,7 @@
 **Scope**: Test strategy, test automation, quality gates, test environments, test data management.
 
 **Key Responsibilities**:
+
 - Define test strategy per service and feature
 - Maintain automated test suites (unit, integration, e2e)
 - Define and enforce quality gates in CI/CD
@@ -259,6 +272,7 @@
 **Scope**: Load testing, performance profiling, performance budgets, capacity modeling, optimization.
 
 **Key Responsibilities**:
+
 - Define performance budgets for all services and pages
 - Run load tests in staging before releases
 - Profile and optimize critical paths
@@ -278,6 +292,7 @@
 **Scope**: Accessibility testing, ARIA compliance, screen reader compatibility, keyboard navigation, color contrast.
 
 **Key Responsibilities**:
+
 - Audit UI components and pages for WCAG 2.1 AA compliance
 - Maintain accessibility testing automation (axe-core)
 - Review designs for accessibility before implementation
@@ -297,6 +312,7 @@
 **Scope**: Requirements gathering, roadmap management, user story creation, feature prioritization, stakeholder communication.
 
 **Key Responsibilities**:
+
 - Maintain the product roadmap and backlog
 - Write user stories and acceptance criteria
 - Prioritize features based on impact and effort
@@ -316,6 +332,7 @@
 **Scope**: UX design, UI design, design system, user research, prototyping, usability testing.
 
 **Key Responsibilities**:
+
 - Maintain the Velya design system (tokens, components, patterns)
 - Create wireframes, mockups, and prototypes
 - Conduct usability testing and heuristic evaluations
@@ -335,6 +352,7 @@
 **Scope**: Technical documentation, API documentation, user guides, onboarding materials, runbooks.
 
 **Key Responsibilities**:
+
 - Maintain developer documentation and guides
 - Generate and maintain API reference documentation
 - Write operational runbooks for SRE
@@ -354,6 +372,7 @@
 **Scope**: Agent lifecycle management, inter-agent policies, dispute resolution, agent performance evaluation, autonomy level management.
 
 **Key Responsibilities**:
+
 - Manage agent registration, deployment, and retirement
 - Define and enforce inter-agent communication protocols
 - Resolve disputes between agents or offices
@@ -373,6 +392,7 @@
 **Scope**: Cloud cost monitoring, budget management, resource optimization, reserved capacity planning, agent compute costs.
 
 **Key Responsibilities**:
+
 - Monitor and report cloud spend by service and environment
 - Identify and act on cost optimization opportunities
 - Manage reserved instance and savings plan strategy
@@ -392,6 +412,7 @@
 **Scope**: Risk assessment, threat modeling, business continuity planning, risk registry, vendor risk management.
 
 **Key Responsibilities**:
+
 - Maintain the risk registry with current assessments
 - Conduct threat modeling for new features and services
 - Develop and test business continuity and disaster recovery plans
@@ -411,6 +432,7 @@
 **Scope**: Organizational memory, lessons learned, best practices, knowledge base, decision history.
 
 **Key Responsibilities**:
+
 - Maintain the organizational knowledge base
 - Capture lessons learned from incidents, projects, and retrospectives
 - Curate best practices and make them discoverable

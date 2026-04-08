@@ -63,16 +63,16 @@ The App Cluster hosts all user-facing services, platform infrastructure, and dat
 
 ### Namespaces
 
-| Namespace | Purpose | Key Workloads |
-|-----------|---------|---------------|
-| `velya-app` | Application services | NestJS APIs, Next.js frontend, background workers |
-| `medplum` | FHIR server | Medplum server, Medplum worker |
-| `temporal` | Workflow engine | Temporal server (frontend, history, matching, worker), Temporal UI |
-| `nats` | Event messaging | NATS server cluster (3 nodes), NATS surveyor |
-| `monitoring` | Observability | Prometheus, Grafana, Loki, Tempo, OpenTelemetry Collector |
-| `argocd` | GitOps operator | ArgoCD server, application controller, repo server |
-| `cert-manager` | TLS automation | cert-manager controller, Let's Encrypt ClusterIssuer |
-| `keda` | Autoscaling | KEDA operator, KEDA metrics server |
+| Namespace      | Purpose              | Key Workloads                                                      |
+| -------------- | -------------------- | ------------------------------------------------------------------ |
+| `velya-app`    | Application services | NestJS APIs, Next.js frontend, background workers                  |
+| `medplum`      | FHIR server          | Medplum server, Medplum worker                                     |
+| `temporal`     | Workflow engine      | Temporal server (frontend, history, matching, worker), Temporal UI |
+| `nats`         | Event messaging      | NATS server cluster (3 nodes), NATS surveyor                       |
+| `monitoring`   | Observability        | Prometheus, Grafana, Loki, Tempo, OpenTelemetry Collector          |
+| `argocd`       | GitOps operator      | ArgoCD server, application controller, repo server                 |
+| `cert-manager` | TLS automation       | cert-manager controller, Let's Encrypt ClusterIssuer               |
+| `keda`         | Autoscaling          | KEDA operator, KEDA metrics server                                 |
 
 ## AI/Agents Cluster
 
@@ -80,15 +80,15 @@ The AI/Agents Cluster hosts all AI inference, embedding generation, and autonomo
 
 ### Namespaces
 
-| Namespace | Purpose | Key Workloads |
-|-----------|---------|---------------|
-| `agents` | Autonomous agents | Agent runtime pods, agent supervisor, tool executor |
-| `ai-inference` | LLM serving | vLLM or TGI model servers, inference routers |
-| `ai-embeddings` | Embedding generation | Embedding model servers, vector indexing workers |
-| `nats` | Event messaging | NATS server cluster (3 nodes), cross-cluster mirror |
-| `monitoring` | Observability | Prometheus, Grafana, OpenTelemetry Collector |
-| `argocd` | GitOps operator | ArgoCD server, application controller |
-| `keda` | Autoscaling | KEDA operator (scales agents based on NATS queue depth) |
+| Namespace       | Purpose              | Key Workloads                                           |
+| --------------- | -------------------- | ------------------------------------------------------- |
+| `agents`        | Autonomous agents    | Agent runtime pods, agent supervisor, tool executor     |
+| `ai-inference`  | LLM serving          | vLLM or TGI model servers, inference routers            |
+| `ai-embeddings` | Embedding generation | Embedding model servers, vector indexing workers        |
+| `nats`          | Event messaging      | NATS server cluster (3 nodes), cross-cluster mirror     |
+| `monitoring`    | Observability        | Prometheus, Grafana, OpenTelemetry Collector            |
+| `argocd`        | GitOps operator      | ArgoCD server, application controller                   |
+| `keda`          | Autoscaling          | KEDA operator (scales agents based on NATS queue depth) |
 
 ## Cross-Cluster Communication
 
@@ -102,13 +102,13 @@ Communication between the two clusters uses two mechanisms:
 
 Infrastructure is provisioned in layers, each managed by OpenTofu:
 
-| Layer | Path | Resources |
-|-------|------|-----------|
-| Network | `infra/tofu/network/` | VPC, subnets, NAT gateways, VPC endpoints, security groups |
-| EKS | `infra/tofu/eks/` | EKS clusters, Auto Mode config, IRSA roles, Pod Identity associations |
-| Data | `infra/tofu/data/` | RDS PostgreSQL instances, S3 buckets, KMS keys, ElastiCache |
-| Platform | `infra/tofu/platform/` | Helm releases for NATS, Temporal, Medplum, cert-manager |
-| Security | `infra/tofu/security/` | IAM policies, KMS key policies, WAF rules, GuardDuty |
+| Layer    | Path                   | Resources                                                             |
+| -------- | ---------------------- | --------------------------------------------------------------------- |
+| Network  | `infra/tofu/network/`  | VPC, subnets, NAT gateways, VPC endpoints, security groups            |
+| EKS      | `infra/tofu/eks/`      | EKS clusters, Auto Mode config, IRSA roles, Pod Identity associations |
+| Data     | `infra/tofu/data/`     | RDS PostgreSQL instances, S3 buckets, KMS keys, ElastiCache           |
+| Platform | `infra/tofu/platform/` | Helm releases for NATS, Temporal, Medplum, cert-manager               |
+| Security | `infra/tofu/security/` | IAM policies, KMS key policies, WAF rules, GuardDuty                  |
 
 ## GitOps Delivery
 

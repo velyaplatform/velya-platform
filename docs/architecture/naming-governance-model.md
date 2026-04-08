@@ -8,20 +8,20 @@ The Naming Governance Model defines how the Velya platform enforces consistent, 
 
 Naming governance applies to all platform artifacts:
 
-| Artifact Type | Naming Authority | Convention Reference |
-|---------------|-----------------|---------------------|
-| TypeScript files and directories | Engineering office | `.claude/rules/naming.md` |
-| TypeScript types, classes, interfaces | Engineering office | `.claude/rules/naming.md` |
-| Kubernetes resources (pods, services, deployments) | Infrastructure office | `.claude/rules/naming.md` |
-| NATS subjects | Engineering + Infrastructure | `.claude/rules/naming.md` |
-| Temporal workflows and activities | Engineering office | `.claude/rules/naming.md` |
-| Database tables and columns | Data office | `.claude/rules/naming.md` |
-| FHIR resources and extensions | Clinical ops + Data | FHIR naming standards |
-| Agents | Agent governance reviewer | `{office}-{role}-agent` pattern |
-| Services | Engineering office | `velya-{domain}-{responsibility}` pattern |
-| OpenTofu modules | Infrastructure office | `{provider}-{resource-type}` pattern |
-| ADR documents | Architecture office | `NNNN-{descriptive-title}.md` |
-| Environment variables | Engineering office | `SCREAMING_SNAKE_CASE` |
+| Artifact Type                                      | Naming Authority             | Convention Reference                      |
+| -------------------------------------------------- | ---------------------------- | ----------------------------------------- |
+| TypeScript files and directories                   | Engineering office           | `.claude/rules/naming.md`                 |
+| TypeScript types, classes, interfaces              | Engineering office           | `.claude/rules/naming.md`                 |
+| Kubernetes resources (pods, services, deployments) | Infrastructure office        | `.claude/rules/naming.md`                 |
+| NATS subjects                                      | Engineering + Infrastructure | `.claude/rules/naming.md`                 |
+| Temporal workflows and activities                  | Engineering office           | `.claude/rules/naming.md`                 |
+| Database tables and columns                        | Data office                  | `.claude/rules/naming.md`                 |
+| FHIR resources and extensions                      | Clinical ops + Data          | FHIR naming standards                     |
+| Agents                                             | Agent governance reviewer    | `{office}-{role}-agent` pattern           |
+| Services                                           | Engineering office           | `velya-{domain}-{responsibility}` pattern |
+| OpenTofu modules                                   | Infrastructure office        | `{provider}-{resource-type}` pattern      |
+| ADR documents                                      | Architecture office          | `NNNN-{descriptive-title}.md`             |
+| Environment variables                              | Engineering office           | `SCREAMING_SNAKE_CASE`                    |
 
 ## Taxonomy
 
@@ -73,7 +73,7 @@ The naming-governance-agent continuously curates the lexicon:
 ```yaml
 term: encounter
 domain: clinical
-definition: "A specific interaction between a patient and healthcare provider(s) for the purpose of providing healthcare services"
+definition: 'A specific interaction between a patient and healthcare provider(s) for the purpose of providing healthcare services'
 fhir-resource: Encounter
 approved-forms:
   - encounter (noun, general use)
@@ -127,11 +127,11 @@ The naming-governance-agent reviews PRs for naming quality beyond what automated
 
 Naming violations are classified by severity:
 
-| Level | Description | Enforcement | Example |
-|-------|-------------|-------------|---------|
-| **Error** | Blocks merge. Must be fixed. | Pre-commit hook + CI | File named `Helpers.ts`, using `client` instead of `patient` in clinical code |
-| **Warning** | Flagged in PR review. Should be fixed. | CI + agent review | Name is technically valid but inconsistent with existing patterns |
-| **Info** | Noted for awareness. Fix if convenient. | Agent review only | Name could be more specific but is acceptable |
+| Level       | Description                             | Enforcement          | Example                                                                       |
+| ----------- | --------------------------------------- | -------------------- | ----------------------------------------------------------------------------- |
+| **Error**   | Blocks merge. Must be fixed.            | Pre-commit hook + CI | File named `Helpers.ts`, using `client` instead of `patient` in clinical code |
+| **Warning** | Flagged in PR review. Should be fixed.  | CI + agent review    | Name is technically valid but inconsistent with existing patterns             |
+| **Info**    | Noted for awareness. Fix if convenient. | Agent review only    | Name could be more specific but is acceptable                                 |
 
 ## Migration Process
 
@@ -169,10 +169,10 @@ Agent names follow the pattern `{office}-{role}-agent`:
 
 ## Metrics
 
-| Metric | Description | Target |
-|--------|-------------|--------|
-| Naming violation rate | Violations per 1000 lines of changed code | <= 2 |
-| Pre-commit rejection rate | Percentage of commits initially rejected for naming | <= 5% |
-| Taxonomy coverage | Percentage of domain terms that have taxonomy entries | >= 90% |
-| Deprecated term usage | Count of deprecated term usages in active code | Trending to zero |
-| Agent naming compliance | Percentage of agents following the naming pattern | 100% |
+| Metric                    | Description                                           | Target           |
+| ------------------------- | ----------------------------------------------------- | ---------------- |
+| Naming violation rate     | Violations per 1000 lines of changed code             | <= 2             |
+| Pre-commit rejection rate | Percentage of commits initially rejected for naming   | <= 5%            |
+| Taxonomy coverage         | Percentage of domain terms that have taxonomy entries | >= 90%           |
+| Deprecated term usage     | Count of deprecated term usages in active code        | Trending to zero |
+| Agent naming compliance   | Percentage of agents following the naming pattern     | 100%             |

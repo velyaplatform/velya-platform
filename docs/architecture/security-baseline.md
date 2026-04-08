@@ -43,13 +43,13 @@ This document defines the security baseline for the Velya platform. All services
 
 ### Rotation
 
-| Secret Type | Rotation Period | Method |
-|------------|-----------------|--------|
-| Database passwords | 90 days | AWS Secrets Manager automatic rotation with Lambda |
-| NATS auth tokens | 90 days | Manual rotation with coordinated service restart |
-| API keys (external) | 90 days | Manual rotation; tracked in secret metadata |
-| TLS certificates | Auto-renewed | cert-manager with Let's Encrypt; 60-day renewal |
-| Service account tokens | Auto-renewed | Kubernetes bound service account tokens (1 hour TTL) |
+| Secret Type            | Rotation Period | Method                                               |
+| ---------------------- | --------------- | ---------------------------------------------------- |
+| Database passwords     | 90 days         | AWS Secrets Manager automatic rotation with Lambda   |
+| NATS auth tokens       | 90 days         | Manual rotation with coordinated service restart     |
+| API keys (external)    | 90 days         | Manual rotation; tracked in secret metadata          |
+| TLS certificates       | Auto-renewed    | cert-manager with Let's Encrypt; 60-day renewal      |
+| Service account tokens | Auto-renewed    | Kubernetes bound service account tokens (1 hour TTL) |
 
 ### Prohibited Practices
 
@@ -115,7 +115,7 @@ spec:
           protocol: TCP
     - to:
         - ipBlock:
-            cidr: 10.0.0.0/16  # RDS endpoint within VPC
+            cidr: 10.0.0.0/16 # RDS endpoint within VPC
       ports:
         - port: 5432
           protocol: TCP
@@ -155,30 +155,30 @@ spec:
 
 OPA Gatekeeper enforces the following pod security constraints in production:
 
-| Constraint | Enforcement |
-|-----------|-------------|
-| No privileged containers | Deny `securityContext.privileged: true` |
-| No root user | Require `runAsNonRoot: true` |
-| Read-only root filesystem | Require `readOnlyRootFilesystem: true` |
-| No host networking | Deny `hostNetwork: true` |
-| No host PID/IPC | Deny `hostPID: true`, `hostIPC: true` |
-| Drop all capabilities | Require `drop: ["ALL"]` |
-| Resource limits required | Deny pods without CPU and memory limits |
+| Constraint                | Enforcement                                                      |
+| ------------------------- | ---------------------------------------------------------------- |
+| No privileged containers  | Deny `securityContext.privileged: true`                          |
+| No root user              | Require `runAsNonRoot: true`                                     |
+| Read-only root filesystem | Require `readOnlyRootFilesystem: true`                           |
+| No host networking        | Deny `hostNetwork: true`                                         |
+| No host PID/IPC           | Deny `hostPID: true`, `hostIPC: true`                            |
+| Drop all capabilities     | Require `drop: ["ALL"]`                                          |
+| Resource limits required  | Deny pods without CPU and memory limits                          |
 | Approved image registries | Allow only `{account-id}.dkr.ecr.{region}.amazonaws.com/velya/*` |
-| No latest tag | Deny `image: *:latest` |
+| No latest tag             | Deny `image: *:latest`                                           |
 
 ## Data Protection
 
 ### Encryption at Rest
 
-| Data Store | Encryption Method | Key Management |
-|-----------|-------------------|----------------|
-| RDS PostgreSQL | AES-256 via AWS KMS | Customer-managed CMK per environment |
-| S3 Buckets | SSE-S3 (default) or SSE-KMS for PHI buckets | Customer-managed CMK for PHI |
-| EBS Volumes | AES-256 via AWS KMS | AWS-managed key (Auto Mode default) |
-| NATS JetStream | File store on encrypted EBS | Inherited from EBS encryption |
-| OpenTofu State | OpenTofu native state encryption | Dedicated KMS key |
-| Kubernetes Secrets | EKS envelope encryption | AWS-managed or customer-managed KMS key |
+| Data Store         | Encryption Method                           | Key Management                          |
+| ------------------ | ------------------------------------------- | --------------------------------------- |
+| RDS PostgreSQL     | AES-256 via AWS KMS                         | Customer-managed CMK per environment    |
+| S3 Buckets         | SSE-S3 (default) or SSE-KMS for PHI buckets | Customer-managed CMK for PHI            |
+| EBS Volumes        | AES-256 via AWS KMS                         | AWS-managed key (Auto Mode default)     |
+| NATS JetStream     | File store on encrypted EBS                 | Inherited from EBS encryption           |
+| OpenTofu State     | OpenTofu native state encryption            | Dedicated KMS key                       |
+| Kubernetes Secrets | EKS envelope encryption                     | AWS-managed or customer-managed KMS key |
 
 ### Encryption in Transit
 
@@ -198,14 +198,14 @@ OPA Gatekeeper enforces the following pod security constraints in production:
 
 ### Audit Logging
 
-| Source | Destination | Retention |
-|--------|-------------|-----------|
-| Kubernetes API audit logs | CloudWatch Logs + S3 | 365 days |
-| Application access logs | Loki + S3 | 365 days |
-| FHIR AuditEvent resources | Medplum (FHIR store) | 7 years |
-| AWS CloudTrail | S3 (dedicated audit bucket) | 365 days |
-| ArgoCD sync events | ArgoCD + Loki | 365 days |
-| Database query logs (slow queries) | CloudWatch Logs | 90 days |
+| Source                             | Destination                 | Retention |
+| ---------------------------------- | --------------------------- | --------- |
+| Kubernetes API audit logs          | CloudWatch Logs + S3        | 365 days  |
+| Application access logs            | Loki + S3                   | 365 days  |
+| FHIR AuditEvent resources          | Medplum (FHIR store)        | 7 years   |
+| AWS CloudTrail                     | S3 (dedicated audit bucket) | 365 days  |
+| ArgoCD sync events                 | ArgoCD + Loki               | 365 days  |
+| Database query logs (slow queries) | CloudWatch Logs             | 90 days   |
 
 ### Compliance Controls
 

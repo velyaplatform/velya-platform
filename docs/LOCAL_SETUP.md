@@ -5,12 +5,14 @@ Set up **kind** (local Kubernetes) and **ministack** (AWS simulation) to develop
 ## Two Environments
 
 ### 1. **kind** - Local Kubernetes Development
+
 - **Purpose**: Fast local development with actual Kubernetes
 - **What it simulates**: EKS cluster with 4 node groups (frontend, backend, platform, ai)
 - **Speed**: ~1-2 minutes setup/teardown
 - **Use case**: Day-to-day development, testing tier isolation, running services locally
 
 ### 2. **ministack** - AWS Infrastructure Simulation
+
 - **Purpose**: Visualize how services will run on AWS (VPC, EKS, RDS, ECR, etc.)
 - **What it simulates**: Full AWS infrastructure (LocalStack)
 - **Speed**: ~1-2 minutes setup, 5-10 minutes for full AWS simulation
@@ -31,6 +33,7 @@ brew install kind kubectl helm
 ## Quick Start
 
 ### Option A: Everything (kind + ministack)
+
 ```bash
 cd velya-platform
 ./scripts/multistack-setup.sh both
@@ -38,12 +41,14 @@ cd velya-platform
 ```
 
 ### Option B: Just Local Kubernetes (kind)
+
 ```bash
 ./scripts/multistack-setup.sh kind
 ./scripts/multistack-setup.sh verify
 ```
 
 ### Option C: Just AWS Simulation (ministack)
+
 ```bash
 ./scripts/multistack-setup.sh ministack
 ./scripts/multistack-setup.sh verify
@@ -54,6 +59,7 @@ cd velya-platform
 ### KIND (Local Kubernetes)
 
 **What gets created:**
+
 - 1 control-plane node
 - 4 worker nodes: `frontend`, `backend`, `platform`, `ai`
 - Network policies (tier isolation)
@@ -61,6 +67,7 @@ cd velya-platform
 - Namespace: `velya-dev-core`, `velya-dev-platform`, `velya-dev-agents`, `velya-dev-observability`
 
 **Access:**
+
 ```bash
 # Check nodes
 kubectl get nodes -L velya.io/tier
@@ -77,6 +84,7 @@ kubectl port-forward -n velya-dev-observability svc/grafana 3000:80
 ```
 
 **Test tier isolation:**
+
 ```bash
 # See scripts/kind-local-testing.md for full test suite
 kubectl apply -f - <<EOF
@@ -101,6 +109,7 @@ kubectl get pod frontend-test -n velya-dev-core
 ### MINISTACK (AWS Simulation)
 
 **What gets created:**
+
 - LocalStack container with AWS API emulation
 - VPC with public/private subnets
 - Simulated EKS cluster with 4 node groups
@@ -110,6 +119,7 @@ kubectl get pod frontend-test -n velya-dev-core
 - VPC Flow Logs
 
 **Access:**
+
 ```bash
 # Set AWS endpoint for CLI
 export AWS_ENDPOINT_URL=http://localhost:4566
@@ -131,6 +141,7 @@ aws ec2 describe-instances
 ```
 
 **View in AWS Console:**
+
 ```bash
 # LocalStack provides a web UI (if enabled)
 # Check logs for connection details
@@ -141,11 +152,13 @@ aws ec2 describe-instances
 ### Local Development (kind only)
 
 1. Setup kind cluster:
+
 ```bash
 ./scripts/multistack-setup.sh kind
 ```
 
 2. Deploy test service:
+
 ```bash
 # Create a test deployment
 kubectl apply -f - <<EOF
@@ -181,6 +194,7 @@ EOF
 ```
 
 3. Verify tier isolation:
+
 ```bash
 # Should be scheduled on backend node
 kubectl get pod -n velya-dev-core -L velya.io/tier,kubernetes.io/hostname
@@ -190,6 +204,7 @@ kubectl get networkpolicies -A
 ```
 
 4. Test networking:
+
 ```bash
 # Get backend pod IP
 BACKEND_IP=$(kubectl get pod -l app=test-backend -n velya-dev-core -o jsonpath='{.items[0].status.podIP}')
@@ -202,11 +217,13 @@ kubectl run test-pod --image=curlimages/curl -it -- sh
 ### AWS Validation (ministack)
 
 1. Setup ministack:
+
 ```bash
 ./scripts/multistack-setup.sh ministack
 ```
 
 2. Test infrastructure as code:
+
 ```bash
 # Deploy OpenTofu IaC to ministack
 cd infra/opentofu
@@ -220,6 +237,7 @@ tofu apply -var-file="envs/dev/terraform.tfvars" -var="aws_endpoint_url=http://l
 ```
 
 3. Verify AWS resources:
+
 ```bash
 # Check VPC
 aws ec2 describe-vpcs
@@ -247,6 +265,7 @@ See `scripts/kind-local-testing.md` for comprehensive test suite covering:
 - Container registry integration
 
 Quick test:
+
 ```bash
 ./scripts/kind-setup.sh verify
 ```
@@ -254,33 +273,38 @@ Quick test:
 ## Port Mappings
 
 ### kind Services
-| Service | Port | Access |
-|---|---|---|
-| Kubernetes API | 6443 | `kubectl` only |
-| Prometheus | 9090 | `kubectl port-forward` |
-| Grafana | 3000 | `kubectl port-forward` |
-| ArgoCD | 8080 | `kubectl port-forward` |
+
+| Service        | Port | Access                 |
+| -------------- | ---- | ---------------------- |
+| Kubernetes API | 6443 | `kubectl` only         |
+| Prometheus     | 9090 | `kubectl port-forward` |
+| Grafana        | 3000 | `kubectl port-forward` |
+| ArgoCD         | 8080 | `kubectl port-forward` |
 
 ### ministack Services
-| Service | Port | Access |
-|---|---|---|
+
+| Service    | Port | Access                          |
+| ---------- | ---- | ------------------------------- |
 | LocalStack | 4566 | Direct: `http://localhost:4566` |
-| S3 | 4572 | Via LocalStack |
-| RDS | 5432 | Direct: `localhost:5432` |
+| S3         | 4572 | Via LocalStack                  |
+| RDS        | 5432 | Direct: `localhost:5432`        |
 
 ## Cleanup
 
 ### Remove kind cluster only:
+
 ```bash
 kind delete cluster --name velya-local
 ```
 
 ### Remove ministack only:
+
 ```bash
 cd .ministack/repo && docker-compose down
 ```
 
 ### Remove everything:
+
 ```bash
 ./scripts/multistack-setup.sh teardown
 ```
@@ -296,6 +320,7 @@ cd .ministack/repo && docker-compose down
 multi-node kind cluster. Each node container needs its own inotify instances.
 
 **Fix (persists until reboot):**
+
 ```bash
 # Apply to all kind node containers
 for node in $(kind get nodes --name velya-local); do
@@ -307,6 +332,7 @@ kubectl delete pod -n kube-system -l k8s-app=kube-proxy
 ```
 
 **Fix (permanent — survives reboot):**
+
 ```bash
 echo "fs.inotify.max_user_watches=524288" | sudo tee -a /etc/sysctl.conf
 echo "fs.inotify.max_user_instances=512"  | sudo tee -a /etc/sysctl.conf
@@ -319,12 +345,14 @@ sudo sysctl -p
 cluster creation if the cluster already exists (fixed in `scripts/kind-setup.sh`).
 
 If you are running an older version, either update from main or delete the cluster first:
+
 ```bash
 kind delete cluster --name velya-local
 bash scripts/velya-init.sh
 ```
 
 ### kind cluster won't start
+
 ```bash
 # Check Docker is running
 docker ps
@@ -338,6 +366,7 @@ kind delete cluster --name velya-local
 ```
 
 ### Pod stuck in Pending
+
 ```bash
 # Check node labels
 kubectl get nodes -L velya.io/tier
@@ -353,6 +382,7 @@ kubectl describe resourcequota --all-namespaces
 ```
 
 ### LocalStack not responding
+
 ```bash
 # Check container is running
 docker ps | grep localstack
@@ -365,6 +395,7 @@ docker-compose -f .ministack/repo/docker-compose.yml restart
 ```
 
 ### Network policy too restrictive
+
 ```bash
 # View all policies
 kubectl get networkpolicies -A
@@ -381,21 +412,24 @@ kubectl apply -f infra/bootstrap/tier-isolation/network-policies-by-tier.yaml
 After local validation:
 
 1. **Deploy to AWS dev environment**:
+
    ```bash
    ./scripts/deploy.sh infrastructure dev velya-dev
    ```
 
 2. **Verify against AWS**:
+
    ```bash
    ./scripts/verify.sh infrastructure dev velya-dev
    ```
 
 3. **Promote to staging/prod**:
+
    ```bash
    # Tag release version
    git tag -a v0.1.0-rc1 -m "Release candidate 1"
    git push origin v0.1.0-rc1
-   
+
    # Deploy to staging
    ./scripts/deploy.sh infrastructure staging velya-staging
    ```

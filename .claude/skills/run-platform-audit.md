@@ -18,6 +18,7 @@ Use this skill when asked to audit the platform, check platform health, verify c
 Check all artifacts against the naming taxonomy in `docs/product/naming-taxonomy.md`.
 
 **Checks**:
+
 - Directory names use `kebab-case`
 - TypeScript files use `kebab-case`
 - Services follow `velya-{domain}-{responsibility}` pattern
@@ -29,6 +30,7 @@ Check all artifacts against the naming taxonomy in `docs/product/naming-taxonomy
 - Feature flags follow `velya.{domain}.{feature}` pattern
 
 **How to check**:
+
 - Scan directory structure under `services/`, `agents/`, `apps/`, `packages/`
 - Scan Helm chart names under `infra/helm/charts/`
 - Scan OpenTofu module names under `infra/tofu/modules/`
@@ -40,6 +42,7 @@ Check all artifacts against the naming taxonomy in `docs/product/naming-taxonomy
 Verify infrastructure follows the rules in `.claude/rules/infrastructure.md`.
 
 **Checks**:
+
 - All OpenTofu modules in `infra/tofu/modules/` have pinned provider versions
 - No floating version constraints (`~>`, `>=`) in `required_providers`
 - All AWS resources have required tags (Project, Environment, ManagedBy, Owner, CostCenter)
@@ -49,6 +52,7 @@ Verify infrastructure follows the rules in `.claude/rules/infrastructure.md`.
 - No hardcoded AWS account IDs
 
 **How to check**:
+
 - Read OpenTofu files (`*.tf`) and check `required_providers` blocks
 - Search for missing `tags` blocks in resource definitions
 - Read Helm `values-*.yaml` files and check for `resources:` sections
@@ -59,6 +63,7 @@ Verify infrastructure follows the rules in `.claude/rules/infrastructure.md`.
 Verify security posture per `.claude/rules/security.md` and `docs/security/`.
 
 **Checks**:
+
 - No secrets in code (AWS keys, API tokens, passwords, private keys)
 - GitHub Actions pinned by SHA (not by mutable tag)
 - Container images pinned by digest in Dockerfiles
@@ -71,6 +76,7 @@ Verify security posture per `.claude/rules/security.md` and `docs/security/`.
 - No `latest` image tags
 
 **How to check**:
+
 - Use `run-security-audit` skill patterns for detailed secret scanning
 - Search `*.yaml` and `*.yml` files under `.github/workflows/` and `infra/github-actions/` for unpinned actions
 - Search Dockerfiles for unpinned base images
@@ -82,6 +88,7 @@ Verify security posture per `.claude/rules/security.md` and `docs/security/`.
 Verify quality standards per `.claude/rules/quality.md`.
 
 **Checks**:
+
 - Test files exist alongside source files (`*.test.ts` next to `*.ts`)
 - ESLint config extends shared config from `packages/eslint-config/`
 - TypeScript strict mode enabled (`"strict": true` in `tsconfig.json`)
@@ -92,6 +99,7 @@ Verify quality standards per `.claude/rules/quality.md`.
 - No unused dependencies (check for imports matching package.json entries)
 
 **How to check**:
+
 - For each `.ts` file under `services/` and `packages/`, check for a corresponding `.test.ts`
 - Read `tsconfig.json` files and verify `strict: true`
 - Search for `: any` patterns in TypeScript files
@@ -103,6 +111,7 @@ Verify quality standards per `.claude/rules/quality.md`.
 Verify architectural rules per `.claude/rules/architecture.md`.
 
 **Checks**:
+
 - Services do not import directly from other services (no shared databases)
 - AI access goes through `packages/ai-gateway/` (no direct LLM SDK imports in services)
 - Event schemas defined in `packages/event-schemas/`
@@ -112,6 +121,7 @@ Verify architectural rules per `.claude/rules/architecture.md`.
 - Structured logging only (no `console.log` in `services/` or `packages/`)
 
 **How to check**:
+
 - Search for direct imports of `@anthropic-ai/sdk`, `openai`, or other LLM SDKs in `services/`
 - Search for `console.log`, `console.error`, `console.warn` in `services/` and `packages/`
 - Check that `services/integrations/` contains ACL patterns
@@ -121,6 +131,7 @@ Verify architectural rules per `.claude/rules/architecture.md`.
 Check documentation completeness and freshness.
 
 **Checks**:
+
 - ADRs exist in `docs/architecture/decisions/`
 - Each service has a README or doc entry
 - API specs (OpenAPI) exist for services with HTTP endpoints
@@ -137,30 +148,35 @@ Check documentation completeness and freshness.
 
 ### Summary
 
-| Section | Status | Findings |
-|---|---|---|
-| Naming | {PASS/WARN/FAIL} | {count} issues |
+| Section        | Status           | Findings       |
+| -------------- | ---------------- | -------------- |
+| Naming         | {PASS/WARN/FAIL} | {count} issues |
 | Infrastructure | {PASS/WARN/FAIL} | {count} issues |
-| Security | {PASS/WARN/FAIL} | {count} issues |
-| Quality | {PASS/WARN/FAIL} | {count} issues |
-| Architecture | {PASS/WARN/FAIL} | {count} issues |
-| Documentation | {PASS/WARN/FAIL} | {count} issues |
+| Security       | {PASS/WARN/FAIL} | {count} issues |
+| Quality        | {PASS/WARN/FAIL} | {count} issues |
+| Architecture   | {PASS/WARN/FAIL} | {count} issues |
+| Documentation  | {PASS/WARN/FAIL} | {count} issues |
 
 ### Findings
 
 #### Critical (must fix immediately)
+
 1. {finding}
 
 #### High (fix before next release)
+
 1. {finding}
 
 #### Medium (fix within sprint)
+
 1. {finding}
 
 #### Low (track and address)
+
 1. {finding}
 
 ### Recommendations
+
 1. {top priority recommendation}
 2. {second priority recommendation}
 ```

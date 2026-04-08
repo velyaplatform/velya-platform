@@ -98,6 +98,7 @@ velya/{environment}/{component}/{secret-name}
 ```
 
 Examples:
+
 - `velya/dev/platform/api-keys`
 - `velya/prod/core/database-credentials`
 - `velya/staging/agents/llm-api-keys`

@@ -3,6 +3,7 @@
 ## Quick Start
 
 ### 1. Prerequisites
+
 ```bash
 # Install kind
 curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64
@@ -14,6 +15,7 @@ sudo mv ./kind /usr/local/bin/kind
 ```
 
 ### 2. Setup Local Cluster
+
 ```bash
 cd velya-platform
 
@@ -28,6 +30,7 @@ cd velya-platform
 ```
 
 ### 3. Access Services
+
 ```bash
 # Terminal 1: Prometheus
 kubectl port-forward -n velya-dev-observability svc/prometheus-kube-prometheus-prometheus 9090:9090
@@ -76,18 +79,18 @@ metadata:
 spec:
   nodeSelector:
     velya.io/tier: frontend
-  
+
   containers:
-  - name: nginx
-    image: nginx:alpine
-    ports:
-    - containerPort: 80
-    resources:
-      requests:
-        cpu: 50m
-        memory: 64Mi
-      limits:
-        memory: 256Mi
+    - name: nginx
+      image: nginx:alpine
+      ports:
+        - containerPort: 80
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
 ```
 
 ```bash
@@ -108,15 +111,15 @@ metadata:
 spec:
   nodeSelector:
     velya.io/tier: backend
-  
+
   containers:
-  - name: busybox
-    image: busybox:latest
-    command: ["sleep", "3600"]
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
+    - name: busybox
+      image: busybox:latest
+      command: ['sleep', '3600']
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
 ```
 
 ```bash
@@ -137,17 +140,17 @@ metadata:
 spec:
   nodeSelector:
     velya.io/tier: platform
-  
+
   tolerations:
-  - key: "velya.io/platform"
-    operator: "Equal"
-    value: "true"
-    effect: "NoSchedule"
-  
+    - key: 'velya.io/platform'
+      operator: 'Equal'
+      value: 'true'
+      effect: 'NoSchedule'
+
   containers:
-  - name: busybox
-    image: busybox:latest
-    command: ["sleep", "3600"]
+    - name: busybox
+      image: busybox:latest
+      command: ['sleep', '3600']
 ```
 
 ```bash
@@ -173,21 +176,21 @@ metadata:
 spec:
   nodeSelector:
     velya.io/tier: ai
-  
+
   tolerations:
-  - key: "velya.io/ai-workload"
-    operator: "Equal"
-    value: "true"
-    effect: "NoSchedule"
-  
+    - key: 'velya.io/ai-workload'
+      operator: 'Equal'
+      value: 'true'
+      effect: 'NoSchedule'
+
   containers:
-  - name: python
-    image: python:3.11-slim
-    command: ["python", "-c", "import time; time.sleep(3600)"]
-    resources:
-      requests:
-        cpu: 200m
-        memory: 256Mi
+    - name: python
+      image: python:3.11-slim
+      command: ['python', '-c', 'import time; time.sleep(3600)']
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
 ```
 
 ```bash
@@ -296,12 +299,12 @@ spec:
   minReplicas: 1
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
 ```
 
 ```bash
@@ -409,7 +412,7 @@ metadata:
 spec:
   nodeSelector:
     velya.io/tier: frontend
-  
+
   containers:
   - name: web
     image: localhost:5000/velya-web:latest

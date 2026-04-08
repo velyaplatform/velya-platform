@@ -56,8 +56,8 @@ spec:
         serverAddress: http://prometheus-server.velya-observability.svc.cluster.local:9090
         metricName: velya_agent_queue_depth
         query: sum(velya_agent_queue_depth{namespace="velya-dev-agents"})
-        threshold: "5"
-        activationThreshold: "1"
+        threshold: '5'
+        activationThreshold: '1'
   advanced:
     restoreToOriginalReplicaCount: false
     horizontalPodAutoscalerConfig:
@@ -101,7 +101,7 @@ spec:
         serverAddress: http://prometheus-server.velya-observability.svc.cluster.local:9090
         metricName: velya_gateway_requests_per_second
         query: sum(rate(http_server_request_duration_seconds_count{namespace="velya-dev-platform",service="ai-gateway"}[1m]))
-        threshold: "100"
+        threshold: '100'
 ```
 
 ## Verification

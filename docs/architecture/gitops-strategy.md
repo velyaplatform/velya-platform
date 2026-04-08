@@ -157,7 +157,7 @@ spec:
       - group: apps
         kind: Deployment
         jsonPointers:
-          - /spec/replicas  # Ignore HPA-managed replica count
+          - /spec/replicas # Ignore HPA-managed replica count
 ```
 
 ## Overlay Strategy
@@ -184,7 +184,7 @@ spec:
       serviceAccountName: patient-service
       containers:
         - name: patient-service
-          image: patient-service:latest  # Overridden by overlay
+          image: patient-service:latest # Overridden by overlay
           ports:
             - containerPort: 3000
           resources:
@@ -219,7 +219,7 @@ resources:
 images:
   - name: patient-service
     newName: 111111111111.dkr.ecr.us-east-1.amazonaws.com/velya/patient-service
-    newTag: abc1234  # Git SHA, updated by CI
+    newTag: abc1234 # Git SHA, updated by CI
 patches:
   - target:
       kind: Deployment
@@ -253,7 +253,7 @@ resources:
 images:
   - name: patient-service
     newName: 333333333333.dkr.ecr.us-east-1.amazonaws.com/velya/patient-service
-    newTag: v1.2.0  # Semantic version tag pointing to verified Git SHA
+    newTag: v1.2.0 # Semantic version tag pointing to verified Git SHA
 patches:
   - target:
       kind: Deployment
@@ -388,12 +388,12 @@ spec:
     - namespace: monitoring
       server: https://kubernetes.default.svc
   clusterResourceWhitelist:
-    - group: ""
+    - group: ''
       kind: Namespace
   namespaceResourceBlacklist:
-    - group: ""
+    - group: ''
       kind: ResourceQuota
-    - group: ""
+    - group: ''
       kind: LimitRange
   roles:
     - name: release-manager
@@ -413,32 +413,32 @@ Production deployments are restricted to defined sync windows to avoid changes d
 spec:
   syncWindows:
     - kind: allow
-      schedule: "0 10 * * 1-5"  # Mon-Fri, 10:00 UTC
-      duration: 6h               # Until 16:00 UTC
+      schedule: '0 10 * * 1-5' # Mon-Fri, 10:00 UTC
+      duration: 6h # Until 16:00 UTC
       applications:
-        - "*"
+        - '*'
     - kind: deny
-      schedule: "0 0 * * *"      # Every day midnight
-      duration: 24h              # All day
+      schedule: '0 0 * * *' # Every day midnight
+      duration: 24h # All day
       applications:
-        - "*"
+        - '*'
       # Overridden by the allow window above; deny is the default
     - kind: allow
-      schedule: "0 0 * * *"      # Emergency: always allowed
+      schedule: '0 0 * * *' # Emergency: always allowed
       duration: 24h
-      manualSync: true           # Only manual syncs, no auto
+      manualSync: true # Only manual syncs, no auto
       applications:
-        - "*"
+        - '*'
 ```
 
 ## Notifications
 
 ArgoCD sends notifications for sync events via the ArgoCD Notifications controller:
 
-| Event | Channel | Priority |
-|-------|---------|----------|
-| Sync succeeded (prod) | Slack #deployments | Normal |
-| Sync failed (any env) | Slack #deployments + PagerDuty | High |
-| Application degraded | PagerDuty | Critical |
-| New application created | Slack #deployments | Normal |
-| Out of sync > 30 min | Slack #deployments | Warning |
+| Event                   | Channel                        | Priority |
+| ----------------------- | ------------------------------ | -------- |
+| Sync succeeded (prod)   | Slack #deployments             | Normal   |
+| Sync failed (any env)   | Slack #deployments + PagerDuty | High     |
+| Application degraded    | PagerDuty                      | Critical |
+| New application created | Slack #deployments             | Normal   |
+| Out of sync > 30 min    | Slack #deployments             | Warning  |

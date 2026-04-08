@@ -5,13 +5,13 @@ replicaCount: 1
 
 ## Container image configuration
 image:
-  repository: ""  # Required: set to the container image repository
-  tag: "latest"
+  repository: '' # Required: set to the container image repository
+  tag: 'latest'
   pullPolicy: IfNotPresent
 
 ## Override the chart name
-nameOverride: ""
-fullnameOverride: ""
+nameOverride: ''
+fullnameOverride: ''
 
 ## Service configuration
 service:

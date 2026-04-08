@@ -1,6 +1,7 @@
 # Velya Platform - AWS EKS Deployment Guide
 
 ## Table of Contents
+
 1. [Prerequisites](#prerequisites)
 2. [Environment Setup](#environment-setup)
 3. [Phase 1: AWS Infrastructure Provisioning (OpenTofu)](#phase-1-aws-infrastructure-provisioning-opentofu)
@@ -17,6 +18,7 @@
 ## Prerequisites
 
 ### Required Tools
+
 ```bash
 # AWS CLI v2
 aws --version  # v2.13.0+
@@ -38,6 +40,7 @@ docker --version
 ```
 
 ### AWS Credentials
+
 ```bash
 # Configure AWS credentials (choose one method)
 # Option 1: AWS CLI profile
@@ -53,6 +56,7 @@ aws sts get-caller-identity
 ```
 
 ### GitHub Configuration
+
 ```bash
 # For pulling from private GitHub repos (if needed)
 export GITHUB_TOKEN=your_token
@@ -64,6 +68,7 @@ export GITHUB_USER=your_username
 ## Environment Setup
 
 ### 1. Clone and Navigate
+
 ```bash
 git clone https://github.com/velyaplatform/velya-platform.git
 cd velya-platform
@@ -73,6 +78,7 @@ git checkout main
 ```
 
 ### 2. Set Environment Variables
+
 ```bash
 # Core variables
 export VELYA_ENV=dev                    # dev, staging, prod
@@ -98,6 +104,7 @@ echo "ECR Registry: $ECR_REGISTRY"
 ```
 
 ### 3. Create directories for state and logs
+
 ```bash
 mkdir -p ./logs/deployment
 mkdir -p ./infra/opentofu/live/${VELYA_ENV}
@@ -109,6 +116,7 @@ touch ./logs/deployment/$(date +%Y%m%d-%H%M%S).log
 ## Phase 1: AWS Infrastructure Provisioning (OpenTofu)
 
 ### Step 1.1: Validate OpenTofu Configuration
+
 ```bash
 cd infra/opentofu/live/${VELYA_ENV}
 
@@ -123,6 +131,7 @@ tofu fmt -recursive ../../modules/
 ```
 
 ### Step 1.2: Plan Infrastructure
+
 ```bash
 # Generate plan
 tofu plan -out=tfplan.binary
@@ -135,6 +144,7 @@ cat tfplan.txt
 ```
 
 ### Step 1.3: Apply Infrastructure
+
 ```bash
 # Apply the plan
 tofu apply tfplan.binary
@@ -158,6 +168,7 @@ echo "Cluster Endpoint: $VELYA_CLUSTER_ENDPOINT"
 ```
 
 ### Step 1.4: Configure kubectl Access
+
 ```bash
 # Update kubeconfig
 aws eks update-kubeconfig \
@@ -173,6 +184,7 @@ kubectl get nodes
 ```
 
 ### Step 1.5: Create ECR Repositories
+
 ```bash
 # Repositories are auto-created by OpenTofu
 # Verify they exist
@@ -192,6 +204,7 @@ aws ecr get-login-password --region ${AWS_REGION} --profile ${AWS_PROFILE} | \
 ## Phase 2: Kubernetes Cluster Bootstrap
 
 ### Step 2.1: Create Namespaces
+
 ```bash
 # Apply namespace manifests
 kubectl apply -f infra/bootstrap/namespaces/${VELYA_ENV}.yaml
@@ -201,6 +214,7 @@ kubectl get namespaces | grep velya
 ```
 
 ### Step 2.2: Apply Network Policies
+
 ```bash
 # Apply default deny + allow policies
 kubectl apply -f infra/bootstrap/policies/network-policy-default-deny.yaml
@@ -210,6 +224,7 @@ kubectl get networkpolicies --all-namespaces
 ```
 
 ### Step 2.3: Apply Resource Quotas and Limits
+
 ```bash
 # Apply quotas and limits
 kubectl apply -f infra/bootstrap/policies/resource-quotas-${VELYA_ENV}.yaml
@@ -221,6 +236,7 @@ kubectl describe limitrange --all-namespaces
 ```
 
 ### Step 2.4: Setup Pod Security Standards
+
 ```bash
 # Label namespaces for PSS
 kubectl label namespace velya-${VELYA_ENV}-core \
@@ -243,6 +259,7 @@ kubectl get namespace -o json | jq '.items[].metadata.labels' | grep pod-securit
 ```
 
 ### Step 2.5: Configure RBAC
+
 ```bash
 # Create cluster admin binding (break-glass)
 kubectl create clusterrolebinding velya-admin \
@@ -259,6 +276,7 @@ kubectl get clusterrolebindings | grep velya
 ## Phase 3: ArgoCD Setup (GitOps)
 
 ### Step 3.1: Install ArgoCD
+
 ```bash
 # Create ArgoCD namespace
 kubectl create namespace argocd || echo "Namespace exists"
@@ -282,6 +300,7 @@ kubectl wait --for=condition=available --timeout=300s \
 ```
 
 ### Step 3.2: Access ArgoCD UI
+
 ```bash
 # Get ArgoCD admin password
 ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret \
@@ -301,6 +320,7 @@ echo "export ARGOCD_PASSWORD=$ARGOCD_PASSWORD" >> ~/.bashrc
 ```
 
 ### Step 3.3: Configure ArgoCD CLI
+
 ```bash
 # Login to ArgoCD via CLI
 argocd login ${ARGOCD_URL} \
@@ -313,6 +333,7 @@ argocd cluster list
 ```
 
 ### Step 3.4: Deploy ArgoCD App-of-Apps
+
 ```bash
 # Apply ArgoCD bootstrap manifests
 kubectl apply -f infra/bootstrap/argocd/namespace.yaml
@@ -331,6 +352,7 @@ kubectl get applications -n argocd
 ```
 
 ### Step 3.5: Configure Git Repository in ArgoCD
+
 ```bash
 # Add GitHub repository to ArgoCD
 argocd repo add https://github.com/velyaplatform/velya-platform.git \
@@ -347,6 +369,7 @@ argocd repo list
 ## Phase 4: Observability Stack
 
 ### Step 4.1: Install Prometheus
+
 ```bash
 # Add Prometheus Helm repo
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -372,6 +395,7 @@ kubectl port-forward -n velya-${VELYA_ENV}-observability \
 ```
 
 ### Step 4.2: Install Loki (Logs)
+
 ```bash
 # Add Grafana Loki repo
 helm repo add grafana https://grafana.github.io/helm-charts
@@ -388,6 +412,7 @@ helm install loki grafana/loki-stack \
 ```
 
 ### Step 4.3: Install Grafana
+
 ```bash
 # Install Grafana
 helm install grafana grafana/grafana \
@@ -412,6 +437,7 @@ echo "Password: $GRAFANA_PASSWORD"
 ```
 
 ### Step 4.4: Install OpenTelemetry Collector
+
 ```bash
 # Apply OTel collector config
 kubectl apply -f infra/bootstrap/observability/namespace.yaml
@@ -426,6 +452,7 @@ kubectl get configmap -n velya-${VELYA_ENV}-observability otel-collector-config
 ## Phase 5: Secrets Management
 
 ### Step 5.1: Install External Secrets Operator
+
 ```bash
 # Add External Secrets repo
 helm repo add external-secrets https://charts.external-secrets.io
@@ -443,6 +470,7 @@ kubectl get pods -n external-secrets-system
 ```
 
 ### Step 5.2: Create ClusterSecretStore
+
 ```bash
 # Apply ClusterSecretStore
 kubectl apply -f infra/bootstrap/external-secrets/cluster-secret-store.yaml
@@ -452,6 +480,7 @@ kubectl get clustersecretstore
 ```
 
 ### Step 5.3: Create Secrets in AWS Secrets Manager
+
 ```bash
 # Create database secret
 aws secretsmanager create-secret \
@@ -489,6 +518,7 @@ aws secretsmanager list-secrets \
 ```
 
 ### Step 5.4: Create ExternalSecrets Resources
+
 ```bash
 # Create example ExternalSecret for database
 cat > /tmp/external-secret-db.yaml <<EOF
@@ -543,6 +573,7 @@ kubectl get secret database-secret -n velya-${VELYA_ENV}-core -o yaml
 ## Phase 6: Application Deployment
 
 ### Step 6.1: Build Docker Images
+
 ```bash
 # Login to ECR
 aws ecr get-login-password --region ${AWS_REGION} --profile ${AWS_PROFILE} | \
@@ -579,6 +610,7 @@ aws ecr describe-images \
 ```
 
 ### Step 6.2: Update Helm Values
+
 ```bash
 # Create values override file
 cat > /tmp/velya-values-${VELYA_ENV}.yaml <<EOF
@@ -650,6 +682,7 @@ argocd app set velya-core \
 ```
 
 ### Step 6.3: Deploy via ArgoCD
+
 ```bash
 # Sync ArgoCD applications
 argocd app sync velya-app-of-apps --prune
@@ -665,6 +698,7 @@ kubectl rollout status deployment/velya-api-gateway -n velya-${VELYA_ENV}-core
 ```
 
 ### Step 6.4: Setup Ingress (Optional but Recommended)
+
 ```bash
 # Install NGINX Ingress Controller
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
@@ -719,6 +753,7 @@ kubectl apply -f /tmp/velya-ingress.yaml
 ## Verification & Testing
 
 ### Step 7.1: Verify Cluster Health
+
 ```bash
 # Check node status
 kubectl get nodes -o wide
@@ -734,6 +769,7 @@ kubectl get pv,pvc --all-namespaces
 ```
 
 ### Step 7.2: Verify Application Deployments
+
 ```bash
 # Check API Gateway
 kubectl logs -n velya-${VELYA_ENV}-core -l app=velya-api-gateway --tail=50
@@ -753,6 +789,7 @@ echo "Web app: http://localhost:3001"
 ```
 
 ### Step 7.3: Test Database Connectivity
+
 ```bash
 # Get database secret
 DB_SECRET=$(kubectl get secret database-secret -n velya-${VELYA_ENV}-core \
@@ -769,6 +806,7 @@ kubectl run -it --rm psql-test \
 ```
 
 ### Step 7.4: Run E2E Tests
+
 ```bash
 # Run E2E tests against deployed services
 npm run test:e2e -- --base-url=http://localhost:3000
@@ -777,6 +815,7 @@ npm run test:e2e -- --base-url=http://localhost:3000
 ```
 
 ### Step 7.5: Verify Observability
+
 ```bash
 # Check metrics are flowing to Prometheus
 curl -s http://localhost:9090/api/v1/query?query=up | jq .
@@ -795,6 +834,7 @@ curl -s "http://localhost:3100/loki/api/v1/query?query={job=\"kubelet\"}" | jq .
 ### Common Issues
 
 #### EKS Cluster Access Issues
+
 ```bash
 # Verify kubeconfig
 cat ~/.kube/config | grep -A 5 velya
@@ -811,6 +851,7 @@ aws sts get-caller-identity --profile ${AWS_PROFILE}
 ```
 
 #### Pod Scheduling Issues
+
 ```bash
 # Check node capacity
 kubectl describe nodes | grep -A 5 "Allocated resources"
@@ -823,6 +864,7 @@ kubectl describe resourcequota -n <namespace>
 ```
 
 #### Network Connectivity Issues
+
 ```bash
 # Test network policies
 kubectl run -it --rm debug \
@@ -837,6 +879,7 @@ kubectl run -it --rm debug \
 ```
 
 #### External Secrets Sync Issues
+
 ```bash
 # Check ExternalSecret status
 kubectl describe externalsecret <name> -n <namespace>
@@ -851,6 +894,7 @@ aws iam list-attached-role-policies \
 ```
 
 #### ArgoCD Sync Issues
+
 ```bash
 # Check ArgoCD application status
 argocd app describe velya-api-gateway
@@ -892,6 +936,7 @@ kubectl config delete-cluster ${VELYA_CLUSTER_NAME}
 ## Maintenance Commands
 
 ### Regular Operations
+
 ```bash
 # Check cluster health
 kubectl get nodes
@@ -913,6 +958,7 @@ kubectl scale deployment velya-api-gateway \
 ```
 
 ### Backup & Disaster Recovery
+
 ```bash
 # Backup EBS volumes (RDS auto-backups)
 # Backup Kubernetes resources

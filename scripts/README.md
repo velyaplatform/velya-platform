@@ -30,16 +30,19 @@ This directory contains automated scripts for deploying and managing the Velya p
 Automated script to deploy the entire Velya platform to AWS EKS.
 
 **Usage:**
+
 ```bash
 ./scripts/deploy.sh [PHASE] [ENVIRONMENT] [AWS_PROFILE]
 ```
 
 **Parameters:**
+
 - `PHASE` - Deployment phase (see phases below)
 - `ENVIRONMENT` - Environment name: `dev`, `staging`, `prod`
 - `AWS_PROFILE` - AWS CLI profile name (default: `velya-dev`)
 
 **Phases:**
+
 - `prerequisites` - Validate all required tools
 - `env-setup` - Setup environment variables
 - `infrastructure` - Provision AWS resources (VPC, EKS, ECR, IAM)
@@ -67,6 +70,7 @@ Automated script to deploy the entire Velya platform to AWS EKS.
 ```
 
 **Timing:**
+
 - Prerequisites validation: ~2 minutes
 - Infrastructure provisioning: 10-15 minutes
 - K8s bootstrap: 2-3 minutes
@@ -81,11 +85,13 @@ Automated script to deploy the entire Velya platform to AWS EKS.
 Verifies that deployment was successful and all components are healthy.
 
 **Usage:**
+
 ```bash
 ./scripts/verify.sh [ENVIRONMENT]
 ```
 
 **What it checks:**
+
 - ✓ Kubernetes cluster accessibility
 - ✓ Node status and readiness
 - ✓ Namespace creation
@@ -100,6 +106,7 @@ Verifies that deployment was successful and all components are healthy.
 - ✓ API endpoint connectivity
 
 **Example:**
+
 ```bash
 # Verify dev environment
 ./scripts/verify.sh dev
@@ -116,16 +123,19 @@ Verifies that deployment was successful and all components are healthy.
 Destroys all AWS and Kubernetes resources. **WARNING: This is irreversible!**
 
 **Usage:**
+
 ```bash
 ./scripts/cleanup.sh [ENVIRONMENT] [AWS_PROFILE] [--force]
 ```
 
 **Parameters:**
+
 - `ENVIRONMENT` - Environment to destroy
 - `AWS_PROFILE` - AWS CLI profile
 - `--force` - Skip confirmation prompt (use with caution!)
 
 **What it deletes:**
+
 - ✓ Kubernetes namespaces and workloads
 - ✓ EKS cluster
 - ✓ VPC and networking resources
@@ -134,6 +144,7 @@ Destroys all AWS and Kubernetes resources. **WARNING: This is irreversible!**
 - ✓ AWS Secrets
 
 **Example:**
+
 ```bash
 # Destroy dev environment (with confirmation)
 ./scripts/cleanup.sh dev velya-dev
@@ -162,6 +173,7 @@ export VELYA_ENV=dev
 ```
 
 Expected output:
+
 ```
 ✓ aws: aws-cli/2.x.x
 ✓ tofu: OpenTofu v1.7.0
@@ -176,11 +188,13 @@ All prerequisites validated
 ### Step 3: Deploy Infrastructure
 
 Full deployment (recommended):
+
 ```bash
 ./scripts/deploy.sh all ${VELYA_ENV} ${AWS_PROFILE}
 ```
 
 Or deploy in phases:
+
 ```bash
 # Phase 1: Infrastructure
 ./scripts/deploy.sh infrastructure ${VELYA_ENV} ${AWS_PROFILE}
@@ -212,6 +226,7 @@ kubectl get nodes
 ```
 
 If all checks pass:
+
 ```
 ✓ Passed: 42
 ✓ Verification passed!
@@ -220,6 +235,7 @@ If all checks pass:
 ### Step 5: Access Services
 
 **ArgoCD UI:**
+
 ```bash
 # Get credentials
 kubectl -n argocd get secret argocd-initial-admin-secret \
@@ -235,6 +251,7 @@ kubectl -n argocd get svc argocd-server \
 ```
 
 **Grafana:**
+
 ```bash
 # Port forward
 kubectl port-forward -n velya-${VELYA_ENV}-observability \
@@ -246,6 +263,7 @@ kubectl port-forward -n velya-${VELYA_ENV}-observability \
 ```
 
 **API Gateway:**
+
 ```bash
 # Port forward
 kubectl port-forward -n velya-${VELYA_ENV}-core \
@@ -276,6 +294,7 @@ grep FAILED logs/deployment/*.log
 #### 1. OpenTofu State Lock
 
 If deployment fails with state lock error:
+
 ```bash
 cd infra/opentofu/live/${VELYA_ENV}
 
@@ -286,6 +305,7 @@ tofu force-unlock <LOCK_ID>
 #### 2. EKS Cluster Not Ready
 
 Wait for the cluster to be ready:
+
 ```bash
 # Check node status
 kubectl get nodes -w
@@ -324,13 +344,13 @@ kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller
 
 The scripts use these environment variables:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `VELYA_ENV` | `dev` | Environment name |
-| `AWS_REGION` | `us-east-1` | AWS region |
-| `AWS_PROFILE` | `velya-dev` | AWS CLI profile |
-| `VELYA_PROJECT_NAME` | `velya` | Project name (for naming resources) |
-| `LOG_FILE` | `logs/deployment/<timestamp>.log` | Log file path |
+| Variable             | Default                           | Description                         |
+| -------------------- | --------------------------------- | ----------------------------------- |
+| `VELYA_ENV`          | `dev`                             | Environment name                    |
+| `AWS_REGION`         | `us-east-1`                       | AWS region                          |
+| `AWS_PROFILE`        | `velya-dev`                       | AWS CLI profile                     |
+| `VELYA_PROJECT_NAME` | `velya`                           | Project name (for naming resources) |
+| `LOG_FILE`           | `logs/deployment/<timestamp>.log` | Log file path                       |
 
 ## Cost Estimation
 

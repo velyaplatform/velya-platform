@@ -54,11 +54,11 @@ The ai-gateway is the single entry point for all AI requests. It runs as a servi
 ```typescript
 interface AIRequest {
   task: 'chat' | 'completion' | 'embedding' | 'structured-output';
-  model?: string;                    // Optional: override model selection
-  routingHint?: string;              // Optional: e.g., 'clinical-reasoning', 'coding', 'fast'
-  messages: ChatMessage[];           // For chat/completion tasks
-  outputSchema?: ZodSchema;          // For structured-output tasks
-  input?: string | string[];         // For embedding tasks
+  model?: string; // Optional: override model selection
+  routingHint?: string; // Optional: e.g., 'clinical-reasoning', 'coding', 'fast'
+  messages: ChatMessage[]; // For chat/completion tasks
+  outputSchema?: ZodSchema; // For structured-output tasks
+  input?: string | string[]; // For embedding tasks
   maxTokens?: number;
   temperature?: number;
   callerContext: {
@@ -77,13 +77,13 @@ The model-router selects the optimal AI provider and model for each request base
 
 ### Routing Policies
 
-| Policy | Description | Example |
-|--------|-------------|---------|
-| **Task-based** | Route by task type to the best-suited model | Clinical reasoning to Claude, ICD coding to a fine-tuned model |
-| **Cost-optimized** | Route to the cheapest model that meets quality thresholds | Use Claude Haiku for simple classification, Claude Opus for complex reasoning |
-| **Latency-optimized** | Route to the fastest responding provider | Real-time clinical suggestions route to the provider with lowest p50 latency |
-| **Sovereignty** | Route to providers that meet data residency requirements | PHI-containing requests route to self-hosted models or providers with BAAs |
-| **Load-balanced** | Distribute across providers to avoid rate limits | Spread embedding requests across multiple providers |
+| Policy                | Description                                               | Example                                                                       |
+| --------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **Task-based**        | Route by task type to the best-suited model               | Clinical reasoning to Claude, ICD coding to a fine-tuned model                |
+| **Cost-optimized**    | Route to the cheapest model that meets quality thresholds | Use Claude Haiku for simple classification, Claude Opus for complex reasoning |
+| **Latency-optimized** | Route to the fastest responding provider                  | Real-time clinical suggestions route to the provider with lowest p50 latency  |
+| **Sovereignty**       | Route to providers that meet data residency requirements  | PHI-containing requests route to self-hosted models or providers with BAAs    |
+| **Load-balanced**     | Distribute across providers to avoid rate limits          | Spread embedding requests across multiple providers                           |
 
 ### Routing Configuration
 
@@ -157,13 +157,13 @@ The eval-service continuously evaluates AI model quality to inform routing decis
 
 ### Evaluation Types
 
-| Type | Frequency | Method |
-|------|-----------|--------|
-| **Synthetic benchmarks** | Daily | Run standardized clinical reasoning, coding, and documentation benchmarks against all active models |
-| **Shadow evaluation** | Continuous | Route a percentage of production requests to a secondary model and compare outputs |
-| **Clinical accuracy** | Weekly | Compare AI coding suggestions against human-audited coding decisions |
-| **Latency tracking** | Continuous | Track p50, p95, p99 latency per provider per model per task type |
-| **Cost tracking** | Continuous | Track token usage and cost per provider per model per task type |
+| Type                     | Frequency  | Method                                                                                              |
+| ------------------------ | ---------- | --------------------------------------------------------------------------------------------------- |
+| **Synthetic benchmarks** | Daily      | Run standardized clinical reasoning, coding, and documentation benchmarks against all active models |
+| **Shadow evaluation**    | Continuous | Route a percentage of production requests to a secondary model and compare outputs                  |
+| **Clinical accuracy**    | Weekly     | Compare AI coding suggestions against human-audited coding decisions                                |
+| **Latency tracking**     | Continuous | Track p50, p95, p99 latency per provider per model per task type                                    |
+| **Cost tracking**        | Continuous | Track token usage and cost per provider per model per task type                                     |
 
 ### Quality Scores
 
@@ -174,7 +174,7 @@ interface ModelQualityScore {
   provider: string;
   model: string;
   taskType: string;
-  accuracy: number;       // 0.0-1.0
+  accuracy: number; // 0.0-1.0
   latencyP50Ms: number;
   latencyP95Ms: number;
   costPer1kTokens: number;
@@ -207,14 +207,14 @@ Feedback data flows into the eval-service to:
 
 Every AI request is tracked for cost accounting:
 
-| Dimension | Granularity |
-|-----------|-------------|
-| Provider + model | Per-request |
+| Dimension                    | Granularity |
+| ---------------------------- | ----------- |
+| Provider + model             | Per-request |
 | Input tokens + output tokens | Per-request |
-| Caller service/agent | Per-request |
-| Tenant | Per-request |
-| Cost center (department) | Per-request |
-| Task type | Per-request |
+| Caller service/agent         | Per-request |
+| Tenant                       | Per-request |
+| Cost center (department)     | Per-request |
+| Task type                    | Per-request |
 
 Cost data is aggregated and published to the FinOps dashboard. Per-tenant cost allocation enables tenant-level billing. Per-agent cost tracking enables agent efficiency comparisons.
 
@@ -238,13 +238,13 @@ interface AIProvider {
 
 ### Supported Providers
 
-| Provider | Adapter | Models | Use Case |
-|----------|---------|--------|----------|
-| Anthropic | `anthropic-adapter.ts` | Claude Opus, Sonnet, Haiku | Primary reasoning, clinical documentation |
-| OpenAI | `openai-adapter.ts` | GPT-4o, GPT-4o-mini | Fallback reasoning, specialized tasks |
-| Google | `google-adapter.ts` | Gemini Pro, Gemini Flash | Cost-optimized classification |
-| Local vLLM | `vllm-adapter.ts` | Fine-tuned clinical models | ICD coding, PHI-sensitive tasks |
-| Local Ollama | `ollama-adapter.ts` | Open-source models | Development, testing, offline scenarios |
+| Provider     | Adapter                | Models                     | Use Case                                  |
+| ------------ | ---------------------- | -------------------------- | ----------------------------------------- |
+| Anthropic    | `anthropic-adapter.ts` | Claude Opus, Sonnet, Haiku | Primary reasoning, clinical documentation |
+| OpenAI       | `openai-adapter.ts`    | GPT-4o, GPT-4o-mini        | Fallback reasoning, specialized tasks     |
+| Google       | `google-adapter.ts`    | Gemini Pro, Gemini Flash   | Cost-optimized classification             |
+| Local vLLM   | `vllm-adapter.ts`      | Fine-tuned clinical models | ICD coding, PHI-sensitive tasks           |
+| Local Ollama | `ollama-adapter.ts`    | Open-source models         | Development, testing, offline scenarios   |
 
 ### Provider-Specific Features
 
