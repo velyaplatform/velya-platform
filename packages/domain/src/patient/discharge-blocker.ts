@@ -63,7 +63,10 @@ export interface DischargeBlocker {
  * Create a new active DischargeBlocker.
  */
 export function createDischargeBlocker(
-  params: Pick<DischargeBlocker, 'code' | 'description' | 'category' | 'severity' | 'identifiedBy'> & {
+  params: Pick<
+    DischargeBlocker,
+    'code' | 'description' | 'category' | 'severity' | 'identifiedBy'
+  > & {
     ownerId?: string;
     estimatedMinutesToResolve?: number;
   },

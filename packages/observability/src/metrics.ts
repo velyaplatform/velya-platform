@@ -137,7 +137,7 @@ export class Histogram {
       min: sorted[0],
       max: sorted[sorted.length - 1],
       avg: sum / sorted.length,
-      p50: percentile(sorted, 0.50),
+      p50: percentile(sorted, 0.5),
       p95: percentile(sorted, 0.95),
       p99: percentile(sorted, 0.99),
     };

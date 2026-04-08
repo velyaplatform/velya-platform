@@ -296,10 +296,7 @@ export class Tracer {
 /**
  * Create a tracer with sensible defaults for a Velya service.
  */
-export function createTracer(
-  serviceName: string,
-  serviceVersion: string = '0.0.0',
-): Tracer {
+export function createTracer(serviceName: string, serviceVersion: string = '0.0.0'): Tracer {
   const config: TracerConfig = {
     serviceName,
     serviceVersion,

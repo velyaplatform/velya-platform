@@ -1,5 +1,5 @@
 import { Result, ok, err, DomainEvent, createDomainEvent } from '@velya/shared-kernel';
-import { DischargeBlocker, DischargeBlockerCategory } from './discharge-blocker.js';
+import { DischargeBlocker } from './discharge-blocker.js';
 
 /**
  * FHIR-aligned patient administrative gender.
@@ -58,7 +58,10 @@ export interface Patient {
  * Create a new Patient record.
  */
 export function createPatient(
-  params: Omit<Patient, 'lengthOfStayDays' | 'actualDischargeDate' | 'dischargeBlockers' | 'encounterStatus'> & {
+  params: Omit<
+    Patient,
+    'lengthOfStayDays' | 'actualDischargeDate' | 'dischargeBlockers' | 'encounterStatus'
+  > & {
     encounterStatus?: EncounterStatus;
   },
 ): Result<Patient, string> {

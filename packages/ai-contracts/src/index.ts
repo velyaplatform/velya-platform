@@ -7,10 +7,7 @@ export {
   AIClassificationResult,
 } from './ai-request.js';
 
-export {
-  AIProvider,
-  AIProviderHealthStatus,
-} from './ai-provider.js';
+export { AIProvider, AIProviderHealthStatus } from './ai-provider.js';
 
 export {
   CriticalityLevel,

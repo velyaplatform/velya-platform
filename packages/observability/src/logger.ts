@@ -154,12 +154,7 @@ export class Logger {
   /**
    * Internal log method that checks severity and emits the entry.
    */
-  private log(
-    level: LogLevel,
-    message: string,
-    context?: LogContext,
-    error?: LogError,
-  ): void {
+  private log(level: LogLevel, message: string, context?: LogContext, error?: LogError): void {
     const severity = LOG_LEVEL_SEVERITY[level];
     if (severity < this.minSeverity) return;
 

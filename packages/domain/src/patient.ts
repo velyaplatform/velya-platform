@@ -31,12 +31,12 @@ export interface PatientIdentifier {
  * Common identifier types in hospital systems.
  */
 export type IdentifierType =
-  | 'MR'       // Medical Record Number
-  | 'PI'       // Patient Internal Identifier
-  | 'SS'       // Social Security Number (stored as reference, not value)
-  | 'DL'       // Driver's License
-  | 'PPN'      // Passport Number
-  | 'PRN';     // Provider Number
+  | 'MR' // Medical Record Number
+  | 'PI' // Patient Internal Identifier
+  | 'SS' // Social Security Number (stored as reference, not value)
+  | 'DL' // Driver's License
+  | 'PPN' // Passport Number
+  | 'PRN'; // Provider Number
 
 /**
  * Patient contact information.
