@@ -1,0 +1,197 @@
+---
+# Dashboard: Runtime Pressure & Autoscaling — Velya Platform
+# Mostra pressão de runtime, eventos de scaling, filas e custo
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-runtime-pressure
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    grafana_dashboard: "1"
+data:
+  velya-runtime-pressure.json: |
+    {
+      "title": "Velya Runtime Pressure & Autoscaling",
+      "uid": "velya-runtime-pressure",
+      "tags": ["velya", "scaling", "runtime", "24x7"],
+      "timezone": "browser",
+      "schemaVersion": 38,
+      "refresh": "30s",
+      "time": { "from": "now-1h", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Replicas Ativas por Serviço",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "sum by (deployment) (kube_deployment_status_replicas_available{namespace=~\"velya-dev-.*\"})",
+            "legendFormat": "{{deployment}}"
+          }],
+          "options": { "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } }
+        },
+        {
+          "id": 2,
+          "title": "HPA — Replicas Atual vs Desejado",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+              "expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=~\"velya-dev-.*\"}",
+              "legendFormat": "atual — {{horizontalpodautoscaler}}"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+              "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=~\"velya-dev-.*\"}",
+              "legendFormat": "desejado — {{horizontalpodautoscaler}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short" } }
+        },
+        {
+          "id": 3,
+          "title": "KEDA — Métricas dos Scalers",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "keda_scaler_metrics_value",
+            "legendFormat": "{{scaledObject}} — {{metric}}"
+          }]
+        },
+        {
+          "id": 4,
+          "title": "Pod Churn Rate (restarts/hora)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "sum by (namespace) (increase(kube_pod_container_status_restarts_total{namespace=~\"velya-.*\"}[1h]))",
+            "legendFormat": "restarts — {{namespace}}"
+          }],
+          "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":3},{"color":"red","value":10}] } } }
+        },
+        {
+          "id": 5,
+          "title": "Scheduling Delay — Pods Pending",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "count by (namespace) (kube_pod_status_phase{namespace=~\"velya-.*\",phase=\"Pending\"} == 1)",
+            "legendFormat": "Pending — {{namespace}}"
+          }]
+        },
+        {
+          "id": 6,
+          "title": "Prometheus Cardinality (custo de observabilidade)",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 20 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "prometheus_tsdb_head_series",
+            "legendFormat": "Séries"
+          }],
+          "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":400000},{"color":"red","value":800000}] } } }
+        },
+        {
+          "id": 7,
+          "title": "CronJobs Sentinela — Últimas Execuções",
+          "type": "table",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "kube_cronjob_status_last_schedule_time{namespace=\"velya-dev-platform\"}",
+            "legendFormat": "{{cronjob}}",
+            "instant": true
+          }],
+          "options": { "sortBy": [{"desc": true, "displayName": "Value"}] }
+        },
+        {
+          "id": 8,
+          "title": "KEDA Erros de Scaler",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "rate(keda_scaler_errors_total[5m])",
+            "legendFormat": "erros — {{scaledObject}}/{{scaler}}"
+          }],
+          "fieldConfig": { "defaults": { "color": { "fixedColor": "red", "mode": "fixed" } } }
+        }
+      ]
+    }
+---
+# Dashboard: Queue Health & DLQ Board
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-queue-health
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    grafana_dashboard: "1"
+data:
+  velya-queue-health.json: |
+    {
+      "title": "Velya Queue Health & DLQ Board",
+      "uid": "velya-queue-health",
+      "tags": ["velya", "queues", "nats", "dlq", "24x7"],
+      "timezone": "browser",
+      "schemaVersion": 38,
+      "refresh": "30s",
+      "time": { "from": "now-3h", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "title": "NATS — Status do Servidor",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "up{job=~\".*nats.*\",namespace=\"velya-dev-platform\"}",
+            "legendFormat": "NATS"
+          }],
+          "fieldConfig": { "defaults": { "mappings": [{"type":"value","options":{"0":{"text":"DOWN","color":"red"},"1":{"text":"UP","color":"green"}}}] } }
+        },
+        {
+          "id": 2,
+          "title": "CronJobs — Status por Loop",
+          "type": "table",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "kube_cronjob_status_active{namespace=\"velya-dev-platform\"}",
+            "legendFormat": "{{cronjob}}",
+            "instant": true
+          }]
+        },
+        {
+          "id": 3,
+          "title": "Jobs Falhos — Últimas 24h",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "sum(kube_job_status_failed{namespace=\"velya-dev-platform\"} > 0)",
+            "legendFormat": "Jobs Falhos"
+          }],
+          "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":null},{"color":"red","value":1}] } } }
+        },
+        {
+          "id": 4,
+          "title": "Logs de Erro — Sentinelas (últimos 30min)",
+          "type": "logs",
+          "gridPos": { "h": 12, "w": 24, "x": 0, "y": 12 },
+          "targets": [{
+            "datasource": { "type": "loki", "uid": "velya-loki" },
+            "expr": "{namespace=\"velya-dev-platform\",velya_agent_class=\"sentinel\"} |= \"ALERTA\" or |= \"ERRO\" or |= \"DRIFT\"",
+            "legendFormat": ""
+          }],
+          "options": { "dedupStrategy": "none", "showTime": true, "sortOrder": "Descending" }
+        }
+      ]
+    }

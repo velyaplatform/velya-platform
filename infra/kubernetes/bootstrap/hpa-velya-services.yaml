@@ -1,0 +1,195 @@
+---
+# HorizontalPodAutoscalers — Serviços Realtime Velya
+# Aplica escala horizontal baseada em CPU para serviços request-serving
+# Referência: docs/scaling/hpa-keda-vpa-strategy.md
+
+# api-gateway — serviço de entrada, escala por CPU + custom metrics via KEDA
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-gateway-hpa
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/workload-class: realtime-app
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-gateway
+  minReplicas: 1
+  maxReplicas: 5
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 120
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 65
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+# patient-flow — serviço clínico crítico, escala conservadora
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: patient-flow-hpa
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/workload-class: realtime-app
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: patient-flow
+  minReplicas: 1
+  maxReplicas: 4
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 600  # 10min — crítico, não reduz rápido
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 300
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+# task-inbox — escala por demanda de tarefas clínicas
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: task-inbox-hpa
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/workload-class: async-worker
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: task-inbox
+  minReplicas: 1
+  maxReplicas: 4
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 180
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+# discharge-orchestrator — workflow durável, escala moderada
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: discharge-orchestrator-hpa
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/workload-class: async-worker
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: discharge-orchestrator
+  minReplicas: 1
+  maxReplicas: 3
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 120
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 120
+    scaleDown:
+      stabilizationWindowSeconds: 600
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 300
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+---
+# ai-gateway — inferência LLM, escala com contenção de custo
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ai-gateway-hpa
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/workload-class: heavy-ai-analytics
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ai-gateway
+  minReplicas: 1
+  maxReplicas: 3
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 90
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 90
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 180
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60

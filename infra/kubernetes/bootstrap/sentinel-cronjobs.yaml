@@ -1,0 +1,428 @@
+---
+# CronJobs Sentinela — Velya Platform 24/7 Operations
+# Loops contínuos para heartbeat, watchdog, drift detection e cost monitoring
+# Referência: docs/agents/24x7-operating-model.md
+
+# Loop curto: health scan geral a cada 5 minutos
+# Verifica pods parados, filas crescendo, scorecard drift
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-sentinel-health-scan
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: sentinel
+    velya.io/loop: short
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 60
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 240
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: sentinel
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          priorityClassName: velya-batch
+          containers:
+            - name: health-scan
+              image: bitnami/kubectl:1.31
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 128Mi
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "=== Velya Health Scan $(date -u +%Y-%m-%dT%H:%M:%SZ) ==="
+
+                  # Verifica pods não-Running nos namespaces Velya
+                  FAILED=$(kubectl get pods -A -l app.kubernetes.io/part-of=velya-platform \
+                    --field-selector='status.phase!=Running,status.phase!=Succeeded' \
+                    --no-headers 2>/dev/null | grep -v Completed | wc -l)
+                  echo "Pods com problema: $FAILED"
+
+                  # Verifica restarts altos (>5 em qualquer pod Velya)
+                  HIGH_RESTARTS=$(kubectl get pods -A -l app.kubernetes.io/part-of=velya-platform \
+                    --no-headers 2>/dev/null | awk '$5 > 5 {print $2, $5}')
+                  if [ -n "$HIGH_RESTARTS" ]; then
+                    echo "ALERTA: Pods com restarts altos:"
+                    echo "$HIGH_RESTARTS"
+                  fi
+
+                  # Verifica ArgoCD Applications em estado degradado
+                  echo "=== ArgoCD Applications ==="
+                  kubectl get applications -n argocd --no-headers 2>/dev/null || echo "Nenhuma Application ArgoCD configurada — GAP CRÍTICO"
+
+                  # Verifica KEDA ScaledObjects com erro
+                  echo "=== KEDA ScaledObjects ==="
+                  kubectl get scaledobjects -A --no-headers 2>/dev/null | grep -v "True" | grep velya || echo "Todos ScaledObjects OK"
+
+                  echo "=== Scan concluído ==="
+---
+# Loop contínuo: watchdog de silêncio a cada 10 minutos
+# Detecta agents/serviços silenciosos por mais de 30 minutos
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-watchdog-silence-detector
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: watchdog
+    velya.io/loop: short
+spec:
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 60
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 240
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            velya.io/agent-class: watchdog
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          priorityClassName: velya-batch
+          containers:
+            - name: silence-detector
+              image: curlimages/curl:8.10.1
+              resources:
+                requests:
+                  cpu: 25m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "=== Velya Silence Detector $(date -u +%Y-%m-%dT%H:%M:%SZ) ==="
+
+                  PROMETHEUS="http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090"
+
+                  # Verifica serviços Velya silenciosos (up=0 por mais de 5 min)
+                  QUERY='up{job=~"velya-.*"} == 0'
+                  RESULT=$(curl -s "$PROMETHEUS/api/v1/query?query=$(echo $QUERY | python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read()))')" 2>/dev/null)
+
+                  echo "Verificação de silêncio: $RESULT"
+
+                  # Verifica Loki (coleta de logs)
+                  LOKI_UP=$(curl -s "http://loki-gateway.velya-dev-observability.svc.cluster.local/ready" 2>/dev/null || echo "DOWN")
+                  echo "Loki status: $LOKI_UP"
+
+                  echo "=== Detector concluído ==="
+---
+# Loop horário: cost monitor — detecta spikes de uso de recursos
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-cost-monitor-hourly
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: sentinel
+    velya.io/loop: hourly
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 300
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            velya.io/agent-class: sentinel
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: OnFailure
+          priorityClassName: velya-batch
+          containers:
+            - name: cost-monitor
+              image: bitnami/kubectl:1.31
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 128Mi
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "=== Velya Cost Monitor $(date -u +%Y-%m-%dT%H:%M:%SZ) ==="
+
+                  # Verifica uso de ResourceQuota por namespace
+                  for NS in velya-dev-core velya-dev-platform velya-dev-agents velya-dev-web; do
+                    echo "--- Namespace: $NS ---"
+                    kubectl get resourcequota -n $NS --no-headers 2>/dev/null | while read name rest; do
+                      kubectl describe resourcequota $name -n $NS 2>/dev/null | grep -E "requests\.(cpu|memory)|limits\.(cpu|memory)" | head -6
+                    done
+                  done
+
+                  # Verifica Prometheus cardinality (indicador de custo de observabilidade)
+                  echo "--- Prometheus Series Count ---"
+                  kubectl exec -n velya-dev-observability \
+                    prometheus-prometheus-kube-prometheus-prometheus-0 \
+                    -- wget -qO- "http://localhost:9090/api/v1/query?query=prometheus_tsdb_head_series" \
+                    2>/dev/null | grep -o '"value":\[[^]]*\]' || echo "Não foi possível verificar cardinality"
+
+                  echo "=== Monitor concluído ==="
+---
+# Loop diário: executive digest — resume estado da plataforma
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-daily-digest
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: sentinel
+    velya.io/loop: daily
+spec:
+  schedule: "0 7 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 300
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 600
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            velya.io/agent-class: sentinel
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: OnFailure
+          priorityClassName: velya-batch
+          containers:
+            - name: daily-digest
+              image: bitnami/kubectl:1.31
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  memory: 256Mi
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "=============================="
+                  echo "VELYA DAILY DIGEST"
+                  echo "Data: $(date -u +%Y-%m-%d)"
+                  echo "=============================="
+
+                  echo ""
+                  echo "## STATUS DO CLUSTER"
+                  kubectl get nodes --no-headers 2>/dev/null | awk '{print $1, $2, $3}'
+
+                  echo ""
+                  echo "## PODS POR NAMESPACE"
+                  for NS in velya-dev-core velya-dev-platform velya-dev-agents velya-dev-web velya-dev-observability; do
+                    RUNNING=$(kubectl get pods -n $NS --no-headers 2>/dev/null | grep -c Running || echo 0)
+                    FAILED=$(kubectl get pods -n $NS --no-headers 2>/dev/null | grep -cv Running || echo 0)
+                    echo "  $NS: $RUNNING Running, $FAILED outros"
+                  done
+
+                  echo ""
+                  echo "## HPAs ATIVOS"
+                  kubectl get hpa -A --no-headers 2>/dev/null | grep velya | awk '{print $1, $2, $6"/"$5, $7"/"$8}'
+
+                  echo ""
+                  echo "## KEDA SCALED OBJECTS"
+                  kubectl get scaledobjects -A --no-headers 2>/dev/null | awk '{print $1, $2, $4, $5}'
+
+                  echo ""
+                  echo "## ALERTAS PROMETHEUS ATIVOS"
+                  PROMETHEUS="http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090"
+                  curl -s "$PROMETHEUS/api/v1/alerts" 2>/dev/null | grep -o '"alertname":"[^"]*"' | sort | uniq -c || echo "Prometheus não acessível"
+
+                  echo ""
+                  echo "=============================="
+                  echo "Digest completo"
+                  echo "=============================="
+---
+# Loop semanal: drift detection — detecta desvios de configuração
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-weekly-drift-detector
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: governance
+    velya.io/loop: weekly
+spec:
+  schedule: "0 8 * * 1"  # Segunda-feira às 08:00
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 4
+  failedJobsHistoryLimit: 2
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 1200
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            velya.io/agent-class: governance
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: OnFailure
+          priorityClassName: velya-batch
+          containers:
+            - name: drift-detector
+              image: bitnami/kubectl:1.31
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  memory: 256Mi
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "=============================="
+                  echo "VELYA DRIFT DETECTOR SEMANAL"
+                  echo "Data: $(date -u +%Y-%m-%d)"
+                  echo "=============================="
+
+                  ISSUES=0
+
+                  echo ""
+                  echo "## VERIFICAÇÃO: Resource Limits"
+                  # Detecta containers sem limits definidos
+                  for NS in velya-dev-core velya-dev-platform velya-dev-agents velya-dev-web; do
+                    MISSING=$(kubectl get pods -n $NS -o json 2>/dev/null | \
+                      python3 -c "
+import json,sys
+data=json.load(sys.stdin)
+for item in data.get('items',[]):
+  for c in item['spec'].get('containers',[]):
+    res=c.get('resources',{})
+    if not res.get('limits'):
+      print(item['metadata']['namespace']+'/'+item['metadata']['name']+'/'+c['name'])
+" 2>/dev/null | head -10)
+                    if [ -n "$MISSING" ]; then
+                      echo "DRIFT: Containers sem limits em $NS:"
+                      echo "$MISSING"
+                      ISSUES=$((ISSUES+1))
+                    fi
+                  done
+
+                  echo ""
+                  echo "## VERIFICAÇÃO: PodDisruptionBudgets"
+                  for NS in velya-dev-core velya-dev-platform; do
+                    PDB_COUNT=$(kubectl get pdb -n $NS --no-headers 2>/dev/null | wc -l)
+                    DEPLOY_COUNT=$(kubectl get deployment -n $NS --no-headers 2>/dev/null | wc -l)
+                    echo "  $NS: $PDB_COUNT PDBs para $DEPLOY_COUNT Deployments"
+                    if [ "$PDB_COUNT" -lt "$DEPLOY_COUNT" ]; then
+                      echo "  DRIFT: Deployments sem PDB em $NS"
+                      ISSUES=$((ISSUES+1))
+                    fi
+                  done
+
+                  echo ""
+                  echo "## VERIFICAÇÃO: ArgoCD Applications"
+                  APP_COUNT=$(kubectl get applications -n argocd --no-headers 2>/dev/null | wc -l)
+                  if [ "$APP_COUNT" -eq 0 ]; then
+                    echo "DRIFT CRÍTICO: Nenhuma Application ArgoCD — GitOps não está ativo"
+                    ISSUES=$((ISSUES+1))
+                  else
+                    kubectl get applications -n argocd --no-headers 2>/dev/null
+                  fi
+
+                  echo ""
+                  echo "## VERIFICAÇÃO: NetworkPolicies"
+                  for NS in velya-dev-core velya-dev-platform velya-dev-agents velya-dev-web; do
+                    NP_COUNT=$(kubectl get networkpolicy -n $NS --no-headers 2>/dev/null | wc -l)
+                    echo "  $NS: $NP_COUNT NetworkPolicies"
+                  done
+
+                  echo ""
+                  echo "## RESULTADO: $ISSUES issues de drift detectados"
+                  echo "=============================="
+---
+# ServiceAccount para os sentinelas (read-only sobre cluster)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: velya-sentinel-sa
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: velya-sentinel-reader
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "namespaces", "services", "resourcequotas", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets"]
+    verbs: ["get", "list"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list"]
+  - apiGroups: ["keda.sh"]
+    resources: ["scaledobjects", "scaledjobs", "triggerauthentications"]
+    verbs: ["get", "list"]
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["get", "list"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies", "ingresses"]
+    verbs: ["get", "list"]
+  - apiGroups: ["argoproj.io"]
+    resources: ["applications", "appprojects"]
+    verbs: ["get", "list"]
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["prometheusrules", "servicemonitors"]
+    verbs: ["get", "list"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: velya-sentinel-reader-binding
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: velya-sentinel-reader
+subjects:
+  - kind: ServiceAccount
+    name: velya-sentinel-sa
+    namespace: velya-dev-platform

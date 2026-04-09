@@ -1,0 +1,138 @@
+---
+# App of Apps — Velya Platform Root
+# Este arquivo é o ponto de entrada do ArgoCD para toda a plataforma Velya.
+# velya-platform-root aponta para infra/argocd/ e gerencia todos os outros Applications.
+# Referência: docs/scaling/durable-workflow-strategy.md
+
+# velya-core-services — serviços clínicos core (velya-dev-core)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velya-core-services
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: core
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: velya-alertas
+    notifications.argoproj.io/subscribe.on-health-degraded.slack: velya-alertas
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/velyaplatform/velya-platform.git
+    targetRevision: main
+    path: infra/kubernetes/services/velya-dev-core
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velya-dev-core
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+---
+# velya-platform-services — serviços de plataforma (velya-dev-platform)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velya-platform-services
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/velyaplatform/velya-platform.git
+    targetRevision: main
+    path: infra/kubernetes/services/velya-dev-platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velya-dev-platform
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+---
+# velya-agents — serviços de agentes (velya-dev-agents)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velya-agents
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: agents
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/velyaplatform/velya-platform.git
+    targetRevision: main
+    path: infra/kubernetes/services/velya-dev-agents
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velya-dev-agents
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m
+---
+# velya-bootstrap — infraestrutura de bootstrap (observabilidade, scaling, sentinelas)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velya-bootstrap
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: bootstrap
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/velyaplatform/velya-platform.git
+    targetRevision: main
+    path: infra/kubernetes/bootstrap
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velya-dev-observability
+  syncPolicy:
+    automated:
+      prune: false  # Bootstrap não prune automaticamente
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 15s
+        factor: 2
+        maxDuration: 5m
+  ignoreDifferences:
+    - group: "keda.sh"
+      kind: ScaledObject
+      jsonPointers:
+        - /spec/triggers/0/metadata/query  # Prometheus queries podem ter variações de whitespace

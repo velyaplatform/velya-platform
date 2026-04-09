@@ -1,0 +1,121 @@
+---
+# Temporal — Workflow Engine para operações duráveis Velya
+# Modo: servidor completo com PostgreSQL existente + ElasticSearch desabilitado
+# Referência: docs/scaling/durable-workflow-strategy.md
+
+server:
+  replicaCount: 1
+
+  config:
+    persistence:
+      defaultStore: default
+      visibilityStore: visibility
+      numHistoryShards: 4
+
+      datastores:
+        default:
+          sql:
+            pluginName: postgres12
+            databaseName: temporal
+            host: postgresql.velya-dev-platform.svc.cluster.local
+            port: 5432
+            user: postgres
+            existingSecret: temporal-postgres-secret
+            secretName: temporal-postgres-secret
+            secretKey: password
+            maxConns: 20
+            maxIdleConns: 20
+            maxConnLifetime: 1h
+
+        visibility:
+          sql:
+            pluginName: postgres12
+            databaseName: temporal_visibility
+            host: postgresql.velya-dev-platform.svc.cluster.local
+            port: 5432
+            user: postgres
+            existingSecret: temporal-postgres-secret
+            secretName: temporal-postgres-secret
+            secretKey: password
+            maxConns: 10
+            maxIdleConns: 10
+            maxConnLifetime: 1h
+
+  frontend:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
+  history:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
+  matching:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
+  worker:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
+admintools:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+web:
+  enabled: true
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+schema:
+  setup:
+    enabled: true
+  update:
+    enabled: true
+
+elasticsearch:
+  enabled: false
+
+prometheus:
+  enabled: false
+
+grafana:
+  enabled: false
+
+serviceMonitor:
+  enabled: true
+  additionalLabels:
+    release: prometheus
+
+# Namespaces Temporal por ambiente Velya
+# Criar via tctl após deploy:
+# tctl --namespace velya-dev namespace register
+# tctl --namespace velya-staging namespace register
+# tctl --namespace velya-prod namespace register

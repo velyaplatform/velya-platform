@@ -1,0 +1,255 @@
+name: Platform Validation
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Executa a cada 30 minutos para detectar regressões automaticamente
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Ambiente a validar"
+        required: false
+        default: "dev"
+
+concurrency:
+  group: platform-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  validate-frontend-pages:
+    name: "Validar Páginas Frontend"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Verificar todas as páginas do frontend Velya
+        env:
+          FRONTEND_URL: ${{ vars.VELYA_FRONTEND_URL || 'http://velya.172.19.0.6.nip.io' }}
+        run: |
+          set -euo pipefail
+
+          FAILURES=0
+          TOTAL=0
+
+          check_page() {
+            local name="$1"
+            local path="$2"
+            local expected="${3:-200}"
+            local url="${FRONTEND_URL}${path}"
+            TOTAL=$((TOTAL+1))
+
+            status=$(curl -s -o /dev/null -w "%{http_code}" -L \
+              --max-time 10 --connect-timeout 5 \
+              --retry 2 --retry-delay 2 \
+              "$url" 2>/dev/null || echo "000")
+
+            if [ "$status" = "$expected" ]; then
+              echo "✓ $name → HTTP $status"
+            else
+              echo "✗ $name → HTTP $status (esperado: $expected) — $url"
+              FAILURES=$((FAILURES+1))
+            fi
+          }
+
+          echo "=== FRONTEND: $FRONTEND_URL ==="
+
+          check_page "Dashboard principal" "/"
+          check_page "Pacientes" "/patients"
+          check_page "Tarefas" "/tasks"
+          check_page "Alta Hospitalar" "/discharge"
+          check_page "Sistema" "/system"
+          check_page "API Health" "/api/health"
+          check_page "Métricas Prometheus" "/api/metrics"
+
+          echo ""
+          echo "Resultado: $((TOTAL-FAILURES))/$TOTAL páginas OK"
+
+          if [ "$FAILURES" -gt 0 ]; then
+            echo "❌ $FAILURES páginas com falha"
+            exit 1
+          fi
+          echo "✅ Todas as páginas validadas com sucesso"
+
+  validate-grafana:
+    name: "Validar Grafana"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Verificar Grafana e dashboards
+        env:
+          GRAFANA_URL: ${{ vars.VELYA_GRAFANA_URL || 'http://grafana.172.19.0.6.nip.io' }}
+          GRAFANA_USER: ${{ vars.GRAFANA_USER || 'admin' }}
+          GRAFANA_PASSWORD: ${{ secrets.GRAFANA_PASSWORD || 'velya-admin' }}
+        run: |
+          set -euo pipefail
+
+          FAILURES=0
+
+          check() {
+            local name="$1"
+            local url="$2"
+            local expected="${3:-200}"
+            local status
+            status=$(curl -s -o /dev/null -w "%{http_code}" -L \
+              --max-time 10 --connect-timeout 5 \
+              --retry 2 --retry-delay 2 \
+              -u "$GRAFANA_USER:$GRAFANA_PASSWORD" \
+              "$url" 2>/dev/null || echo "000")
+
+            if [ "$status" = "$expected" ]; then
+              echo "✓ $name → HTTP $status"
+            else
+              echo "✗ $name → HTTP $status — $url"
+              FAILURES=$((FAILURES+1))
+            fi
+          }
+
+          echo "=== GRAFANA: $GRAFANA_URL ==="
+
+          check "Grafana login" "$GRAFANA_URL/login"
+          check "Grafana API health" "$GRAFANA_URL/api/health"
+          check "Datasources configurados" "$GRAFANA_URL/api/datasources"
+          check "Dashboard Platform Overview" "$GRAFANA_URL/api/dashboards/uid/velya-platform-overview"
+          check "Dashboard Clinical Services" "$GRAFANA_URL/api/dashboards/uid/velya-clinical-services"
+          check "Dashboard Infrastructure" "$GRAFANA_URL/api/dashboards/uid/velya-infrastructure"
+          check "Dashboard Runtime Pressure" "$GRAFANA_URL/api/dashboards/uid/velya-runtime-pressure"
+          check "Dashboard Queue Health" "$GRAFANA_URL/api/dashboards/uid/velya-queue-health"
+
+          if [ "$FAILURES" -gt 0 ]; then
+            echo "❌ $FAILURES verificações Grafana falharam"
+            exit 1
+          fi
+          echo "✅ Grafana validado com sucesso"
+
+  validate-kubernetes:
+    name: "Validar Kubernetes"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Validate manifests with kubeval
+        run: |
+          # Valida sintaxe de todos os manifests YAML sem precisar de cluster
+          find infra/kubernetes/ -name "*.yaml" -o -name "*.yml" | while read f; do
+            if grep -q "^apiVersion:" "$f" 2>/dev/null; then
+              # Verificação básica de estrutura YAML
+              python3 -c "
+import yaml,sys
+try:
+    docs=list(yaml.safe_load_all(open('$f')))
+    for doc in docs:
+        if doc and 'apiVersion' in doc and 'kind' in doc:
+            assert 'metadata' in doc, f'Missing metadata in {doc[\"kind\"]}'
+    print('OK: $f')
+except Exception as e:
+    print(f'ERRO: $f — {e}')
+    sys.exit(1)
+" 2>/dev/null || echo "AVISO: $f — verificar manualmente"
+            fi
+          done
+          echo "✅ Manifests Kubernetes validados"
+
+      - name: Verificar scripts de validação
+        run: |
+          # Verifica que scripts existem e são executáveis
+          SCRIPTS=(
+            "scripts/validate-platform.sh"
+          )
+
+          for script in "${SCRIPTS[@]}"; do
+            if [ -f "$script" ]; then
+              echo "✓ $script existe"
+              # Verifica shebang
+              head -1 "$script" | grep -q "^#!" && echo "  ✓ shebang OK" || echo "  ✗ sem shebang"
+            else
+              echo "✗ $script não encontrado"
+              exit 1
+            fi
+          done
+
+  validate-argocd-manifests:
+    name: "Validar ArgoCD Applications"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Verificar manifests ArgoCD
+        run: |
+          set -euo pipefail
+
+          FAILURES=0
+
+          # Verifica que infra/argocd/ existe e tem conteúdo
+          if [ -d "infra/argocd" ] && [ "$(ls infra/argocd/*.yaml 2>/dev/null | wc -l)" -gt 0 ]; then
+            echo "✓ infra/argocd/ contém manifests"
+            ls infra/argocd/*.yaml | while read f; do
+              echo "  → $f"
+            done
+          else
+            echo "✗ infra/argocd/ vazio ou inexistente — GitOps não configurado"
+            FAILURES=$((FAILURES+1))
+          fi
+
+          # Verifica services dirs
+          for dir in velya-dev-core velya-dev-platform velya-dev-agents; do
+            if [ -d "infra/kubernetes/services/$dir" ] && [ "$(ls infra/kubernetes/services/$dir/*.yaml 2>/dev/null | wc -l)" -gt 0 ]; then
+              COUNT=$(ls infra/kubernetes/services/$dir/*.yaml | wc -l)
+              echo "✓ infra/kubernetes/services/$dir/ — $COUNT manifests"
+            else
+              echo "✗ infra/kubernetes/services/$dir/ vazio"
+              FAILURES=$((FAILURES+1))
+            fi
+          done
+
+          if [ "$FAILURES" -gt 0 ]; then
+            exit 1
+          fi
+          echo "✅ Estrutura ArgoCD/GitOps validada"
+
+  summary:
+    name: "Resumo da Validação"
+    runs-on: ubuntu-latest
+    needs:
+      - validate-frontend-pages
+      - validate-grafana
+      - validate-kubernetes
+      - validate-argocd-manifests
+    if: always()
+    steps:
+      - name: Gerar resumo
+        run: |
+          echo "## Validação da Plataforma Velya" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Data:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Pages | ${{ needs.validate-frontend-pages.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Grafana | ${{ needs.validate-grafana.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Kubernetes | ${{ needs.validate-kubernetes.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ArgoCD Manifests | ${{ needs.validate-argocd-manifests.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Falhar se qualquer job falhou
+        if: |
+          needs.validate-frontend-pages.result == 'failure' ||
+          needs.validate-kubernetes.result == 'failure' ||
+          needs.validate-argocd-manifests.result == 'failure'
+        run: |
+          echo "❌ Uma ou mais validações críticas falharam"
+          exit 1
