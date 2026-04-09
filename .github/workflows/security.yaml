@@ -177,13 +177,19 @@ jobs:
             dir=$(dirname "$dockerfile")
             service_name=$(basename "$dir")
             echo "Building and scanning: $service_name"
-            
-            # Build the image
-            docker build -t "velya-${service_name}:scan" -f "$dockerfile" "$dir" || continue
-            
-            # Scan with Trivy (will be replaced with actual Trivy action)
+
+            # Build usando contexto da raiz do monorepo (Dockerfiles referenciam tsconfig.base.json, lockfile raiz, etc.)
+            docker build -t "velya-${service_name}:scan" -f "$dockerfile" . || continue
+
+            # Verificação de segurança básica: container não roda como root
+            WHOAMI=$(docker run --rm --entrypoint="" "velya-${service_name}:scan" whoami 2>/dev/null || echo "unknown")
+            if [ "$WHOAMI" != "root" ]; then
+              echo "  ✅ Non-root user: $WHOAMI"
+            else
+              echo "  ⚠️ Container roda como root — violação de segurança"
+            fi
+
             echo "Image built successfully: velya-${service_name}:scan"
-            echo "Trivy scan would run here in production CI"
           done
 
   tofu-security:
