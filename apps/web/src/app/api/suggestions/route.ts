@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     const priorityFilter = searchParams.get('priority') as SuggestionPriority | null;
     const limit = parseInt(searchParams.get('limit') || '100', 10);
 
-    const { events, total } = getEvents('suggestion', { limit: 10000 });
+    const { events } = getEvents('suggestion', { limit: 10000 });
 
     let suggestions = events.map((event) => ({
       id: event.id,

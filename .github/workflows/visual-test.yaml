@@ -1,0 +1,171 @@
+name: Visual & Auth Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'scripts/visual-test.ts'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+  workflow_dispatch:
+
+concurrency:
+  group: visual-test-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  visual-and-auth-test:
+    name: "Visual + Auth Flow Test"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright
+        run: npx playwright install chromium
+
+      - name: Build Next.js
+        run: npm run build --workspace=apps/web
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Start server and run tests
+        run: |
+          set -euo pipefail
+
+          # Start Next.js in production mode
+          cd apps/web
+          PORT=3333 node .next/standalone/apps/web/server.js &
+          SERVER_PID=$!
+          cd ../..
+
+          # Wait for server
+          echo "Aguardando servidor..."
+          for i in $(seq 1 30); do
+            if curl -s -o /dev/null -w "%{http_code}" http://localhost:3333/ 2>/dev/null | grep -qE '^[2-3]'; then
+              echo "Servidor pronto na tentativa $i"
+              break
+            fi
+            sleep 1
+          done
+
+          # Run visual tests
+          echo ""
+          echo "=== VISUAL TESTS ==="
+          TEST_URL=http://localhost:3333 npx tsx scripts/visual-test.ts || VISUAL_FAILED=1
+
+          # Run auth flow test
+          echo ""
+          echo "=== AUTH FLOW TEST ==="
+
+          # 1. Register
+          REG=$(curl -s -X POST http://localhost:3333/api/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{"email":"ci-test@velya.test","password":"test123","nome":"CI Test User","role":"Administrador","setor":"CI"}')
+          echo "Register: $REG"
+
+          CODE=$(echo "$REG" | python3 -c "import json,sys; print(json.load(sys.stdin).get('devCode',''))" 2>/dev/null)
+
+          if [ -z "$CODE" ]; then
+            echo "❌ Registro falhou — sem código"
+            AUTH_FAILED=1
+          else
+            # 2. Verify
+            VERIFY=$(curl -s -X POST http://localhost:3333/api/auth/verify \
+              -H "Content-Type: application/json" \
+              -d "{\"email\":\"ci-test@velya.test\",\"code\":\"$CODE\"}")
+            echo "Verify: $VERIFY"
+
+            # 3. Login
+            LOGIN=$(curl -s -c /tmp/ci-cookies -X POST http://localhost:3333/api/auth/login \
+              -H "Content-Type: application/json" \
+              -d '{"email":"ci-test@velya.test","password":"test123"}')
+            echo "Login: $LOGIN"
+
+            SUCCESS=$(echo "$LOGIN" | python3 -c "import json,sys; print(json.load(sys.stdin).get('success',False))" 2>/dev/null)
+            if [ "$SUCCESS" != "True" ]; then
+              echo "❌ Login falhou"
+              AUTH_FAILED=1
+            else
+              echo "✅ Login OK"
+
+              # 4. Session check
+              SESSION=$(curl -s -b /tmp/ci-cookies http://localhost:3333/api/auth/session)
+              AUTHENTICATED=$(echo "$SESSION" | python3 -c "import json,sys; print(json.load(sys.stdin).get('authenticated',False))" 2>/dev/null)
+              if [ "$AUTHENTICATED" != "True" ]; then
+                echo "❌ Sessão inválida"
+                AUTH_FAILED=1
+              else
+                echo "✅ Sessão OK"
+              fi
+
+              # 5. Protected API access
+              HEALTH=$(curl -s -b /tmp/ci-cookies -o /dev/null -w "%{http_code}" http://localhost:3333/api/suggestions)
+              if [ "$HEALTH" = "200" ]; then
+                echo "✅ API protegida OK"
+              else
+                echo "❌ API protegida falhou (HTTP $HEALTH)"
+                AUTH_FAILED=1
+              fi
+
+              # 6. Logout
+              curl -s -b /tmp/ci-cookies -X POST http://localhost:3333/api/auth/logout > /dev/null
+              AFTER_LOGOUT=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3333/api/suggestions)
+              if [ "$AFTER_LOGOUT" = "401" ]; then
+                echo "✅ Logout OK (API retorna 401)"
+              else
+                echo "❌ Logout falhou (API retorna $AFTER_LOGOUT)"
+                AUTH_FAILED=1
+              fi
+            fi
+          fi
+
+          # Cleanup
+          kill $SERVER_PID 2>/dev/null || true
+
+          echo ""
+          echo "══════════════════════════════════════════"
+          echo "  RESULTADO FINAL"
+          echo "══════════════════════════════════════════"
+
+          if [ "${VISUAL_FAILED:-0}" = "1" ]; then
+            echo "  ❌ Visual tests: FAILED"
+          else
+            echo "  ✅ Visual tests: PASSED"
+          fi
+
+          if [ "${AUTH_FAILED:-0}" = "1" ]; then
+            echo "  ❌ Auth flow: FAILED"
+          else
+            echo "  ✅ Auth flow: PASSED"
+          fi
+
+          echo "══════════════════════════════════════════"
+
+          if [ "${VISUAL_FAILED:-0}" = "1" ] || [ "${AUTH_FAILED:-0}" = "1" ]; then
+            exit 1
+          fi
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: visual-test-screenshots
+          path: /tmp/velya-screenshots/
+          retention-days: 7
