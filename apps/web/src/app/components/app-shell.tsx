@@ -65,6 +65,29 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
   const professionalRole = resolveUiRole(currentRole);
   const roleDef = ROLE_DEFINITIONS[professionalRole];
   const councilBadge = roleDef?.professionalCouncil ?? null;
+  const [sessionActive, setSessionActive] = useState(false);
+
+  // Auto-login: quando o papel muda, cria sessão no backend
+  useEffect(() => {
+    const userName = roleNames[currentRole] || currentRole;
+    const userId = currentRole.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+    fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        userName,
+        role: currentRole,
+        pin: '1234',
+      }),
+    })
+      .then((res) => {
+        setSessionActive(res.ok);
+        if (!res.ok) console.warn('[auth] Login falhou para', currentRole);
+      })
+      .catch(() => setSessionActive(false));
+  }, [currentRole]);
 
   return (
     <div className="app-shell">
@@ -105,6 +128,17 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
                   </span>
                 )}
               </div>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: sessionActive ? '#22c55e' : '#ef4444',
+                  marginLeft: 6,
+                  flexShrink: 0,
+                }}
+                title={sessionActive ? 'Sessão ativa' : 'Sem sessão'}
+              />
             </div>
           </div>
         </header>
