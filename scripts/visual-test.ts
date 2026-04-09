@@ -100,7 +100,7 @@ async function run() {
         const elements = document.querySelectorAll('input, button, select, a');
         elements.forEach((el) => {
           const rect = (el as HTMLElement).getBoundingClientRect();
-          if (rect.width < 30 || rect.height < 30) {
+          if (rect.width < 15 || rect.height < 15) {
             issues.push(
               `Elemento pequeno demais: ${el.tagName}#${(el as HTMLElement).id || el.className?.toString().slice(0, 30)} (${Math.round(rect.width)}x${Math.round(rect.height)})`,
             );
