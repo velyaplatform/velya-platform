@@ -48,7 +48,7 @@ export class ErrorBoundary extends React.Component<
           data: { message: error.message, stack: error.stack },
         });
         localStorage.setItem('velya_pending_errors', JSON.stringify(pending.slice(-50)));
-      } catch {}
+      } catch { /* localStorage indisponível */ }
     });
   }
 

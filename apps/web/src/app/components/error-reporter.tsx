@@ -48,7 +48,7 @@ function reportError(source: string, message: string, stack?: string, extra?: Re
       const pending = JSON.parse(localStorage.getItem('velya_pending_errors') || '[]');
       pending.push({ source, message, timestamp: new Date().toISOString() });
       localStorage.setItem('velya_pending_errors', JSON.stringify(pending.slice(-50)));
-    } catch {}
+    } catch { /* localStorage indisponível */ }
   });
 }
 

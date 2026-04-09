@@ -8,8 +8,6 @@ import {
   NAV_SECTIONS,
   resolveUiRole,
   getNavigationSections,
-  isAllowed,
-  type ProfessionalRole,
 } from '../../lib/access-control';
 
 const ROLES = [
@@ -94,7 +92,6 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
   ];
 
   const showObservability = allowedSections.includes(NAV_SECTIONS.OBSERVABILIDADE);
-  const canManageSuggestions = isAllowed({ role: professionalRole }, 'manage_suggestions');
 
   const accessLevelLabel = `Nivel ${roleDef?.accessLevel ?? 0}`;
 

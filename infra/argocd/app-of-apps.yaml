@@ -118,6 +118,7 @@ spec:
     path: infra/kubernetes/bootstrap
   destination:
     server: https://kubernetes.default.svc
+    # Namespace default — recursos individuais definem seus próprios namespaces
     namespace: velya-dev-observability
   syncPolicy:
     automated:
@@ -126,8 +127,10 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true  # CRDs de cert-manager/Argo Rollouts podem não existir ainda
+      - RespectIgnoreDifferences=true
     retry:
-      limit: 3
+      limit: 5
       backoff:
         duration: 15s
         factor: 2
@@ -136,4 +139,20 @@ spec:
     - group: "keda.sh"
       kind: ScaledObject
       jsonPointers:
-        - /spec/triggers/0/metadata/query  # Prometheus queries podem ter variações de whitespace
+        - /spec/triggers/0/metadata/query
+    - group: "argoproj.io"
+      kind: AnalysisTemplate
+      jsonPointers:
+        - /spec
+    - group: "argoproj.io"
+      kind: Rollout
+      jsonPointers:
+        - /spec
+    - group: "cert-manager.io"
+      kind: Certificate
+      jsonPointers:
+        - /spec
+    - group: "cert-manager.io"
+      kind: ClusterIssuer
+      jsonPointers:
+        - /spec

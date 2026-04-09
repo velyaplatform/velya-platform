@@ -60,10 +60,14 @@ jobs:
             --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
             --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
             .
-          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${IMAGE_NAME}:${{ steps.meta.outputs.tag }}" 2>/dev/null || docker inspect --format='{{.Id}}' "${IMAGE_NAME}:${{ steps.meta.outputs.tag }}")
-          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          IMAGE_ID=$(docker inspect --format='{{.Id}}' "${IMAGE_NAME}:${{ steps.meta.outputs.tag }}")
+          {
+            echo "digest<<EOFDIGEST"
+            echo "${IMAGE_ID}"
+            echo "EOFDIGEST"
+          } >> "$GITHUB_OUTPUT"
           echo "Built: ${IMAGE_NAME}:${{ steps.meta.outputs.tag }}"
-          echo "Digest: ${DIGEST}"
+          echo "Digest: ${IMAGE_ID}"
 
       - name: Save image for next jobs
         run: |
