@@ -59,6 +59,7 @@ spec:
     namespace: velya-dev-platform
   syncPolicy:
     automated:
+      prune: false  # Platform services — não prune automaticamente custom resources
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
@@ -94,11 +95,11 @@ spec:
     syncOptions:
       - CreateNamespace=true
     retry:
-      limit: 3
+      limit: 5
       backoff:
-        duration: 10s
+        duration: 5s
         factor: 2
-        maxDuration: 5m
+        maxDuration: 3m
 ---
 # velya-bootstrap — infraestrutura de bootstrap (observabilidade, scaling, sentinelas)
 apiVersion: argoproj.io/v1alpha1

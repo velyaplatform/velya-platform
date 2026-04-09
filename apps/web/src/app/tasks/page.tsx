@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AppShell } from '../components/app-shell';
 
 type TaskPriority = 'urgent' | 'high' | 'normal' | 'low';
@@ -320,25 +320,30 @@ export default function TasksPage() {
     );
   };
 
-  const filtered = tasks.filter((t) => {
-    const matchesGroup = groupFilter === 'all' || t.group === groupFilter;
-    const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || t.priority === priorityFilter;
-    const matchesSearch =
-      searchQuery === '' ||
-      t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.patient.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.mrn.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesGroup && matchesStatus && matchesPriority && matchesSearch;
-  });
+  const sorted = useMemo(() => {
+    const filtered = tasks.filter((t) => {
+      const matchesGroup = groupFilter === 'all' || t.group === groupFilter;
+      const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
+      const matchesPriority = priorityFilter === 'all' || t.priority === priorityFilter;
+      const matchesSearch =
+        searchQuery === '' ||
+        t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.patient.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.mrn.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesGroup && matchesStatus && matchesPriority && matchesSearch;
+    });
+    return [...filtered].sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
+  }, [tasks, groupFilter, statusFilter, priorityFilter, searchQuery]);
 
-  const sorted = [...filtered].sort(
-    (a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
+  const urgentCount = useMemo(
+    () => tasks.filter((t) => t.priority === 'urgent' && t.status !== 'deferred').length,
+    [tasks]
   );
-
-  const urgentCount = tasks.filter((t) => t.priority === 'urgent' && t.status !== 'deferred').length;
-  const openCount = tasks.filter((t) => t.status === 'open').length;
-  const inProgressCount = tasks.filter((t) => t.status === 'in-progress').length;
+  const openCount = useMemo(() => tasks.filter((t) => t.status === 'open').length, [tasks]);
+  const inProgressCount = useMemo(
+    () => tasks.filter((t) => t.status === 'in-progress').length,
+    [tasks]
+  );
 
   return (
     <AppShell pageTitle="Caixa de Tarefas">
