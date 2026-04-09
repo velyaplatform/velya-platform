@@ -1,0 +1,156 @@
+# Synthetic Monitoring — Velya Platform
+# Verifica automaticamente todos os endpoints, páginas e fluxos críticos
+# Posta resultados para /api/sentinel via webhook
+# Frequência: a cada 5 minutos
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-synthetic-monitor
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/component: synthetic-monitoring
+spec:
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 120
+      template:
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          containers:
+            - name: synthetic-monitor
+              image: bitnami/kubectl:1.31
+              env:
+                - name: WEBHOOK_URL
+                  value: "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel"
+                - name: FRONTEND_URL
+                  value: "http://velya-web.velya-dev-web.svc.cluster.local:3000"
+              command: ["sh", "-c"]
+              args:
+                - |
+                  set -e
+                  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                  FINDINGS=""
+                  FAIL_COUNT=0
+                  TOTAL=0
+
+                  check_url() {
+                    local name="$1" url="$2" expected="${3:-200}"
+                    TOTAL=$((TOTAL+1))
+                    STATUS=$(wget -q -O /dev/null --timeout=10 -S "$url" 2>&1 | grep "HTTP/" | tail -1 | awk '{print $2}' || echo "000")
+                    if [ "$STATUS" = "$expected" ]; then
+                      echo "OK: $name ($STATUS)"
+                    else
+                      echo "FAIL: $name (got $STATUS, expected $expected)"
+                      FAIL_COUNT=$((FAIL_COUNT+1))
+                      FINDINGS="$FINDINGS{\"type\":\"endpoint_down\",\"message\":\"$name: HTTP $STATUS (esperado $expected)\",\"severity\":\"critical\",\"resource\":\"$url\"},"
+                    fi
+                  }
+
+                  check_k8s() {
+                    local name="$1" ns="$2" deploy="$3"
+                    TOTAL=$((TOTAL+1))
+                    READY=$(kubectl get deployment "$deploy" -n "$ns" --no-headers 2>/dev/null | awk '{print $2}' || echo "0/0")
+                    DESIRED=$(echo "$READY" | cut -d'/' -f2)
+                    CURRENT=$(echo "$READY" | cut -d'/' -f1)
+                    if [ "$CURRENT" = "$DESIRED" ] && [ "$DESIRED" != "0" ]; then
+                      echo "OK: $name ($READY)"
+                    else
+                      echo "FAIL: $name ($READY)"
+                      FAIL_COUNT=$((FAIL_COUNT+1))
+                      FINDINGS="$FINDINGS{\"type\":\"deployment_unhealthy\",\"message\":\"$name: $READY replicas\",\"severity\":\"critical\",\"resource\":\"$ns/$deploy\"},"
+                    fi
+                  }
+
+                  echo "=== SYNTHETIC MONITORING $(date) ==="
+
+                  # Frontend pages
+                  check_url "Frontend Home" "$FRONTEND_URL/"
+                  check_url "Login Page" "$FRONTEND_URL/login"
+                  check_url "Register Page" "$FRONTEND_URL/register"
+                  check_url "API Health" "$FRONTEND_URL/api/health"
+                  check_url "API Metrics" "$FRONTEND_URL/api/metrics"
+
+                  # K8s deployments
+                  check_k8s "velya-web" "velya-dev-web" "velya-web"
+                  check_k8s "patient-flow" "velya-dev-core" "patient-flow"
+                  check_k8s "discharge-orchestrator" "velya-dev-core" "discharge-orchestrator"
+                  check_k8s "task-inbox" "velya-dev-core" "task-inbox"
+                  check_k8s "audit-service" "velya-dev-core" "audit-service"
+                  check_k8s "ai-gateway" "velya-dev-platform" "ai-gateway"
+                  check_k8s "policy-engine" "velya-dev-platform" "policy-engine"
+
+                  # Observability
+                  check_k8s "grafana" "velya-dev-observability" "prometheus-grafana"
+
+                  # ArgoCD apps health
+                  TOTAL=$((TOTAL+1))
+                  UNHEALTHY_APPS=$(kubectl get applications -n argocd --no-headers 2>/dev/null | grep -v "Healthy" | wc -l || echo 0)
+                  if [ "$UNHEALTHY_APPS" -eq 0 ]; then
+                    echo "OK: ArgoCD apps all healthy"
+                  else
+                    echo "FAIL: $UNHEALTHY_APPS ArgoCD apps unhealthy"
+                    FAIL_COUNT=$((FAIL_COUNT+1))
+                    FINDINGS="$FINDINGS{\"type\":\"argocd_unhealthy\",\"message\":\"$UNHEALTHY_APPS apps nao saudaveis\",\"severity\":\"warning\",\"resource\":\"argocd\"},"
+                  fi
+
+                  # Certificates
+                  TOTAL=$((TOTAL+1))
+                  CERT_NOTREADY=$(kubectl get certificates -A --no-headers 2>/dev/null | grep -v "True" | wc -l || echo 0)
+                  if [ "$CERT_NOTREADY" -eq 0 ]; then
+                    echo "OK: All certificates ready"
+                  else
+                    echo "WARN: $CERT_NOTREADY certificates not ready"
+                    FINDINGS="$FINDINGS{\"type\":\"cert_not_ready\",\"message\":\"$CERT_NOTREADY certificados nao prontos\",\"severity\":\"warning\",\"resource\":\"certificates\"},"
+                  fi
+
+                  # PVCs
+                  TOTAL=$((TOTAL+1))
+                  PVC_NOTBOUND=$(kubectl get pvc -n velya-dev-web --no-headers 2>/dev/null | grep -v "Bound" | wc -l || echo 0)
+                  if [ "$PVC_NOTBOUND" -eq 0 ]; then
+                    echo "OK: All PVCs bound"
+                  else
+                    FAIL_COUNT=$((FAIL_COUNT+1))
+                    FINDINGS="$FINDINGS{\"type\":\"pvc_not_bound\",\"message\":\"$PVC_NOTBOUND PVCs nao bound - RISCO DE PERDA DE DADOS\",\"severity\":\"critical\",\"resource\":\"pvc\"},"
+                  fi
+
+                  # Determine status
+                  if [ "$FAIL_COUNT" -gt 0 ]; then
+                    STATUS="critical"
+                  else
+                    STATUS="ok"
+                  fi
+
+                  # Remove trailing comma from findings
+                  FINDINGS=$(echo "$FINDINGS" | sed 's/,$//')
+
+                  # Post results
+                  RESULT="{\"sentinel\":\"synthetic-monitor\",\"timestamp\":\"$TIMESTAMP\",\"status\":\"$STATUS\",\"findings\":[$FINDINGS],\"cluster\":\"kind-velya-local\",\"summary\":\"$((TOTAL-FAIL_COUNT))/$TOTAL checks OK\"}"
+
+                  wget -q -O /dev/null --timeout=5 --post-data="$RESULT" \
+                    --header="Content-Type: application/json" \
+                    "$WEBHOOK_URL" 2>/dev/null || echo "Webhook post failed (non-critical)"
+
+                  echo ""
+                  echo "=== RESULTADO: $((TOTAL-FAIL_COUNT))/$TOTAL OK, $FAIL_COUNT falhas ==="
+
+                  if [ "$FAIL_COUNT" -gt 0 ]; then
+                    kubectl create event synthetic-monitor-alert \
+                      --namespace velya-dev-core \
+                      --type=Warning \
+                      --reason="SyntheticMonitorFailed" \
+                      --message="$FAIL_COUNT de $TOTAL checks falharam" \
+                      --field-manager=velya-synthetic 2>/dev/null || true
+                  fi
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 128Mi
