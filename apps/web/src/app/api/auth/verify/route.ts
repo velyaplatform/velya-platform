@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyUser, findUserByEmail, regenerateVerificationCode } from '@/lib/user-store';
 import { audit } from '@/lib/audit-logger';
+import { sendVerificationCode } from '@/lib/email-sender';
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -23,9 +24,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`\n========================================`);
-    console.log(`[VELYA-AUTH] Codigo reenviado para ${email}: ${newCode}`);
-    console.log(`========================================\n`);
+    const user = findUserByEmail(email);
+    const emailSent = await sendVerificationCode(email, newCode, user?.nome || email);
+    console.log(`[VELYA-AUTH] Codigo reenviado para ${email}: ${newCode} (email: ${emailSent ? 'enviado' : 'na tela'})`);
 
     audit({
       category: 'system',
@@ -40,8 +41,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Novo codigo enviado',
-      devCode: newCode,
+      message: emailSent ? 'Novo codigo enviado para seu email' : 'Novo codigo gerado',
+      ...(!emailSent ? { devCode: newCode } : {}),
     });
   }
 

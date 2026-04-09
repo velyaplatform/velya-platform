@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createUser, findUserByEmail } from '@/lib/user-store';
 import { UI_ROLE_MAP } from '@/lib/access-control';
 import { audit } from '@/lib/audit-logger';
+import { sendVerificationCode } from '@/lib/email-sender';
 
 const VALID_ROLES = Object.keys(UI_ROLE_MAP);
 
@@ -61,10 +62,9 @@ export async function POST(request: NextRequest) {
     conselhoProfissional: conselhoProfissional || undefined,
   });
 
-  // Log verification code to console (dev mode)
-  console.log(`\n========================================`);
-  console.log(`[VELYA-AUTH] Codigo de verificacao para ${email}: ${verificationCode}`);
-  console.log(`========================================\n`);
+  // Enviar código por email (se Resend configurado) ou mostrar na tela
+  const emailSent = await sendVerificationCode(email, verificationCode, nome);
+  console.log(`[VELYA-AUTH] Codigo para ${email}: ${verificationCode} (email: ${emailSent ? 'enviado' : 'não enviado — mostrar na tela'})`);
 
   audit({
     category: 'system',
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     success: true,
     message: 'Codigo de verificacao enviado para seu email',
     email: user.email,
-    // Incluir código enquanto não há envio de email configurado
-    devCode: verificationCode,
+    // Se email não foi enviado, incluir código na resposta para mostrar na tela
+    ...(!emailSent ? { devCode: verificationCode, emailSent: false } : { emailSent: true }),
   });
 }
