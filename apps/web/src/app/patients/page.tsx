@@ -389,11 +389,21 @@ export default function PatientsPage() {
   return (
     <AppShell pageTitle="Lista de Pacientes">
       <div className="page-header">
-        <h1 className="page-title">Pacientes</h1>
-        <p className="page-subtitle">
-          {MOCK_PATIENTS.length} internados &mdash; {blockedCount} bloqueados, {atRiskCount} em
-          risco, {onTrackCount} no prazo
-        </p>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="page-title">Pacientes</h1>
+            <p className="page-subtitle">
+              {MOCK_PATIENTS.length} internados &mdash; {blockedCount} bloqueados, {atRiskCount} em
+              risco, {onTrackCount} no prazo
+            </p>
+          </div>
+          <Link
+            href="/patients/new"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold no-underline hover:bg-blue-700 transition-colors shadow-sm"
+          >
+            {'\u2795'} Novo Paciente
+          </Link>
+        </div>
       </div>
 
       {/* Resumo por status */}
