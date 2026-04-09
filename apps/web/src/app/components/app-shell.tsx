@@ -9,14 +9,14 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, pageTitle }: AppShellProps) {
-  const [currentRole, setCurrentRole] = useState<Role>('Ward Coordinator');
+  const [currentRole, setCurrentRole] = useState<Role>('Coordenador de Ala');
   const [currentTime, setCurrentTime] = useState('');
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
       setCurrentTime(
-        now.toLocaleTimeString('en-GB', {
+        now.toLocaleTimeString('pt-BR', {
           hour: '2-digit',
           minute: '2-digit',
           second: '2-digit',
@@ -30,10 +30,17 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
   }, []);
 
   const roleInitials: Record<Role, string> = {
-    'Ward Coordinator': 'WC',
-    Doctor: 'DR',
-    Nurse: 'RN',
-    'Discharge Planner': 'DP',
+    'Coordenador de Ala': 'CA',
+    'Médico': 'MD',
+    'Enfermeiro(a)': 'EN',
+    'Planejador de Alta': 'PA',
+  };
+
+  const roleNames: Record<Role, string> = {
+    'Coordenador de Ala': 'Alex Thornton',
+    'Médico': 'Dra. Sarah Chen',
+    'Enfermeiro(a)': 'Enf. Maria Lopez',
+    'Planejador de Alta': 'James Okafor',
   };
 
   return (
@@ -45,20 +52,12 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
           <div className="topbar-right">
             <div className="topbar-alerts">
               <span>🔴</span>
-              <span>5 Critical Alerts</span>
+              <span>5 Alertas Críticos</span>
             </div>
             <div className="topbar-time">{currentTime}</div>
             <div className="topbar-user">
               <div className="avatar">{roleInitials[currentRole]}</div>
-              <span>
-                {currentRole === 'Doctor'
-                  ? 'Dr. Sarah Chen'
-                  : currentRole === 'Nurse'
-                    ? 'RN Maria Lopez'
-                    : currentRole === 'Discharge Planner'
-                      ? 'James Okafor'
-                      : 'Alex Thornton'}
-              </span>
+              <span>{roleNames[currentRole]}</span>
             </div>
           </div>
         </header>

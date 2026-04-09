@@ -3,14 +3,14 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Velya — Hospital Operations Platform',
+  title: 'Velya — Plataforma Hospitalar',
   description:
-    'AI-native hospital operations platform. Real-time patient flow, discharge coordination, and clinical task management.',
+    'Plataforma hospitalar com IA nativa. Fluxo de pacientes em tempo real, coordenação de altas e gestão de tarefas clínicas.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <body>{children}</body>
     </html>
   );

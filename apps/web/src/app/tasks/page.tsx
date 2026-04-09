@@ -28,168 +28,168 @@ const MOCK_TASKS: Task[] = [
     priority: 'urgent',
     status: 'open',
     group: 'Urgent',
-    type: 'Discharge Block',
-    description: 'Transport not arranged — patient medically cleared since 08:00',
+    type: 'Alta Bloqueada',
+    description: 'Transporte não providenciado — paciente liberada clinicamente desde 08:00',
     patient: 'Eleanor Voss',
     mrn: 'MRN-004',
-    assignedTo: 'Discharge Planner',
-    dueIn: 'Overdue 4h',
+    assignedTo: 'Planejador de Alta',
+    dueIn: 'Atrasado 4h',
     createdAt: '08:15',
-    context: 'Ward 2A · Day 9 · Acute MI post-PCI',
+    context: 'Ala 2A · Dia 9 · IAM pós-ICP',
   },
   {
     id: 'T-002',
     priority: 'urgent',
     status: 'open',
     group: 'Urgent',
-    type: 'Pharmacy',
-    description: 'Pharmacy sign-off missing — blocks discharge for 3 patients',
-    patient: 'Multiple patients',
+    type: 'Farmácia',
+    description: 'Liberação da farmácia pendente — bloqueia alta de 3 pacientes',
+    patient: 'Múltiplos pacientes',
     mrn: 'MRN-011, MRN-018, MRN-022',
     assignedTo: 'Dr. Chen',
-    dueIn: 'Overdue 2h',
+    dueIn: 'Atrasado 2h',
     createdAt: '08:45',
-    context: 'Pharmacy · 3 patients affected',
+    context: 'Farmácia · 3 pacientes afetados',
   },
   {
     id: 'T-003',
     priority: 'urgent',
     status: 'in-progress',
     group: 'Urgent',
-    type: 'Clinical Decision',
-    description: 'Deteriorating patient — NEWS2 score 7, awaiting escalation decision',
+    type: 'Decisão Clínica',
+    description: 'Paciente em deterioração — escore NEWS2 = 7, aguardando decisão de escalada',
     patient: 'Peter Hawkins',
     mrn: 'MRN-013',
     assignedTo: 'Dr. Osei',
-    dueIn: 'Due now',
+    dueIn: 'Agora',
     createdAt: '09:30',
-    context: 'Ward 2A · Bed 2A-10 · Sepsis recovery',
+    context: 'Ala 2A · Leito 2A-10 · Recuperação de sepse',
   },
   {
     id: 'T-004',
     priority: 'high',
     status: 'open',
     group: 'Clinical',
-    type: 'Medication',
-    description: 'Medication reconciliation not completed — patient due for discharge tomorrow',
+    type: 'Medicação',
+    description: 'Reconciliação medicamentosa não concluída — paciente previsto para alta amanhã',
     patient: 'Anna Kowalski',
     mrn: 'MRN-006',
-    assignedTo: 'Ward Pharmacist',
-    dueIn: 'Due in 2h',
+    assignedTo: 'Farmacêutico da Ala',
+    dueIn: 'Em 2h',
     createdAt: '07:00',
-    context: 'Ward 1B · Day 10 · Stroke',
+    context: 'Ala 1B · Dia 10 · AVC',
   },
   {
     id: 'T-005',
     priority: 'high',
     status: 'open',
     group: 'Administrative',
-    type: 'Insurance',
-    description: 'Insurance pre-auth pending > 48h — escalate to payer immediately',
+    type: 'Plano de Saúde',
+    description: 'Pré-autorização do plano pendente há mais de 48h — escalar para operadora',
     patient: 'Marcus Bell',
     mrn: 'MRN-007',
-    assignedTo: 'Admin Team',
-    dueIn: 'Due in 2h',
+    assignedTo: 'Equipe Admin',
+    dueIn: 'Em 2h',
     createdAt: '06:30',
-    context: 'Ward 4C · Day 12 · Spinal stenosis',
+    context: 'Ala 4C · Dia 12 · Estenose vertebral',
   },
   {
     id: 'T-006',
     priority: 'high',
     status: 'open',
     group: 'Clinical',
-    type: 'Assessment',
-    description: 'Ward round assessment not documented — LOS extension likely if missed',
+    type: 'Avaliação',
+    description: 'Avaliação da visita médica não documentada — extensão do TMI provável se não feita',
     patient: 'Priya Nair',
     mrn: 'MRN-015',
     assignedTo: 'Dr. Ibrahim',
-    dueIn: 'Due in 3h',
+    dueIn: 'Em 3h',
     createdAt: '08:00',
-    context: "Ward 1A \u00b7 Day 5 \u00b7 Crohn's disease",
+    context: 'Ala 1A · Dia 5 · Surto de Crohn',
   },
   {
     id: 'T-007',
     priority: 'high',
     status: 'open',
     group: 'Coordination',
-    type: 'Social Work',
-    description: 'Social work referral required before discharge — case complexity high',
+    type: 'Serviço Social',
+    description: 'Encaminhamento para serviço social necessário antes da alta — caso de alta complexidade',
     patient: 'Frank Osei',
     mrn: 'MRN-020',
-    assignedTo: 'Social Work',
-    dueIn: 'Due today',
+    assignedTo: 'Serviço Social',
+    dueIn: 'Hoje',
     createdAt: '09:00',
-    context: 'Ward 4A · Day 4 · Cellulitis',
+    context: 'Ala 4A · Dia 4 · Celulite',
   },
   {
     id: 'T-008',
     priority: 'high',
     status: 'open',
     group: 'Coordination',
-    type: 'Discharge Plan',
-    description: 'Nursing home placement not confirmed — patient day 14 LOS',
+    type: 'Plano de Alta',
+    description: 'Vaga em casa de repouso não confirmada — paciente no dia 14 de TMI',
     patient: 'Peter Hawkins',
     mrn: 'MRN-013',
-    assignedTo: 'Discharge Planner',
-    dueIn: 'Due today',
+    assignedTo: 'Planejador de Alta',
+    dueIn: 'Hoje',
     createdAt: '07:30',
-    context: 'Ward 2A · Day 14 · Sepsis',
+    context: 'Ala 2A · Dia 14 · Sepse',
   },
   {
     id: 'T-009',
     priority: 'normal',
     status: 'open',
     group: 'Clinical',
-    type: 'Consent',
-    description: 'Consent form for procedure not signed — scheduled tomorrow',
+    type: 'Consentimento',
+    description: 'Termo de consentimento para procedimento não assinado — agendado para amanhã',
     patient: 'George Papadopoulos',
     mrn: 'MRN-009',
     assignedTo: 'Dr. Ibrahim',
-    dueIn: 'Due today',
+    dueIn: 'Hoje',
     createdAt: '09:15',
-    context: 'Ward 2C · Day 7 · Pneumonia',
+    context: 'Ala 2C · Dia 7 · Pneumonia',
   },
   {
     id: 'T-010',
     priority: 'normal',
     status: 'open',
     group: 'Administrative',
-    type: 'Documentation',
-    description: 'Discharge summary not started — patient target discharge tomorrow',
+    type: 'Documentação',
+    description: 'Sumário de alta não iniciado — alta prevista do paciente para amanhã',
     patient: 'Carlos Diaz',
     mrn: 'MRN-005',
     assignedTo: 'Dr. Chen',
-    dueIn: 'Due by 17:00',
+    dueIn: 'Até 17:00',
     createdAt: '10:00',
-    context: 'Ward 4A · Day 4 · Appendectomy',
+    context: 'Ala 4A · Dia 4 · Apendicectomia',
   },
   {
     id: 'T-011',
     priority: 'normal',
     status: 'deferred',
     group: 'Coordination',
-    type: 'Referral',
-    description: 'Physiotherapy referral for post-op rehab assessment',
+    type: 'Encaminhamento',
+    description: 'Encaminhamento para fisioterapia pós-op — avaliação de reabilitação',
     patient: 'James Whitfield',
     mrn: 'MRN-001',
-    assignedTo: 'Physio Team',
-    dueIn: 'Deferred to tomorrow',
+    assignedTo: 'Equipe de Fisioterapia',
+    dueIn: 'Adiado para amanhã',
     createdAt: '08:30',
-    context: 'Ward 1A · Day 7 · Hip fracture',
+    context: 'Ala 1A · Dia 7 · Fratura de quadril',
   },
   {
     id: 'T-012',
     priority: 'low',
     status: 'open',
     group: 'Administrative',
-    type: 'Documentation',
-    description: 'Update next-of-kin contact details in patient record',
+    type: 'Documentação',
+    description: 'Atualizar dados de contato do responsável legal no prontuário',
     patient: 'Robert Ngozi',
     mrn: 'MRN-003',
-    assignedTo: 'Ward Clerk',
-    dueIn: 'No due date',
+    assignedTo: 'Secretaria da Ala',
+    dueIn: 'Sem prazo',
     createdAt: '10:30',
-    context: 'Ward 2B · Admin task',
+    context: 'Ala 2B · Tarefa administrativa',
   },
 ];
 
@@ -208,10 +208,10 @@ const PRIORITY_BADGE: Record<TaskPriority, string> = {
 };
 
 const PRIORITY_LABEL: Record<TaskPriority, string> = {
-  urgent: 'URGENT',
-  high: 'HIGH',
+  urgent: 'URGENTE',
+  high: 'ALTO',
   normal: 'NORMAL',
-  low: 'LOW',
+  low: 'BAIXO',
 };
 
 const BORDER_CLASS: Record<TaskPriority, string> = {
@@ -228,12 +228,19 @@ const STATUS_BADGE: Record<TaskStatus, string> = {
 };
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
-  open: 'Open',
-  'in-progress': 'In Progress',
-  deferred: 'Deferred',
+  open: 'Aberta',
+  'in-progress': 'Em Progresso',
+  deferred: 'Adiada',
 };
 
 const GROUPS: TaskGroup[] = ['Urgent', 'Clinical', 'Administrative', 'Coordination'];
+
+const GROUP_DISPLAY: Record<TaskGroup, string> = {
+  Urgent: 'Urgente',
+  Clinical: 'Clínico',
+  Administrative: 'Administrativo',
+  Coordination: 'Coordenação',
+};
 
 interface TaskCardProps {
   task: Task;
@@ -261,29 +268,29 @@ function TaskCard({ task, onComplete, onDefer, onEscalate }: TaskCardProps) {
           {task.description}
         </div>
         <div className="text-xs text-secondary" style={{ marginBottom: '4px' }}>
-          Patient:{' '}
+          Paciente:{' '}
           <strong>
             {task.patient} ({task.mrn})
           </strong>
           &nbsp;&middot;&nbsp;{task.context}
         </div>
         <div className="text-xs text-tertiary">
-          Assigned to: {task.assignedTo} &middot; Created: {task.createdAt} &middot; ID: {task.id}
+          Responsável: {task.assignedTo} &middot; Criada: {task.createdAt} &middot; ID: {task.id}
         </div>
       </div>
       <div
         style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '130px', paddingLeft: '1rem' }}
       >
         <button className="btn btn-primary btn-sm" onClick={() => onComplete(task.id)}>
-          ✓ Complete
+          ✓ Concluir
         </button>
         <button className="btn btn-danger btn-sm" onClick={() => onEscalate(task.id)}>
-          ↑ Escalate
+          ↑ Escalar
         </button>
         <button className="btn btn-outline btn-sm" onClick={() => onDefer(task.id)}>
-          ↷ Defer
+          ↷ Adiar
         </button>
-        <button className="btn btn-ghost btn-sm">→ Reassign</button>
+        <button className="btn btn-ghost btn-sm">→ Reatribuir</button>
       </div>
     </div>
   );
@@ -334,37 +341,37 @@ export default function TasksPage() {
   const inProgressCount = tasks.filter((t) => t.status === 'in-progress').length;
 
   return (
-    <AppShell pageTitle="Task Inbox">
+    <AppShell pageTitle="Caixa de Tarefas">
       <div className="page-header">
-        <h1 className="page-title">Unified Action Inbox</h1>
+        <h1 className="page-title">Caixa de Ações Unificada</h1>
         <p className="page-subtitle">
-          {tasks.length} tasks &mdash; sorted by priority. Every task drives an action.
+          {tasks.length} tarefas &mdash; ordenadas por prioridade. Cada tarefa exige uma ação.
         </p>
       </div>
 
       {urgentCount > 0 && (
         <div className="alert-banner alert-banner-critical mb-5">
           <span>🚨</span>
-          <strong>{urgentCount} urgent tasks require immediate action</strong>
+          <strong>{urgentCount} tarefas urgentes requerem ação imediata</strong>
         </div>
       )}
 
-      {/* Summary */}
+      {/* Resumo */}
       <div className="flex gap-3 mb-5 flex-wrap">
-        <span className="badge badge-urgent">{urgentCount} Urgent</span>
-        <span className="badge badge-info">{openCount} Open</span>
-        <span className="badge badge-warning">{inProgressCount} In Progress</span>
+        <span className="badge badge-urgent">{urgentCount} Urgentes</span>
+        <span className="badge badge-info">{openCount} Abertas</span>
+        <span className="badge badge-warning">{inProgressCount} Em Progresso</span>
         <span className="badge badge-neutral">
-          {tasks.filter((t) => t.status === 'deferred').length} Deferred
+          {tasks.filter((t) => t.status === 'deferred').length} Adiadas
         </span>
       </div>
 
-      {/* Controls */}
+      {/* Controles */}
       <div className="filter-bar">
         <input
           className="search-input"
           type="text"
-          placeholder="🔍  Search tasks, patients, MRN..."
+          placeholder="🔍  Buscar tarefas, pacientes, MRN..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -373,21 +380,21 @@ export default function TasksPage() {
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
         >
-          <option value="all">All Priorities</option>
-          <option value="urgent">Urgent</option>
-          <option value="high">High</option>
+          <option value="all">Todas as Prioridades</option>
+          <option value="urgent">Urgente</option>
+          <option value="high">Alto</option>
           <option value="normal">Normal</option>
-          <option value="low">Low</option>
+          <option value="low">Baixo</option>
         </select>
         <select
           className="filter-select"
           value={groupFilter}
           onChange={(e) => setGroupFilter(e.target.value)}
         >
-          <option value="all">All Groups</option>
+          <option value="all">Todos os Grupos</option>
           {GROUPS.map((g) => (
             <option key={g} value={g}>
-              {g}
+              {GROUP_DISPLAY[g]}
             </option>
           ))}
         </select>
@@ -396,23 +403,23 @@ export default function TasksPage() {
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
-          <option value="all">All Statuses</option>
-          <option value="open">Open</option>
-          <option value="in-progress">In Progress</option>
-          <option value="deferred">Deferred</option>
+          <option value="all">Todos os Status</option>
+          <option value="open">Aberta</option>
+          <option value="in-progress">Em Progresso</option>
+          <option value="deferred">Adiada</option>
         </select>
         <div className="flex gap-2">
           <button
             className={`btn btn-sm ${viewMode === 'flat' ? 'btn-primary' : 'btn-outline'}`}
             onClick={() => setViewMode('flat')}
           >
-            Flat
+            Lista
           </button>
           <button
             className={`btn btn-sm ${viewMode === 'grouped' ? 'btn-primary' : 'btn-outline'}`}
             onClick={() => setViewMode('grouped')}
           >
-            Grouped
+            Agrupado
           </button>
         </div>
       </div>
@@ -421,7 +428,7 @@ export default function TasksPage() {
         <div className="card">
           <div className="empty-state">
             <div className="empty-state-icon">✅</div>
-            <div className="empty-state-title">All clear — no tasks match your filters</div>
+            <div className="empty-state-title">Tudo limpo — nenhuma tarefa corresponde aos filtros</div>
           </div>
         </div>
       ) : viewMode === 'flat' ? (
@@ -452,7 +459,7 @@ export default function TasksPage() {
               >
                 <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                   {group === 'Urgent' ? '🚨' : group === 'Clinical' ? '🩺' : group === 'Administrative' ? '📋' : '🔗'}{' '}
-                  {group}
+                  {GROUP_DISPLAY[group]}
                 </h2>
                 <span className="badge badge-neutral">{groupTasks.length}</span>
               </div>
@@ -471,7 +478,7 @@ export default function TasksPage() {
       )}
 
       <div className="text-xs text-tertiary mt-2" style={{ textAlign: 'right' }}>
-        Showing {sorted.length} of {tasks.length} tasks
+        Exibindo {sorted.length} de {tasks.length} tarefas
       </div>
     </AppShell>
   );
