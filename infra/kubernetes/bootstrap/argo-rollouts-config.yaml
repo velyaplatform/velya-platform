@@ -1,0 +1,151 @@
+# Argo Rollouts — Velya Platform
+# AnalysisTemplate for canary metrics + example Rollout for patient-flow.
+#
+# Prerequisites: Argo Rollouts CRDs must be installed in the cluster.
+# Install with: kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
+#
+# NOTE: If Argo Rollouts CRDs are not present, kubectl apply will fail for
+# these resources. Install the CRDs first, then re-apply.
+
+# ============================================================
+# AnalysisTemplate — Canary health metrics via Prometheus
+# ============================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: velya-canary-analysis
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/policy-class: rollout
+spec:
+  metrics:
+    - name: error-rate
+      interval: 30s
+      count: 5
+      successCondition: result[0] < 0.05
+      failureLimit: 2
+      provider:
+        prometheus:
+          address: http://prometheus-kube-prometheus-prometheus.velya-dev-observability:9090
+          query: |
+            sum(rate(http_requests_total{namespace="velya-dev-core",status_code=~"5..",service="{{args.service-name}}"}[2m]))
+            /
+            sum(rate(http_requests_total{namespace="velya-dev-core",service="{{args.service-name}}"}[2m]))
+    - name: latency-p99
+      interval: 30s
+      count: 5
+      successCondition: result[0] < 500
+      failureLimit: 2
+      provider:
+        prometheus:
+          address: http://prometheus-kube-prometheus-prometheus.velya-dev-observability:9090
+          query: |
+            histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{namespace="velya-dev-core",service="{{args.service-name}}"}[2m])) by (le))
+  args:
+    - name: service-name
+
+---
+# ============================================================
+# Rollout — patient-flow canary (10% -> 25% -> 50% -> 100%)
+# ============================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: patient-flow-rollout
+  namespace: velya-dev-core
+  labels:
+    app: patient-flow
+    app.kubernetes.io/name: patient-flow
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/service: patient-flow
+    velya.io/tier: backend
+    velya.io/owner: clinical-office
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: patient-flow
+  template:
+    metadata:
+      labels:
+        app: patient-flow
+        app.kubernetes.io/name: patient-flow
+        velya.io/service: patient-flow
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3001"
+        prometheus.io/path: "/metrics"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: patient-flow
+          image: velya-patient-flow:0.1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3001
+              name: http
+          env:
+            - name: PORT
+              value: "3001"
+            - name: SERVICE_NAME
+              value: "patient-flow"
+            - name: SERVICE_VERSION
+              value: "0.1.0"
+            - name: NODE_ENV
+              value: "development"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3001
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+  strategy:
+    canary:
+      steps:
+        - setWeight: 10
+        - pause: {duration: 2m}
+        - analysis:
+            templates:
+              - templateName: velya-canary-analysis
+            args:
+              - name: service-name
+                value: patient-flow
+        - setWeight: 25
+        - pause: {duration: 3m}
+        - setWeight: 50
+        - pause: {duration: 5m}
+        - analysis:
+            templates:
+              - templateName: velya-canary-analysis
+            args:
+              - name: service-name
+                value: patient-flow
+      maxSurge: 1
+      maxUnavailable: 0
+      abortScaleDownDelaySeconds: 30

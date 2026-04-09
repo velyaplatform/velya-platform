@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
+import { ErrorBoundary } from './components/error-boundary';
+import { ErrorReporter } from './components/error-reporter';
 
 export const metadata: Metadata = {
   title: 'Velya — Plataforma Hospitalar',
@@ -11,7 +13,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
+        <ErrorReporter />
+      </body>
     </html>
   );
 }
