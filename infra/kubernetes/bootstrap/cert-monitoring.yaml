@@ -1,0 +1,505 @@
+# =============================================================================
+# Velya Platform - Certificate Monitoring (PrometheusRules)
+# =============================================================================
+# This file defines PrometheusRules for certificate observability:
+#   1. Certificate expiry alerts (30d, 14d, 7d, 1d)
+#   2. cert-manager health alerts
+#   3. ACME challenge failure alerts
+#   4. Internal PKI alerts
+#   5. DNS automation alerts
+#   6. Recording rules for dashboards
+#
+# Prerequisites:
+#   - Prometheus Operator installed
+#   - cert-manager metrics enabled
+#   - monitoring namespace exists
+#
+# Usage:
+#   kubectl apply -f cert-monitoring.yaml
+# =============================================================================
+
+---
+# =============================================================================
+# 1. Certificate Expiry Alerts
+# =============================================================================
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: certificate-expiry-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki-monitoring
+    app.kubernetes.io/managed-by: platform-team
+    prometheus: velya
+  annotations:
+    description: "Alerts for certificate expiration at 30d, 14d, 7d, and 1d thresholds"
+spec:
+  groups:
+    # ========================================
+    # Certificate Expiry Alerts
+    # ========================================
+    - name: velya.certificate.expiry
+      rules:
+        # 30 days warning - renewal should have happened
+        - alert: VelyaCertExpiring30Days
+          expr: |
+            (certmanager_certificate_expiration_timestamp_seconds - time()) < 2592000
+            and
+            (certmanager_certificate_expiration_timestamp_seconds - time()) > 1209600
+          for: 1h
+          labels:
+            severity: warning
+            team: platform
+            domain: pki
+          annotations:
+            summary: "Certificado {{ $labels.name }} expira em menos de 30 dias"
+            description: |
+              O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }}
+              expira em {{ $value | humanizeDuration }}.
+              A renovacao automatica deveria ter acontecido. Verificar cert-manager e ClusterIssuer.
+            runbook_url: "https://docs.velya.health/pki/certificate-lifecycle-runbooks#runbook-02"
+            dashboard_url: "https://grafana.velya.health/d/cert-lifecycle"
+
+        # 14 days critical - renewal definitely failed
+        - alert: VelyaCertExpiring14Days
+          expr: |
+            (certmanager_certificate_expiration_timestamp_seconds - time()) < 1209600
+            and
+            (certmanager_certificate_expiration_timestamp_seconds - time()) > 604800
+          for: 30m
+          labels:
+            severity: critical
+            team: platform
+            domain: pki
+            escalation: p2
+          annotations:
+            summary: "CRITICO: Certificado {{ $labels.name }} expira em menos de 14 dias"
+            description: |
+              O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }}
+              expira em {{ $value | humanizeDuration }}.
+              Renovacao automatica FALHOU. Acao imediata necessaria.
+              Verificar: credenciais DNS, ClusterIssuer status, cert-manager logs.
+            runbook_url: "https://docs.velya.health/pki/certificate-lifecycle-runbooks#runbook-02"
+
+        # 7 days emergency - P1 incident
+        - alert: VelyaCertExpiring7Days
+          expr: |
+            (certmanager_certificate_expiration_timestamp_seconds - time()) < 604800
+            and
+            (certmanager_certificate_expiration_timestamp_seconds - time()) > 86400
+          for: 10m
+          labels:
+            severity: critical
+            team: platform
+            domain: pki
+            escalation: p1
+          annotations:
+            summary: "EMERGENCIA P1: Certificado {{ $labels.name }} expira em menos de 7 dias"
+            description: |
+              O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }}
+              expira em {{ $value | humanizeDuration }}.
+              INCIDENTE P1. Resolver imediatamente ou servicos ficarao indisponiveis.
+            runbook_url: "https://docs.velya.health/pki/certificate-lifecycle-runbooks#runbook-02"
+
+        # 1 day - P0 imminent downtime
+        - alert: VelyaCertExpiring1Day
+          expr: |
+            (certmanager_certificate_expiration_timestamp_seconds - time()) < 86400
+            and
+            (certmanager_certificate_expiration_timestamp_seconds - time()) > 0
+          for: 5m
+          labels:
+            severity: critical
+            team: platform
+            domain: pki
+            escalation: p0
+          annotations:
+            summary: "P0 IMINENTE: Certificado {{ $labels.name }} expira em menos de 24 horas"
+            description: |
+              O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }}
+              expira em {{ $value | humanizeDuration }}.
+              DOWNTIME IMINENTE. Acao emergencial necessaria.
+              Considerar emissao manual se automacao nao funcionar.
+            runbook_url: "https://docs.velya.health/pki/certificate-lifecycle-runbooks#runbook-02"
+
+        # Certificate already expired
+        - alert: VelyaCertExpired
+          expr: |
+            (certmanager_certificate_expiration_timestamp_seconds - time()) <= 0
+          for: 1m
+          labels:
+            severity: critical
+            team: platform
+            domain: pki
+            escalation: p0
+          annotations:
+            summary: "P0: Certificado {{ $labels.name }} EXPIROU"
+            description: |
+              O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }}
+              EXPIROU. Servicos usando este certificado estao com TLS invalido.
+
+---
+# =============================================================================
+# 2. cert-manager Health Alerts
+# =============================================================================
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cert-manager-health-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki-monitoring
+    prometheus: velya
+  annotations:
+    description: "Alerts for cert-manager controller, webhook, and cainjector health"
+spec:
+  groups:
+    # ========================================
+    # cert-manager Controller Health
+    # ========================================
+    - name: velya.certmanager.health
+      rules:
+        - alert: VelyaCertManagerDown
+          expr: |
+            absent(up{job=~".*cert-manager.*", container="cert-manager-controller"} == 1)
+          for: 5m
+          labels:
+            severity: critical
+            team: platform
+            domain: pki
+          annotations:
+            summary: "cert-manager controller esta DOWN"
+            description: |
+              O cert-manager controller nao esta respondendo ha mais de 5 minutos.
+              Nenhum certificado sera emitido ou renovado enquanto estiver down.
+            runbook_url: "https://docs.velya.health/pki/certificate-lifecycle-runbooks#runbook-05"
+
+        - alert: VelyaCertManagerWebhookDown
+          expr: |
+            absent(up{job=~".*cert-manager-webhook.*"} == 1)
+          for: 5m
+          labels:
+            severity: critical
+            team: platform
+            domain: pki
+          annotations:
+            summary: "cert-manager webhook esta DOWN"
+            description: |
+              O webhook do cert-manager nao esta respondendo.
+              Novos Certificate resources nao serao validados e podem falhar silenciosamente.
+            runbook_url: "https://docs.velya.health/pki/certificate-lifecycle-runbooks#runbook-05"
+
+        - alert: VelyaCertManagerCAInjectorDown
+          expr: |
+            absent(up{job=~".*cert-manager-cainjector.*"} == 1)
+          for: 10m
+          labels:
+            severity: warning
+            team: platform
+            domain: pki
+          annotations:
+            summary: "cert-manager cainjector esta DOWN"
+            description: |
+              O cainjector do cert-manager nao esta respondendo.
+              CA bundles nao serao injetados em webhooks.
+
+        # Certificate stuck in not-ready state
+        - alert: VelyaCertNotReady
+          expr: |
+            certmanager_certificate_ready_status{condition="Ready"} == 0
+          for: 30m
+          labels:
+            severity: warning
+            team: platform
+            domain: pki
+          annotations:
+            summary: "Certificado {{ $labels.name }} nao esta Ready ha 30 minutos"
+            description: |
+              O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }}
+              esta no estado Not Ready ha mais de 30 minutos.
+              Verificar CertificateRequest, Order, e Challenge associados.
+
+        # Certificate renewal failed
+        - alert: VelyaCertRenewalFailed
+          expr: |
+            certmanager_certificate_ready_status{condition="Ready"} == 0
+            and
+            (certmanager_certificate_expiration_timestamp_seconds - time()) < 2592000
+          for: 15m
+          labels:
+            severity: critical
+            team: platform
+            domain: pki
+          annotations:
+            summary: "Renovacao do certificado {{ $labels.name }} FALHOU"
+            description: |
+              O certificado {{ $labels.name }} esta Not Ready e expira em menos de 30 dias.
+              A renovacao automatica provavelmente falhou. Investigar imediatamente.
+
+        # cert-manager sync errors
+        - alert: VelyaCertManagerSyncErrors
+          expr: |
+            increase(certmanager_controller_sync_call_count{status="error"}[15m]) > 5
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+            domain: pki
+          annotations:
+            summary: "cert-manager com erros de sincronizacao"
+            description: |
+              O cert-manager teve mais de 5 erros de sincronizacao nos ultimos 15 minutos.
+              Verificar logs para identificar a causa.
+
+        # High ACME request latency
+        - alert: VelyaACMEHighLatency
+          expr: |
+            histogram_quantile(0.95, rate(certmanager_http_acme_client_request_duration_seconds_bucket[5m])) > 30
+          for: 10m
+          labels:
+            severity: warning
+            team: platform
+            domain: pki
+          annotations:
+            summary: "Latencia alta nas requisicoes ACME"
+            description: |
+              O percentil 95 de latencia das requisicoes ACME esta acima de 30 segundos.
+              Pode indicar problema de conectividade com Let's Encrypt ou Route53.
+
+---
+# =============================================================================
+# 3. ACME Challenge Failure Alerts
+# =============================================================================
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: acme-challenge-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki-monitoring
+    prometheus: velya
+  annotations:
+    description: "Alerts for ACME challenge failures and DNS-01 issues"
+spec:
+  groups:
+    # ========================================
+    # ACME Challenge Alerts
+    # ========================================
+    - name: velya.acme.challenges
+      rules:
+        # ACME client errors (4xx/5xx responses)
+        - alert: VelyaACMEClientErrors
+          expr: |
+            increase(certmanager_http_acme_client_request_count{status=~"4.."}[15m]) > 3
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+            domain: pki
+          annotations:
+            summary: "Erros 4xx nas requisicoes ACME"
+            description: |
+              Mais de 3 requisicoes ACME retornaram erro 4xx nos ultimos 15 minutos.
+              Possivel causa: credenciais invalidas, rate limit, ou configuracao incorreta.
+            runbook_url: "https://docs.velya.health/pki/certificate-lifecycle-runbooks#runbook-03"
+
+        - alert: VelyaACMEServerErrors
+          expr: |
+            increase(certmanager_http_acme_client_request_count{status=~"5.."}[15m]) > 3
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+            domain: pki
+          annotations:
+            summary: "Erros 5xx nas requisicoes ACME (servidor)"
+            description: |
+              Mais de 3 requisicoes ACME retornaram erro 5xx nos ultimos 15 minutos.
+              Possivel causa: Let's Encrypt com problemas, ou problemas de rede.
+
+        # Staging certificate in production namespace
+        - alert: VelyaStagingCertInProduction
+          expr: |
+            certmanager_certificate_ready_status{
+              condition="Ready",
+              issuer_name="acme-staging",
+              exported_namespace=~"velya-.*|monitoring|ingress-.*"
+            } == 1
+          for: 10m
+          labels:
+            severity: warning
+            team: platform
+            domain: pki
+          annotations:
+            summary: "Certificado STAGING em namespace de producao"
+            description: |
+              O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }}
+              esta usando o issuer staging (acme-staging). Certificados staging NAO sao
+              confiados por browsers. Migrar para acme-production.
+
+    # ========================================
+    # DNS Automation Health
+    # ========================================
+    - name: velya.dns.health
+      rules:
+        - alert: VelyaExternalDNSDown
+          expr: |
+            absent(up{job=~".*external-dns.*"} == 1)
+          for: 5m
+          labels:
+            severity: critical
+            team: platform
+            domain: dns
+          annotations:
+            summary: "ExternalDNS esta DOWN"
+            description: |
+              O ExternalDNS nao esta respondendo. Novos registros DNS nao serao
+              criados automaticamente a partir de Ingress/Service resources.
+
+        - alert: VelyaExternalDNSSyncStale
+          expr: |
+            time() - external_dns_controller_last_sync_timestamp > 600
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+            domain: dns
+          annotations:
+            summary: "ExternalDNS nao sincroniza ha mais de 10 minutos"
+            description: |
+              O ExternalDNS nao realizou uma sincronizacao bem-sucedida ha mais de 10 minutos.
+              Verificar conectividade com Route53 e logs do ExternalDNS.
+
+        - alert: VelyaExternalDNSErrors
+          expr: |
+            increase(external_dns_source_errors_total[10m]) > 0
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+            domain: dns
+          annotations:
+            summary: "ExternalDNS com erros de sincronizacao"
+            description: |
+              O ExternalDNS encontrou erros ao processar fontes nos ultimos 10 minutos.
+
+    # ========================================
+    # Internal PKI Health
+    # ========================================
+    - name: velya.internal.pki
+      rules:
+        - alert: VelyaStepCADown
+          expr: |
+            absent(up{job=~".*step-ca.*"} == 1)
+          for: 5m
+          labels:
+            severity: critical
+            team: platform
+            domain: pki
+          annotations:
+            summary: "step-ca (CA interna) esta DOWN"
+            description: |
+              A CA interna (step-ca) nao esta respondendo. Certificados internos
+              nao serao renovados. mTLS entre servicos falhara quando certificados
+              existentes expirarem (max 24h).
+            runbook_url: "https://docs.velya.health/pki/certificate-lifecycle-runbooks#runbook-08"
+
+        - alert: VelyaInternalCertIssuanceFailed
+          expr: |
+            increase(step_ca_certificate_failed_total[1h]) > 0
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+            domain: pki
+          annotations:
+            summary: "Falha na emissao de certificado interno"
+            description: |
+              Houve falhas na emissao de certificados internos na ultima hora.
+              Verificar step-ca logs e conectividade.
+
+        - alert: VelyaInternalCAExpiring
+          expr: |
+            (step_ca_intermediate_cert_expiry_seconds - time()) < 7776000
+          for: 1h
+          labels:
+            severity: critical
+            team: platform
+            domain: pki
+          annotations:
+            summary: "CA intermediaria interna expira em menos de 90 dias"
+            description: |
+              A CA intermediaria do step-ca expira em menos de 90 dias.
+              Iniciar processo de rotacao da CA intermediaria.
+
+---
+# =============================================================================
+# 4. Recording Rules for Dashboards
+# =============================================================================
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: certificate-recording-rules
+  namespace: monitoring
+  labels:
+    release: prometheus
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki-monitoring
+    prometheus: velya
+  annotations:
+    description: "Recording rules for certificate dashboards and aggregations"
+spec:
+  groups:
+    - name: velya.certificate.recording
+      interval: 60s
+      rules:
+        # Days until expiration (easier to use in dashboards)
+        - record: velya:certificate:days_until_expiry
+          expr: |
+            (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400
+
+        # Total certificates by status
+        - record: velya:certificate:total_ready
+          expr: |
+            count(certmanager_certificate_ready_status{condition="Ready"} == 1) or vector(0)
+
+        - record: velya:certificate:total_not_ready
+          expr: |
+            count(certmanager_certificate_ready_status{condition="Ready"} == 0) or vector(0)
+
+        # Minimum days until expiry (global)
+        - record: velya:certificate:min_days_until_expiry
+          expr: |
+            min(
+              (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400
+            ) or vector(0)
+
+        # Minimum days until expiry by namespace
+        - record: velya:certificate:min_days_until_expiry_by_namespace
+          expr: |
+            min by (exported_namespace) (
+              (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400
+            )
+
+        # Certificates by issuer
+        - record: velya:certificate:count_by_issuer
+          expr: |
+            count by (issuer_name, issuer_kind) (
+              certmanager_certificate_ready_status
+            )
+
+        # ACME request rate (5m average)
+        - record: velya:acme:request_rate_5m
+          expr: |
+            rate(certmanager_http_acme_client_request_count[5m])
+
+        # ACME error rate (5m average)
+        - record: velya:acme:error_rate_5m
+          expr: |
+            rate(certmanager_http_acme_client_request_count{status=~"4..|5.."}[5m])

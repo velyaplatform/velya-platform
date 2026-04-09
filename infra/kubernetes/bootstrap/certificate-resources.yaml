@@ -1,0 +1,407 @@
+# =============================================================================
+# Velya Platform - Certificate Resources
+# =============================================================================
+# This file defines all Certificate resources for the Velya Platform:
+#   1. Wildcard certificate: *.velya.health
+#   2. Apex certificate: velya.health
+#   3. Subdomain certificates: grafana, api, app, auth, ops, status, docs
+#
+# All public certificates use acme-production ClusterIssuer (Let's Encrypt)
+# All certificates use ECDSA P-256 keys
+# Validity: 90 days, renewed 30 days before expiry
+#
+# Prerequisites:
+#   - cert-manager installed with CRDs
+#   - ClusterIssuers configured (cert-manager-issuers.yaml applied)
+#   - velya-system namespace exists
+#
+# Usage:
+#   kubectl create namespace velya-system --dry-run=client -o yaml | kubectl apply -f -
+#   kubectl apply -f certificate-resources.yaml
+# =============================================================================
+
+---
+# =============================================================================
+# 1. Wildcard Certificate: *.velya.health
+# =============================================================================
+# Covers ALL first-level subdomains:
+#   app.velya.health, api.velya.health, auth.velya.health, etc.
+# Does NOT cover: velya.health (apex) or sub.sub.velya.health (2nd level)
+# Requires DNS-01 challenge (HTTP-01 cannot issue wildcards)
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: velya-health-wildcard
+  namespace: velya-system
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    app.kubernetes.io/managed-by: platform-team
+    velya.health/cert-type: wildcard
+    velya.health/cert-scope: public
+  annotations:
+    description: "Wildcard certificate covering all *.velya.health subdomains"
+spec:
+  # Secret name where the certificate will be stored
+  secretName: velya-health-wildcard-tls
+
+  # Use Let's Encrypt Production
+  issuerRef:
+    name: acme-production
+    kind: ClusterIssuer
+
+  # DNS names covered by this certificate
+  dnsNames:
+    - "*.velya.health"
+
+  # Certificate lifetime and renewal
+  duration: 2160h    # 90 days
+  renewBefore: 720h  # 30 days before expiry
+
+  # Private key configuration
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always  # New key on every renewal
+
+  # Key usages
+  usages:
+    - server auth
+    - digital signature
+    - key encipherment
+
+  # Secret template with labels for easy discovery
+  secretTemplate:
+    labels:
+      app.kubernetes.io/part-of: velya-platform
+      velya.health/cert-type: wildcard
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "velya-app,velya-auth,monitoring,ingress-nginx"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+
+---
+# =============================================================================
+# 2. Apex Certificate: velya.health
+# =============================================================================
+# Covers ONLY the apex (naked) domain: velya.health
+# Required because wildcard does NOT cover apex
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: velya-health-apex
+  namespace: velya-system
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    app.kubernetes.io/managed-by: platform-team
+    velya.health/cert-type: apex
+    velya.health/cert-scope: public
+  annotations:
+    description: "Apex certificate for velya.health (naked domain)"
+spec:
+  secretName: velya-health-apex-tls
+
+  issuerRef:
+    name: acme-production
+    kind: ClusterIssuer
+
+  dnsNames:
+    - "velya.health"
+
+  duration: 2160h
+  renewBefore: 720h
+
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+
+  usages:
+    - server auth
+    - digital signature
+    - key encipherment
+
+  secretTemplate:
+    labels:
+      app.kubernetes.io/part-of: velya-platform
+      velya.health/cert-type: apex
+
+---
+# =============================================================================
+# 3. Grafana Certificate: grafana.velya.health
+# =============================================================================
+# Dedicated certificate for Grafana observability dashboard
+# Could use wildcard instead, but dedicated cert provides isolation
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-velya-health
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    app.kubernetes.io/managed-by: platform-team
+    velya.health/cert-type: subdomain
+    velya.health/cert-scope: public
+    velya.health/service: grafana
+  annotations:
+    description: "TLS certificate for grafana.velya.health"
+spec:
+  secretName: grafana-velya-health-tls
+
+  issuerRef:
+    name: acme-production
+    kind: ClusterIssuer
+
+  dnsNames:
+    - "grafana.velya.health"
+
+  duration: 2160h
+  renewBefore: 720h
+
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+
+  usages:
+    - server auth
+    - digital signature
+    - key encipherment
+
+  secretTemplate:
+    labels:
+      app.kubernetes.io/part-of: velya-platform
+      velya.health/service: grafana
+
+---
+# =============================================================================
+# 4. API Certificate: api.velya.health
+# =============================================================================
+# Dedicated certificate for API Gateway
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: api-velya-health
+  namespace: velya-system
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    app.kubernetes.io/managed-by: platform-team
+    velya.health/cert-type: subdomain
+    velya.health/cert-scope: public
+    velya.health/service: api
+  annotations:
+    description: "TLS certificate for api.velya.health"
+spec:
+  secretName: api-velya-health-tls
+
+  issuerRef:
+    name: acme-production
+    kind: ClusterIssuer
+
+  dnsNames:
+    - "api.velya.health"
+
+  duration: 2160h
+  renewBefore: 720h
+
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+
+  usages:
+    - server auth
+    - digital signature
+    - key encipherment
+
+  secretTemplate:
+    labels:
+      app.kubernetes.io/part-of: velya-platform
+      velya.health/service: api
+
+---
+# =============================================================================
+# 5. App Certificate: app.velya.health
+# =============================================================================
+# Dedicated certificate for main web application
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: app-velya-health
+  namespace: velya-system
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    app.kubernetes.io/managed-by: platform-team
+    velya.health/cert-type: subdomain
+    velya.health/cert-scope: public
+    velya.health/service: app
+  annotations:
+    description: "TLS certificate for app.velya.health"
+spec:
+  secretName: app-velya-health-tls
+
+  issuerRef:
+    name: acme-production
+    kind: ClusterIssuer
+
+  dnsNames:
+    - "app.velya.health"
+
+  duration: 2160h
+  renewBefore: 720h
+
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+
+  usages:
+    - server auth
+    - digital signature
+    - key encipherment
+
+  secretTemplate:
+    labels:
+      app.kubernetes.io/part-of: velya-platform
+      velya.health/service: app
+
+---
+# =============================================================================
+# 6. Auth Certificate: auth.velya.health
+# =============================================================================
+# Dedicated certificate for authentication service (Keycloak)
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: auth-velya-health
+  namespace: velya-system
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    app.kubernetes.io/managed-by: platform-team
+    velya.health/cert-type: subdomain
+    velya.health/cert-scope: public
+    velya.health/service: auth
+  annotations:
+    description: "TLS certificate for auth.velya.health (Keycloak)"
+spec:
+  secretName: auth-velya-health-tls
+
+  issuerRef:
+    name: acme-production
+    kind: ClusterIssuer
+
+  dnsNames:
+    - "auth.velya.health"
+
+  duration: 2160h
+  renewBefore: 720h
+
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+
+  usages:
+    - server auth
+    - digital signature
+    - key encipherment
+
+  secretTemplate:
+    labels:
+      app.kubernetes.io/part-of: velya-platform
+      velya.health/service: auth
+
+---
+# =============================================================================
+# 7. Ops Certificate: ops.velya.health
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ops-velya-health
+  namespace: velya-system
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    velya.health/cert-type: subdomain
+    velya.health/service: ops
+spec:
+  secretName: ops-velya-health-tls
+  issuerRef:
+    name: acme-production
+    kind: ClusterIssuer
+  dnsNames:
+    - "ops.velya.health"
+  duration: 2160h
+  renewBefore: 720h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+
+---
+# =============================================================================
+# 8. Status Certificate: status.velya.health
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: status-velya-health
+  namespace: velya-system
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    velya.health/cert-type: subdomain
+    velya.health/service: status
+spec:
+  secretName: status-velya-health-tls
+  issuerRef:
+    name: acme-production
+    kind: ClusterIssuer
+  dnsNames:
+    - "status.velya.health"
+  duration: 2160h
+  renewBefore: 720h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+
+---
+# =============================================================================
+# 9. Docs Certificate: docs.velya.health
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: docs-velya-health
+  namespace: velya-system
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    velya.health/cert-type: subdomain
+    velya.health/service: docs
+spec:
+  secretName: docs-velya-health-tls
+  issuerRef:
+    name: acme-production
+    kind: ClusterIssuer
+  dnsNames:
+    - "docs.velya.health"
+  duration: 2160h
+  renewBefore: 720h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always

@@ -1,0 +1,187 @@
+# =============================================================================
+# Velya Platform - ClusterIssuers for Certificate Management
+# =============================================================================
+# This file defines all ClusterIssuers used by cert-manager:
+#   1. acme-staging     - Let's Encrypt Staging (testing/validation)
+#   2. acme-production  - Let's Encrypt Production (real certificates)
+#   3. selfsigned-bootstrap - Self-signed bootstrap for internal CA
+#   4. internal-ca      - Internal CA for mTLS between services
+#
+# Prerequisites:
+#   - cert-manager installed with CRDs
+#   - Route53 credentials configured (IRSA, Pod Identity, or Secret)
+#   - Hosted Zone ID configured for velya.health
+#
+# Usage:
+#   kubectl apply -f cert-manager-issuers.yaml
+# =============================================================================
+
+---
+# =============================================================================
+# 1. Let's Encrypt Staging ClusterIssuer
+# =============================================================================
+# Use for: testing, CI/CD, new hosts, configuration validation
+# Certificates are NOT trusted by browsers (staging CA)
+# Rate limits are very permissive (30,000 certs/domain/week)
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: acme-staging
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    app.kubernetes.io/managed-by: platform-team
+    environment: staging
+  annotations:
+    description: "Let's Encrypt Staging - for testing and validation only"
+spec:
+  acme:
+    # ACME Staging server - no rate limit concerns
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+
+    # Contact email for expiration notifications
+    email: platform@velya.health
+
+    # Secret to store ACME account private key
+    privateKeySecretRef:
+      name: acme-staging-account-key
+
+    # DNS-01 solver using Route53
+    solvers:
+      - dns01:
+          route53:
+            region: us-east-1
+            # Replace with actual Hosted Zone ID
+            hostedZoneID: ZXXXXXXXXXXXXX
+            # When using IRSA, no explicit credentials needed
+            # For static credentials, uncomment:
+            # accessKeyIDSecretRef:
+            #   name: route53-credentials
+            #   key: access-key-id
+            # secretAccessKeySecretRef:
+            #   name: route53-credentials
+            #   key: secret-access-key
+        selector:
+          dnsZones:
+            - "velya.health"
+
+---
+# =============================================================================
+# 2. Let's Encrypt Production ClusterIssuer
+# =============================================================================
+# Use for: official hosts accessed by real users/browsers
+# Certificates ARE trusted by all browsers
+# Rate limits: 50 certs/domain/week - USE WITH CARE
+# ALWAYS test with staging first before using production
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: acme-production
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    app.kubernetes.io/managed-by: platform-team
+    environment: production
+  annotations:
+    description: "Let's Encrypt Production - real trusted certificates"
+spec:
+  acme:
+    # ACME Production server - subject to rate limits
+    server: https://acme-v02.api.letsencrypt.org/directory
+
+    # Contact email for expiration notifications
+    email: platform@velya.health
+
+    # Secret to store ACME account private key
+    privateKeySecretRef:
+      name: acme-production-account-key
+
+    # DNS-01 solver using Route53
+    solvers:
+      - dns01:
+          route53:
+            region: us-east-1
+            # Replace with actual Hosted Zone ID
+            hostedZoneID: ZXXXXXXXXXXXXX
+        selector:
+          dnsZones:
+            - "velya.health"
+
+---
+# =============================================================================
+# 3. Self-Signed Bootstrap ClusterIssuer
+# =============================================================================
+# Use for: bootstrapping the internal CA chain
+# This issuer creates the root CA certificate which is then used
+# by the internal-ca ClusterIssuer
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-bootstrap
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    app.kubernetes.io/managed-by: platform-team
+  annotations:
+    description: "Self-signed issuer for bootstrapping internal CA"
+spec:
+  selfSigned: {}
+
+---
+# =============================================================================
+# 4. Internal Root CA Certificate
+# =============================================================================
+# Creates a self-signed root CA certificate used by the internal-ca issuer
+# Validity: 10 years, renewed 1 year before expiry
+# Algorithm: ECDSA P-256
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: internal-ca-root
+  namespace: cert-manager
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    velya.health/cert-type: internal-ca-root
+spec:
+  isCA: true
+  secretName: internal-ca-root-secret
+  issuerRef:
+    name: selfsigned-bootstrap
+    kind: ClusterIssuer
+  commonName: "Velya Internal Root CA"
+  subject:
+    organizations:
+      - "Velya Health"
+    organizationalUnits:
+      - "Platform Engineering"
+  duration: 87600h    # 10 years
+  renewBefore: 8760h  # 1 year before expiry
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+
+---
+# =============================================================================
+# 5. Internal CA ClusterIssuer
+# =============================================================================
+# Uses the root CA certificate created above to issue service certificates
+# Use for: mTLS between internal services, short-lived certs (24h)
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: internal-ca
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/component: pki
+    app.kubernetes.io/managed-by: platform-team
+  annotations:
+    description: "Internal CA for mTLS service certificates"
+spec:
+  ca:
+    secretName: internal-ca-root-secret
