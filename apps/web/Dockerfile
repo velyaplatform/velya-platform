@@ -22,11 +22,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 velya && \
     adduser --system --uid 1001 velya
 WORKDIR /app
-# public dir is optional (não existe se não há assets estáticos)
+# Standalone output preserva a estrutura do monorepo
 COPY --from=build --chown=velya:velya /app/apps/web/.next/standalone ./
-COPY --from=build --chown=velya:velya /app/apps/web/.next/static ./.next/static
+COPY --from=build --chown=velya:velya /app/apps/web/.next/static ./apps/web/.next/static
 USER velya
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "server.js"]
+CMD ["node", "apps/web/server.js"]

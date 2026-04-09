@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-velya-config
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+    route:
+      receiver: 'velya-webhook'
+      group_by: ['alertname', 'namespace']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      routes:
+        - receiver: 'velya-critical'
+          match:
+            severity: critical
+          group_wait: 10s
+          repeat_interval: 1h
+        - receiver: 'velya-webhook'
+          match:
+            severity: high
+    receivers:
+      - name: 'velya-webhook'
+        webhook_configs:
+          - url: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/alerts'
+            send_resolved: true
+      - name: 'velya-critical'
+        webhook_configs:
+          - url: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/alerts'
+            send_resolved: true
+    inhibit_rules:
+      - source_match:
+          severity: 'critical'
+        target_match:
+          severity: 'high'
+        equal: ['alertname', 'namespace']
