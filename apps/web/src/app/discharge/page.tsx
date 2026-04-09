@@ -27,135 +27,135 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     mrn: 'MRN-004',
     name: 'Eleanor Voss',
     age: 81,
-    ward: 'Ward 2A',
+    ward: 'Ala 2A',
     bed: '2A-02',
     admissionDate: '2026-03-30',
     los: 9,
     targetDischarge: '2026-04-08 08:00',
     status: 'blocked',
-    blockers: ['Transport', 'Documentation'],
+    blockers: ['Transporte', 'Documentação'],
     owner: 'James Okafor',
     consultant: 'Dr. Mbeki',
-    diagnosis: 'Acute MI — post-PCI',
-    notes: 'Patient ready medically. Family contacted. Transport must be arranged urgently.',
+    diagnosis: 'IAM — pós-ICP',
+    notes: 'Paciente liberada clinicamente. Família contatada. Transporte deve ser providenciado com urgência.',
   },
   {
     mrn: 'MRN-007',
     name: 'Marcus Bell',
     age: 57,
-    ward: 'Ward 4C',
+    ward: 'Ala 4C',
     bed: '4C-03',
     admissionDate: '2026-03-27',
     los: 12,
     targetDischarge: '2026-04-08 16:00',
     status: 'blocked',
-    blockers: ['Insurance pre-auth'],
-    owner: 'Admin Team',
+    blockers: ['Pré-autorização do plano'],
+    owner: 'Equipe Admin',
     consultant: 'Dr. Patel',
-    diagnosis: 'Spinal stenosis — post-surgical',
-    notes: 'Pre-auth submitted 48h ago. Escalate to payer — case manager assigned.',
+    diagnosis: 'Estenose vertebral — pós-cirúrgica',
+    notes: 'Pré-autorização enviada há 48h. Escalar para operadora — gerente de caso atribuído.',
   },
   {
     mrn: 'MRN-013',
     name: 'Peter Hawkins',
     age: 84,
-    ward: 'Ward 2A',
+    ward: 'Ala 2A',
     bed: '2A-10',
     admissionDate: '2026-03-25',
     los: 14,
     targetDischarge: '2026-04-08 12:00',
     status: 'blocked',
-    blockers: ['Nursing home placement', 'Social work sign-off', 'DOLS assessment', 'Family consent'],
-    owner: 'Social Work Team',
+    blockers: ['Vaga em casa de repouso', 'Liberação do serviço social', 'Avaliação DOLS', 'Consentimento familiar'],
+    owner: 'Equipe de Serviço Social',
     consultant: 'Dr. Osei',
-    diagnosis: 'Sepsis — recovery',
-    notes: 'Complex social situation. 3 nursing homes contacted, 1 confirmed pending paperwork.',
+    diagnosis: 'Sepse — recuperação',
+    notes: 'Situação social complexa. 3 casas de repouso contatadas, 1 confirmada aguardando documentação.',
   },
   {
     mrn: 'MRN-006',
     name: 'Anna Kowalski',
     age: 63,
-    ward: 'Ward 1B',
+    ward: 'Ala 1B',
     bed: '1B-06',
     admissionDate: '2026-03-29',
     los: 10,
     targetDischarge: '2026-04-08 14:00',
     status: 'blocked',
-    blockers: ['Rehab assessment', 'Home care package', 'Equipment delivery'],
-    owner: 'OT Team',
+    blockers: ['Avaliação de reabilitação', 'Pacote de cuidado domiciliar', 'Entrega de equipamentos'],
+    owner: 'Equipe de TO',
     consultant: 'Dr. Osei',
-    diagnosis: 'Stroke — ischaemic',
-    notes: 'OT assessment scheduled 13:00 today. Home care application submitted. Equipment 2-day lead.',
+    diagnosis: 'AVC isquêmico',
+    notes: 'Avaliação de TO agendada para 13:00 hoje. Solicitação de cuidado domiciliar enviada. Equipamentos com prazo de 2 dias.',
   },
   {
     mrn: 'MRN-019',
     name: 'Claire Beaumont',
     age: 77,
-    ward: 'Ward 1B',
+    ward: 'Ala 1B',
     bed: '1B-03',
     admissionDate: '2026-03-30',
     los: 9,
     targetDischarge: '2026-04-09 10:00',
     status: 'blocked',
-    blockers: ['Nursing home', 'Family consent'],
-    owner: 'Social Work Team',
+    blockers: ['Casa de repouso', 'Consentimento familiar'],
+    owner: 'Equipe de Serviço Social',
     consultant: 'Dr. Osei',
-    diagnosis: 'Femur fracture — non-operative',
-    notes: 'Family meeting scheduled 15:00 today. Nursing home capacity confirmed for tomorrow.',
+    diagnosis: 'Fratura de fêmur — conservadora',
+    notes: 'Reunião com família agendada para 15:00 hoje. Vaga em casa de repouso confirmada para amanhã.',
   },
   {
     mrn: 'MRN-011',
     name: 'Diana Reyes',
     age: 61,
-    ward: 'Ward 1D',
+    ward: 'Ala 1D',
     bed: '1D-01',
     admissionDate: '2026-04-04',
     los: 4,
     targetDischarge: '2026-04-09 10:00',
     status: 'pending',
-    blockers: ['Pharmacy discharge pack'],
-    owner: 'Ward Pharmacist',
+    blockers: ['Kit de medicamentos da farmácia'],
+    owner: 'Farmacêutico da Ala',
     consultant: 'Dr. Patel',
-    diagnosis: 'Knee arthroplasty',
-    notes: 'Pharmacy pack to be ready by 09:00 tomorrow. Physio cleared. GP letter pending.',
+    diagnosis: 'Artroplastia de joelho',
+    notes: 'Kit da farmácia pronto até 09:00 amanhã. Fisioterapia liberada. Carta para o clínico pendente.',
   },
   {
     mrn: 'MRN-016',
     name: 'David Osei',
     age: 67,
-    ward: 'Ward 4C',
+    ward: 'Ala 4C',
     bed: '4C-11',
     admissionDate: '2026-03-28',
     los: 11,
     targetDischarge: '2026-04-09 14:00',
     status: 'pending',
-    blockers: ['Physio clearance', 'OT home visit'],
-    owner: 'Physio Team',
+    blockers: ['Liberação da fisioterapia', 'Visita domiciliar de TO'],
+    owner: 'Equipe de Fisioterapia',
     consultant: 'Dr. Patel',
-    diagnosis: 'Total hip replacement',
-    notes: 'Final physio session tomorrow morning. OT home visit report expected by 12:00.',
+    diagnosis: 'Prótese total de quadril',
+    notes: 'Última sessão de fisioterapia amanhã cedo. Relatório da visita domiciliar de TO esperado até 12:00.',
   },
   {
     mrn: 'MRN-003',
     name: 'Robert Ngozi',
     age: 72,
-    ward: 'Ward 2B',
+    ward: 'Ala 2B',
     bed: '2B-07',
     admissionDate: '2026-03-31',
     los: 8,
     targetDischarge: '2026-04-09 12:00',
     status: 'pending',
-    blockers: ['Social work referral'],
-    owner: 'Social Work Team',
+    blockers: ['Encaminhamento para serviço social'],
+    owner: 'Equipe de Serviço Social',
     consultant: 'Dr. Ibrahim',
-    diagnosis: 'COPD exacerbation',
-    notes: 'Community support referral submitted. Follow-up appointment booked with respiratory team.',
+    diagnosis: 'Exacerbação de DPOC',
+    notes: 'Encaminhamento para suporte comunitário enviado. Consulta de retorno agendada com equipe respiratória.',
   },
   {
     mrn: 'MRN-002',
     name: 'Sarah Mitchell',
     age: 54,
-    ward: 'Ward 3B',
+    ward: 'Ala 3B',
     bed: '3B-12',
     admissionDate: '2026-04-02',
     los: 6,
@@ -164,14 +164,14 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     blockers: [],
     owner: 'Dr. Chen',
     consultant: 'Dr. Chen',
-    diagnosis: 'Cholecystitis — laparoscopic',
-    notes: 'All clear. Transport arranged. Discharge letter signed. Patient aware.',
+    diagnosis: 'Colecistite — laparoscópica',
+    notes: 'Tudo liberado. Transporte providenciado. Carta de alta assinada. Paciente informada.',
   },
   {
     mrn: 'MRN-014',
     name: 'Thomas Crane',
     age: 52,
-    ward: 'Ward 3B',
+    ward: 'Ala 3B',
     bed: '3B-09',
     admissionDate: '2026-04-05',
     los: 3,
@@ -180,14 +180,14 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     blockers: [],
     owner: 'Dr. Chen',
     consultant: 'Dr. Chen',
-    diagnosis: 'Hernia repair',
-    notes: 'Straightforward discharge. GP letter sent. Patient given aftercare instructions.',
+    diagnosis: 'Hernioplastia',
+    notes: 'Alta simples. Carta para o clínico enviada. Paciente orientado sobre cuidados pós-alta.',
   },
   {
     mrn: 'MRN-008',
     name: 'Fatima Al-Rashid',
     age: 38,
-    ward: 'Ward 3A',
+    ward: 'Ala 3A',
     bed: '3A-11',
     admissionDate: '2026-04-05',
     los: 3,
@@ -196,14 +196,14 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     blockers: [],
     owner: 'Dr. Nkosi',
     consultant: 'Dr. Nkosi',
-    diagnosis: 'Ectopic pregnancy — surgical',
-    notes: 'Discharge process started. Await final bloods. Prescription being prepared.',
+    diagnosis: 'Gravidez ectópica — cirúrgica',
+    notes: 'Processo de alta iniciado. Aguardando exames finais. Prescrição sendo preparada.',
   },
   {
     mrn: 'MRN-005',
     name: 'Carlos Diaz',
     age: 45,
-    ward: 'Ward 4A',
+    ward: 'Ala 4A',
     bed: '4A-09',
     admissionDate: '2026-04-04',
     los: 4,
@@ -212,16 +212,16 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     blockers: [],
     owner: 'Dr. Chen',
     consultant: 'Dr. Chen',
-    diagnosis: 'Appendectomy',
-    notes: 'Discharge summary in progress. Patient mobilising well. Awaiting wound check.',
+    diagnosis: 'Apendicectomia',
+    notes: 'Sumário de alta em elaboração. Paciente deambulando bem. Aguardando avaliação da ferida.',
   },
 ];
 
 const STATUS_CONFIG: Record<DischargeStatus, { badge: string; label: string; dot: string; rowClass: string }> = {
-  ready: { badge: 'badge-success', label: 'Ready', dot: 'status-dot-green', rowClass: '' },
-  blocked: { badge: 'badge-critical', label: 'Blocked', dot: 'status-dot-red status-dot-pulse', rowClass: 'row-critical' },
-  pending: { badge: 'badge-warning', label: 'Pending', dot: 'status-dot-amber', rowClass: 'row-warning' },
-  'in-progress': { badge: 'badge-info', label: 'In Progress', dot: 'status-dot-green status-dot-pulse', rowClass: '' },
+  ready: { badge: 'badge-success', label: 'Pronto', dot: 'status-dot-green', rowClass: '' },
+  blocked: { badge: 'badge-critical', label: 'Bloqueado', dot: 'status-dot-red status-dot-pulse', rowClass: 'row-critical' },
+  pending: { badge: 'badge-warning', label: 'Pendente', dot: 'status-dot-amber', rowClass: 'row-warning' },
+  'in-progress': { badge: 'badge-info', label: 'Em Andamento', dot: 'status-dot-green status-dot-pulse', rowClass: '' },
 };
 
 const STATUS_ORDER: Record<DischargeStatus, number> = {
@@ -270,65 +270,65 @@ export default function DischargePage() {
   const inProgressCount = DISCHARGE_PATIENTS.filter((p) => p.status === 'in-progress').length;
 
   return (
-    <AppShell pageTitle="Discharge Control Tower">
+    <AppShell pageTitle="Torre de Controle de Altas">
       <div className="page-header">
-        <h1 className="page-title">Discharge Control Tower</h1>
+        <h1 className="page-title">Torre de Controle de Altas</h1>
         <p className="page-subtitle">
-          Real-time discharge pipeline — {DISCHARGE_PATIENTS.length} patients tracked
+          Pipeline de altas em tempo real — {DISCHARGE_PATIENTS.length} pacientes monitorados
         </p>
       </div>
 
       {blockedCount > 0 && (
         <div className="alert-banner alert-banner-critical">
           <span>🚨</span>
-          <strong>{blockedCount} patients blocked</strong>
-          <span style={{ fontWeight: 400 }}>— immediate intervention required to prevent LOS overrun</span>
+          <strong>{blockedCount} pacientes bloqueados</strong>
+          <span style={{ fontWeight: 400 }}>— intervenção imediata necessária para evitar excesso de TMI</span>
         </div>
       )}
 
-      {/* Status summary */}
+      {/* Resumo de status */}
       <div className="grid-metrics">
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-critical)' }}>
-          <div className="metric-label">Blocked</div>
+          <div className="metric-label">Bloqueados</div>
           <div className="metric-value" style={{ color: 'var(--color-critical)' }}>{blockedCount}</div>
-          <div className="metric-sub">Immediate action needed</div>
+          <div className="metric-sub">Ação imediata necessária</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-warning)' }}>
-          <div className="metric-label">Pending</div>
+          <div className="metric-label">Pendentes</div>
           <div className="metric-value" style={{ color: 'var(--color-warning)' }}>{pendingCount}</div>
-          <div className="metric-sub">Awaiting resolution</div>
+          <div className="metric-sub">Aguardando resolução</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-info)' }}>
-          <div className="metric-label">In Progress</div>
+          <div className="metric-label">Em Andamento</div>
           <div className="metric-value" style={{ color: 'var(--color-info)' }}>{inProgressCount}</div>
-          <div className="metric-sub">Discharge underway</div>
+          <div className="metric-sub">Alta em curso</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-success)' }}>
-          <div className="metric-label">Ready</div>
+          <div className="metric-label">Prontos</div>
           <div className="metric-value" style={{ color: 'var(--color-success)' }}>{readyCount}</div>
-          <div className="metric-sub">Awaiting transport / home</div>
+          <div className="metric-sub">Aguardando transporte / alta</div>
         </div>
       </div>
 
-      {/* Filters and bulk actions */}
+      {/* Filtros e ações em lote */}
       <div className="filter-bar">
         <select
           className="filter-select"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
-          <option value="all">All Statuses</option>
-          <option value="blocked">Blocked</option>
-          <option value="pending">Pending</option>
-          <option value="in-progress">In Progress</option>
-          <option value="ready">Ready</option>
+          <option value="all">Todos os Status</option>
+          <option value="blocked">Bloqueado</option>
+          <option value="pending">Pendente</option>
+          <option value="in-progress">Em Andamento</option>
+          <option value="ready">Pronto</option>
         </select>
         <select
           className="filter-select"
           value={wardFilter}
           onChange={(e) => setWardFilter(e.target.value)}
         >
-          <option value="all">All Wards</option>
+          <option value="all">Todas as Alas</option>
           {wards.map((w) => (
             <option key={w} value={w}>
               {w}
@@ -337,11 +337,11 @@ export default function DischargePage() {
         </select>
         {selected.size > 0 && (
           <>
-            <span className="badge badge-info">{selected.size} selected</span>
-            <button className="btn btn-primary btn-sm">📋 Bulk Update</button>
-            <button className="btn btn-warning btn-sm">↑ Bulk Escalate</button>
+            <span className="badge badge-info">{selected.size} selecionados</span>
+            <button className="btn btn-primary btn-sm">📋 Atualizar Lote</button>
+            <button className="btn btn-warning btn-sm">↑ Escalar Lote</button>
             <button className="btn btn-outline btn-sm" onClick={() => setSelected(new Set())}>
-              Clear
+              Limpar
             </button>
           </>
         )}
@@ -360,14 +360,14 @@ export default function DischargePage() {
                     style={{ cursor: 'pointer' }}
                   />
                 </th>
-                <th>Patient</th>
-                <th>Ward</th>
-                <th>LOS</th>
-                <th>Target Discharge</th>
-                <th>Blockers</th>
-                <th>Owner</th>
+                <th>Paciente</th>
+                <th>Ala</th>
+                <th>TMI</th>
+                <th>Alta Prevista</th>
+                <th>Bloqueios</th>
+                <th>Responsável</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -376,7 +376,7 @@ export default function DischargePage() {
                   <td colSpan={9}>
                     <div className="empty-state">
                       <div className="empty-state-icon">🏠</div>
-                      <div className="empty-state-title">No patients match current filters</div>
+                      <div className="empty-state-title">Nenhum paciente corresponde aos filtros</div>
                     </div>
                   </td>
                 </tr>
@@ -403,7 +403,7 @@ export default function DischargePage() {
                         <td>
                           <div className="font-semibold">{patient.name}</div>
                           <div className="text-xs text-tertiary">
-                            {patient.mrn} · Age {patient.age}
+                            {patient.mrn} · {patient.age} anos
                           </div>
                           <div
                             className="text-xs text-tertiary truncate"
@@ -414,7 +414,7 @@ export default function DischargePage() {
                         </td>
                         <td>
                           <div className="text-sm">{patient.ward}</div>
-                          <div className="text-xs text-tertiary">Bed {patient.bed}</div>
+                          <div className="text-xs text-tertiary">Leito {patient.bed}</div>
                         </td>
                         <td>
                           <strong
@@ -453,16 +453,16 @@ export default function DischargePage() {
                         <td onClick={(e) => e.stopPropagation()}>
                           <div className="flex gap-2 flex-wrap">
                             {patient.status === 'blocked' && (
-                              <button className="btn btn-sm btn-danger">Resolve</button>
+                              <button className="btn btn-sm btn-danger">Resolver</button>
                             )}
                             {patient.status === 'ready' && (
-                              <button className="btn btn-sm btn-primary">Discharge ✓</button>
+                              <button className="btn btn-sm btn-primary">Alta ✓</button>
                             )}
                             {(patient.status === 'pending' || patient.status === 'in-progress') && (
-                              <button className="btn btn-sm btn-primary">Update</button>
+                              <button className="btn btn-sm btn-primary">Atualizar</button>
                             )}
                             <button className="btn btn-sm btn-outline">
-                              {isExpanded ? 'Collapse' : 'Details'}
+                              {isExpanded ? 'Recolher' : 'Detalhes'}
                             </button>
                           </div>
                         </td>
@@ -471,10 +471,10 @@ export default function DischargePage() {
                         <tr key={`${patient.mrn}-notes`} style={{ background: 'var(--color-surface-subtle)' }}>
                           <td colSpan={9}>
                             <div style={{ padding: '0.75rem 1rem', fontSize: '0.875rem' }}>
-                              <strong>Clinical Notes:</strong>{' '}
+                              <strong>Notas Clínicas:</strong>{' '}
                               <span style={{ color: 'var(--text-secondary)' }}>{patient.notes}</span>
                               <span style={{ marginLeft: '2rem', color: 'var(--text-tertiary)' }}>
-                                Consultant: {patient.consultant}
+                                Médico: {patient.consultant}
                               </span>
                             </div>
                           </td>
@@ -490,7 +490,7 @@ export default function DischargePage() {
       </div>
 
       <div className="text-xs text-tertiary mt-2" style={{ textAlign: 'right' }}>
-        {sorted.length} of {DISCHARGE_PATIENTS.length} patients · Click a row to expand notes
+        {sorted.length} de {DISCHARGE_PATIENTS.length} pacientes · Clique em uma linha para expandir as notas
       </div>
     </AppShell>
   );

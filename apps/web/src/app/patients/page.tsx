@@ -24,11 +24,11 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-001',
     name: 'James Whitfield',
     age: 68,
-    ward: 'Ward 1A',
+    ward: 'Ala 1A',
     bed: '1A-04',
     admissionDate: '2026-04-01',
     los: 7,
-    diagnosis: 'Hip fracture post-op',
+    diagnosis: 'Fratura de quadril pós-op',
     dischargeStatus: 'on-track',
     blockersCount: 0,
     blockers: [],
@@ -39,11 +39,11 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-002',
     name: 'Sarah Mitchell',
     age: 54,
-    ward: 'Ward 3B',
+    ward: 'Ala 3B',
     bed: '3B-12',
     admissionDate: '2026-04-02',
     los: 6,
-    diagnosis: 'Cholecystitis — laparoscopic',
+    diagnosis: 'Colecistite — laparoscópica',
     dischargeStatus: 'on-track',
     blockersCount: 0,
     blockers: [],
@@ -54,14 +54,14 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-003',
     name: 'Robert Ngozi',
     age: 72,
-    ward: 'Ward 2B',
+    ward: 'Ala 2B',
     bed: '2B-07',
     admissionDate: '2026-03-31',
     los: 8,
-    diagnosis: 'COPD exacerbation',
+    diagnosis: 'Exacerbação de DPOC',
     dischargeStatus: 'at-risk',
     blockersCount: 1,
-    blockers: ['Social work referral'],
+    blockers: ['Encaminhamento para serviço social'],
     consultant: 'Dr. Ibrahim',
     riskLevel: 'medium',
   },
@@ -69,14 +69,14 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-004',
     name: 'Eleanor Voss',
     age: 81,
-    ward: 'Ward 2A',
+    ward: 'Ala 2A',
     bed: '2A-02',
     admissionDate: '2026-03-30',
     los: 9,
-    diagnosis: 'Acute MI — post-PCI',
+    diagnosis: 'IAM — pós-ICP',
     dischargeStatus: 'blocked',
     blockersCount: 2,
-    blockers: ['Transport', 'Documentation'],
+    blockers: ['Transporte', 'Documentação'],
     consultant: 'Dr. Mbeki',
     riskLevel: 'high',
   },
@@ -84,11 +84,11 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-005',
     name: 'Carlos Diaz',
     age: 45,
-    ward: 'Ward 4A',
+    ward: 'Ala 4A',
     bed: '4A-09',
     admissionDate: '2026-04-04',
     los: 4,
-    diagnosis: 'Appendectomy',
+    diagnosis: 'Apendicectomia',
     dischargeStatus: 'on-track',
     blockersCount: 0,
     blockers: [],
@@ -99,14 +99,14 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-006',
     name: 'Anna Kowalski',
     age: 63,
-    ward: 'Ward 1B',
+    ward: 'Ala 1B',
     bed: '1B-06',
     admissionDate: '2026-03-29',
     los: 10,
-    diagnosis: 'Stroke — ischaemic',
+    diagnosis: 'AVC isquêmico',
     dischargeStatus: 'blocked',
     blockersCount: 3,
-    blockers: ['Rehab assessment', 'Home care', 'Equipment'],
+    blockers: ['Avaliação de reabilitação', 'Cuidado domiciliar', 'Equipamentos'],
     consultant: 'Dr. Osei',
     riskLevel: 'high',
   },
@@ -114,14 +114,14 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-007',
     name: 'Marcus Bell',
     age: 57,
-    ward: 'Ward 4C',
+    ward: 'Ala 4C',
     bed: '4C-03',
     admissionDate: '2026-03-27',
     los: 12,
-    diagnosis: 'Spinal stenosis — surgery',
+    diagnosis: 'Estenose vertebral — cirurgia',
     dischargeStatus: 'blocked',
     blockersCount: 1,
-    blockers: ['Insurance pre-auth'],
+    blockers: ['Pré-autorização do plano'],
     consultant: 'Dr. Patel',
     riskLevel: 'high',
   },
@@ -129,11 +129,11 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-008',
     name: 'Fatima Al-Rashid',
     age: 38,
-    ward: 'Ward 3A',
+    ward: 'Ala 3A',
     bed: '3A-11',
     admissionDate: '2026-04-05',
     los: 3,
-    diagnosis: 'Ectopic pregnancy — surgical',
+    diagnosis: 'Gravidez ectópica — cirúrgica',
     dischargeStatus: 'on-track',
     blockersCount: 0,
     blockers: [],
@@ -144,14 +144,14 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-009',
     name: 'George Papadopoulos',
     age: 76,
-    ward: 'Ward 2C',
+    ward: 'Ala 2C',
     bed: '2C-05',
     admissionDate: '2026-04-01',
     los: 7,
     diagnosis: 'Pneumonia',
     dischargeStatus: 'at-risk',
     blockersCount: 1,
-    blockers: ['Physiotherapy clearance'],
+    blockers: ['Liberação da fisioterapia'],
     consultant: 'Dr. Ibrahim',
     riskLevel: 'medium',
   },
@@ -159,29 +159,29 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-010',
     name: 'Linda Okafor',
     age: 49,
-    ward: 'Ward 1C',
+    ward: 'Ala 1C',
     bed: '1C-08',
     admissionDate: '2026-04-03',
     los: 5,
-    diagnosis: 'Bowel obstruction — conservative',
+    diagnosis: 'Obstrução intestinal — conservadora',
     dischargeStatus: 'at-risk',
     blockersCount: 1,
-    blockers: ['Dietitian review'],
+    blockers: ['Avaliação nutricional'],
     consultant: 'Dr. Chen',
     riskLevel: 'medium',
   },
   {
     mrn: 'MRN-011',
     name: 'Diana Reyes',
-    ward: 'Ward 1D',
+    ward: 'Ala 1D',
     age: 61,
     bed: '1D-01',
     admissionDate: '2026-04-04',
     los: 4,
-    diagnosis: 'Knee arthroplasty',
+    diagnosis: 'Artroplastia de joelho',
     dischargeStatus: 'at-risk',
     blockersCount: 1,
-    blockers: ['Pharmacy'],
+    blockers: ['Farmácia'],
     consultant: 'Dr. Patel',
     riskLevel: 'medium',
   },
@@ -189,11 +189,11 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-012',
     name: 'Yuki Tanaka',
     age: 29,
-    ward: 'Ward 4B',
+    ward: 'Ala 4B',
     bed: '4B-14',
     admissionDate: '2026-04-06',
     los: 2,
-    diagnosis: 'Diabetic ketoacidosis',
+    diagnosis: 'Cetoacidose diabética',
     dischargeStatus: 'on-track',
     blockersCount: 0,
     blockers: [],
@@ -204,14 +204,14 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-013',
     name: 'Peter Hawkins',
     age: 84,
-    ward: 'Ward 2A',
+    ward: 'Ala 2A',
     bed: '2A-10',
     admissionDate: '2026-03-25',
     los: 14,
-    diagnosis: 'Sepsis — recovery',
+    diagnosis: 'Sepse — recuperação',
     dischargeStatus: 'blocked',
     blockersCount: 4,
-    blockers: ['Nursing home', 'Social work', 'DOLS', 'Family'],
+    blockers: ['Casa de repouso', 'Serviço social', 'DOLS', 'Família'],
     consultant: 'Dr. Osei',
     riskLevel: 'high',
   },
@@ -219,11 +219,11 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-014',
     name: 'Thomas Crane',
     age: 52,
-    ward: 'Ward 3B',
+    ward: 'Ala 3B',
     bed: '3B-09',
     admissionDate: '2026-04-05',
     los: 3,
-    diagnosis: 'Hernia repair',
+    diagnosis: 'Hernioplastia',
     dischargeStatus: 'on-track',
     blockersCount: 0,
     blockers: [],
@@ -234,14 +234,14 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-015',
     name: 'Priya Nair',
     age: 41,
-    ward: 'Ward 1A',
+    ward: 'Ala 1A',
     bed: '1A-07',
     admissionDate: '2026-04-03',
     los: 5,
-    diagnosis: "Crohn's flare",
+    diagnosis: 'Surto de Crohn',
     dischargeStatus: 'at-risk',
     blockersCount: 1,
-    blockers: ['Assessment pending'],
+    blockers: ['Avaliação pendente'],
     consultant: 'Dr. Ibrahim',
     riskLevel: 'medium',
   },
@@ -249,14 +249,14 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-016',
     name: 'David Osei',
     age: 67,
-    ward: 'Ward 4C',
+    ward: 'Ala 4C',
     bed: '4C-11',
     admissionDate: '2026-03-28',
     los: 11,
-    diagnosis: 'Total hip replacement',
+    diagnosis: 'Prótese total de quadril',
     dischargeStatus: 'at-risk',
     blockersCount: 2,
-    blockers: ['Physio', 'OT assessment'],
+    blockers: ['Fisioterapia', 'Avaliação de TO'],
     consultant: 'Dr. Patel',
     riskLevel: 'medium',
   },
@@ -264,11 +264,11 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-017',
     name: 'Maria Santos',
     age: 33,
-    ward: 'Ward 3A',
+    ward: 'Ala 3A',
     bed: '3A-04',
     admissionDate: '2026-04-06',
     los: 2,
-    diagnosis: 'Caesarean section',
+    diagnosis: 'Cesariana',
     dischargeStatus: 'on-track',
     blockersCount: 0,
     blockers: [],
@@ -279,14 +279,14 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-018',
     name: 'Ahmed Hassan',
     age: 59,
-    ward: 'Ward 2B',
+    ward: 'Ala 2B',
     bed: '2B-13',
     admissionDate: '2026-04-02',
     los: 6,
-    diagnosis: 'Acute pancreatitis',
+    diagnosis: 'Pancreatite aguda',
     dischargeStatus: 'at-risk',
     blockersCount: 1,
-    blockers: ['Nutrition support'],
+    blockers: ['Suporte nutricional'],
     consultant: 'Dr. Chen',
     riskLevel: 'medium',
   },
@@ -294,14 +294,14 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-019',
     name: 'Claire Beaumont',
     age: 77,
-    ward: 'Ward 1B',
+    ward: 'Ala 1B',
     bed: '1B-03',
     admissionDate: '2026-03-30',
     los: 9,
-    diagnosis: 'Femur fracture — non-operative',
+    diagnosis: 'Fratura de fêmur — conservadora',
     dischargeStatus: 'blocked',
     blockersCount: 3,
-    blockers: ['Nursing home', 'Social work', 'Family consent'],
+    blockers: ['Casa de repouso', 'Serviço social', 'Consentimento familiar'],
     consultant: 'Dr. Osei',
     riskLevel: 'high',
   },
@@ -309,24 +309,30 @@ const MOCK_PATIENTS: Patient[] = [
     mrn: 'MRN-020',
     name: 'Frank Osei',
     age: 46,
-    ward: 'Ward 4A',
+    ward: 'Ala 4A',
     bed: '4A-16',
     admissionDate: '2026-04-04',
     los: 4,
-    diagnosis: 'Cellulitis — IV antibiotics',
+    diagnosis: 'Celulite — antibióticos IV',
     dischargeStatus: 'at-risk',
     blockersCount: 1,
-    blockers: ['Social work referral'],
+    blockers: ['Encaminhamento para serviço social'],
     consultant: 'Dr. Ibrahim',
     riskLevel: 'medium',
   },
 ];
 
 const STATUS_LABELS: Record<Patient['dischargeStatus'], string> = {
-  'on-track': 'On Track',
-  'at-risk': 'At Risk',
-  blocked: 'Blocked',
-  discharged: 'Discharged',
+  'on-track': 'No Prazo',
+  'at-risk': 'Em Risco',
+  blocked: 'Bloqueado',
+  discharged: 'Alta',
+};
+
+const RISK_LABELS: Record<Patient['riskLevel'], string> = {
+  high: 'Alto',
+  medium: 'Médio',
+  low: 'Baixo',
 };
 
 const STATUS_BADGE_CLASS: Record<Patient['dischargeStatus'], string> = {
@@ -364,7 +370,7 @@ export default function PatientsPage() {
     return matchesSearch && matchesStatus && matchesWard && matchesRisk;
   });
 
-  // Sort: blocked first, then at-risk, then on-track
+  // Ordenar: bloqueados primeiro, depois em risco, depois no prazo
   const sorted = [...filtered].sort((a, b) => {
     const order = { blocked: 0, 'at-risk': 1, 'on-track': 2, discharged: 3 };
     return order[a.dischargeStatus] - order[b.dischargeStatus];
@@ -375,37 +381,37 @@ export default function PatientsPage() {
   const onTrackCount = MOCK_PATIENTS.filter((p) => p.dischargeStatus === 'on-track').length;
 
   return (
-    <AppShell pageTitle="Patient List">
+    <AppShell pageTitle="Lista de Pacientes">
       <div className="page-header">
-        <h1 className="page-title">Patients</h1>
+        <h1 className="page-title">Pacientes</h1>
         <p className="page-subtitle">
-          {MOCK_PATIENTS.length} admitted &mdash; {blockedCount} blocked, {atRiskCount} at risk,{' '}
-          {onTrackCount} on track
+          {MOCK_PATIENTS.length} internados &mdash; {blockedCount} bloqueados, {atRiskCount} em risco,{' '}
+          {onTrackCount} no prazo
         </p>
       </div>
 
-      {/* Summary pills */}
+      {/* Resumo por status */}
       <div className="flex gap-3 mb-5 flex-wrap">
         <span className="badge badge-critical">
           <span className="status-dot status-dot-red"></span>
-          {blockedCount} Blocked
+          {blockedCount} Bloqueados
         </span>
         <span className="badge badge-warning">
           <span className="status-dot status-dot-amber"></span>
-          {atRiskCount} At Risk
+          {atRiskCount} Em Risco
         </span>
         <span className="badge badge-success">
           <span className="status-dot status-dot-green"></span>
-          {onTrackCount} On Track
+          {onTrackCount} No Prazo
         </span>
       </div>
 
-      {/* Filter bar */}
+      {/* Barra de filtros */}
       <div className="filter-bar">
         <input
           className="search-input"
           type="text"
-          placeholder="🔍  Search by name or MRN..."
+          placeholder="🔍  Buscar por nome ou MRN..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -414,18 +420,18 @@ export default function PatientsPage() {
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
-          <option value="all">All Statuses</option>
-          <option value="blocked">Blocked</option>
-          <option value="at-risk">At Risk</option>
-          <option value="on-track">On Track</option>
-          <option value="discharged">Discharged</option>
+          <option value="all">Todos os Status</option>
+          <option value="blocked">Bloqueado</option>
+          <option value="at-risk">Em Risco</option>
+          <option value="on-track">No Prazo</option>
+          <option value="discharged">Alta</option>
         </select>
         <select
           className="filter-select"
           value={wardFilter}
           onChange={(e) => setWardFilter(e.target.value)}
         >
-          <option value="all">All Wards</option>
+          <option value="all">Todas as Alas</option>
           {wards.map((w) => (
             <option key={w} value={w}>
               {w}
@@ -437,10 +443,10 @@ export default function PatientsPage() {
           value={riskFilter}
           onChange={(e) => setRiskFilter(e.target.value)}
         >
-          <option value="all">All Risk Levels</option>
-          <option value="high">High Risk</option>
-          <option value="medium">Medium Risk</option>
-          <option value="low">Low Risk</option>
+          <option value="all">Todos os Riscos</option>
+          <option value="high">Alto Risco</option>
+          <option value="medium">Médio Risco</option>
+          <option value="low">Baixo Risco</option>
         </select>
       </div>
 
@@ -449,16 +455,16 @@ export default function PatientsPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Patient</th>
-                <th>Ward / Bed</th>
-                <th>Diagnosis</th>
-                <th>Admitted</th>
-                <th>LOS</th>
-                <th>Discharge Status</th>
-                <th>Blockers</th>
-                <th>Consultant</th>
-                <th>Risk</th>
-                <th>Actions</th>
+                <th>Paciente</th>
+                <th>Ala / Leito</th>
+                <th>Diagnóstico</th>
+                <th>Internado em</th>
+                <th>TMI</th>
+                <th>Status de Alta</th>
+                <th>Bloqueios</th>
+                <th>Médico</th>
+                <th>Risco</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -467,7 +473,7 @@ export default function PatientsPage() {
                   <td colSpan={10}>
                     <div className="empty-state">
                       <div className="empty-state-icon">🔍</div>
-                      <div className="empty-state-title">No patients match your filters</div>
+                      <div className="empty-state-title">Nenhum paciente corresponde aos filtros</div>
                     </div>
                   </td>
                 </tr>
@@ -477,12 +483,12 @@ export default function PatientsPage() {
                     <td>
                       <div className="font-semibold">{patient.name}</div>
                       <div className="text-xs text-tertiary">
-                        {patient.mrn} · Age {patient.age}
+                        {patient.mrn} · {patient.age} anos
                       </div>
                     </td>
                     <td>
                       <div className="text-sm">{patient.ward}</div>
-                      <div className="text-xs text-tertiary">Bed {patient.bed}</div>
+                      <div className="text-xs text-tertiary">Leito {patient.bed}</div>
                     </td>
                     <td>
                       <div
@@ -536,13 +542,13 @@ export default function PatientsPage() {
                               : 'badge-success'
                         }`}
                       >
-                        {patient.riskLevel.charAt(0).toUpperCase() + patient.riskLevel.slice(1)}
+                        {RISK_LABELS[patient.riskLevel]}
                       </span>
                     </td>
                     <td>
                       <div className="flex gap-2">
-                        <button className="btn btn-sm btn-primary">View</button>
-                        <button className="btn btn-sm btn-outline">Tasks</button>
+                        <button className="btn btn-sm btn-primary">Ver</button>
+                        <button className="btn btn-sm btn-outline">Tarefas</button>
                       </div>
                     </td>
                   </tr>
@@ -554,7 +560,7 @@ export default function PatientsPage() {
       </div>
 
       <div className="text-xs text-tertiary mt-2" style={{ textAlign: 'right' }}>
-        Showing {sorted.length} of {MOCK_PATIENTS.length} patients
+        Exibindo {sorted.length} de {MOCK_PATIENTS.length} pacientes
       </div>
     </AppShell>
   );

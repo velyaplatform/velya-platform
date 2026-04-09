@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const ROLES = ['Ward Coordinator', 'Doctor', 'Nurse', 'Discharge Planner'] as const;
+const ROLES = ['Coordenador de Ala', 'Médico', 'Enfermeiro(a)', 'Planejador de Alta'] as const;
 type Role = (typeof ROLES)[number];
 
 interface NavItemDef {
@@ -14,11 +14,11 @@ interface NavItemDef {
 }
 
 const NAV_ITEMS: NavItemDef[] = [
-  { href: '/', icon: '⬛', label: 'Command Center' },
-  { href: '/patients', icon: '🧑‍⚕️', label: 'Patients', badge: 47 },
-  { href: '/tasks', icon: '✅', label: 'Task Inbox', badge: 12 },
-  { href: '/discharge', icon: '🏠', label: 'Discharge Tower', badge: 5 },
-  { href: '/system', icon: '⚙️', label: 'System Status' },
+  { href: '/', icon: '⬛', label: 'Centro de Comando' },
+  { href: '/patients', icon: '🧑‍⚕️', label: 'Pacientes', badge: 47 },
+  { href: '/tasks', icon: '✅', label: 'Caixa de Tarefas', badge: 12 },
+  { href: '/discharge', icon: '🏠', label: 'Torre de Altas', badge: 5 },
+  { href: '/system', icon: '⚙️', label: 'Status do Sistema' },
 ];
 
 interface NavigationProps {
@@ -33,11 +33,11 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
     <aside className="app-sidebar">
       <div className="sidebar-logo">
         <div className="sidebar-logo-text">Velya</div>
-        <div className="sidebar-logo-sub">Hospital Ops Platform</div>
+        <div className="sidebar-logo-sub">Plataforma Hospitalar</div>
       </div>
 
       <nav className="sidebar-nav">
-        <div className="nav-section-label">Workspace</div>
+        <div className="nav-section-label">Espaço de Trabalho</div>
 
         {NAV_ITEMS.map((item) => {
           const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
@@ -56,7 +56,7 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
           );
         })}
 
-        <div className="nav-section-label" style={{ marginTop: '1rem' }}>Observability</div>
+        <div className="nav-section-label" style={{ marginTop: '1rem' }}>Observabilidade</div>
 
         <a
           href="http://grafana.172.19.0.6.nip.io"
@@ -81,7 +81,7 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
 
       <div className="sidebar-footer">
         <div className="sidebar-role-badge">
-          <div className="sidebar-role-label">Active Role</div>
+          <div className="sidebar-role-label">Função Ativa</div>
           <select
             value={currentRole}
             onChange={(e) => onRoleChange(e.target.value as Role)}

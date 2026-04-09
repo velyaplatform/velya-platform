@@ -15,66 +15,66 @@ interface ServiceDef {
 
 const SERVICES: ServiceDef[] = [
   {
-    name: 'Patient Flow',
+    name: 'Fluxo de Pacientes',
     url: 'http://patient-flow.172.19.0.6.nip.io',
     healthPath: '/api/v1/health',
-    description: 'Real-time patient tracking and flow orchestration',
+    description: 'Rastreamento em tempo real e orquestração do fluxo de pacientes',
     category: 'core',
   },
   {
-    name: 'Discharge Service',
+    name: 'Serviço de Alta',
     url: 'http://discharge.172.19.0.6.nip.io',
     healthPath: '/api/v1/health',
-    description: 'Discharge planning, blockers, and coordination',
+    description: 'Planejamento de altas, bloqueios e coordenação',
     category: 'core',
   },
   {
-    name: 'Task Inbox',
+    name: 'Caixa de Tarefas',
     url: 'http://task-inbox.172.19.0.6.nip.io',
     healthPath: '/api/v1/health',
-    description: 'Priority-ordered clinical and administrative task routing',
+    description: 'Roteamento de tarefas clínicas e administrativas por prioridade',
     category: 'core',
   },
   {
-    name: 'Audit Service',
+    name: 'Auditoria',
     url: 'http://audit.172.19.0.6.nip.io',
     healthPath: '/api/v1/health',
-    description: 'Clinical and operational audit trail with HIPAA compliance',
+    description: 'Trilha de auditoria clínica e operacional com conformidade HIPAA',
     category: 'platform',
   },
   {
-    name: 'Policy Engine',
+    name: 'Motor de Políticas',
     url: 'http://policy-engine.172.19.0.6.nip.io',
     healthPath: '/api/v1/health',
-    description: 'Role-based access control and clinical policy enforcement',
+    description: 'Controle de acesso por papel e aplicação de políticas clínicas',
     category: 'platform',
   },
   {
-    name: 'AI Gateway',
+    name: 'Gateway de IA',
     url: 'http://ai-gateway.172.19.0.6.nip.io',
     healthPath: '/api/v1/health',
-    description: 'Unified AI provider gateway with PHI redaction and rate limiting',
+    description: 'Gateway unificado de IA com redação de PHI e controle de taxa',
     category: 'ai',
   },
   {
-    name: 'Agents',
+    name: 'Agentes',
     url: 'http://agents.172.19.0.6.nip.io',
     healthPath: '/api/v1/health',
-    description: 'Clinical and operational AI agent execution engine',
+    description: 'Motor de execução de agentes de IA clínicos e operacionais',
     category: 'ai',
   },
   {
     name: 'Grafana',
     url: 'http://grafana.172.19.0.6.nip.io',
     healthPath: '/api/health',
-    description: 'Platform observability dashboards and alerting',
+    description: 'Dashboards de observabilidade e alertas da plataforma',
     category: 'observability',
   },
   {
     name: 'ArgoCD',
     url: 'http://argocd.172.19.0.6.nip.io',
     healthPath: '/healthz',
-    description: 'GitOps continuous delivery and sync status',
+    description: 'Entrega contínua GitOps e status de sincronização',
     category: 'observability',
   },
 ];
@@ -93,8 +93,8 @@ const AGENT_ACTIVITY: AgentActivity[] = [
   {
     id: 'A-001',
     agent: 'discharge-coordinator-agent',
-    office: 'Clinical Ops',
-    action: 'Identified 5 patients with LOS > threshold — generated discharge plans',
+    office: 'Ops Clínicas',
+    action: 'Identificados 5 pacientes com TMI acima do limite — planos de alta gerados',
     patient: 'MRN-004, MRN-007, MRN-013',
     timestamp: '09:45',
     status: 'completed',
@@ -102,24 +102,24 @@ const AGENT_ACTIVITY: AgentActivity[] = [
   {
     id: 'A-002',
     agent: 'clinical-triage-agent',
-    office: 'Clinical',
-    action: 'Prioritised 34 tasks and routed to appropriate teams',
+    office: 'Clínico',
+    action: '34 tarefas priorizadas e roteadas para as equipes responsáveis',
     timestamp: '09:30',
     status: 'completed',
   },
   {
     id: 'A-003',
     agent: 'quality-audit-agent',
-    office: 'Quality',
-    action: 'Flagging 7 patients missing ward round documentation',
+    office: 'Qualidade',
+    action: 'Sinalizando 7 pacientes sem documentação de visita médica',
     timestamp: '09:15',
     status: 'in-progress',
   },
   {
     id: 'A-004',
     agent: 'medication-reconciliation-agent',
-    office: 'Pharmacy',
-    action: 'Medication reconciliation check failed — PHI validation error',
+    office: 'Farmácia',
+    action: 'Reconciliação medicamentosa falhou — erro de validação de PHI',
     patient: 'MRN-006',
     timestamp: '08:55',
     status: 'failed',
@@ -127,8 +127,8 @@ const AGENT_ACTIVITY: AgentActivity[] = [
   {
     id: 'A-005',
     agent: 'insurance-auth-agent',
-    office: 'Revenue',
-    action: 'Pre-auth pending > 48h — escalated to human reviewer',
+    office: 'Receita',
+    action: 'Pré-autorização pendente há mais de 48h — escalada para revisor humano',
     patient: 'MRN-007',
     timestamp: '08:30',
     status: 'escalated',
@@ -136,16 +136,16 @@ const AGENT_ACTIVITY: AgentActivity[] = [
   {
     id: 'A-006',
     agent: 'discharge-coordinator-agent',
-    office: 'Clinical Ops',
-    action: 'Transport coordination requests sent for 3 patients',
+    office: 'Ops Clínicas',
+    action: 'Solicitações de coordenação de transporte enviadas para 3 pacientes',
     timestamp: '08:00',
     status: 'completed',
   },
   {
     id: 'A-007',
     agent: 'clinical-triage-agent',
-    office: 'Clinical',
-    action: 'NEWS2 escalation triggered for Ward 2A bed 2A-10',
+    office: 'Clínico',
+    action: 'Escalada NEWS2 acionada para Ala 2A leito 2A-10',
     patient: 'MRN-013',
     timestamp: '07:45',
     status: 'escalated',
@@ -160,17 +160,17 @@ const AGENT_STATUS_BADGE: Record<AgentActivity['status'], string> = {
 };
 
 const AGENT_STATUS_LABEL: Record<AgentActivity['status'], string> = {
-  completed: 'Completed',
-  'in-progress': 'In Progress',
-  failed: 'Failed',
-  escalated: 'Escalated',
+  completed: 'Concluído',
+  'in-progress': 'Em Progresso',
+  failed: 'Falhou',
+  escalated: 'Escalado',
 };
 
 const CATEGORY_LABELS: Record<ServiceDef['category'], string> = {
-  core: '🏥 Core Services',
-  ai: '🤖 AI & Agents',
-  platform: '🔐 Platform',
-  observability: '📊 Observability',
+  core: '🏥 Serviços Core',
+  ai: '🤖 IA & Agentes',
+  platform: '🔐 Plataforma',
+  observability: '📊 Observabilidade',
 };
 
 interface ServiceCardProps {
@@ -182,11 +182,11 @@ interface ServiceCardProps {
 
 function ServiceCard({ service, health, latency, onCheck }: ServiceCardProps) {
   const statusConfig = {
-    healthy: { dot: 'status-dot-green', card: 'service-card-healthy', label: 'Healthy' },
-    degraded: { dot: 'status-dot-amber status-dot-pulse', card: 'service-card-degraded', label: 'Degraded' },
-    down: { dot: 'status-dot-red status-dot-pulse', card: 'service-card-down', label: 'Down' },
-    unknown: { dot: 'status-dot-grey', card: 'service-card-unknown', label: 'Unknown' },
-    checking: { dot: 'status-dot-grey status-dot-pulse', card: 'service-card-unknown', label: 'Checking...' },
+    healthy: { dot: 'status-dot-green', card: 'service-card-healthy', label: 'Saudável' },
+    degraded: { dot: 'status-dot-amber status-dot-pulse', card: 'service-card-degraded', label: 'Degradado' },
+    down: { dot: 'status-dot-red status-dot-pulse', card: 'service-card-down', label: 'Indisponível' },
+    unknown: { dot: 'status-dot-grey', card: 'service-card-unknown', label: 'Desconhecido' },
+    checking: { dot: 'status-dot-grey status-dot-pulse', card: 'service-card-unknown', label: 'Verificando...' },
   };
 
   const cfg = statusConfig[health];
@@ -224,7 +224,7 @@ function ServiceCard({ service, health, latency, onCheck }: ServiceCardProps) {
           style={{ marginLeft: 'auto', fontSize: '0.7rem', padding: '2px 8px' }}
           onClick={() => onCheck(service.url)}
         >
-          Re-check
+          Re-verificar
         </button>
       </div>
     </div>
@@ -286,39 +286,39 @@ export default function SystemPage() {
   ).length;
 
   return (
-    <AppShell pageTitle="System Status">
+    <AppShell pageTitle="Status do Sistema">
       <div className="page-header">
-        <h1 className="page-title">System Status &amp; Agent Console</h1>
+        <h1 className="page-title">Status do Sistema &amp; Console de Agentes</h1>
         <p className="page-subtitle">
-          Live health checks against all Velya platform services
+          Verificações de saúde em tempo real de todos os serviços da plataforma Velya
         </p>
       </div>
 
-      {/* Overall status */}
+      {/* Status geral */}
       <div className="grid-metrics" style={{ marginBottom: '1.5rem' }}>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-success)' }}>
-          <div className="metric-label">Healthy</div>
+          <div className="metric-label">Saudável</div>
           <div className="metric-value" style={{ color: 'var(--color-success)' }}>{healthyCount}</div>
-          <div className="metric-sub">Services operational</div>
+          <div className="metric-sub">Serviços operacionais</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-warning)' }}>
-          <div className="metric-label">Degraded</div>
+          <div className="metric-label">Degradado</div>
           <div className="metric-value" style={{ color: 'var(--color-warning)' }}>{degradedCount}</div>
-          <div className="metric-sub">Reduced performance</div>
+          <div className="metric-sub">Desempenho reduzido</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-critical)' }}>
-          <div className="metric-label">Down</div>
+          <div className="metric-label">Indisponível</div>
           <div className="metric-value" style={{ color: 'var(--color-critical)' }}>{downCount}</div>
-          <div className="metric-sub">Service unavailable</div>
+          <div className="metric-sub">Serviço fora do ar</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-neutral)' }}>
-          <div className="metric-label">Unknown</div>
+          <div className="metric-label">Desconhecido</div>
           <div className="metric-value">{unknownCount}</div>
-          <div className="metric-sub">Checking / unreachable</div>
+          <div className="metric-sub">Verificando / inacessível</div>
         </div>
       </div>
 
-      {/* Service grid by category */}
+      {/* Grade de serviços por categoria */}
       {CATEGORIES.map((category) => {
         const categoryServices = SERVICES.filter((s) => s.category === category);
         return (
@@ -361,10 +361,10 @@ export default function SystemPage() {
         );
       })}
 
-      {/* External dashboards */}
+      {/* Dashboards externos */}
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <div className="card-header">
-          <span className="card-title">🔗 External Dashboards</span>
+          <span className="card-title">🔗 Dashboards Externos</span>
         </div>
         <div className="flex gap-3 flex-wrap">
           <a
@@ -373,7 +373,7 @@ export default function SystemPage() {
             rel="noopener noreferrer"
             className="btn btn-primary"
           >
-            📊 Open Grafana
+            📊 Abrir Grafana
           </a>
           <a
             href="http://argocd.172.19.0.6.nip.io"
@@ -381,7 +381,7 @@ export default function SystemPage() {
             rel="noopener noreferrer"
             className="btn btn-outline"
           >
-            🔄 Open ArgoCD
+            🔄 Abrir ArgoCD
           </a>
           <div
             style={{
@@ -396,28 +396,28 @@ export default function SystemPage() {
         </div>
       </div>
 
-      {/* GitOps Status (mock) */}
+      {/* Status GitOps (simulado) */}
       <div className="grid-2" style={{ marginBottom: '1.5rem' }}>
         <div className="card">
           <div className="card-header">
-            <span className="card-title">🔄 ArgoCD Sync Status</span>
+            <span className="card-title">🔄 Status de Sync ArgoCD</span>
           </div>
           <table className="data-table">
             <thead>
               <tr>
-                <th>Application</th>
+                <th>Aplicação</th>
                 <th>Status</th>
-                <th>Last Sync</th>
+                <th>Último Sync</th>
               </tr>
             </thead>
             <tbody>
               {[
-                { app: 'velya-web', status: 'Synced', time: '2min ago' },
-                { app: 'velya-patient-flow', status: 'Synced', time: '5min ago' },
-                { app: 'velya-discharge', status: 'Synced', time: '5min ago' },
-                { app: 'velya-task-inbox', status: 'Synced', time: '7min ago' },
-                { app: 'velya-ai-gateway', status: 'OutOfSync', time: '15min ago' },
-                { app: 'velya-agents', status: 'Synced', time: '3min ago' },
+                { app: 'velya-web', status: 'Synced', time: 'há 2min' },
+                { app: 'velya-patient-flow', status: 'Synced', time: 'há 5min' },
+                { app: 'velya-discharge', status: 'Synced', time: 'há 5min' },
+                { app: 'velya-task-inbox', status: 'Synced', time: 'há 7min' },
+                { app: 'velya-ai-gateway', status: 'OutOfSync', time: 'há 15min' },
+                { app: 'velya-agents', status: 'Synced', time: 'há 3min' },
               ].map((row) => (
                 <tr key={row.app}>
                   <td className="text-sm font-semibold">{row.app}</td>
@@ -437,14 +437,14 @@ export default function SystemPage() {
 
         <div className="card">
           <div className="card-header">
-            <span className="card-title">⚡ KEDA Scaling</span>
+            <span className="card-title">⚡ Escalonamento KEDA</span>
           </div>
           <table className="data-table">
             <thead>
               <tr>
                 <th>Workload</th>
-                <th>Replicas</th>
-                <th>Target</th>
+                <th>Réplicas</th>
+                <th>Alvo</th>
               </tr>
             </thead>
             <tbody>
@@ -475,11 +475,11 @@ export default function SystemPage() {
         </div>
       </div>
 
-      {/* Agent Activity Log */}
+      {/* Log de Atividade dos Agentes */}
       <div className="card">
         <div className="card-header">
-          <span className="card-title">🤖 Agent Activity Log</span>
-          <span className="badge badge-info">Live</span>
+          <span className="card-title">🤖 Log de Atividade dos Agentes</span>
+          <span className="badge badge-info">Ao Vivo</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {AGENT_ACTIVITY.map((activity) => (
@@ -530,7 +530,7 @@ export default function SystemPage() {
                 </div>
                 {activity.patient && (
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                    Patient: {activity.patient}
+                    Paciente: {activity.patient}
                   </div>
                 )}
               </div>
