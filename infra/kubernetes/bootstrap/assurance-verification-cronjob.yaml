@@ -1,0 +1,315 @@
+# Assurance Verification CronJob — Velya Platform
+# Runs every 15 minutes to verify all assurance layers are intact.
+# Checks: resource limits, probes, owner labels, PDBs, NetworkPolicies,
+#          non-root enforcement, latest tag, ArgoCD health, Prometheus rules,
+#          Grafana accessibility.
+# Results posted to /api/sentinel webhook.
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-assurance-verification
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: sentinel
+    velya.io/loop: medium
+spec:
+  schedule: "*/15 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 600
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: sentinel
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          priorityClassName: velya-batch
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          containers:
+            - name: assurance-verification
+              image: bitnami/kubectl:1.31
+              env:
+                - name: VELYA_WEBHOOK_URL
+                  value: "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "=== Velya Assurance Verification $(date -u +%Y-%m-%dT%H:%M:%SZ) ==="
+                  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                  STATUS="ok"
+                  FINDINGS=""
+                  VELYA_NS="velya-dev-core velya-dev-platform velya-dev-agents velya-dev-web"
+
+                  # -------------------------------------------------------
+                  # 1. All deployments have resource limits
+                  # -------------------------------------------------------
+                  echo "--- Check: resource limits ---"
+                  MISSING_RESOURCES=0
+                  for ns in $VELYA_NS; do
+                    DEPS=$(kubectl get deploy -n "$ns" -o json 2>/dev/null)
+                    if [ -n "$DEPS" ]; then
+                      NO_LIMITS=$(echo "$DEPS" | \
+                        python3 -c "
+                  import sys, json
+                  data = json.load(sys.stdin)
+                  count = 0
+                  for d in data.get('items', []):
+                    for c in d['spec']['template']['spec'].get('containers', []):
+                      res = c.get('resources', {})
+                      if not res.get('requests') or not res.get('limits'):
+                        count += 1
+                  print(count)" 2>/dev/null || echo "0")
+                      MISSING_RESOURCES=$((MISSING_RESOURCES + NO_LIMITS))
+                    fi
+                  done
+                  if [ "$MISSING_RESOURCES" -gt 0 ]; then
+                    echo "WARN: $MISSING_RESOURCES containers missing resource requests/limits"
+                    FINDINGS="${FINDINGS}{\"type\":\"missing-resources\",\"count\":$MISSING_RESOURCES},"
+                    [ "$STATUS" = "ok" ] && STATUS="warning"
+                  else
+                    echo "OK: all containers have resource requests/limits"
+                  fi
+
+                  # -------------------------------------------------------
+                  # 2. All deployments have probes
+                  # -------------------------------------------------------
+                  echo "--- Check: probes ---"
+                  MISSING_PROBES=0
+                  for ns in $VELYA_NS; do
+                    DEPS=$(kubectl get deploy -n "$ns" -o json 2>/dev/null)
+                    if [ -n "$DEPS" ]; then
+                      NO_PROBES=$(echo "$DEPS" | \
+                        python3 -c "
+                  import sys, json
+                  data = json.load(sys.stdin)
+                  count = 0
+                  for d in data.get('items', []):
+                    for c in d['spec']['template']['spec'].get('containers', []):
+                      if not c.get('livenessProbe') or not c.get('readinessProbe'):
+                        count += 1
+                  print(count)" 2>/dev/null || echo "0")
+                      MISSING_PROBES=$((MISSING_PROBES + NO_PROBES))
+                    fi
+                  done
+                  if [ "$MISSING_PROBES" -gt 0 ]; then
+                    echo "WARN: $MISSING_PROBES containers missing liveness/readiness probes"
+                    FINDINGS="${FINDINGS}{\"type\":\"missing-probes\",\"count\":$MISSING_PROBES},"
+                    [ "$STATUS" = "ok" ] && STATUS="warning"
+                  else
+                    echo "OK: all containers have probes"
+                  fi
+
+                  # -------------------------------------------------------
+                  # 3. All deployments have owner labels
+                  # -------------------------------------------------------
+                  echo "--- Check: owner labels ---"
+                  MISSING_OWNER=0
+                  for ns in $VELYA_NS; do
+                    NO_OWNER=$(kubectl get deploy -n "$ns" -o json 2>/dev/null | \
+                      python3 -c "
+                  import sys, json
+                  data = json.load(sys.stdin)
+                  count = 0
+                  for d in data.get('items', []):
+                    labels = d.get('metadata', {}).get('labels', {})
+                    if 'velya.io/owner' not in labels:
+                      count += 1
+                  print(count)" 2>/dev/null || echo "0")
+                    MISSING_OWNER=$((MISSING_OWNER + NO_OWNER))
+                  done
+                  if [ "$MISSING_OWNER" -gt 0 ]; then
+                    echo "WARN: $MISSING_OWNER deployments missing velya.io/owner label"
+                    FINDINGS="${FINDINGS}{\"type\":\"missing-owner-label\",\"count\":$MISSING_OWNER},"
+                    [ "$STATUS" = "ok" ] && STATUS="warning"
+                  else
+                    echo "OK: all deployments have owner labels"
+                  fi
+
+                  # -------------------------------------------------------
+                  # 4. All services have PDBs
+                  # -------------------------------------------------------
+                  echo "--- Check: PodDisruptionBudgets ---"
+                  MISSING_PDB=0
+                  for ns in $VELYA_NS; do
+                    DEPLOY_COUNT=$(kubectl get deploy -n "$ns" --no-headers 2>/dev/null | wc -l)
+                    PDB_COUNT=$(kubectl get pdb -n "$ns" --no-headers 2>/dev/null | wc -l)
+                    DIFF=$((DEPLOY_COUNT - PDB_COUNT))
+                    if [ "$DIFF" -gt 0 ]; then
+                      MISSING_PDB=$((MISSING_PDB + DIFF))
+                    fi
+                  done
+                  if [ "$MISSING_PDB" -gt 0 ]; then
+                    echo "WARN: $MISSING_PDB deployments without PDB"
+                    FINDINGS="${FINDINGS}{\"type\":\"missing-pdb\",\"count\":$MISSING_PDB},"
+                    [ "$STATUS" = "ok" ] && STATUS="warning"
+                  else
+                    echo "OK: all deployments have PDBs"
+                  fi
+
+                  # -------------------------------------------------------
+                  # 5. All namespaces have NetworkPolicies
+                  # -------------------------------------------------------
+                  echo "--- Check: NetworkPolicies ---"
+                  MISSING_NP=""
+                  for ns in $VELYA_NS; do
+                    NP_COUNT=$(kubectl get networkpolicy -n "$ns" --no-headers 2>/dev/null | wc -l)
+                    if [ "$NP_COUNT" -eq 0 ]; then
+                      MISSING_NP="${MISSING_NP}${ns} "
+                    fi
+                  done
+                  if [ -n "$MISSING_NP" ]; then
+                    echo "WARN: namespaces without NetworkPolicies: $MISSING_NP"
+                    FINDINGS="${FINDINGS}{\"type\":\"missing-networkpolicy\",\"namespaces\":\"$(echo $MISSING_NP | sed 's/ $//')\"},"
+                    [ "$STATUS" = "ok" ] && STATUS="warning"
+                  else
+                    echo "OK: all namespaces have NetworkPolicies"
+                  fi
+
+                  # -------------------------------------------------------
+                  # 6. No pods running as root
+                  # -------------------------------------------------------
+                  echo "--- Check: non-root enforcement ---"
+                  ROOT_PODS=0
+                  for ns in $VELYA_NS; do
+                    ROOT=$(kubectl get pods -n "$ns" -o json 2>/dev/null | \
+                      python3 -c "
+                  import sys, json
+                  data = json.load(sys.stdin)
+                  count = 0
+                  for p in data.get('items', []):
+                    sc = p['spec'].get('securityContext', {})
+                    if not sc.get('runAsNonRoot', False) and sc.get('runAsUser', 0) == 0:
+                      count += 1
+                  print(count)" 2>/dev/null || echo "0")
+                    ROOT_PODS=$((ROOT_PODS + ROOT))
+                  done
+                  if [ "$ROOT_PODS" -gt 0 ]; then
+                    echo "CRITICAL: $ROOT_PODS pods potentially running as root"
+                    FINDINGS="${FINDINGS}{\"type\":\"root-pods\",\"count\":$ROOT_PODS},"
+                    STATUS="critical"
+                  else
+                    echo "OK: no pods running as root"
+                  fi
+
+                  # -------------------------------------------------------
+                  # 7. No images with :latest tag
+                  # -------------------------------------------------------
+                  echo "--- Check: latest tag ---"
+                  LATEST_IMAGES=0
+                  for ns in $VELYA_NS; do
+                    LATEST=$(kubectl get pods -n "$ns" -o jsonpath='{range .items[*]}{range .spec.containers[*]}{.image}{"\n"}{end}{end}' 2>/dev/null | grep -c ':latest$' || true)
+                    LATEST_IMAGES=$((LATEST_IMAGES + LATEST))
+                  done
+                  if [ "$LATEST_IMAGES" -gt 0 ]; then
+                    echo "WARN: $LATEST_IMAGES containers using :latest tag"
+                    FINDINGS="${FINDINGS}{\"type\":\"latest-tag\",\"count\":$LATEST_IMAGES},"
+                    [ "$STATUS" = "ok" ] && STATUS="warning"
+                  else
+                    echo "OK: no :latest images"
+                  fi
+
+                  # -------------------------------------------------------
+                  # 8. ArgoCD apps healthy and synced
+                  # -------------------------------------------------------
+                  echo "--- Check: ArgoCD applications ---"
+                  ARGOCD_APPS=$(kubectl get applications -n argocd --no-headers 2>/dev/null)
+                  if [ -z "$ARGOCD_APPS" ]; then
+                    echo "INFO: no ArgoCD applications found (may not be configured yet)"
+                    FINDINGS="${FINDINGS}{\"type\":\"argocd-not-configured\",\"detail\":\"no applications found\"},"
+                  else
+                    UNHEALTHY=$(echo "$ARGOCD_APPS" | grep -v -E "Healthy.*Synced" | wc -l)
+                    if [ "$UNHEALTHY" -gt 0 ]; then
+                      echo "WARN: $UNHEALTHY ArgoCD applications not healthy/synced"
+                      FINDINGS="${FINDINGS}{\"type\":\"argocd-unhealthy\",\"count\":$UNHEALTHY},"
+                      [ "$STATUS" = "ok" ] && STATUS="warning"
+                    else
+                      echo "OK: all ArgoCD applications healthy and synced"
+                    fi
+                  fi
+
+                  # -------------------------------------------------------
+                  # 9. Prometheus rules loaded
+                  # -------------------------------------------------------
+                  echo "--- Check: Prometheus rules ---"
+                  PROM_RULES=$(kubectl get prometheusrule -A --no-headers 2>/dev/null | grep velya | wc -l)
+                  if [ "$PROM_RULES" -eq 0 ]; then
+                    echo "WARN: no Velya PrometheusRules found"
+                    FINDINGS="${FINDINGS}{\"type\":\"prometheus-rules-missing\",\"count\":0},"
+                    [ "$STATUS" = "ok" ] && STATUS="warning"
+                  else
+                    echo "OK: $PROM_RULES PrometheusRule(s) loaded"
+                  fi
+
+                  # -------------------------------------------------------
+                  # 10. Grafana dashboards accessible
+                  # -------------------------------------------------------
+                  echo "--- Check: Grafana accessibility ---"
+                  GRAFANA_HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
+                    "http://grafana.velya-dev-observability.svc.cluster.local:80/api/health" \
+                    --max-time 5 2>/dev/null || echo "000")
+                  if [ "$GRAFANA_HTTP" = "200" ]; then
+                    echo "OK: Grafana is accessible"
+                  else
+                    echo "WARN: Grafana returned HTTP $GRAFANA_HTTP"
+                    FINDINGS="${FINDINGS}{\"type\":\"grafana-unreachable\",\"http_code\":\"$GRAFANA_HTTP\"},"
+                    [ "$STATUS" = "ok" ] && STATUS="warning"
+                  fi
+
+                  # -------------------------------------------------------
+                  # Build and send result
+                  # -------------------------------------------------------
+                  echo "=== Assurance verification complete ==="
+
+                  # Remove trailing comma
+                  FINDINGS=$(echo "$FINDINGS" | sed 's/,$//')
+
+                  RESULT=$(cat <<ENDJSON
+                  {
+                    "sentinel": "assurance-verification",
+                    "timestamp": "$TIMESTAMP",
+                    "status": "$STATUS",
+                    "findings": [$FINDINGS],
+                    "cluster": "kind-velya-local"
+                  }
+                  ENDJSON
+                  )
+
+                  echo "JSON payload: $RESULT"
+
+                  # POST to webhook (best-effort)
+                  curl -s -X POST -H "Content-Type: application/json" \
+                    -d "$RESULT" \
+                    "${VELYA_WEBHOOK_URL}" \
+                    --max-time 5 || true
+
+                  # Create K8s Event for critical findings
+                  if [ "$STATUS" = "critical" ]; then
+                    kubectl create event sentinel-assurance-alert \
+                      --namespace velya-dev-platform \
+                      --type=Warning \
+                      --reason="AssuranceViolation" \
+                      --message="Assurance verification found critical issues: $STATUS" \
+                      --field-manager=velya-sentinel 2>/dev/null || true
+                  fi

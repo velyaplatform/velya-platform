@@ -19,6 +19,8 @@ const NAV_ITEMS: NavItemDef[] = [
   { href: '/tasks', icon: '✅', label: 'Caixa de Tarefas', badge: 12 },
   { href: '/discharge', icon: '🏠', label: 'Torre de Altas', badge: 5 },
   { href: '/system', icon: '⚙️', label: 'Status do Sistema' },
+  { href: '/activity', icon: '📋', label: 'Log de Atividade' },
+  { href: '/audit', icon: '🔒', label: 'Auditoria' },
 ];
 
 interface NavigationProps {
