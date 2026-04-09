@@ -1,0 +1,372 @@
+---
+# PrometheusRules expandidas — Velya Platform
+# Cobertura completa: infraestrutura, plataforma, backend, agents, clínico, custo
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: velya-infrastructure-alerts
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    release: prometheus
+spec:
+  groups:
+    - name: velya.infrastructure.pods
+      interval: 1m
+      rules:
+        - alert: VelyaPodCrashLooping
+          expr: |
+            increase(kube_pod_container_status_restarts_total{
+              namespace=~"velya-.*"
+            }[15m]) > 3
+          for: 5m
+          labels:
+            severity: high
+            domain: infrastructure
+            office: platform-office
+          annotations:
+            summary: "Pod {{ $labels.pod }} em CrashLoop no namespace {{ $labels.namespace }}"
+            description: "O container {{ $labels.container }} reiniciou {{ $value }} vezes nos últimos 15 minutos."
+            runbook: "docs/runbooks/service-health-runbook.md"
+            dashboard: "velya-cluster-overview"
+
+        - alert: VelyaPodOOMKilled
+          expr: |
+            kube_pod_container_status_last_terminated_reason{
+              namespace=~"velya-.*",
+              reason="OOMKilled"
+            } == 1
+          for: 1m
+          labels:
+            severity: high
+            domain: infrastructure
+            office: platform-office
+          annotations:
+            summary: "Pod {{ $labels.pod }} foi encerrado por OOM no namespace {{ $labels.namespace }}"
+            description: "O container {{ $labels.container }} foi eliminado por falta de memória. Ajuste os resource limits."
+            runbook: "docs/runbooks/service-health-runbook.md"
+
+        - alert: VelyaPodPendingLong
+          expr: |
+            kube_pod_status_phase{
+              namespace=~"velya-.*",
+              phase="Pending"
+            } == 1
+          for: 10m
+          labels:
+            severity: medium
+            domain: infrastructure
+            office: platform-office
+          annotations:
+            summary: "Pod {{ $labels.pod }} pendente há mais de 10 minutos"
+            description: "Pod no namespace {{ $labels.namespace }} não consegue iniciar. Verificar scheduling, recursos e PVCs."
+
+        - alert: VelyaHighRestartRate
+          expr: |
+            rate(kube_pod_container_status_restarts_total{
+              namespace=~"velya-.*"
+            }[30m]) > 0.1
+          for: 5m
+          labels:
+            severity: medium
+            domain: infrastructure
+            office: platform-office
+          annotations:
+            summary: "Taxa alta de restart em {{ $labels.pod }} ({{ $labels.namespace }})"
+            description: "Container {{ $labels.container }} reiniciando mais de 6 vezes por hora."
+
+    - name: velya.infrastructure.nodes
+      interval: 2m
+      rules:
+        - alert: VelyaNodeMemoryPressure
+          expr: |
+            kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+          for: 5m
+          labels:
+            severity: critical
+            domain: infrastructure
+            office: platform-office
+          annotations:
+            summary: "Node {{ $labels.node }} sob pressão de memória"
+            description: "Node em MemoryPressure pode causar eviction de pods críticos."
+
+        - alert: VelyaNodeDiskPressure
+          expr: |
+            kube_node_status_condition{condition="DiskPressure",status="true"} == 1
+          for: 5m
+          labels:
+            severity: high
+            domain: infrastructure
+            office: platform-office
+          annotations:
+            summary: "Node {{ $labels.node }} sob pressão de disco"
+
+        - alert: VelyaNodeNotReady
+          expr: |
+            kube_node_status_condition{condition="Ready",status="true"} == 0
+          for: 3m
+          labels:
+            severity: critical
+            domain: infrastructure
+            office: platform-office
+          annotations:
+            summary: "Node {{ $labels.node }} não está Ready"
+
+    - name: velya.infrastructure.resources
+      interval: 2m
+      rules:
+        - alert: VelyaNamespaceQuotaCPUHigh
+          expr: |
+            kube_resourcequota{
+              namespace=~"velya-.*",
+              resource="requests.cpu",
+              type="used"
+            } / kube_resourcequota{
+              namespace=~"velya-.*",
+              resource="requests.cpu",
+              type="hard"
+            } > 0.85
+          for: 5m
+          labels:
+            severity: medium
+            domain: infrastructure
+            office: platform-office
+          annotations:
+            summary: "Namespace {{ $labels.namespace }} usando > 85% da quota de CPU"
+
+        - alert: VelyaNamespaceQuotaMemoryHigh
+          expr: |
+            kube_resourcequota{
+              namespace=~"velya-.*",
+              resource="requests.memory",
+              type="used"
+            } / kube_resourcequota{
+              namespace=~"velya-.*",
+              resource="requests.memory",
+              type="hard"
+            } > 0.85
+          for: 5m
+          labels:
+            severity: medium
+            domain: infrastructure
+            office: platform-office
+          annotations:
+            summary: "Namespace {{ $labels.namespace }} usando > 85% da quota de memória"
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: velya-platform-alerts
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    release: prometheus
+spec:
+  groups:
+    - name: velya.platform.keda
+      interval: 1m
+      rules:
+        - alert: VelyaKEDAScalerError
+          expr: |
+            keda_scaler_errors_total > 0
+          for: 5m
+          labels:
+            severity: high
+            domain: platform
+            office: platform-office
+          annotations:
+            summary: "KEDA scaler com erros: {{ $labels.scaler }}"
+            description: "ScaledObject {{ $labels.scaledObject }} com erros no scaler {{ $labels.scaler }}. Verificar fonte de métricas."
+
+        - alert: VelyaKEDAScalingThrash
+          expr: |
+            changes(keda_scaler_metrics_value[30m]) > 10
+          for: 5m
+          labels:
+            severity: medium
+            domain: platform
+            office: platform-office
+          annotations:
+            summary: "KEDA thrash detectado em {{ $labels.scaledObject }}"
+            description: "Mais de 10 mudanças de scaling em 30 minutos. Verificar calibração do trigger."
+
+    - name: velya.platform.prometheus
+      interval: 2m
+      rules:
+        - alert: VelyaPrometheusHighCardinality
+          expr: |
+            prometheus_tsdb_head_series > 800000
+          for: 10m
+          labels:
+            severity: high
+            domain: platform
+            office: reliability-office
+          annotations:
+            summary: "Prometheus com alta cardinalidade: {{ $value }} séries"
+            description: "Mais de 800K time series. Risco de OOMKilled. Revisar labels e métricas de alta cardinalidade."
+
+        - alert: VelyaPrometheusScrapeFailing
+          expr: |
+            up{job=~"velya-.*"} == 0
+          for: 5m
+          labels:
+            severity: high
+            domain: platform
+            office: reliability-office
+          annotations:
+            summary: "Scrape falhando para {{ $labels.job }} em {{ $labels.namespace }}"
+            description: "Prometheus não consegue coletar métricas do serviço {{ $labels.instance }}."
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: velya-backend-alerts
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    release: prometheus
+spec:
+  groups:
+    - name: velya.backend.golden-signals
+      interval: 1m
+      rules:
+        - alert: VelyaServiceHighErrorRate
+          expr: |
+            rate(http_requests_total{
+              namespace=~"velya-dev-.*",
+              status_code=~"5.."
+            }[5m]) /
+            rate(http_requests_total{
+              namespace=~"velya-dev-.*"
+            }[5m]) > 0.05
+          for: 5m
+          labels:
+            severity: high
+            domain: backend
+            office: reliability-office
+          annotations:
+            summary: "Taxa de erro > 5% em {{ $labels.service }} ({{ $labels.namespace }})"
+            description: "Error rate atual: {{ humanizePercentage $value }}. SLO violado."
+            runbook: "docs/runbooks/service-health-runbook.md"
+
+        - alert: VelyaServiceHighLatencyP99
+          expr: |
+            histogram_quantile(0.99,
+              rate(http_request_duration_seconds_bucket{
+                namespace=~"velya-dev-.*"
+              }[5m])
+            ) > 2
+          for: 5m
+          labels:
+            severity: high
+            domain: backend
+            office: reliability-office
+          annotations:
+            summary: "Latência P99 > 2s em {{ $labels.service }}"
+            description: "P99 atual: {{ humanizeDuration $value }}. Pode indicar gargalo de DB, NATS ou AI."
+
+        - alert: VelyaServiceDown
+          expr: |
+            up{
+              namespace=~"velya-dev-.*",
+              job=~"velya-.*"
+            } == 0
+          for: 2m
+          labels:
+            severity: critical
+            domain: backend
+            office: reliability-office
+          annotations:
+            summary: "Serviço Velya inativo: {{ $labels.job }} em {{ $labels.namespace }}"
+            runbook: "docs/runbooks/service-health-runbook.md"
+
+    - name: velya.backend.clinical
+      interval: 1m
+      rules:
+        - alert: VelyaPatientFlowDown
+          expr: |
+            up{job="velya-patient-flow",namespace="velya-dev-core"} == 0
+          for: 1m
+          labels:
+            severity: critical
+            domain: clinical
+            office: clinical-office
+          annotations:
+            summary: "CRÍTICO: patient-flow-service indisponível"
+            description: "Serviço de fluxo de pacientes fora do ar. Impacto imediato na operação clínica."
+            runbook: "docs/runbooks/service-health-runbook.md"
+
+        - alert: VelyaDischargeOrchestratorDown
+          expr: |
+            up{job="velya-discharge-orchestrator",namespace="velya-dev-core"} == 0
+          for: 1m
+          labels:
+            severity: critical
+            domain: clinical
+            office: clinical-office
+          annotations:
+            summary: "CRÍTICO: discharge-orchestrator indisponível"
+            description: "Orquestrador de altas fora do ar. Altas hospitalares podem ser bloqueadas."
+
+        - alert: VelyaTaskInboxDown
+          expr: |
+            up{job="velya-task-inbox",namespace="velya-dev-core"} == 0
+          for: 1m
+          labels:
+            severity: critical
+            domain: clinical
+            office: clinical-office
+          annotations:
+            summary: "CRÍTICO: task-inbox-service indisponível"
+            description: "Fila de tarefas clínicas fora do ar. Roteamento de tarefas comprometido."
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: velya-observability-selfcheck
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    release: prometheus
+spec:
+  groups:
+    - name: velya.observability.selfcheck
+      interval: 5m
+      rules:
+        - alert: VelyaLokiDown
+          expr: |
+            up{job="loki"} == 0
+          for: 5m
+          labels:
+            severity: high
+            domain: observability
+            office: reliability-office
+          annotations:
+            summary: "Loki indisponível — logs não estão sendo coletados"
+            description: "Stack de logs Loki fora do ar. Investigação de incidentes comprometida."
+
+        - alert: VelyaPromtailDown
+          expr: |
+            up{job="promtail"} == 0
+          for: 10m
+          labels:
+            severity: medium
+            domain: observability
+            office: reliability-office
+          annotations:
+            summary: "Promtail down em {{ $labels.instance }} — logs de nó perdidos"
+
+        - alert: VelyaGrafanaDown
+          expr: |
+            up{job="prometheus-grafana"} == 0
+          for: 5m
+          labels:
+            severity: high
+            domain: observability
+            office: reliability-office
+          annotations:
+            summary: "Grafana indisponível — visibilidade operacional comprometida"
