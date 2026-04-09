@@ -1,0 +1,54 @@
+---
+# Grafana Tempo — Single Binary mode para kind-velya-local
+# Integrado com OTel Collector já rodando no cluster
+# Datasource adicionado via provisionamento no Grafana (kube-prometheus-stack)
+
+tempo:
+  reportingEnabled: false
+
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+
+  # Receivers compatíveis com OTel Collector
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+    jaeger:
+      protocols:
+        thrift_http:
+          endpoint: 0.0.0.0:14268
+        grpc:
+          endpoint: 0.0.0.0:14250
+
+  # Limites conservadores para dev
+  global_overrides:
+    max_traces_per_user: 10000
+    max_bytes_per_trace: 5242880  # 5MB
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClassName: standard
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+serviceMonitor:
+  enabled: true
+  namespace: velya-dev-observability
+  labels:
+    release: prometheus
+
+# Retenção de 24h para ambiente dev
+retention: 24h

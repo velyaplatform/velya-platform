@@ -1,0 +1,102 @@
+---
+# ConfigMap: Grafana Alerting — Contact Points e Notification Policies
+# Provisionamento via Grafana sidecar (grafana_alerting: "1" label)
+# Suporta Slack webhook para dev (configurar SLACK_WEBHOOK_URL no Secret)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-alerting-contact-points
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    grafana_alerting: "1"
+data:
+  velya-contact-points.yaml: |
+    apiVersion: 1
+    contactPoints:
+      - orgId: 1
+        name: velya-ops-slack
+        receivers:
+          - uid: velya-slack-receiver
+            type: slack
+            settings:
+              url: "${SLACK_WEBHOOK_URL}"
+              channel: "#velya-alertas"
+              title: "[{{ .Status | toUpper }}{{ if eq .Status \"firing\" }} {{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}"
+              text: |
+                {{ range .Alerts }}
+                *Alerta:* {{ .Annotations.summary }}
+                *Namespace:* {{ .Labels.namespace }}
+                *Severidade:* {{ .Labels.severity }}
+                *Domínio:* {{ .Labels.domain }}
+                {{ if .Annotations.description }}*Detalhe:* {{ .Annotations.description }}{{ end }}
+                {{ if .Annotations.runbook }}*Runbook:* {{ .Annotations.runbook }}{{ end }}
+                {{ end }}
+              mentionChannel: "here"
+
+      - orgId: 1
+        name: velya-clinical-critico
+        receivers:
+          - uid: velya-clinical-slack
+            type: slack
+            settings:
+              url: "${SLACK_WEBHOOK_URL}"
+              channel: "#velya-clinico-critico"
+              title: "🚨 CRÍTICO CLÍNICO: {{ .CommonLabels.alertname }}"
+              text: |
+                {{ range .Alerts }}
+                {{ .Annotations.summary }}
+                {{ if .Annotations.description }}{{ .Annotations.description }}{{ end }}
+                {{ end }}
+              mentionChannel: "here"
+
+      - orgId: 1
+        name: velya-dev-null
+        receivers:
+          - uid: velya-dev-null-receiver
+            type: email
+            settings:
+              addresses: "dev-null@velya.local"
+              singleEmail: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-alerting-notification-policy
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    grafana_alerting: "1"
+data:
+  velya-notification-policy.yaml: |
+    apiVersion: 1
+    policies:
+      - orgId: 1
+        receiver: velya-ops-slack
+        group_by: ["alertname", "namespace", "severity"]
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 4h
+        routes:
+          # Alertas clínicos críticos → canal dedicado
+          - receiver: velya-clinical-critico
+            matchers:
+              - domain = clinical
+              - severity =~ "critical|high"
+            group_wait: 10s
+            repeat_interval: 1h
+
+          # Infraestrutura crítica → ops
+          - receiver: velya-ops-slack
+            matchers:
+              - domain = infrastructure
+              - severity = critical
+            group_wait: 15s
+            repeat_interval: 2h
+
+          # Medium/Low → ops com menor urgência
+          - receiver: velya-ops-slack
+            matchers:
+              - severity =~ "medium|low"
+            group_wait: 5m
+            repeat_interval: 8h

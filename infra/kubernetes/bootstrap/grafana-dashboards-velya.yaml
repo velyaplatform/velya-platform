@@ -1,0 +1,335 @@
+---
+# ConfigMap: Dashboard Velya Platform Overview
+# Provisionado automaticamente pelo Grafana via sidecar
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-velya-platform-overview
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    grafana_dashboard: "1"
+data:
+  velya-platform-overview.json: |
+    {
+      "title": "Velya Platform Overview",
+      "uid": "velya-platform-overview",
+      "tags": ["velya", "platform", "overview"],
+      "timezone": "browser",
+      "schemaVersion": 38,
+      "refresh": "30s",
+      "time": { "from": "now-1h", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Pods Rodando — namespaces velya-*",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "count(kube_pod_status_phase{namespace=~\"velya-.*\",phase=\"Running\"})",
+            "legendFormat": "Pods Running"
+          }],
+          "options": { "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } },
+          "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":null}] } } }
+        },
+        {
+          "id": 2,
+          "title": "Pods com Problema (CrashLoop / OOM / Pending)",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "count(kube_pod_status_phase{namespace=~\"velya-.*\",phase=~\"Failed|Unknown\"} == 1) or vector(0)",
+            "legendFormat": "Pods com Falha"
+          }],
+          "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":null},{"color":"red","value":1}] } } }
+        },
+        {
+          "id": 3,
+          "title": "Taxa de Erro HTTP (5xx) — velya-dev-*",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "sum(rate(http_requests_total{namespace=~\"velya-dev-.*\",status_code=~\"5..\"}[5m])) / sum(rate(http_requests_total{namespace=~\"velya-dev-.*\"}[5m])) * 100",
+            "legendFormat": "% Erros 5xx"
+          }],
+          "fieldConfig": { "defaults": { "unit": "percent", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":1},{"color":"red","value":5}] } } }
+        },
+        {
+          "id": 4,
+          "title": "Latência P99 Global (s)",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{namespace=~\"velya-dev-.*\"}[5m])) by (le))",
+            "legendFormat": "P99"
+          }],
+          "fieldConfig": { "defaults": { "unit": "s", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":1},{"color":"red","value":2}] } } }
+        },
+        {
+          "id": 5,
+          "title": "Alertas Ativos",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "count(ALERTS{alertstate=\"firing\",namespace=~\"velya-.*\"}) or vector(0)",
+            "legendFormat": "Alertas Firing"
+          }],
+          "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":null},{"color":"orange","value":1},{"color":"red","value":5}] } } }
+        },
+        {
+          "id": 6,
+          "title": "Taxa de Requisições HTTP por Serviço",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "sum by (service) (rate(http_requests_total{namespace=~\"velya-dev-.*\"}[5m]))",
+            "legendFormat": "{{service}}"
+          }],
+          "fieldConfig": { "defaults": { "unit": "reqps" } }
+        },
+        {
+          "id": 7,
+          "title": "Restarts de Containers — velya-*",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "increase(kube_pod_container_status_restarts_total{namespace=~\"velya-.*\"}[15m])",
+            "legendFormat": "{{namespace}}/{{pod}}"
+          }],
+          "fieldConfig": { "defaults": { "unit": "short" } }
+        },
+        {
+          "id": 8,
+          "title": "CPU Usage por Namespace",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=~\"velya-.*\",container!=\"\"}[5m]))",
+            "legendFormat": "{{namespace}}"
+          }],
+          "fieldConfig": { "defaults": { "unit": "cores" } }
+        },
+        {
+          "id": 9,
+          "title": "Memória Usage por Namespace",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "sum by (namespace) (container_memory_working_set_bytes{namespace=~\"velya-.*\",container!=\"\"})",
+            "legendFormat": "{{namespace}}"
+          }],
+          "fieldConfig": { "defaults": { "unit": "bytes" } }
+        }
+      ]
+    }
+---
+# ConfigMap: Dashboard Velya Clinical Services
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-velya-clinical
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    grafana_dashboard: "1"
+data:
+  velya-clinical-services.json: |
+    {
+      "title": "Velya Clinical Services",
+      "uid": "velya-clinical-services",
+      "tags": ["velya", "clinical", "patient-safety"],
+      "timezone": "browser",
+      "schemaVersion": 38,
+      "refresh": "15s",
+      "time": { "from": "now-1h", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "title": "patient-flow-service — Status",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "up{job=\"velya-patient-flow\",namespace=\"velya-dev-core\"}",
+            "legendFormat": "Up"
+          }],
+          "fieldConfig": { "defaults": { "mappings": [{"type":"value","options":{"0":{"text":"DOWN","color":"red"},"1":{"text":"UP","color":"green"}}}], "color": { "mode": "thresholds" } } }
+        },
+        {
+          "id": 2,
+          "title": "discharge-orchestrator — Status",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "up{job=\"velya-discharge-orchestrator\",namespace=\"velya-dev-core\"}",
+            "legendFormat": "Up"
+          }],
+          "fieldConfig": { "defaults": { "mappings": [{"type":"value","options":{"0":{"text":"DOWN","color":"red"},"1":{"text":"UP","color":"green"}}}], "color": { "mode": "thresholds" } } }
+        },
+        {
+          "id": 3,
+          "title": "task-inbox-service — Status",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "up{job=\"velya-task-inbox\",namespace=\"velya-dev-core\"}",
+            "legendFormat": "Up"
+          }],
+          "fieldConfig": { "defaults": { "mappings": [{"type":"value","options":{"0":{"text":"DOWN","color":"red"},"1":{"text":"UP","color":"green"}}}], "color": { "mode": "thresholds" } } }
+        },
+        {
+          "id": 4,
+          "title": "ai-gateway — Status",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "up{job=\"velya-ai-gateway\",namespace=\"velya-dev-platform\"}",
+            "legendFormat": "Up"
+          }],
+          "fieldConfig": { "defaults": { "mappings": [{"type":"value","options":{"0":{"text":"DOWN","color":"red"},"1":{"text":"UP","color":"green"}}}], "color": { "mode": "thresholds" } } }
+        },
+        {
+          "id": 5,
+          "title": "Latência P99 por Serviço Clínico",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 4 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "histogram_quantile(0.99, sum by (service, le) (rate(http_request_duration_seconds_bucket{namespace=\"velya-dev-core\"}[5m])))",
+            "legendFormat": "P99 — {{service}}"
+          }],
+          "fieldConfig": { "defaults": { "unit": "s", "custom": { "thresholdsStyle": { "mode": "line" } }, "thresholds": { "steps": [{"color":"green","value":null},{"color":"red","value":2}] } } }
+        },
+        {
+          "id": 6,
+          "title": "Erros 5xx por Serviço Clínico",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "sum by (service) (rate(http_requests_total{namespace=\"velya-dev-core\",status_code=~\"5..\"}[5m]))",
+            "legendFormat": "5xx — {{service}}"
+          }],
+          "fieldConfig": { "defaults": { "unit": "reqps" } }
+        },
+        {
+          "id": 7,
+          "title": "Logs Clínicos — Erros Recentes",
+          "type": "logs",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+          "targets": [{
+            "datasource": { "type": "loki", "uid": "velya-loki" },
+            "expr": "{namespace=\"velya-dev-core\"} |= \"error\" | json | level=\"error\"",
+            "legendFormat": ""
+          }],
+          "options": { "dedupStrategy": "none", "showTime": true, "sortOrder": "Descending" }
+        }
+      ]
+    }
+---
+# ConfigMap: Dashboard Velya Infrastructure
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-velya-infrastructure
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    grafana_dashboard: "1"
+data:
+  velya-infrastructure.json: |
+    {
+      "title": "Velya Infrastructure",
+      "uid": "velya-infrastructure",
+      "tags": ["velya", "infrastructure", "kubernetes"],
+      "timezone": "browser",
+      "schemaVersion": 38,
+      "refresh": "60s",
+      "time": { "from": "now-3h", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Nodes Ready",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "count(kube_node_status_condition{condition=\"Ready\",status=\"true\"} == 1)",
+            "legendFormat": "Nodes Ready"
+          }],
+          "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"red","value":null},{"color":"green","value":1}] } } }
+        },
+        {
+          "id": 2,
+          "title": "Quota CPU — velya-dev-core (%)",
+          "type": "gauge",
+          "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "kube_resourcequota{namespace=\"velya-dev-core\",resource=\"requests.cpu\",type=\"used\"} / kube_resourcequota{namespace=\"velya-dev-core\",resource=\"requests.cpu\",type=\"hard\"} * 100",
+            "legendFormat": "CPU %"
+          }],
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":70},{"color":"red","value":85}] } } }
+        },
+        {
+          "id": 3,
+          "title": "Quota Memória — velya-dev-core (%)",
+          "type": "gauge",
+          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "kube_resourcequota{namespace=\"velya-dev-core\",resource=\"requests.memory\",type=\"used\"} / kube_resourcequota{namespace=\"velya-dev-core\",resource=\"requests.memory\",type=\"hard\"} * 100",
+            "legendFormat": "Memória %"
+          }],
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":70},{"color":"red","value":85}] } } }
+        },
+        {
+          "id": 4,
+          "title": "Pods por Namespace",
+          "type": "bargauge",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "sum by (namespace) (kube_pod_status_phase{namespace=~\"velya-.*\",phase=\"Running\"})",
+            "legendFormat": "{{namespace}}"
+          }],
+          "options": { "orientation": "horizontal" }
+        },
+        {
+          "id": 5,
+          "title": "Uso de Disco dos Nodes (%)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "(node_filesystem_size_bytes{mountpoint=\"/\"} - node_filesystem_free_bytes{mountpoint=\"/\"}) / node_filesystem_size_bytes{mountpoint=\"/\"} * 100",
+            "legendFormat": "Disco — {{instance}}"
+          }],
+          "fieldConfig": { "defaults": { "unit": "percent" } }
+        },
+        {
+          "id": 6,
+          "title": "Eventos de OOMKilled — velya-*",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 },
+          "targets": [{
+            "datasource": { "type": "prometheus", "uid": "velya-prometheus" },
+            "expr": "kube_pod_container_status_last_terminated_reason{namespace=~\"velya-.*\",reason=\"OOMKilled\"} == 1",
+            "legendFormat": "OOMKilled — {{namespace}}/{{pod}}/{{container}}"
+          }],
+          "fieldConfig": { "defaults": { "color": { "fixedColor": "red", "mode": "fixed" } } }
+        }
+      ]
+    }

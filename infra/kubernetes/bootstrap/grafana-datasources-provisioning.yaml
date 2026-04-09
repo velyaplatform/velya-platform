@@ -1,0 +1,75 @@
+---
+# ConfigMap: datasources adicionais para Grafana
+# Adiciona Tempo (tracing) e Loki (logs) como fontes de dados
+# Grafana já tem Prometheus via kube-prometheus-stack values
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-extra-datasources
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    grafana_datasource: "1"
+data:
+  velya-datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://tempo.velya-dev-observability.svc.cluster.local:3100
+        uid: velya-tempo
+        isDefault: false
+        jsonData:
+          httpMethod: GET
+          serviceMap:
+            datasourceUid: velya-prometheus
+          nodeGraph:
+            enabled: true
+          search:
+            hide: false
+          lokiSearch:
+            datasourceUid: velya-loki
+          tracesToLogsV2:
+            datasourceUid: velya-loki
+            spanStartTimeShift: "-1h"
+            spanEndTimeShift: "1h"
+            filterByTraceID: true
+            filterBySpanID: false
+            customQuery: true
+            query: '{namespace="$${__span.tags.namespace}"} |= "$${__span.traceId}"'
+          tracesToMetrics:
+            datasourceUid: velya-prometheus
+            spanStartTimeShift: "-1m"
+            spanEndTimeShift: "1m"
+            tags:
+              - key: "service.name"
+                value: "service"
+              - key: "namespace"
+                value: "namespace"
+
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki-gateway.velya-dev-observability.svc.cluster.local
+        uid: velya-loki
+        isDefault: false
+        jsonData:
+          maxLines: 1000
+          derivedFields:
+            - datasourceUid: velya-tempo
+              matcherRegex: '"traceId":"(\w+)"'
+              name: TraceID
+              url: "$${__value.raw}"
+
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090
+        uid: velya-prometheus
+        isDefault: true
+        jsonData:
+          timeInterval: "30s"
+          exemplarTraceIdDestinations:
+            - datasourceUid: velya-tempo
+              name: traceID
