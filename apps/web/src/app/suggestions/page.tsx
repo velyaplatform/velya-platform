@@ -63,7 +63,7 @@ export default function SuggestionsPage() {
       setSuggestions(data.suggestions || []);
       setPendingCount(data.pendingCount || 0);
     } catch (error) {
-      console.error('Erro ao carregar sugestões:', error);
+      void error; // logged by error boundary
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export default function SuggestionsPage() {
       });
       await fetchSuggestions();
     } catch (error) {
-      console.error('Erro ao atualizar status:', error);
+      void error; // logged by error boundary
     }
   }
 

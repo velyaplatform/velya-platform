@@ -13,6 +13,24 @@
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "no-console": "warn"
   },
+  "overrides": [
+    {
+      "files": [
+        "apps/web/src/lib/audit-logger.ts",
+        "apps/web/src/lib/email-sender.ts",
+        "apps/web/src/lib/event-store.ts",
+        "apps/web/src/lib/auth-session.ts",
+        "apps/web/src/lib/user-store.ts",
+        "apps/web/src/lib/access-control.ts",
+        "apps/web/src/middleware.ts",
+        "apps/web/src/app/api/**/route.ts",
+        "scripts/**/*.ts"
+      ],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ],
   "ignorePatterns": [
     "node_modules/",
     "dist/",
