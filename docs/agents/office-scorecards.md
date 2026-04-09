@@ -67,13 +67,13 @@ Office scorecards are reviewed monthly by the Executive Office and quarterly by 
 
 Office composite score uses weighted aggregation:
 
-| Component | Weight | Method |
-|---|---|---|
-| Mean agent composite score | 40% | Simple mean of all agent composite scores |
-| Backlog health | 15% | Office-level metric |
-| Inter-office handoff quality | 15% | Office-level metric |
-| SLA compliance | 15% | Office-level metric |
-| Institutional learning rate | 15% | Office-level metric |
+| Component                    | Weight | Method                                    |
+| ---------------------------- | ------ | ----------------------------------------- |
+| Mean agent composite score   | 40%    | Simple mean of all agent composite scores |
+| Backlog health               | 15%    | Office-level metric                       |
+| Inter-office handoff quality | 15%    | Office-level metric                       |
+| SLA compliance               | 15%    | Office-level metric                       |
+| Institutional learning rate  | 15%    | Office-level metric                       |
 
 Rework rate, blocked work rate, and incident spillover are tracked separately and used as diagnostic lenses — they do not contribute to the composite but do trigger investigation thresholds.
 
@@ -81,12 +81,12 @@ Rework rate, blocked work rate, and incident spillover are tracked separately an
 
 ## 4. Office Health Thresholds
 
-| Band | Composite Score | Color | Action |
-|---|---|---|---|
-| Healthy | 85–100 | Green | No intervention |
-| Watchlist | 70–84 | Yellow | Executive review at next monthly cycle |
-| Intervention | 50–69 | Orange | Immediate Executive review; improvement plan required |
-| Crisis | 0–49 | Red | Executive emergency intervention; governance review |
+| Band         | Composite Score | Color  | Action                                                |
+| ------------ | --------------- | ------ | ----------------------------------------------------- |
+| Healthy      | 85–100          | Green  | No intervention                                       |
+| Watchlist    | 70–84           | Yellow | Executive review at next monthly cycle                |
+| Intervention | 50–69           | Orange | Immediate Executive review; improvement plan required |
+| Crisis       | 0–49            | Red    | Executive emergency intervention; governance review   |
 
 ---
 
@@ -94,28 +94,28 @@ Rework rate, blocked work rate, and incident spillover are tracked separately an
 
 Intervention is triggered by:
 
-| Condition | Level |
-|---|---|
-| Composite score in Yellow for 2 consecutive months | Watchlist review |
-| Composite score in Orange for 1 month | Formal intervention plan |
-| Any agent in the office scoring Critical for 4 weeks | Office manager accountability review |
-| Blocked work rate > 25% for 2 weeks | Systemic dependency investigation |
-| Incident spillover > 3 in a month | Cross-office root cause investigation |
-| Inter-office handoff rejection rate > 20% | Handoff quality remediation required |
-| Institutional learning rate < 60% | Learning Office engagement; escalation to Executive |
-| Office Manager agent scoring Yellow or below for 4 weeks | Executive considers manager reassignment |
+| Condition                                                | Level                                               |
+| -------------------------------------------------------- | --------------------------------------------------- |
+| Composite score in Yellow for 2 consecutive months       | Watchlist review                                    |
+| Composite score in Orange for 1 month                    | Formal intervention plan                            |
+| Any agent in the office scoring Critical for 4 weeks     | Office manager accountability review                |
+| Blocked work rate > 25% for 2 weeks                      | Systemic dependency investigation                   |
+| Incident spillover > 3 in a month                        | Cross-office root cause investigation               |
+| Inter-office handoff rejection rate > 20%                | Handoff quality remediation required                |
+| Institutional learning rate < 60%                        | Learning Office engagement; escalation to Executive |
+| Office Manager agent scoring Yellow or below for 4 weeks | Executive considers manager reassignment            |
 
 ---
 
 ## 6. Office Scorecard Review Cadence
 
-| Review | Frequency | Participants | Outputs |
-|---|---|---|---|
-| Automated generation | Monthly (1st) | Scorecard Engine | Office scorecard report |
-| Manager self-review | Monthly (by 3rd) | Office Manager | Manager commentary |
-| Executive review | Monthly (by 7th) | Executive + Office Managers | Intervention decisions |
-| Cross-office benchmarking | Monthly (by 10th) | Knowledge & Memory Office | Benchmarking report |
-| Governance Council review | Quarterly | Governance Council + Executive | Strategic decisions |
+| Review                    | Frequency         | Participants                   | Outputs                 |
+| ------------------------- | ----------------- | ------------------------------ | ----------------------- |
+| Automated generation      | Monthly (1st)     | Scorecard Engine               | Office scorecard report |
+| Manager self-review       | Monthly (by 3rd)  | Office Manager                 | Manager commentary      |
+| Executive review          | Monthly (by 7th)  | Executive + Office Managers    | Intervention decisions  |
+| Cross-office benchmarking | Monthly (by 10th) | Knowledge & Memory Office      | Benchmarking report     |
+| Governance Council review | Quarterly         | Governance Council + Executive | Strategic decisions     |
 
 ---
 
@@ -131,6 +131,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Enterprise governance, cross-office arbitration  
 **Key Emphasis:** Decision quality, escalation resolution time, enterprise coordination effectiveness  
 **Special Metrics:**
+
 - Escalation resolution time (mean hours from receipt to resolution)
 - Cross-office dispute resolution rate without Governance Council escalation
 - Enterprise health dashboard accuracy
@@ -143,6 +144,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Kubernetes infrastructure operations  
 **Key Emphasis:** Delivery quality, SLA compliance, incident spillover (infra failures cascade broadly)  
 **Special Metrics:**
+
 - Infrastructure-caused downtime minutes per month
 - Change success rate (no rollback required)
 - Security policy compliance rate on all infra resources
@@ -155,6 +157,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** CI/CD, ArgoCD, release coordination  
 **Key Emphasis:** Delivery quality, inter-office handoff (receives from Product, delivers to Platform)  
 **Special Metrics:**
+
 - Deployment success rate (first attempt)
 - Rollback rate
 - Time from code commit to production deployment (median)
@@ -168,6 +171,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Vulnerability management, access control, incident response  
 **Key Emphasis:** Audit pass rate (evidence quality is critical for regulatory), incident spillover  
 **Special Metrics:**
+
 - Mean time to remediate Critical vulnerabilities
 - Open Critical/High vulnerability count
 - Secret rotation compliance rate
@@ -181,6 +185,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** HIPAA, SOC2, regulatory adherence  
 **Key Emphasis:** Audit pass rate (must be exemplary — sets the standard), institutional learning rate  
 **Special Metrics:**
+
 - Audit finding accuracy rate
 - Open finding remediation rate (% closed within SLA)
 - Regulatory evidence readiness score (% of required evidence available within 48h)
@@ -194,6 +199,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** SLO/SLA management, incident coordination  
 **Key Emphasis:** SLA compliance, incident spillover (reliability failures affect all offices)  
 **Special Metrics:**
+
 - Enterprise SLO achievement rate
 - Mean time to detect (MTTD) per severity class
 - Mean time to resolve (MTTR) per severity class
@@ -207,6 +213,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Testing, validation, quality gates  
 **Key Emphasis:** Delivery quality (QA's delivery quality = accuracy of its validators)  
 **Special Metrics:**
+
 - Validation accuracy rate (false pass + false rejection combined)
 - Regression detection rate (% of regressions caught before production)
 - Test coverage trend across platform services
@@ -220,6 +227,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Clinical workflow design, feature development  
 **Key Emphasis:** Delivery quality, inter-office handoff (frequent handoffs to DevOps and QA)  
 **Special Metrics:**
+
 - Clinical workflow accuracy (% workflows without clinical staff intervention)
 - Feature acceptance rate (% delivered features accepted without revision)
 - PHI handling compliance rate
@@ -232,6 +240,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** UI/UX quality, accessibility, clinical interface validation  
 **Key Emphasis:** Delivery quality, rework rate  
 **Special Metrics:**
+
 - WCAG compliance rate for all deployed interfaces
 - Clinical usability test pass rate
 - Interface performance within hospital network thresholds
@@ -244,6 +253,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Institutional memory, documentation standards  
 **Key Emphasis:** Institutional learning rate (this office enables all other offices' learning)  
 **Special Metrics:**
+
 - Knowledge retrieval accuracy (% of queries returning correct information)
 - Memory currency (% of documents updated within their review cycle)
 - Documentation coverage (% of processes with complete documentation)
@@ -256,6 +266,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** External environment monitoring  
 **Key Emphasis:** Delivery quality (accuracy of intelligence)  
 **Special Metrics:**
+
 - Intelligence accuracy rate (% of market signals that proved actionable and correct)
 - Regulatory change lead time (days before effective date that change was identified)
 - Briefing timeliness
@@ -268,6 +279,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Naming standards enforcement  
 **Key Emphasis:** SLA compliance (timely reviews), delivery quality  
 **Special Metrics:**
+
 - Naming violation rate across the enterprise (lower = better)
 - RFC review turnaround time
 - Registry accuracy (% of registry entries correctly reflecting live agents)
@@ -280,6 +292,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Agent creation and lifecycle staging  
 **Key Emphasis:** Delivery quality, inter-office handoff (hands off new agents to offices)  
 **Special Metrics:**
+
 - Agent activation success rate (% of agents reaching Active stage without major revision)
 - Shadow period comparison accuracy
 - Time from RFC to Active stage
@@ -293,6 +306,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Learning capture, validation, propagation  
 **Key Emphasis:** Institutional learning rate (the primary metric for this office)  
 **Special Metrics:**
+
 - Learning propagation completion rate (% of validated lessons propagated to all relevant agents)
 - Learning accuracy rate (% of propagated lessons confirmed correct after 30 days)
 - Learning conflict rate (% of lessons that contradict existing institutional knowledge)
@@ -306,6 +320,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Initiative tracking, dependency management  
 **Key Emphasis:** Backlog health, blocked work rate  
 **Special Metrics:**
+
 - Initiative on-track rate
 - Dependency resolution time
 - Cross-office blocker escalation effectiveness
@@ -318,6 +333,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** DR planning, failover testing  
 **Key Emphasis:** Delivery quality (DR plan accuracy), SLA compliance  
 **Special Metrics:**
+
 - DR test pass rate (plans successfully validated in exercises)
 - RTO/RPO gap (actual vs. target in last exercise)
 - DR plan currency (% of plans updated within review cycle)
@@ -331,6 +347,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Chaos experiments, resilience testing  
 **Key Emphasis:** Delivery quality (accuracy of resilience findings), SLA compliance  
 **Special Metrics:**
+
 - Finding actionability rate (% of chaos findings that led to system improvement)
 - Simulation coverage (% of identified failure modes exercised)
 - Unintended production impact rate (chaos experiments causing unplanned disruption — should be 0)
@@ -343,6 +360,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Data quality, PHI protection  
 **Key Emphasis:** Audit pass rate, evidence completeness  
 **Special Metrics:**
+
 - PHI access compliance rate
 - Data quality score (% of monitored datasets meeting quality thresholds)
 - Data lineage completeness
@@ -356,6 +374,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Design standards, ADR review  
 **Key Emphasis:** Delivery quality (quality of architectural decisions)  
 **Special Metrics:**
+
 - ADR adoption rate (% of teams following architectural decisions)
 - Architecture debt accumulation rate
 - RFC review turnaround time
@@ -369,6 +388,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** ITSM, change management  
 **Key Emphasis:** SLA compliance, blocked work rate  
 **Special Metrics:**
+
 - Change success rate
 - Incident resolution time by priority
 - Problem closure rate (% of problems resolved vs. open)
@@ -382,6 +402,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Cloud cost optimization  
 **Key Emphasis:** Delivery quality (accuracy of cost findings)  
 **Special Metrics:**
+
 - Budget variance rate (actual vs. target spend)
 - Cost waste identification rate (% of identified waste that was actionable)
 - FinOps recommendation adoption rate
@@ -394,6 +415,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Claude/Anthropic integration, AI safety  
 **Key Emphasis:** Audit pass rate, evidence completeness, SLA compliance  
 **Special Metrics:**
+
 - AI model availability rate
 - Prompt governance compliance rate
 - AI safety incident rate (model outputs violating safety constraints)
@@ -407,6 +429,7 @@ The following table defines all 23 offices with their primary risk posture and k
 **Primary Function:** Watchdog operations, enterprise behavioral health  
 **Key Emphasis:** All metrics (this office monitors all others; must be exemplary)  
 **Special Metrics:**
+
 - Watchdog detection precision across all watchdogs managed
 - Mean time from anomaly detection to alert
 - Meta-watchdog uptime
@@ -419,21 +442,21 @@ The following table defines all 23 offices with their primary risk posture and k
 
 The following enterprise-level metrics roll up from all 23 office scorecards. They are computed weekly and presented to the Executive Office. They are summarized monthly for the Governance Council.
 
-| Enterprise Metric | Definition | Target | Source |
-|---|---|---|---|
-| Enterprise composite score | Weighted mean of all office composite scores | >85 | All office scorecards |
-| Offices in Yellow or below | Count of offices below Green | <3 | All office scorecards |
-| Offices in Crisis | Count of offices scoring Critical | 0 | All office scorecards |
-| Enterprise SLA compliance | Mean SLA compliance across all offices | >90% | All offices |
-| Enterprise validation quality | Mean first-pass validation rate across all specialist agents | >88% | Validation records |
-| Evidence completeness | Mean evidence completeness across all agents | >97% | Evidence store |
-| Open incidents | Count of open incidents across all offices by severity | Tracked | Service Management |
-| Enterprise learning propagation rate | % of institutional lessons propagated and acknowledged | >90% | Learning Office |
-| Human interventions (last 30 days) | Count and classification of human break-glass events | <2/month | Executive records |
-| Agent workforce size | Total active agents by role type and office | Tracked | Agent Registry |
-| Agents under quarantine | Count by level | 0 target | Quarantine Registry |
-| Agents on probation | Count | <5% of workforce | Lifecycle Registry |
-| Open critical audit findings | Count of unresolved Critical severity findings | 0 | Compliance Finding Registry |
-| Regulatory readiness score | Composite score across HIPAA/SOC2 evidence readiness | >90% | Compliance Office |
+| Enterprise Metric                    | Definition                                                   | Target           | Source                      |
+| ------------------------------------ | ------------------------------------------------------------ | ---------------- | --------------------------- |
+| Enterprise composite score           | Weighted mean of all office composite scores                 | >85              | All office scorecards       |
+| Offices in Yellow or below           | Count of offices below Green                                 | <3               | All office scorecards       |
+| Offices in Crisis                    | Count of offices scoring Critical                            | 0                | All office scorecards       |
+| Enterprise SLA compliance            | Mean SLA compliance across all offices                       | >90%             | All offices                 |
+| Enterprise validation quality        | Mean first-pass validation rate across all specialist agents | >88%             | Validation records          |
+| Evidence completeness                | Mean evidence completeness across all agents                 | >97%             | Evidence store              |
+| Open incidents                       | Count of open incidents across all offices by severity       | Tracked          | Service Management          |
+| Enterprise learning propagation rate | % of institutional lessons propagated and acknowledged       | >90%             | Learning Office             |
+| Human interventions (last 30 days)   | Count and classification of human break-glass events         | <2/month         | Executive records           |
+| Agent workforce size                 | Total active agents by role type and office                  | Tracked          | Agent Registry              |
+| Agents under quarantine              | Count by level                                               | 0 target         | Quarantine Registry         |
+| Agents on probation                  | Count                                                        | <5% of workforce | Lifecycle Registry          |
+| Open critical audit findings         | Count of unresolved Critical severity findings               | 0                | Compliance Finding Registry |
+| Regulatory readiness score           | Composite score across HIPAA/SOC2 evidence readiness         | >90%             | Compliance Office           |
 
 The Enterprise Dashboard is the single source of truth for the health of the Velya agent enterprise. It is the instrument by which the Governance Council exercises its oversight authority.

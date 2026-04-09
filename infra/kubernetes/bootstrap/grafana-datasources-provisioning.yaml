@@ -9,7 +9,7 @@ metadata:
   namespace: velya-dev-observability
   labels:
     app.kubernetes.io/part-of: velya-platform
-    grafana_datasource: "1"
+    grafana_datasource: '1'
 data:
   velya-datasources.yaml: |
     apiVersion: 1

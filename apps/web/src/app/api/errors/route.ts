@@ -21,17 +21,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(JSON.stringify({
-      level: 'error',
-      service: 'velya-web',
-      event: 'error_report_received',
-      source: body.source,
-      severity: body.severity,
-      component: body.component,
-      message: body.message,
-      eventId: stored.id,
-      timestamp: stored.receivedAt,
-    }));
+    console.log(
+      JSON.stringify({
+        level: 'error',
+        service: 'velya-web',
+        event: 'error_report_received',
+        source: body.source,
+        severity: body.severity,
+        component: body.component,
+        message: body.message,
+        eventId: stored.id,
+        timestamp: stored.receivedAt,
+      }),
+    );
 
     audit({
       category: 'system',

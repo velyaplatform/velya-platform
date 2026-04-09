@@ -32,13 +32,13 @@ Os dashboards de auditoria sao projecoes visuais do Work Event Ledger e do Digit
 
 ### 1.2 Principios de Design
 
-| Principio | Aplicacao |
-|---|---|
-| **Glanceability** | Informacao critica visivel em 3 segundos |
+| Principio                 | Aplicacao                                    |
+| ------------------------- | -------------------------------------------- |
+| **Glanceability**         | Informacao critica visivel em 3 segundos     |
 | **Drilldown progressivo** | Visao geral -> unidade -> paciente -> evento |
-| **Contexto temporal** | Sempre mostrar janela temporal e baseline |
-| **Acionabilidade** | Cada alerta linkado a acao especifica |
-| **Controle de acesso** | Dados filtrados por papel do visualizador |
+| **Contexto temporal**     | Sempre mostrar janela temporal e baseline    |
+| **Acionabilidade**        | Cada alerta linkado a acao especifica        |
+| **Controle de acesso**    | Dados filtrados por papel do visualizador    |
 
 ---
 
@@ -52,25 +52,26 @@ Visao unificada do estado operacional de um paciente especifico. Tela principal 
 
 ### 2.2 Paineis Principais
 
-| Painel | Descricao | Tipo |
-|---|---|---|
-| **Header de Identificacao** | Nome, leito, unidade, dias de internacao, medico/enfermeiro responsavel | Info bar |
-| **Status Operacional** | Semaforo de risco operacional (low/moderate/high/critical) | Gauge |
-| **Localizacao Atual** | Mapa da unidade com posicao do paciente (RTLS) | Floor map |
-| **Timeline de Eventos** | Linha do tempo interativa dos ultimos eventos (24h padrao) | Timeline |
-| **Pendencias Ativas** | Lista de pendencias ordenadas por prioridade e SLA | Table |
-| **Dor** | Grafico de tendencia de dor (ultimas 48h) + status de intervencao | Line chart + badge |
-| **Chamadas** | Historico de chamadas com tempo de resposta | Bar chart |
-| **Medicamentos** | Proximas doses, doses atrasadas, doses administradas | Gantt-like |
-| **Sinais Vitais** | NEWS2 com tendencia, parametros individuais | Multi-line + gauge |
-| **Gaps Ativos** | Gaps detectados nao resolvidos para este paciente | Alert list |
-| **Equipe Atual** | CareTeam com turnos e proximo handoff | Team view |
-| **Documentacao** | Barra de completude + pendencias de assinatura | Progress bar + list |
-| **Objetivos de Alta** | Criterios de alta com status de cada um | Checklist |
+| Painel                      | Descricao                                                               | Tipo                |
+| --------------------------- | ----------------------------------------------------------------------- | ------------------- |
+| **Header de Identificacao** | Nome, leito, unidade, dias de internacao, medico/enfermeiro responsavel | Info bar            |
+| **Status Operacional**      | Semaforo de risco operacional (low/moderate/high/critical)              | Gauge               |
+| **Localizacao Atual**       | Mapa da unidade com posicao do paciente (RTLS)                          | Floor map           |
+| **Timeline de Eventos**     | Linha do tempo interativa dos ultimos eventos (24h padrao)              | Timeline            |
+| **Pendencias Ativas**       | Lista de pendencias ordenadas por prioridade e SLA                      | Table               |
+| **Dor**                     | Grafico de tendencia de dor (ultimas 48h) + status de intervencao       | Line chart + badge  |
+| **Chamadas**                | Historico de chamadas com tempo de resposta                             | Bar chart           |
+| **Medicamentos**            | Proximas doses, doses atrasadas, doses administradas                    | Gantt-like          |
+| **Sinais Vitais**           | NEWS2 com tendencia, parametros individuais                             | Multi-line + gauge  |
+| **Gaps Ativos**             | Gaps detectados nao resolvidos para este paciente                       | Alert list          |
+| **Equipe Atual**            | CareTeam com turnos e proximo handoff                                   | Team view           |
+| **Documentacao**            | Barra de completude + pendencias de assinatura                          | Progress bar + list |
+| **Objetivos de Alta**       | Criterios de alta com status de cada um                                 | Checklist           |
 
 ### 2.3 Queries
 
 **Timeline de Eventos (Loki)**:
+
 ```logql
 {namespace="velya", service="event-ledger"}
   | json
@@ -79,11 +80,13 @@ Visao unificada do estado operacional de um paciente especifico. Tela principal 
 ```
 
 **Score de Risco Operacional (PromQL)**:
+
 ```promql
 velya_twin_operational_risk_score{patient_id="<PATIENT_ID>"}
 ```
 
 **Pendencias com SLA (PostgreSQL)**:
+
 ```sql
 SELECT pi.id, pi.type, pi.description, pi.created_at,
        pi.sla_minutes, pi.waiting_time_minutes,
@@ -103,6 +106,7 @@ ORDER BY
 ```
 
 **Tendencia de Dor (PromQL)**:
+
 ```promql
 velya_patient_pain_score{patient_id="<PATIENT_ID>"}[48h]
 ```
@@ -127,22 +131,23 @@ Monitoramento da integridade do ciclo completo de medicacao: prescricao -> dispe
 
 ### 3.2 Paineis Principais
 
-| Painel | Descricao | Tipo |
-|---|---|---|
-| **Doses Atrasadas** | Medicamentos nao administrados alem do horario prescrito | Table (red highlight) |
-| **Doses Proximas (30min)** | Medicamentos com administracao iminente | Table |
-| **Taxa de Aderencia por Unidade** | % de doses administradas no horario correto | Heatmap |
-| **Medicamentos de Alto Risco** | Status de medicamentos MAR (alto risco) prescritos | Highlighted table |
-| **Dupla Checagem Pendente** | Medicamentos que requerem dupla checagem sem confirmacao | Alert list |
-| **Interacoes Detectadas** | Interacoes medicamentosas detectadas sem resolucao | Alert list |
-| **Prescricoes sem Dispensacao** | Prescricoes ativas sem registro de dispensacao | Table |
-| **Administracoes sem Prescricao** | GAP-003 ativo (execucao sem ordem) | Critical alert |
-| **Omissoes de Dose** | Doses omitidas com e sem justificativa | Table |
-| **Reconciliacao na Admissao** | Status de reconciliacao medicamentosa por paciente | Progress list |
+| Painel                            | Descricao                                                | Tipo                  |
+| --------------------------------- | -------------------------------------------------------- | --------------------- |
+| **Doses Atrasadas**               | Medicamentos nao administrados alem do horario prescrito | Table (red highlight) |
+| **Doses Proximas (30min)**        | Medicamentos com administracao iminente                  | Table                 |
+| **Taxa de Aderencia por Unidade** | % de doses administradas no horario correto              | Heatmap               |
+| **Medicamentos de Alto Risco**    | Status de medicamentos MAR (alto risco) prescritos       | Highlighted table     |
+| **Dupla Checagem Pendente**       | Medicamentos que requerem dupla checagem sem confirmacao | Alert list            |
+| **Interacoes Detectadas**         | Interacoes medicamentosas detectadas sem resolucao       | Alert list            |
+| **Prescricoes sem Dispensacao**   | Prescricoes ativas sem registro de dispensacao           | Table                 |
+| **Administracoes sem Prescricao** | GAP-003 ativo (execucao sem ordem)                       | Critical alert        |
+| **Omissoes de Dose**              | Doses omitidas com e sem justificativa                   | Table                 |
+| **Reconciliacao na Admissao**     | Status de reconciliacao medicamentosa por paciente       | Progress list         |
 
 ### 3.3 Queries
 
 **Doses Atrasadas (PostgreSQL)**:
+
 ```sql
 SELECT ma.patient_name, ma.medication_name, ma.unit, ma.bed,
        ma.scheduled_time, ma.priority,
@@ -158,6 +163,7 @@ ORDER BY
 ```
 
 **Taxa de Aderencia (PromQL)**:
+
 ```promql
 sum by (unit) (velya_medication_administered_on_time_total)
 / sum by (unit) (velya_medication_scheduled_total)
@@ -165,6 +171,7 @@ sum by (unit) (velya_medication_administered_on_time_total)
 ```
 
 **Medicamentos de Alto Risco (Loki)**:
+
 ```logql
 {namespace="velya", service="medication-service"}
   | json
@@ -191,22 +198,23 @@ Monitoramento centralizado de dor reportada e chamadas de pacientes, com foco em
 
 ### 4.2 Paineis Principais
 
-| Painel | Descricao | Tipo |
-|---|---|---|
-| **Mapa de Dor por Unidade** | Pacientes com dor >= 4 por unidade, colorido por intensidade | Heatmap |
-| **Dor sem Intervencao** | GAP-004 ativo: pacientes com dor alta sem acao | Critical table |
-| **Tendencia de Dor Institucional** | Score medio de dor por unidade nas ultimas 24h | Multi-line |
-| **Efetividade Analgesica** | % de intervencoes que reduziram dor em >= 2 pontos | Bar chart |
-| **Chamadas Ativas** | Chamadas em andamento sem resposta | Real-time list |
-| **Tempo Medio de Resposta** | Por unidade e turno | Heatmap |
-| **Chamadas sem Resposta no SLA** | GAP-005 ativo | Alert list |
-| **Frequencia de Chamadas por Paciente** | Pacientes com chamadas acima do baseline | Table |
-| **Correlacao Dor-Chamada** | Chamadas que precederam registro de dor | Scatter plot |
-| **Reavaliacao Pendente** | Pacientes que necessitam reavaliacao de dor | Table |
+| Painel                                  | Descricao                                                    | Tipo           |
+| --------------------------------------- | ------------------------------------------------------------ | -------------- |
+| **Mapa de Dor por Unidade**             | Pacientes com dor >= 4 por unidade, colorido por intensidade | Heatmap        |
+| **Dor sem Intervencao**                 | GAP-004 ativo: pacientes com dor alta sem acao               | Critical table |
+| **Tendencia de Dor Institucional**      | Score medio de dor por unidade nas ultimas 24h               | Multi-line     |
+| **Efetividade Analgesica**              | % de intervencoes que reduziram dor em >= 2 pontos           | Bar chart      |
+| **Chamadas Ativas**                     | Chamadas em andamento sem resposta                           | Real-time list |
+| **Tempo Medio de Resposta**             | Por unidade e turno                                          | Heatmap        |
+| **Chamadas sem Resposta no SLA**        | GAP-005 ativo                                                | Alert list     |
+| **Frequencia de Chamadas por Paciente** | Pacientes com chamadas acima do baseline                     | Table          |
+| **Correlacao Dor-Chamada**              | Chamadas que precederam registro de dor                      | Scatter plot   |
+| **Reavaliacao Pendente**                | Pacientes que necessitam reavaliacao de dor                  | Table          |
 
 ### 4.3 Queries
 
 **Mapa de Dor (PromQL)**:
+
 ```promql
 velya_patient_pain_score{score_value >= 4}
 * on(patient_id) group_left(unit, bed, patient_name)
@@ -214,6 +222,7 @@ velya_patient_pain_score{score_value >= 4}
 ```
 
 **Dor sem Intervencao (PostgreSQL)**:
+
 ```sql
 SELECT p.patient_name, p.unit, p.bed,
        pa.score AS pain_score,
@@ -232,6 +241,7 @@ ORDER BY pa.score DESC, pa.assessed_at ASC;
 ```
 
 **Tempo de Resposta a Chamadas (PromQL)**:
+
 ```promql
 histogram_quantile(0.50,
   sum by (unit, le) (rate(velya_nurse_call_response_seconds_bucket[1h]))
@@ -239,6 +249,7 @@ histogram_quantile(0.50,
 ```
 
 **Efetividade Analgesica (PostgreSQL)**:
+
 ```sql
 SELECT u.unit_name,
        COUNT(*) FILTER (WHERE post.score <= pre.score - 2) AS effective,
@@ -271,22 +282,23 @@ Visualizacao da cadeia de handoffs (transferencias de responsabilidade) por paci
 
 ### 5.2 Paineis Principais
 
-| Painel | Descricao | Tipo |
-|---|---|---|
-| **Handoffs Pendentes** | Handoffs solicitados sem aceite, ordenados por timeout | Critical table |
-| **Cadeia de Custodia** | Linha do tempo de handoffs por paciente (quem -> quem -> quem) | Sankey/flow |
-| **Taxa de Aceite por Turno** | % de handoffs aceitos dentro do SLA por turno/unidade | Heatmap |
-| **Tempo Medio de Aceite** | Por tipo de handoff e unidade | Bar chart |
-| **Handoffs Rejeitados** | Handoffs recusados com justificativas | Table |
-| **Pacientes sem Responsavel** | GAP-009: pacientes em transicao sem responsavel atribuido | Critical alert |
-| **Qualidade do Handoff** | Completude do I-PASS/SBAR no handoff | Progress bar per unit |
-| **Historico de Escalacoes** | Handoffs que foram escalados por timeout | Timeline |
-| **Overlap de Turno** | Profissionais com overlap de responsabilidade | Gantt |
-| **Carga por Profissional** | Numero de pacientes por profissional por turno | Bar chart |
+| Painel                        | Descricao                                                      | Tipo                  |
+| ----------------------------- | -------------------------------------------------------------- | --------------------- |
+| **Handoffs Pendentes**        | Handoffs solicitados sem aceite, ordenados por timeout         | Critical table        |
+| **Cadeia de Custodia**        | Linha do tempo de handoffs por paciente (quem -> quem -> quem) | Sankey/flow           |
+| **Taxa de Aceite por Turno**  | % de handoffs aceitos dentro do SLA por turno/unidade          | Heatmap               |
+| **Tempo Medio de Aceite**     | Por tipo de handoff e unidade                                  | Bar chart             |
+| **Handoffs Rejeitados**       | Handoffs recusados com justificativas                          | Table                 |
+| **Pacientes sem Responsavel** | GAP-009: pacientes em transicao sem responsavel atribuido      | Critical alert        |
+| **Qualidade do Handoff**      | Completude do I-PASS/SBAR no handoff                           | Progress bar per unit |
+| **Historico de Escalacoes**   | Handoffs que foram escalados por timeout                       | Timeline              |
+| **Overlap de Turno**          | Profissionais com overlap de responsabilidade                  | Gantt                 |
+| **Carga por Profissional**    | Numero de pacientes por profissional por turno                 | Bar chart             |
 
 ### 5.3 Queries
 
 **Handoffs Pendentes (PostgreSQL)**:
+
 ```sql
 SELECT h.id, h.patient_name, h.from_practitioner_name, h.to_practitioner_name,
        h.priority, h.requested_at, h.timeout_at,
@@ -302,6 +314,7 @@ ORDER BY h.timeout_at ASC;
 ```
 
 **Taxa de Aceite (PromQL)**:
+
 ```promql
 sum by (unit, shift) (rate(velya_handoff_accepted_in_sla_total[24h]))
 / sum by (unit, shift) (rate(velya_handoff_requested_total[24h]))
@@ -309,6 +322,7 @@ sum by (unit, shift) (rate(velya_handoff_accepted_in_sla_total[24h]))
 ```
 
 **Cadeia de Custodia (Loki)**:
+
 ```logql
 {namespace="velya", service="handoff-service"}
   | json
@@ -335,22 +349,23 @@ Painel central para monitoramento de todos os gaps detectados pelo motor de regr
 
 ### 6.2 Paineis Principais
 
-| Painel | Descricao | Tipo |
-|---|---|---|
-| **Gaps Criticos Ativos** | GAPs com severidade CRITICAL nao resolvidos | Critical alert |
-| **Gaps por Severidade** | Distribuicao de gaps ativos por severidade | Donut chart |
-| **Gaps por Tipo** | Top 10 tipos de gap mais frequentes (24h) | Bar chart |
-| **Gaps por Unidade** | Heatmap de gaps ativos por unidade | Heatmap |
-| **Tendencia de Gaps** | Evolucao do total de gaps por severidade (7 dias) | Stacked area |
-| **Tempo de Resolucao** | Distribuicao do tempo de resolucao por tipo de gap | Box plot |
-| **Gaps Recorrentes** | Pacientes/profissionais com gaps repetitivos | Table |
-| **Atrasos em Andamento** | Ordens/processos com atraso ativo (SLA em risco) | Table |
-| **Pipeline de Resultados** | Exames aguardando resultado com tempo de espera | Table |
-| **Taxa de Falso Positivo** | % de gaps marcados como falso positivo por regra | Bar chart |
+| Painel                     | Descricao                                          | Tipo           |
+| -------------------------- | -------------------------------------------------- | -------------- |
+| **Gaps Criticos Ativos**   | GAPs com severidade CRITICAL nao resolvidos        | Critical alert |
+| **Gaps por Severidade**    | Distribuicao de gaps ativos por severidade         | Donut chart    |
+| **Gaps por Tipo**          | Top 10 tipos de gap mais frequentes (24h)          | Bar chart      |
+| **Gaps por Unidade**       | Heatmap de gaps ativos por unidade                 | Heatmap        |
+| **Tendencia de Gaps**      | Evolucao do total de gaps por severidade (7 dias)  | Stacked area   |
+| **Tempo de Resolucao**     | Distribuicao do tempo de resolucao por tipo de gap | Box plot       |
+| **Gaps Recorrentes**       | Pacientes/profissionais com gaps repetitivos       | Table          |
+| **Atrasos em Andamento**   | Ordens/processos com atraso ativo (SLA em risco)   | Table          |
+| **Pipeline de Resultados** | Exames aguardando resultado com tempo de espera    | Table          |
+| **Taxa de Falso Positivo** | % de gaps marcados como falso positivo por regra   | Bar chart      |
 
 ### 6.3 Queries
 
 **Gaps Criticos Ativos (PostgreSQL)**:
+
 ```sql
 SELECT g.id, g.rule_id, g.patient_name, g.unit, g.bed,
        g.description, g.detected_at,
@@ -363,16 +378,19 @@ ORDER BY g.detected_at ASC;
 ```
 
 **Gaps por Unidade (PromQL)**:
+
 ```promql
 sum by (unit, severity) (velya_gap_active_count)
 ```
 
 **Tendencia de Gaps (PromQL)**:
+
 ```promql
 sum by (severity) (velya_gap_detected_total) - sum by (severity) (velya_gap_resolved_total)
 ```
 
 **Atrasos em Andamento (PostgreSQL)**:
+
 ```sql
 SELECT d.patient_name, d.unit, d.bed, d.delay_type,
        d.expected_time, d.current_delay_minutes,
@@ -402,27 +420,29 @@ Monitoramento da integridade, completude e qualidade da documentacao clinica de 
 
 ### 7.2 Paineis Principais
 
-| Painel | Descricao | Tipo |
-|---|---|---|
-| **Completude por Unidade** | % media de completude documental por unidade | Heatmap |
-| **Documentos Pendentes** | Evolucoes, notas, laudos nao registrados no prazo | Table |
-| **Assinaturas Pendentes** | Documentos aguardando assinatura digital | Table |
-| **Copy-Forward Detectado** | GAP-013: evolucoes com alta similaridade | Alert table |
-| **Conflitos Documentais** | GAP-011: informacoes contraditorias entre documentos | Alert table |
-| **Autoria Faltante** | GAP-012: documentos sem autoria valida | Table |
-| **Correcoes Tardias** | GAP-010: taxa de amendments tardios por profissional | Bar chart |
-| **Consentimentos** | Status de consentimentos obrigatorios | Checklist per patient |
-| **Evolucoes por Turno** | Evolucoes registradas vs esperadas por turno | Stacked bar |
-| **Qualidade Textual** | Indicadores de qualidade (extensao, estrutura, codificacao) | Multi-metric |
+| Painel                     | Descricao                                                   | Tipo                  |
+| -------------------------- | ----------------------------------------------------------- | --------------------- |
+| **Completude por Unidade** | % media de completude documental por unidade                | Heatmap               |
+| **Documentos Pendentes**   | Evolucoes, notas, laudos nao registrados no prazo           | Table                 |
+| **Assinaturas Pendentes**  | Documentos aguardando assinatura digital                    | Table                 |
+| **Copy-Forward Detectado** | GAP-013: evolucoes com alta similaridade                    | Alert table           |
+| **Conflitos Documentais**  | GAP-011: informacoes contraditorias entre documentos        | Alert table           |
+| **Autoria Faltante**       | GAP-012: documentos sem autoria valida                      | Table                 |
+| **Correcoes Tardias**      | GAP-010: taxa de amendments tardios por profissional        | Bar chart             |
+| **Consentimentos**         | Status de consentimentos obrigatorios                       | Checklist per patient |
+| **Evolucoes por Turno**    | Evolucoes registradas vs esperadas por turno                | Stacked bar           |
+| **Qualidade Textual**      | Indicadores de qualidade (extensao, estrutura, codificacao) | Multi-metric          |
 
 ### 7.3 Queries
 
 **Completude por Unidade (PromQL)**:
+
 ```promql
 avg by (unit) (velya_documentation_completeness_percentage)
 ```
 
 **Assinaturas Pendentes (PostgreSQL)**:
+
 ```sql
 SELECT ps.document_type, ps.patient_name, ps.unit, ps.bed,
        ps.required_from_name, ps.requested_at,
@@ -435,6 +455,7 @@ ORDER BY ps.deadline ASC;
 ```
 
 **Copy-Forward Detectado (PostgreSQL)**:
+
 ```sql
 SELECT cf.patient_name, cf.unit, cf.author_name,
        cf.source_date, cf.target_date,
@@ -448,6 +469,7 @@ ORDER BY cf.similarity_percentage DESC;
 ```
 
 **Evolucoes por Turno (PostgreSQL)**:
+
 ```sql
 SELECT u.unit_name, s.shift_name,
        COUNT(*) FILTER (WHERE d.registered = true) AS registered,
@@ -479,22 +501,23 @@ Ferramenta interativa para auditoria retrospectiva da jornada de um paciente esp
 
 ### 8.2 Paineis Principais
 
-| Painel | Descricao | Tipo |
-|---|---|---|
-| **Busca de Paciente** | Busca por nome, prontuario, leito, data de internacao | Search bar |
-| **Timeline Completa** | Todos os eventos do ledger para o paciente, filtravel | Interactive timeline |
-| **Filtros por Tipo** | Filtrar por tipo de evento (clinico, operacional, gap, handoff) | Multi-select |
-| **Filtros por Ator** | Filtrar por profissional envolvido | Multi-select |
-| **Provenance Chain** | Cadeia de proveniencia para cada evento selecionado | Tree view |
-| **Estado do Twin Historico** | Reconstrucao do Digital Twin em qualquer ponto do tempo | Snapshot viewer |
-| **Gaps Historicos** | Todos os gaps detectados e seu desfecho | Timeline overlay |
-| **Detalhe do Evento** | Recurso FHIR completo do evento selecionado | JSON viewer |
-| **Audit Trail de Acesso** | Quem acessou este prontuario, quando, e o que visualizou | Table |
-| **Exportacao** | Exportar timeline filtrada para PDF/CSV (com trilha de auditoria) | Action buttons |
+| Painel                       | Descricao                                                         | Tipo                 |
+| ---------------------------- | ----------------------------------------------------------------- | -------------------- |
+| **Busca de Paciente**        | Busca por nome, prontuario, leito, data de internacao             | Search bar           |
+| **Timeline Completa**        | Todos os eventos do ledger para o paciente, filtravel             | Interactive timeline |
+| **Filtros por Tipo**         | Filtrar por tipo de evento (clinico, operacional, gap, handoff)   | Multi-select         |
+| **Filtros por Ator**         | Filtrar por profissional envolvido                                | Multi-select         |
+| **Provenance Chain**         | Cadeia de proveniencia para cada evento selecionado               | Tree view            |
+| **Estado do Twin Historico** | Reconstrucao do Digital Twin em qualquer ponto do tempo           | Snapshot viewer      |
+| **Gaps Historicos**          | Todos os gaps detectados e seu desfecho                           | Timeline overlay     |
+| **Detalhe do Evento**        | Recurso FHIR completo do evento selecionado                       | JSON viewer          |
+| **Audit Trail de Acesso**    | Quem acessou este prontuario, quando, e o que visualizou          | Table                |
+| **Exportacao**               | Exportar timeline filtrada para PDF/CSV (com trilha de auditoria) | Action buttons       |
 
 ### 8.3 Queries
 
 **Timeline Completa (Loki)**:
+
 ```logql
 {namespace="velya", service="event-ledger"}
   | json
@@ -504,6 +527,7 @@ Ferramenta interativa para auditoria retrospectiva da jornada de um paciente esp
 ```
 
 **Provenance Chain (PostgreSQL)**:
+
 ```sql
 WITH RECURSIVE provenance_chain AS (
   SELECT p.id, p.target_reference, p.recorded, p.activity,
@@ -512,9 +536,9 @@ WITH RECURSIVE provenance_chain AS (
          1 AS depth
   FROM provenance p
   WHERE p.target_reference = :event_reference
-  
+
   UNION ALL
-  
+
   SELECT p2.id, p2.target_reference, p2.recorded, p2.activity,
          p2.agent_who_reference, p2.agent_who_display,
          p2.entity_what_reference, p2.entity_role,
@@ -527,6 +551,7 @@ SELECT * FROM provenance_chain ORDER BY depth, recorded;
 ```
 
 **Audit Trail de Acesso (PostgreSQL)**:
+
 ```sql
 SELECT ae.recorded, ae.agent_name, ae.agent_role,
        ae.action, ae.entity_description,
@@ -558,24 +583,25 @@ Visao macro do fluxo de pacientes no hospital inteiro, sobreposta ao mapa fisico
 
 ### 9.2 Paineis Principais
 
-| Painel | Descricao | Tipo |
-|---|---|---|
-| **Mapa do Hospital** | Planta baixa com ocupacao por unidade (heatmap) | Floor plan overlay |
-| **Ocupacao em Tempo Real** | Leitos ocupados/disponiveis/bloqueados por unidade | Stacked bar |
-| **Fluxo de Admissoes/Altas** | Entradas e saidas por hora (ultimas 24h + projecao) | Area chart |
-| **Giro de Leito** | Tempo medio de giro (alta -> limpeza -> nova admissao) | Gauge per unit |
-| **Pacientes para Alta** | Pacientes com criterios de alta atendidos aguardando efetivacao | Table |
-| **Transferencias Pendentes** | Solicitacoes de transferencia interna em andamento | Flow diagram |
-| **Risco Operacional por Unidade** | Media do risco operacional dos twins de cada unidade | Heatmap |
-| **Staffing vs Carga** | Ratio profissional/paciente por unidade e turno | Comparison bar |
-| **Tempo de Permanencia** | Distribuicao do tempo de permanencia vs esperado por DRG | Box plot |
-| **Alertas Institucionais** | Alertas de capacidade, surtos, equipamentos indisponiveis | Alert feed |
-| **Projecao de Demanda** | Projecao de admissoes/altas para proximas 12h | Forecast line |
-| **KPIs Institucionais** | Taxa de ocupacao, TMP, reinternacao, mortalidade | Stat panels |
+| Painel                            | Descricao                                                       | Tipo               |
+| --------------------------------- | --------------------------------------------------------------- | ------------------ |
+| **Mapa do Hospital**              | Planta baixa com ocupacao por unidade (heatmap)                 | Floor plan overlay |
+| **Ocupacao em Tempo Real**        | Leitos ocupados/disponiveis/bloqueados por unidade              | Stacked bar        |
+| **Fluxo de Admissoes/Altas**      | Entradas e saidas por hora (ultimas 24h + projecao)             | Area chart         |
+| **Giro de Leito**                 | Tempo medio de giro (alta -> limpeza -> nova admissao)          | Gauge per unit     |
+| **Pacientes para Alta**           | Pacientes com criterios de alta atendidos aguardando efetivacao | Table              |
+| **Transferencias Pendentes**      | Solicitacoes de transferencia interna em andamento              | Flow diagram       |
+| **Risco Operacional por Unidade** | Media do risco operacional dos twins de cada unidade            | Heatmap            |
+| **Staffing vs Carga**             | Ratio profissional/paciente por unidade e turno                 | Comparison bar     |
+| **Tempo de Permanencia**          | Distribuicao do tempo de permanencia vs esperado por DRG        | Box plot           |
+| **Alertas Institucionais**        | Alertas de capacidade, surtos, equipamentos indisponiveis       | Alert feed         |
+| **Projecao de Demanda**           | Projecao de admissoes/altas para proximas 12h                   | Forecast line      |
+| **KPIs Institucionais**           | Taxa de ocupacao, TMP, reinternacao, mortalidade                | Stat panels        |
 
 ### 9.3 Queries
 
 **Ocupacao em Tempo Real (PromQL)**:
+
 ```promql
 # Leitos ocupados por unidade
 sum by (unit) (velya_bed_status{status="occupied"})
@@ -593,6 +619,7 @@ sum by (unit) (velya_bed_status{status="occupied"})
 ```
 
 **Fluxo de Admissoes/Altas (PromQL)**:
+
 ```promql
 # Admissoes por hora
 sum(increase(velya_encounter_admission_total[1h]))
@@ -602,6 +629,7 @@ sum(increase(velya_encounter_discharge_total[1h]))
 ```
 
 **Pacientes para Alta (PostgreSQL)**:
+
 ```sql
 SELECT p.patient_name, p.unit, p.bed,
        p.admission_date,
@@ -621,6 +649,7 @@ ORDER BY p.days_of_stay DESC;
 ```
 
 **Giro de Leito (PromQL)**:
+
 ```promql
 histogram_quantile(0.50,
   sum by (unit, le) (rate(velya_bed_turnaround_seconds_bucket[24h]))
@@ -628,6 +657,7 @@ histogram_quantile(0.50,
 ```
 
 **Staffing vs Carga (PostgreSQL)**:
+
 ```sql
 SELECT u.unit_name, s.shift_name,
        COUNT(DISTINCT st.practitioner_id) AS staff_count,
@@ -655,16 +685,16 @@ ORDER BY ratio DESC;
 
 ### 10.1 Matriz de Visibilidade
 
-| Dashboard | Enfermeiro Assistencial | Coord. Enfermagem | Medico Assistencial | Coord. Medico | Farmaceutico | Qualidade | Command Center | Diretoria |
-|---|---|---|---|---|---|---|---|---|
-| Patient Journey Cockpit | Proprios pacientes | Unidade | Proprios pacientes | Unidade | Medicamentos | Todos | Todos | Todos |
-| Medication Integrity | Proprios pacientes | Unidade | Proprios pacientes | Unidade | Todos | Todos | Resumo | Resumo |
-| Pain & Calls | Proprios pacientes | Unidade | Proprios pacientes | Unidade | N/A | Todos | Resumo | Resumo |
-| Handoff Chain | Proprios | Unidade | Proprios | Unidade | N/A | Todos | Todos | Resumo |
-| Delay and Gap | Proprios pacientes | Unidade | Proprios pacientes | Unidade | Farmacia | Todos | Todos | Resumo |
-| Documentation Integrity | Proprios | Unidade | Proprios | Unidade | N/A | Todos | N/A | Resumo |
-| Audit Timeline Explorer | N/A | Com justificativa | N/A | Com justificativa | N/A | Todos | N/A | Todos |
-| Command Center Overlay | N/A | Resumo unidade | N/A | Resumo unidade | N/A | Resumo | Todos | Todos |
+| Dashboard               | Enfermeiro Assistencial | Coord. Enfermagem | Medico Assistencial | Coord. Medico     | Farmaceutico | Qualidade | Command Center | Diretoria |
+| ----------------------- | ----------------------- | ----------------- | ------------------- | ----------------- | ------------ | --------- | -------------- | --------- |
+| Patient Journey Cockpit | Proprios pacientes      | Unidade           | Proprios pacientes  | Unidade           | Medicamentos | Todos     | Todos          | Todos     |
+| Medication Integrity    | Proprios pacientes      | Unidade           | Proprios pacientes  | Unidade           | Todos        | Todos     | Resumo         | Resumo    |
+| Pain & Calls            | Proprios pacientes      | Unidade           | Proprios pacientes  | Unidade           | N/A          | Todos     | Resumo         | Resumo    |
+| Handoff Chain           | Proprios                | Unidade           | Proprios            | Unidade           | N/A          | Todos     | Todos          | Resumo    |
+| Delay and Gap           | Proprios pacientes      | Unidade           | Proprios pacientes  | Unidade           | Farmacia     | Todos     | Todos          | Resumo    |
+| Documentation Integrity | Proprios                | Unidade           | Proprios            | Unidade           | N/A          | Todos     | N/A            | Resumo    |
+| Audit Timeline Explorer | N/A                     | Com justificativa | N/A                 | Com justificativa | N/A          | Todos     | N/A            | Todos     |
+| Command Center Overlay  | N/A                     | Resumo unidade    | N/A                 | Resumo unidade    | N/A          | Resumo    | Todos          | Todos     |
 
 ### 10.2 Regras de Acesso
 
@@ -680,25 +710,25 @@ ORDER BY ratio DESC;
 
 ### 11.1 Stack
 
-| Componente | Tecnologia | Finalidade |
-|---|---|---|
-| **Dashboards** | Grafana 10+ | Visualizacao |
-| **Metricas** | Prometheus + Thanos | Armazenamento de metricas |
-| **Logs/Eventos** | Loki | Armazenamento de eventos |
-| **Dados Estruturados** | PostgreSQL 16 | Queries complexas |
-| **Cache** | Redis Cluster | Estado do twin em tempo real |
-| **Alertas** | Grafana Alerting + AlertManager | Notificacoes |
-| **Autenticacao** | Keycloak (OIDC) | SSO + RBAC |
+| Componente             | Tecnologia                      | Finalidade                   |
+| ---------------------- | ------------------------------- | ---------------------------- |
+| **Dashboards**         | Grafana 10+                     | Visualizacao                 |
+| **Metricas**           | Prometheus + Thanos             | Armazenamento de metricas    |
+| **Logs/Eventos**       | Loki                            | Armazenamento de eventos     |
+| **Dados Estruturados** | PostgreSQL 16                   | Queries complexas            |
+| **Cache**              | Redis Cluster                   | Estado do twin em tempo real |
+| **Alertas**            | Grafana Alerting + AlertManager | Notificacoes                 |
+| **Autenticacao**       | Keycloak (OIDC)                 | SSO + RBAC                   |
 
 ### 11.2 Performance
 
-| Metrica | Meta |
-|---|---|
-| Tempo de carregamento do dashboard | < 3 segundos |
-| Refresh rate (tempo real) | 10 segundos |
-| Retencao de metricas (Thanos) | 2 anos |
-| Retencao de logs (Loki) | 1 ano (hot) + 5 anos (cold) |
-| Usuarios concorrentes | > 200 |
+| Metrica                            | Meta                        |
+| ---------------------------------- | --------------------------- |
+| Tempo de carregamento do dashboard | < 3 segundos                |
+| Refresh rate (tempo real)          | 10 segundos                 |
+| Retencao de metricas (Thanos)      | 2 anos                      |
+| Retencao de logs (Loki)            | 1 ano (hot) + 5 anos (cold) |
+| Usuarios concorrentes              | > 200                       |
 
 ### 11.3 Monitoramento dos Dashboards
 

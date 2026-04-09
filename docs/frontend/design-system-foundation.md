@@ -127,15 +127,15 @@ O sistema utiliza variáveis CSS semânticas que se adaptam ao tema:
 
 ### 2.2 Cores Hospitalares — Contexto de Uso
 
-| Token | Uso | Exemplo |
-|---|---|---|
-| `--critical` | Paciente crítico, alerta vermelho | Badge "Crítico", borda de card urgente |
-| `--urgent` | Ação urgente, chamada ativa | Timer de chamada, medicação atrasada |
-| `--stable` | Status estável, sucesso | Badge "Estável", confirmação de ação |
-| `--observation` | Em observação, informacional | Badge "Observação", nota informativa |
-| `--pain-*` | Escala de dor (0-10) | Indicador visual de nível de dor |
-| `--destructive` | Ação destrutiva | Botão de cancelar, excluir |
-| `--warning` | Atenção necessária | Medicação próxima do horário |
+| Token           | Uso                               | Exemplo                                |
+| --------------- | --------------------------------- | -------------------------------------- |
+| `--critical`    | Paciente crítico, alerta vermelho | Badge "Crítico", borda de card urgente |
+| `--urgent`      | Ação urgente, chamada ativa       | Timer de chamada, medicação atrasada   |
+| `--stable`      | Status estável, sucesso           | Badge "Estável", confirmação de ação   |
+| `--observation` | Em observação, informacional      | Badge "Observação", nota informativa   |
+| `--pain-*`      | Escala de dor (0-10)              | Indicador visual de nível de dor       |
+| `--destructive` | Ação destrutiva                   | Botão de cancelar, excluir             |
+| `--warning`     | Atenção necessária                | Medicação próxima do horário           |
 
 ### 2.3 Tipografia
 
@@ -146,14 +146,14 @@ O sistema utiliza variáveis CSS semânticas que se adaptam ao tema:
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   /* Font sizes — escala modular */
-  --text-xs: 0.75rem;      /* 12px — labels secundários */
-  --text-sm: 0.875rem;     /* 14px — corpo secundário, tabelas */
-  --text-base: 1rem;       /* 16px — corpo principal */
-  --text-lg: 1.125rem;     /* 18px — subtítulos */
-  --text-xl: 1.25rem;      /* 20px — títulos de seção */
-  --text-2xl: 1.5rem;      /* 24px — títulos de página */
-  --text-3xl: 1.875rem;    /* 30px — títulos de dashboard */
-  --text-4xl: 2.25rem;     /* 36px — métricas grandes */
+  --text-xs: 0.75rem; /* 12px — labels secundários */
+  --text-sm: 0.875rem; /* 14px — corpo secundário, tabelas */
+  --text-base: 1rem; /* 16px — corpo principal */
+  --text-lg: 1.125rem; /* 18px — subtítulos */
+  --text-xl: 1.25rem; /* 20px — títulos de seção */
+  --text-2xl: 1.5rem; /* 24px — títulos de página */
+  --text-3xl: 1.875rem; /* 30px — títulos de dashboard */
+  --text-4xl: 2.25rem; /* 36px — métricas grandes */
 
   /* Line heights */
   --leading-tight: 1.25;
@@ -182,18 +182,18 @@ O sistema utiliza variáveis CSS semânticas que se adaptam ao tema:
 :root {
   /* Spacing scale (Tailwind default) */
   --space-0: 0;
-  --space-0.5: 0.125rem;   /* 2px */
-  --space-1: 0.25rem;      /* 4px */
-  --space-1.5: 0.375rem;   /* 6px */
-  --space-2: 0.5rem;       /* 8px */
-  --space-3: 0.75rem;      /* 12px */
-  --space-4: 1rem;         /* 16px */
-  --space-5: 1.25rem;      /* 20px */
-  --space-6: 1.5rem;       /* 24px */
-  --space-8: 2rem;         /* 32px */
-  --space-10: 2.5rem;      /* 40px */
-  --space-12: 3rem;        /* 48px */
-  --space-16: 4rem;        /* 64px */
+  --space-0.5: 0.125rem; /* 2px */
+  --space-1: 0.25rem; /* 4px */
+  --space-1.5: 0.375rem; /* 6px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-8: 2rem; /* 32px */
+  --space-10: 2.5rem; /* 40px */
+  --space-12: 3rem; /* 48px */
+  --space-16: 4rem; /* 64px */
 }
 ```
 
@@ -209,12 +209,12 @@ O sistema utiliza variáveis CSS semânticas que se adaptam ao tema:
 ```css
 :root {
   --radius-none: 0;
-  --radius-sm: 0.25rem;    /* 4px — badges, chips */
-  --radius-md: 0.375rem;   /* 6px — inputs, buttons */
-  --radius-lg: 0.5rem;     /* 8px — cards */
-  --radius-xl: 0.75rem;    /* 12px — modals, popovers */
-  --radius-2xl: 1rem;      /* 16px — containers grandes */
-  --radius-full: 9999px;   /* avatares, pills */
+  --radius-sm: 0.25rem; /* 4px — badges, chips */
+  --radius-md: 0.375rem; /* 6px — inputs, buttons */
+  --radius-lg: 0.5rem; /* 8px — cards */
+  --radius-xl: 0.75rem; /* 12px — modals, popovers */
+  --radius-2xl: 1rem; /* 16px — containers grandes */
+  --radius-full: 9999px; /* avatares, pills */
 }
 ```
 
@@ -252,7 +252,7 @@ function PatientCardSkeleton() {
         <Skeleton className="h-4 w-3/4" />
       </CardContent>
     </Card>
-  )
+  );
 }
 ```
 
@@ -266,24 +266,17 @@ function PatientCardSkeleton() {
 ### 3.2 Estado Vazio (Empty)
 
 ```tsx
-function EmptyState({
-  icon: Icon,
-  title,
-  description,
-  action,
-}: EmptyStateProps) {
+function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="rounded-full bg-muted p-4 mb-4">
         <Icon className="h-8 w-8 text-muted-foreground" />
       </div>
       <h3 className="text-lg font-semibold">{title}</h3>
-      <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-        {description}
-      </p>
+      <p className="text-sm text-muted-foreground mt-1 max-w-sm">{description}</p>
       {action && <div className="mt-4">{action}</div>}
     </div>
-  )
+  );
 }
 ```
 
@@ -297,11 +290,7 @@ function EmptyState({
 ### 3.3 Estado de Erro (Error)
 
 ```tsx
-function ErrorState({
-  title = 'Erro ao carregar dados',
-  description,
-  onRetry,
-}: ErrorStateProps) {
+function ErrorState({ title = 'Erro ao carregar dados', description, onRetry }: ErrorStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="rounded-full bg-destructive/10 p-4 mb-4">
@@ -317,7 +306,7 @@ function ErrorState({
         </Button>
       )}
     </div>
-  )
+  );
 }
 ```
 
@@ -338,7 +327,7 @@ function showToast(type: 'success' | 'warning' | 'error' | 'info', message: stri
     title: TOAST_TITLES[type],
     description: message,
     duration: type === 'error' ? 8000 : 4000,
-  })
+  });
 }
 
 // Inline alerts
@@ -349,7 +338,7 @@ function InlineAlert({ variant, title, children }: InlineAlertProps) {
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription>{children}</AlertDescription>
     </Alert>
-  )
+  );
 }
 ```
 
@@ -363,14 +352,14 @@ function DegradedBanner({ service, lastSync }: DegradedBannerProps) {
     <div className="bg-warning/10 border-b border-warning px-4 py-2 flex items-center gap-2">
       <WifiOff className="h-4 w-4 text-warning" />
       <span className="text-sm text-warning-foreground">
-        Modo degradado — {service} indisponível.
-        Última sincronização: {formatRelativeTime(lastSync)}
+        Modo degradado — {service} indisponível. Última sincronização:{' '}
+        {formatRelativeTime(lastSync)}
       </span>
       <Button variant="ghost" size="sm" className="ml-auto">
         Tentar reconectar
       </Button>
     </div>
-  )
+  );
 }
 ```
 
@@ -387,12 +376,7 @@ function DegradedBanner({ service, lastSync }: DegradedBannerProps) {
 Ações sensíveis requerem feedback especial:
 
 ```tsx
-function AuditConfirmation({
-  action,
-  details,
-  operatorName,
-  timestamp,
-}: AuditConfirmationProps) {
+function AuditConfirmation({ action, details, operatorName, timestamp }: AuditConfirmationProps) {
   return (
     <div className="border-l-4 border-primary bg-primary/5 p-4 rounded-r-lg">
       <div className="flex items-center gap-2 mb-2">
@@ -414,7 +398,7 @@ function AuditConfirmation({
         </div>
       </dl>
     </div>
-  )
+  );
 }
 ```
 
@@ -442,7 +426,11 @@ const STATUS_VARIANTS = {
   // Medicação
   pending: { bg: 'bg-warning/10', text: 'text-warning', dot: 'bg-warning' },
   administered: { bg: 'bg-stable/10', text: 'text-stable', dot: 'bg-stable' },
-  overdue: { bg: 'bg-destructive/10', text: 'text-destructive', dot: 'bg-destructive animate-pulse' },
+  overdue: {
+    bg: 'bg-destructive/10',
+    text: 'text-destructive',
+    dot: 'bg-destructive animate-pulse',
+  },
   skipped: { bg: 'bg-muted', text: 'text-muted-foreground', dot: 'bg-muted-foreground' },
 
   // Handoff
@@ -451,44 +439,51 @@ const STATUS_VARIANTS = {
   completed: { bg: 'bg-stable/10', text: 'text-stable', dot: 'bg-stable' },
 
   // Agente IA
-  aiSuggestion: { bg: 'bg-violet-100 dark:bg-violet-950', text: 'text-violet-700 dark:text-violet-300', dot: 'bg-violet-500' },
+  aiSuggestion: {
+    bg: 'bg-violet-100 dark:bg-violet-950',
+    text: 'text-violet-700 dark:text-violet-300',
+    dot: 'bg-violet-500',
+  },
   aiConfirmed: { bg: 'bg-stable/10', text: 'text-stable', dot: 'bg-stable' },
   aiRejected: { bg: 'bg-destructive/10', text: 'text-destructive', dot: 'bg-destructive' },
-} as const
+} as const;
 
-type StatusVariant = keyof typeof STATUS_VARIANTS
+type StatusVariant = keyof typeof STATUS_VARIANTS;
 
 interface StatusChipProps {
-  variant: StatusVariant
-  label: string
-  showDot?: boolean
-  size?: 'sm' | 'md'
+  variant: StatusVariant;
+  label: string;
+  showDot?: boolean;
+  size?: 'sm' | 'md';
 }
 
 function StatusChip({ variant, label, showDot = true, size = 'sm' }: StatusChipProps) {
-  const styles = STATUS_VARIANTS[variant]
+  const styles = STATUS_VARIANTS[variant];
   return (
-    <span className={cn(
-      'inline-flex items-center gap-1.5 rounded-full font-medium',
-      styles.bg, styles.text,
-      size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-sm',
-    )}>
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-full font-medium',
+        styles.bg,
+        styles.text,
+        size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-sm',
+      )}
+    >
       {showDot && <span className={cn('h-1.5 w-1.5 rounded-full', styles.dot)} />}
       {label}
     </span>
-  )
+  );
 }
 ```
 
 ### 4.2 Uso por Domínio
 
-| Domínio | Status | Chip |
-|---|---|---|
-| Paciente | Crítico, Urgente, Estável, Observação, Alta | `critical`, `urgent`, `stable`, `observation`, `discharged` |
-| Chamada | Tocando, Ativa, Resolvida, Perdida | `ringing`, `active`, `resolved`, `missed` |
-| Medicação | Pendente, Administrada, Atrasada, Pulada | `pending`, `administered`, `overdue`, `skipped` |
-| Handoff | Rascunho, Em progresso, Concluído | `draft`, `inProgress`, `completed` |
-| Agente IA | Sugestão, Confirmado, Rejeitado | `aiSuggestion`, `aiConfirmed`, `aiRejected` |
+| Domínio   | Status                                      | Chip                                                        |
+| --------- | ------------------------------------------- | ----------------------------------------------------------- |
+| Paciente  | Crítico, Urgente, Estável, Observação, Alta | `critical`, `urgent`, `stable`, `observation`, `discharged` |
+| Chamada   | Tocando, Ativa, Resolvida, Perdida          | `ringing`, `active`, `resolved`, `missed`                   |
+| Medicação | Pendente, Administrada, Atrasada, Pulada    | `pending`, `administered`, `overdue`, `skipped`             |
+| Handoff   | Rascunho, Em progresso, Concluído           | `draft`, `inProgress`, `completed`                          |
+| Agente IA | Sugestão, Confirmado, Rejeitado             | `aiSuggestion`, `aiConfirmed`, `aiRejected`                 |
 
 ---
 
@@ -498,14 +493,14 @@ function StatusChip({ variant, label, showDot = true, size = 'sm' }: StatusChipP
 
 ```tsx
 interface TimelineEvent {
-  id: string
-  timestamp: Date
-  type: 'medication' | 'call' | 'pain' | 'handoff' | 'note' | 'vital' | 'procedure'
-  title: string
-  description?: string
-  operator: string
-  status?: StatusVariant
-  aiGenerated?: boolean
+  id: string;
+  timestamp: Date;
+  type: 'medication' | 'call' | 'pain' | 'handoff' | 'note' | 'vital' | 'procedure';
+  title: string;
+  description?: string;
+  operator: string;
+  status?: StatusVariant;
+  aiGenerated?: boolean;
 }
 
 function Timeline({ events }: { events: TimelineEvent[] }) {
@@ -520,11 +515,11 @@ function Timeline({ events }: { events: TimelineEvent[] }) {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 function TimelineItem({ event }: { event: TimelineEvent }) {
-  const Icon = TIMELINE_ICONS[event.type]
+  const Icon = TIMELINE_ICONS[event.type];
 
   return (
     <div className="relative flex gap-4 pl-10">
@@ -553,21 +548,21 @@ function TimelineItem({ event }: { event: TimelineEvent }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 ```
 
 ### 5.2 Ícones por Tipo de Evento
 
-| Tipo | Ícone | Cor |
-|---|---|---|
-| `medication` | Pill | primary |
-| `call` | Phone | urgent |
-| `pain` | Activity | warning |
-| `handoff` | ArrowRightLeft | info |
-| `note` | FileText | muted |
-| `vital` | Heart | critical |
-| `procedure` | Stethoscope | stable |
+| Tipo         | Ícone          | Cor      |
+| ------------ | -------------- | -------- |
+| `medication` | Pill           | primary  |
+| `call`       | Phone          | urgent   |
+| `pain`       | Activity       | warning  |
+| `handoff`    | ArrowRightLeft | info     |
+| `note`       | FileText       | muted    |
+| `vital`      | Heart          | critical |
+| `procedure`  | Stethoscope    | stable   |
 
 ---
 
@@ -668,7 +663,9 @@ function TimelineItem({ event }: { event: TimelineEvent }) {
       {rows.map((row) => (
         <TableRow key={row.id} className="hover:bg-muted/50">
           <TableCell className="font-medium">{row.name}</TableCell>
-          <TableCell><StatusChip variant={row.status} /></TableCell>
+          <TableCell>
+            <StatusChip variant={row.status} />
+          </TableCell>
           <TableCell className="text-right">
             <RowActions row={row} />
           </TableCell>
@@ -716,7 +713,7 @@ UTIs e postos de enfermagem noturnos exigem iluminação reduzida. O dark theme 
 
 ```tsx
 function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme();
 
   return (
     <Button
@@ -728,7 +725,7 @@ function ThemeToggle() {
       <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
       <span className="sr-only">Alternar tema</span>
     </Button>
-  )
+  );
 }
 ```
 
@@ -746,18 +743,18 @@ Lucide é a biblioteca padrão de ícones (incluída com shadcn/ui):
 
 ### 10.2 Ícones por Domínio
 
-| Domínio | Ícones Principais |
-|---|---|
-| Pacientes | User, Users, UserPlus, UserCheck |
-| Medicação | Pill, Syringe, Clock, AlertCircle |
-| Chamadas | Phone, PhoneIncoming, PhoneOff, Bell |
-| Dor | Activity, Gauge, TrendingUp |
-| Handoff | ArrowRightLeft, ClipboardList, CheckCircle |
-| Workforce | Calendar, Users, Shield |
-| Dashboard | LayoutDashboard, BarChart, PieChart |
-| Auditoria | Shield, Eye, FileSearch, Lock |
-| Agentes IA | Sparkles, Bot, Brain, Zap |
-| Settings | Settings, Cog, Sliders |
+| Domínio    | Ícones Principais                          |
+| ---------- | ------------------------------------------ |
+| Pacientes  | User, Users, UserPlus, UserCheck           |
+| Medicação  | Pill, Syringe, Clock, AlertCircle          |
+| Chamadas   | Phone, PhoneIncoming, PhoneOff, Bell       |
+| Dor        | Activity, Gauge, TrendingUp                |
+| Handoff    | ArrowRightLeft, ClipboardList, CheckCircle |
+| Workforce  | Calendar, Users, Shield                    |
+| Dashboard  | LayoutDashboard, BarChart, PieChart        |
+| Auditoria  | Shield, Eye, FileSearch, Lock              |
+| Agentes IA | Sparkles, Bot, Brain, Zap                  |
+| Settings   | Settings, Cog, Sliders                     |
 
 ---
 
@@ -780,13 +777,21 @@ Lucide é a biblioteca padrão de ícones (incluída com shadcn/ui):
 
 /* Entrada */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
@@ -799,13 +804,13 @@ Lucide é a biblioteca padrão de ícones (incluída com shadcn/ui):
 
 ### 12.1 Breakpoints
 
-| Breakpoint | Pixels | Contexto Hospitalar |
-|---|---|---|
-| `sm` | 640px | Smartphone portrait |
-| `md` | 768px | Tablet portrait, smartphone landscape |
-| `lg` | 1024px | Tablet landscape, desktop pequeno |
-| `xl` | 1280px | Desktop padrão |
-| `2xl` | 1536px | Monitor grande, posto de enfermagem |
+| Breakpoint | Pixels | Contexto Hospitalar                   |
+| ---------- | ------ | ------------------------------------- |
+| `sm`       | 640px  | Smartphone portrait                   |
+| `md`       | 768px  | Tablet portrait, smartphone landscape |
+| `lg`       | 1024px | Tablet landscape, desktop pequeno     |
+| `xl`       | 1280px | Desktop padrão                        |
+| `2xl`      | 1536px | Monitor grande, posto de enfermagem   |
 
 ### 12.2 Estratégia por Breakpoint
 
@@ -823,7 +828,7 @@ Lucide é a biblioteca padrão de ícones (incluída com shadcn/ui):
 - [ ] Contraste mínimo 4.5:1 para texto normal, 3:1 para texto grande
 - [ ] Focus ring visível em todos os elementos interativos
 - [ ] ARIA labels em ícones sem texto
-- [ ] Role e aria-* em componentes custom (tabs, dialogs, alerts)
+- [ ] Role e aria-\* em componentes custom (tabs, dialogs, alerts)
 - [ ] Navegação por teclado funcional em toda a aplicação
 - [ ] Screen reader anuncia mudanças dinâmicas (live regions)
 - [ ] Imagens com alt text descritivo

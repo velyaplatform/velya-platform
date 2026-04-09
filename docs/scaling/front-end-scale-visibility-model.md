@@ -50,15 +50,15 @@ Visão geral do estado de saúde da plataforma em tempo real. Primeira tela aber
 
 ### Dados Exibidos
 
-| Componente | Métrica | Fonte |
-|---|---|---|
-| Node CPU pressure | `avg(1 - rate(node_cpu_seconds_total{mode="idle"}[5m]))` | Prometheus |
-| Node Memory pressure | `avg(1 - node_memory_MemAvailable / node_memory_MemTotal)` | Prometheus |
-| Pod churn rate | `rate(kube_pod_container_status_restarts_total[5m])` | Prometheus |
-| Pods not ready | `count(kube_pod_status_ready{condition="false"})` | Prometheus |
-| Namespace quota utilization | `quota_used / quota_hard` | Prometheus |
-| Active alerts | Alertmanager API | Alertmanager |
-| System status | Agregado calculado | velya-web |
+| Componente                  | Métrica                                                    | Fonte        |
+| --------------------------- | ---------------------------------------------------------- | ------------ |
+| Node CPU pressure           | `avg(1 - rate(node_cpu_seconds_total{mode="idle"}[5m]))`   | Prometheus   |
+| Node Memory pressure        | `avg(1 - node_memory_MemAvailable / node_memory_MemTotal)` | Prometheus   |
+| Pod churn rate              | `rate(kube_pod_container_status_restarts_total[5m])`       | Prometheus   |
+| Pods not ready              | `count(kube_pod_status_ready{condition="false"})`          | Prometheus   |
+| Namespace quota utilization | `quota_used / quota_hard`                                  | Prometheus   |
+| Active alerts               | Alertmanager API                                           | Alertmanager |
+| System status               | Agregado calculado                                         | velya-web    |
 
 ### Status Geral (Semáforo)
 
@@ -88,7 +88,7 @@ import { PressureStatusCard } from '@/components/platform/PressureStatusCard';
 export default async function RuntimePressurePage() {
   // Server component com revalidação a cada 15s
   const pressure = await getRuntimePressureData();
-  
+
   return (
     <div className="grid grid-cols-2 gap-4 p-6">
       <PressureStatusCard
@@ -124,12 +124,12 @@ Controle direto dos mecanismos de autoscaling. Para operadores e SREs que precis
 
 ### Dados Exibidos
 
-| Componente | Dados | Fonte |
-|---|---|---|
-| HPA status | nome, namespace, current/min/max replicas, métrica atual, target | Kubernetes API |
-| KEDA ScaledObjects | nome, trigger type, lag atual, min/max, paused? | Kubernetes API + KEDA |
-| VPA recommendations | container, recommended CPU/memory vs current | VPA API |
-| Deployment replicas | nome, current/desired/ready | Kubernetes API |
+| Componente          | Dados                                                            | Fonte                 |
+| ------------------- | ---------------------------------------------------------------- | --------------------- |
+| HPA status          | nome, namespace, current/min/max replicas, métrica atual, target | Kubernetes API        |
+| KEDA ScaledObjects  | nome, trigger type, lag atual, min/max, paused?                  | Kubernetes API + KEDA |
+| VPA recommendations | container, recommended CPU/memory vs current                     | VPA API               |
+| Deployment replicas | nome, current/desired/ready                                      | Kubernetes API        |
 
 ### Layout
 
@@ -171,11 +171,11 @@ Controle direto dos mecanismos de autoscaling. Para operadores e SREs que precis
 // lib/platform/autoscaling-queries.ts
 export async function getHPAStatus(): Promise<HPAStatus[]> {
   const response = await fetch('/api/k8s/hpa', {
-    headers: { Authorization: `Bearer ${getServiceToken()}` }
+    headers: { Authorization: `Bearer ${getServiceToken()}` },
   });
   const { items } = await response.json();
-  
-  return items.map(hpa => ({
+
+  return items.map((hpa) => ({
     name: hpa.metadata.name,
     namespace: hpa.metadata.namespace,
     minReplicas: hpa.spec.minReplicas,
@@ -199,13 +199,13 @@ Monitoramento de todas as filas NATS JetStream. Detecção de backlog, DLQ e con
 
 ### Dados Exibidos
 
-| Stream | Métricas | Fonte |
-|---|---|---|
-| velya.clinical.events | depth, oldest message age, consumers, delivery rate | NATS monitoring |
-| velya.discharge.queue | depth, DLQ count, oldest message age, consumer lag | NATS monitoring |
-| velya.tasks.notifications | depth, consumer lag, delivery rate | NATS monitoring |
-| velya.ai.requests | depth, oldest age, DLQ | NATS monitoring |
-| velya.audit.log | depth, delivery rate | NATS monitoring |
+| Stream                    | Métricas                                            | Fonte           |
+| ------------------------- | --------------------------------------------------- | --------------- |
+| velya.clinical.events     | depth, oldest message age, consumers, delivery rate | NATS monitoring |
+| velya.discharge.queue     | depth, DLQ count, oldest message age, consumer lag  | NATS monitoring |
+| velya.tasks.notifications | depth, consumer lag, delivery rate                  | NATS monitoring |
+| velya.ai.requests         | depth, oldest age, DLQ                              | NATS monitoring |
+| velya.audit.log           | depth, delivery rate                                | NATS monitoring |
 
 ### Indicadores por Stream
 
@@ -240,11 +240,11 @@ Monitorar consumo de budget de tokens LLM por office e por agent. Prevenir esgot
 
 ### Dados Exibidos
 
-| Office | Budget Diário | Consumido | Restante | % | Projeção |
-|---|---|---|---|---|---|
-| Clinical Office | 500k tokens | 123k | 377k | 24.6% | OK |
-| Market Intel | 2M tokens | 1.8M | 200k | 90% | CRÍTICO |
-| Operations | 200k tokens | 45k | 155k | 22.5% | OK |
+| Office          | Budget Diário | Consumido | Restante | %     | Projeção |
+| --------------- | ------------- | --------- | -------- | ----- | -------- |
+| Clinical Office | 500k tokens   | 123k      | 377k     | 24.6% | OK       |
+| Market Intel    | 2M tokens     | 1.8M      | 200k     | 90%   | CRÍTICO  |
+| Operations      | 200k tokens   | 45k       | 155k     | 22.5% | OK       |
 
 ### Gauge por Office
 
@@ -282,14 +282,14 @@ Monitorar SLAs de handoffs entre serviços e entre humano e sistema. Detectar ga
 
 ### Dados Exibidos
 
-| Handoff | SLO | P50 | P99 | Status |
-|---|---|---|---|---|
-| Admissão → patient-flow routing | < 30s | 3s | 18s | OK |
-| Evento clínico → task no inbox | < 60s | 8s | 45s | OK |
-| Task criada → início de processamento | < 5min | 45s | 4.5min | OK |
-| Discharge request → orquestração iniciada | < 2min | 35s | 1.8min | OK |
-| Aprovação solicitada → resposta médico | < 2h | 25min | 1.8h | OK |
-| Workflow concluído → registro no prontuário | < 5min | 2min | 4.9min | ⚠️ |
+| Handoff                                     | SLO    | P50   | P99    | Status |
+| ------------------------------------------- | ------ | ----- | ------ | ------ |
+| Admissão → patient-flow routing             | < 30s  | 3s    | 18s    | OK     |
+| Evento clínico → task no inbox              | < 60s  | 8s    | 45s    | OK     |
+| Task criada → início de processamento       | < 5min | 45s   | 4.5min | OK     |
+| Discharge request → orquestração iniciada   | < 2min | 35s   | 1.8min | OK     |
+| Aprovação solicitada → resposta médico      | < 2h   | 25min | 1.8h   | OK     |
+| Workflow concluído → registro no prontuário | < 5min | 2min  | 4.9min | ⚠️     |
 
 ### Ações Disponíveis
 
@@ -309,13 +309,13 @@ Monitorar falhas de processamento, taxas de retry e mensagens em Dead Letter Que
 
 ### Dados Exibidos
 
-| Componente | Métrica | Valor | Status |
-|---|---|---|---|
-| Retry rate geral | msgs/min na 2a+ tentativa | 3.2/min | OK |
-| DLQ total | mensagens em DLQ | 0 | OK |
-| Temporal activity retry rate | retries/min | 0.5/min | OK |
-| Workflows com compensation | count | 0 | OK |
-| HTTP 5xx rate | errors/min por serviço | 0.1/min | OK |
+| Componente                   | Métrica                   | Valor   | Status |
+| ---------------------------- | ------------------------- | ------- | ------ |
+| Retry rate geral             | msgs/min na 2a+ tentativa | 3.2/min | OK     |
+| DLQ total                    | mensagens em DLQ          | 0       | OK     |
+| Temporal activity retry rate | retries/min               | 0.5/min | OK     |
+| Workflows com compensation   | count                     | 0       | OK     |
+| HTTP 5xx rate                | errors/min por serviço    | 0.1/min | OK     |
 
 ### Drilldown por Stream
 
@@ -348,12 +348,12 @@ Visibilidade de custo estimado, utilização de capacidade e projeções.
 
 ### Dados Exibidos
 
-| Componente | Custo/dia | Custo/mês (projetado) | Vs Budget |
-|---|---|---|---|
-| EKS Nodes (compute) | $48 | $1.440 | 72% de $2k |
-| LLM API (Anthropic) | $28 | $840 | 84% de $1k |
-| S3 Storage | $0.18 | $5.40 | 11% de $50 |
-| **Total** | **$76.18** | **$2.285** | **76% de $3k** |
+| Componente          | Custo/dia  | Custo/mês (projetado) | Vs Budget      |
+| ------------------- | ---------- | --------------------- | -------------- |
+| EKS Nodes (compute) | $48        | $1.440                | 72% de $2k     |
+| LLM API (Anthropic) | $28        | $840                  | 84% de $1k     |
+| S3 Storage          | $0.18      | $5.40                 | 11% de $50     |
+| **Total**           | **$76.18** | **$2.285**            | **76% de $3k** |
 
 ### NodePool Utilization
 
@@ -405,7 +405,7 @@ Status: ACTIVE (Modo Normal)
 Status: DEGRADED (Desde: 14:32, 2026-04-08)
   Motivo: HIS integration instável
   Ativado por: Dr. João Freire
-  
+
   ✅ Serviços HTTP: NORMAL
   ⚠️ Autoscaling: LIMITADO (KEDA pausado para ai-gateway)
   ⚠️ LLM Budget: 50% do normal (throttle ativo)
@@ -416,12 +416,12 @@ Status: DEGRADED (Desde: 14:32, 2026-04-08)
 
 ### Modos Pré-configurados
 
-| Modo | Ações Aplicadas | Caso de Uso |
-|---|---|---|
-| `budget-conservation` | Throttle LLM 50%, pausar agents low-prio | Budget quase esgotado |
-| `integration-degraded` | Throttle workers que dependem de HIS | HIS offline |
-| `maintenance` | Parar todos os schedules, página de manutenção | Manutenção planejada |
-| `emergency-capacity` | Scale-up manual de serviços críticos | Pico inesperado |
+| Modo                   | Ações Aplicadas                                | Caso de Uso           |
+| ---------------------- | ---------------------------------------------- | --------------------- |
+| `budget-conservation`  | Throttle LLM 50%, pausar agents low-prio       | Budget quase esgotado |
+| `integration-degraded` | Throttle workers que dependem de HIS           | HIS offline           |
+| `maintenance`          | Parar todos os schedules, página de manutenção | Manutenção planejada  |
+| `emergency-capacity`   | Scale-up manual de serviços críticos           | Pico inesperado       |
 
 ### Ações Disponíveis
 
@@ -442,12 +442,12 @@ Supervisão em tempo real de todos os agents ativos: status, consumo de tokens, 
 
 ### Dados Exibidos
 
-| Agent | Status | Execuções (24h) | Tokens (24h) | Revisão Pendente | Scorecard |
-|---|---|---|---|---|---|
-| discharge-summary-agent | ACTIVE | 45 | 123k | 2 outputs | 4.8/5 |
-| market-intel-agent | RUNNING | 3 | 1.2M | 1 report | 4.2/5 |
-| patient-context-agent | ACTIVE | 230 | 45k | 0 | 4.9/5 |
-| cost-analysis-agent | IDLE | 1 | 8k | 0 | 4.7/5 |
+| Agent                   | Status  | Execuções (24h) | Tokens (24h) | Revisão Pendente | Scorecard |
+| ----------------------- | ------- | --------------- | ------------ | ---------------- | --------- |
+| discharge-summary-agent | ACTIVE  | 45              | 123k         | 2 outputs        | 4.8/5     |
+| market-intel-agent      | RUNNING | 3               | 1.2M         | 1 report         | 4.2/5     |
+| patient-context-agent   | ACTIVE  | 230             | 45k          | 0                | 4.9/5     |
+| cost-analysis-agent     | IDLE    | 1               | 8k           | 0                | 4.7/5     |
 
 ### Drilldown por Agent
 
@@ -513,14 +513,14 @@ Timeline: Últimas 6 horas
 
 ### Eventos Registrados
 
-| Timestamp | Tipo | Componente | Ação | Motivo |
-|---|---|---|---|---|
-| 09:45 | HPA Scale Up | api-gateway | 3→7 | CPU 72% > 60% target |
-| 10:12 | KEDA Scale Up | patient-flow-worker | 1→12 | NATS lag 450 msgs |
-| 11:34 | KEDA Scale Down | patient-flow-worker | 12→3 | NATS lag 0 msgs |
-| 12:01 | Alert Fired | HPA | — | FlappingDetected |
-| 14:32 | Manual Scale | discharge-worker | 2→10 | Operador interveio |
-| 15:15 | Node Provisioned | realtime-app NodePool | +1 nó | c7i.xlarge |
+| Timestamp | Tipo             | Componente            | Ação  | Motivo               |
+| --------- | ---------------- | --------------------- | ----- | -------------------- |
+| 09:45     | HPA Scale Up     | api-gateway           | 3→7   | CPU 72% > 60% target |
+| 10:12     | KEDA Scale Up    | patient-flow-worker   | 1→12  | NATS lag 450 msgs    |
+| 11:34     | KEDA Scale Down  | patient-flow-worker   | 12→3  | NATS lag 0 msgs      |
+| 12:01     | Alert Fired      | HPA                   | —     | FlappingDetected     |
+| 14:32     | Manual Scale     | discharge-worker      | 2→10  | Operador interveio   |
+| 15:15     | Node Provisioned | realtime-app NodePool | +1 nó | c7i.xlarge           |
 
 ### Ações Disponíveis
 
@@ -550,9 +550,9 @@ export const DATA_SOURCES = {
       llmBudget: 'velya_ai_budget_consumed_ratio',
       hpaReplicas: 'kube_horizontalpodautoscaler_status_current_replicas',
       kedaScalerLag: 'keda_scaler_metrics_value',
-    }
+    },
   },
-  
+
   // Kubernetes API (via backend proxy)
   kubernetes: {
     endpoints: {
@@ -560,26 +560,26 @@ export const DATA_SOURCES = {
       keda: '/api/k8s/apis/keda.sh/v1alpha1/scaledobjects',
       nodes: '/api/k8s/api/v1/nodes',
       deployments: '/api/k8s/apis/apps/v1/deployments',
-    }
+    },
   },
-  
+
   // Alertmanager API
   alertmanager: {
     baseUrl: process.env.ALERTMANAGER_URL,
     endpoints: {
       alerts: '/api/v2/alerts',
-    }
+    },
   },
-  
+
   // NATS monitoring
   nats: {
     baseUrl: process.env.NATS_MONITORING_URL,
     endpoints: {
       streams: '/jsz?streams=true',
       consumers: '/jsz?consumers=true',
-    }
+    },
   },
-  
+
   // Temporal API
   temporal: {
     baseUrl: process.env.TEMPORAL_UI_URL,
@@ -587,8 +587,8 @@ export const DATA_SOURCES = {
     endpoints: {
       workflows: '/api/v1/namespaces/velya-dev/workflows',
       schedules: '/api/v1/namespaces/velya-dev/schedules',
-    }
-  }
+    },
+  },
 };
 ```
 
@@ -616,7 +616,7 @@ export function GrafanaEmbed({
   height = 400
 }: GrafanaEmbedProps) {
   const grafanaUrl = process.env.NEXT_PUBLIC_GRAFANA_URL;
-  
+
   const params = new URLSearchParams({
     orgId: '1',
     from,
@@ -624,13 +624,13 @@ export function GrafanaEmbed({
     refresh,
     kiosk: 'tv',  // Modo sem header do Grafana
   });
-  
+
   if (panelId) {
     params.set('viewPanel', String(panelId));
   }
-  
+
   const embedUrl = `${grafanaUrl}/d/${dashboardUid}?${params}`;
-  
+
   return (
     <iframe
       src={embedUrl}
@@ -648,19 +648,19 @@ export function GrafanaEmbed({
 
 ## Permissões de Acesso por Tela
 
-| Tela | Médico | Enfermeiro | Gestor Clínico | Operador TI | Admin |
-|---|---|---|---|---|---|
-| Runtime Pressure Board | Leitura | — | Leitura | Leitura + Ação | Full |
-| Autoscaling Command Board | — | — | — | Leitura + Ação | Full |
-| Queue Health Board | — | — | Leitura | Leitura + Ação | Full |
-| Office Congestion Board | — | — | Leitura | Leitura | Full |
-| Handoff Latency Board | Leitura | Leitura | Full | Leitura | Full |
-| Retry/DLQ Board | — | — | Leitura | Full | Full |
-| Cost & Capacity Board | — | — | Leitura | Leitura | Full |
-| Degraded Mode Board | — | — | Leitura | Leitura + Ação | Full |
-| Agent Oversight Console | Leitura (próprio) | — | Leitura | Leitura | Full |
-| Scale Event Timeline | — | — | Leitura | Full | Full |
+| Tela                      | Médico            | Enfermeiro | Gestor Clínico | Operador TI    | Admin |
+| ------------------------- | ----------------- | ---------- | -------------- | -------------- | ----- |
+| Runtime Pressure Board    | Leitura           | —          | Leitura        | Leitura + Ação | Full  |
+| Autoscaling Command Board | —                 | —          | —              | Leitura + Ação | Full  |
+| Queue Health Board        | —                 | —          | Leitura        | Leitura + Ação | Full  |
+| Office Congestion Board   | —                 | —          | Leitura        | Leitura        | Full  |
+| Handoff Latency Board     | Leitura           | Leitura    | Full           | Leitura        | Full  |
+| Retry/DLQ Board           | —                 | —          | Leitura        | Full           | Full  |
+| Cost & Capacity Board     | —                 | —          | Leitura        | Leitura        | Full  |
+| Degraded Mode Board       | —                 | —          | Leitura        | Leitura + Ação | Full  |
+| Agent Oversight Console   | Leitura (próprio) | —          | Leitura        | Leitura        | Full  |
+| Scale Event Timeline      | —                 | —          | Leitura        | Full           | Full  |
 
 ---
 
-*Este modelo é revisado a cada release de velya-web que inclui novas telas operacionais.*
+_Este modelo é revisado a cada release de velya-web que inclui novas telas operacionais._

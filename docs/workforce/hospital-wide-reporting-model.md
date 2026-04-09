@@ -8,10 +8,10 @@
 
 **"Reportar trabalho" e diferente de "acessar conteudo clinico."**
 
-| Conceito | Descricao |
-|---|---|
-| **Reportar trabalho** | Registrar o que foi feito, quando, por quem, para qual paciente/local/unidade/fluxo, com qual papel profissional, motivo de acionamento, SLA, entrega, pendencias, handoff, aceite, atrasos, excecoes, correcoes, escalacoes. |
-| **Acessar conteudo clinico** | Visualizar diagnosticos, prescricoes, evolucoes, resultados de exames, notas clinicas. Requer autorizacao clinica especifica e relacao assistencial comprovada. |
+| Conceito                     | Descricao                                                                                                                                                                                                                     |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Reportar trabalho**        | Registrar o que foi feito, quando, por quem, para qual paciente/local/unidade/fluxo, com qual papel profissional, motivo de acionamento, SLA, entrega, pendencias, handoff, aceite, atrasos, excecoes, correcoes, escalacoes. |
+| **Acessar conteudo clinico** | Visualizar diagnosticos, prescricoes, evolucoes, resultados de exames, notas clinicas. Requer autorizacao clinica especifica e relacao assistencial comprovada.                                                               |
 
 Toda pessoa que executa qualquer atividade no hospital DEVE reportar. Nem toda pessoa que reporta tem acesso a dados clinicos.
 
@@ -31,62 +31,62 @@ Toda pessoa que executa qualquer atividade no hospital DEVE reportar. Nem toda p
 ```typescript
 interface WorkEvent {
   // --- Identificacao ---
-  event_id: string;                    // UUID v7 (timestamp-ordered)
-  event_type: WorkEventType;           // Enum: ver taxonomia completa
-  category: WorkEventCategory;         // Enum: ver abaixo
-  subcategory: string;                 // Subcategoria especifica
+  event_id: string; // UUID v7 (timestamp-ordered)
+  event_type: WorkEventType; // Enum: ver taxonomia completa
+  category: WorkEventCategory; // Enum: ver abaixo
+  subcategory: string; // Subcategoria especifica
 
   // --- Temporal ---
-  timestamp: string;                   // ISO 8601 com timezone
-  recorded_at: string;                 // Momento do registro (pode diferir do timestamp)
-  shift_id: string;                    // ID do turno vigente
-  shift_period: ShiftPeriod;           // 'diurno' | 'noturno' | 'intermediario'
+  timestamp: string; // ISO 8601 com timezone
+  recorded_at: string; // Momento do registro (pode diferir do timestamp)
+  shift_id: string; // ID do turno vigente
+  shift_period: ShiftPeriod; // 'diurno' | 'noturno' | 'intermediario'
 
   // --- Autoria ---
-  actor_id: string;                    // ID unico do profissional
-  actor_role: ProfessionalRole;        // Papel profissional (enum)
-  actor_function: string;              // Funcao exercida no momento
-  actor_unit: string;                  // Unidade de lotacao
-  actor_team_id?: string;              // CareTeam FHIR ID
+  actor_id: string; // ID unico do profissional
+  actor_role: ProfessionalRole; // Papel profissional (enum)
+  actor_function: string; // Funcao exercida no momento
+  actor_unit: string; // Unidade de lotacao
+  actor_team_id?: string; // CareTeam FHIR ID
 
   // --- Contexto ---
-  patient_id?: string;                 // ID do paciente (quando aplicavel)
-  encounter_id?: string;               // ID do encontro/atendimento
-  location_id: string;                 // Localizacao (unidade, leito, sala, area)
-  department_id: string;               // Departamento responsavel
-  unit_id: string;                     // Unidade funcional
+  patient_id?: string; // ID do paciente (quando aplicavel)
+  encounter_id?: string; // ID do encontro/atendimento
+  location_id: string; // Localizacao (unidade, leito, sala, area)
+  department_id: string; // Departamento responsavel
+  unit_id: string; // Unidade funcional
 
   // --- Acionamento ---
   activation_reason: ActivationReason; // Por que foi acionado
-  activated_by?: string;               // Quem acionou (actor_id ou system)
+  activated_by?: string; // Quem acionou (actor_id ou system)
   activation_channel: ActivationChannel; // Como foi acionado
-  activation_timestamp?: string;       // Quando foi acionado
+  activation_timestamp?: string; // Quando foi acionado
 
   // --- Execucao ---
-  action_performed: string;            // O que foi feito (texto estruturado)
-  action_code?: string;                // Codigo padronizado da acao
-  duration_minutes?: number;           // Duracao em minutos
-  sla_target_minutes?: number;         // SLA esperado
-  sla_met?: boolean;                   // SLA cumprido?
+  action_performed: string; // O que foi feito (texto estruturado)
+  action_code?: string; // Codigo padronizado da acao
+  duration_minutes?: number; // Duracao em minutos
+  sla_target_minutes?: number; // SLA esperado
+  sla_met?: boolean; // SLA cumprido?
 
   // --- Entrega ---
-  delivery_status: DeliveryStatus;     // Status da entrega
-  pending_items?: PendingItem[];       // Itens pendentes
-  next_step?: NextStep;                // Proximo passo
-  handoff_target?: string;             // Para quem passa
+  delivery_status: DeliveryStatus; // Status da entrega
+  pending_items?: PendingItem[]; // Itens pendentes
+  next_step?: NextStep; // Proximo passo
+  handoff_target?: string; // Para quem passa
 
   // --- Qualidade ---
-  exceptions?: ExceptionRecord[];      // Excecoes registradas
-  corrections?: CorrectionRecord[];    // Correcoes aplicadas
-  escalations?: EscalationRecord[];    // Escalacoes realizadas
-  delay_reason?: string;               // Motivo de atraso (se aplicavel)
+  exceptions?: ExceptionRecord[]; // Excecoes registradas
+  corrections?: CorrectionRecord[]; // Correcoes aplicadas
+  escalations?: EscalationRecord[]; // Escalacoes realizadas
+  delay_reason?: string; // Motivo de atraso (se aplicavel)
 
   // --- Rastreabilidade ---
-  provenance_id: string;               // FHIR Provenance ID
-  audit_event_id: string;              // FHIR AuditEvent ID
-  source_system: string;               // Sistema de origem
-  version: number;                     // Versao do evento (para correcoes)
-  supersedes?: string;                 // event_id que este evento corrige
+  provenance_id: string; // FHIR Provenance ID
+  audit_event_id: string; // FHIR AuditEvent ID
+  source_system: string; // Sistema de origem
+  version: number; // Versao do evento (para correcoes)
+  supersedes?: string; // event_id que este evento corrige
 
   // --- Aceite/Handoff ---
   acceptance_status?: AcceptanceStatus;
@@ -220,24 +220,24 @@ interface EscalationRecord {
 
 ### 3.1 Mapa Hierarquico
 
-| Categoria | Subcategorias | Exemplos de Eventos |
-|---|---|---|
-| `assistencial` | avaliacao, prescricao, administracao, procedimento, evolucao, reavaliacao | Medico evolui paciente, enfermeiro administra medicacao |
-| `operacional` | alocacao, transferencia, bloqueio, liberacao, indisponibilidade | Central de leitos aloca vaga, recepcao cadastra paciente |
-| `administrativo` | faturamento, autorizacao, regulacao, agendamento, cancelamento | Faturamento processa guia, regulacao autoriza transferencia |
-| `apoio` | nutricao, farmacia, laboratorio, imagem, reabilitacao | Farmacia dispensa medicacao, lab processa amostra |
-| `logistica` | estoque, distribuicao, reposicao, devolucao, inventario | Almoxarifado distribui material, farmacia repoe estoque |
-| `higiene` | terminal, concorrente, imediata, area_critica | Higienizacao limpa leito pos-alta, limpeza concorrente UTI |
-| `manutencao` | preventiva, corretiva, emergencial, predial, equipamento | Manutencao repara equipamento, preventiva ar-condicionado |
-| `transporte` | interno, externo, urgente, rotina, ambulancia | Maqueiro transporta paciente, ambulancia transfere |
-| `comunicacao` | acionamento, resposta, retorno, notificacao, alerta | Enfermeiro aciona medico plantonista, alerta critico lab |
-| `handoff` | passagem_turno, transferencia_setor, alta, obito, encaminhamento | Passagem de plantao enfermagem, transferencia UTI->enfermaria |
-| `seguranca` | ocorrencia, contencao, apoio_equipe, controle_acesso | Seguranca contem situacao, apoio a equipe assistencial |
-| `ti` | incidente, indisponibilidade, correcao, deploy, monitoramento | TI resolve incidente, sistema indisponivel, correcao aplicada |
-| `excecao` | desvio_protocolo, evento_adverso, quase_falha, nao_conformidade | Desvio de protocolo registrado, evento adverso notificado |
-| `correcao` | retificacao, complementacao, anulacao, substituicao | Correcao de evolucao, retificacao de prescricao |
-| `validacao` | conferencia, dupla_checagem, assinatura, co_assinatura | Farmaceutico valida prescricao, dupla checagem sangue |
-| `auditoria` | acesso, sessao, exportacao, visualizacao, alteracao | Login registrado, acesso a prontuario auditado |
+| Categoria        | Subcategorias                                                             | Exemplos de Eventos                                           |
+| ---------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `assistencial`   | avaliacao, prescricao, administracao, procedimento, evolucao, reavaliacao | Medico evolui paciente, enfermeiro administra medicacao       |
+| `operacional`    | alocacao, transferencia, bloqueio, liberacao, indisponibilidade           | Central de leitos aloca vaga, recepcao cadastra paciente      |
+| `administrativo` | faturamento, autorizacao, regulacao, agendamento, cancelamento            | Faturamento processa guia, regulacao autoriza transferencia   |
+| `apoio`          | nutricao, farmacia, laboratorio, imagem, reabilitacao                     | Farmacia dispensa medicacao, lab processa amostra             |
+| `logistica`      | estoque, distribuicao, reposicao, devolucao, inventario                   | Almoxarifado distribui material, farmacia repoe estoque       |
+| `higiene`        | terminal, concorrente, imediata, area_critica                             | Higienizacao limpa leito pos-alta, limpeza concorrente UTI    |
+| `manutencao`     | preventiva, corretiva, emergencial, predial, equipamento                  | Manutencao repara equipamento, preventiva ar-condicionado     |
+| `transporte`     | interno, externo, urgente, rotina, ambulancia                             | Maqueiro transporta paciente, ambulancia transfere            |
+| `comunicacao`    | acionamento, resposta, retorno, notificacao, alerta                       | Enfermeiro aciona medico plantonista, alerta critico lab      |
+| `handoff`        | passagem_turno, transferencia_setor, alta, obito, encaminhamento          | Passagem de plantao enfermagem, transferencia UTI->enfermaria |
+| `seguranca`      | ocorrencia, contencao, apoio_equipe, controle_acesso                      | Seguranca contem situacao, apoio a equipe assistencial        |
+| `ti`             | incidente, indisponibilidade, correcao, deploy, monitoramento             | TI resolve incidente, sistema indisponivel, correcao aplicada |
+| `excecao`        | desvio_protocolo, evento_adverso, quase_falha, nao_conformidade           | Desvio de protocolo registrado, evento adverso notificado     |
+| `correcao`       | retificacao, complementacao, anulacao, substituicao                       | Correcao de evolucao, retificacao de prescricao               |
+| `validacao`      | conferencia, dupla_checagem, assinatura, co_assinatura                    | Farmaceutico valida prescricao, dupla checagem sangue         |
+| `auditoria`      | acesso, sessao, exportacao, visualizacao, alteracao                       | Login registrado, acesso a prontuario auditado                |
 
 ---
 
@@ -273,38 +273,38 @@ interface EscalationRecord {
 streams:
   WORK_EVENTS:
     subjects:
-      - "velya.work.>"
+      - 'velya.work.>'
     retention: limits
-    max_age: "2160h"  # 90 dias em stream, depois cold storage
+    max_age: '2160h' # 90 dias em stream, depois cold storage
     storage: file
     replicas: 3
-    max_msg_size: "1MB"
+    max_msg_size: '1MB'
     discard: old
-    duplicate_window: "2m"
+    duplicate_window: '2m'
 
 consumers:
   work_event_persister:
-    durable_name: "work-event-db-writer"
-    filter_subject: "velya.work.>"
+    durable_name: 'work-event-db-writer'
+    filter_subject: 'velya.work.>'
     ack_policy: explicit
     max_deliver: 5
-    ack_wait: "30s"
+    ack_wait: '30s'
     deliver_policy: all
 
   work_event_fhir_writer:
-    durable_name: "work-event-fhir-sync"
-    filter_subject: "velya.work.>"
+    durable_name: 'work-event-fhir-sync'
+    filter_subject: 'velya.work.>'
     ack_policy: explicit
     max_deliver: 5
 
   work_event_audit:
-    durable_name: "work-event-audit-trail"
-    filter_subject: "velya.work.auditoria.>"
+    durable_name: 'work-event-audit-trail'
+    filter_subject: 'velya.work.auditoria.>'
     ack_policy: explicit
 
   work_event_sla_monitor:
-    durable_name: "work-event-sla-checker"
-    filter_subject: "velya.work.>"
+    durable_name: 'work-event-sla-checker'
+    filter_subject: 'velya.work.>'
     ack_policy: explicit
 ```
 
@@ -427,28 +427,28 @@ CREATE TABLE shifts (
 
 ### 6.1 Obrigatoriedade
 
-| Regra | Descricao |
-|---|---|
-| R001 | Todo evento de trabalho DEVE ter actor_id, timestamp, category, event_type, location_id, department_id |
-| R002 | Eventos assistenciais DEVEM ter patient_id e encounter_id |
-| R003 | Eventos com SLA DEVEM ter sla_target_minutes preenchido |
-| R004 | Handoffs DEVEM ter handoff_target e pending_items |
-| R005 | Correcoes DEVEM ter supersedes apontando para o evento original |
-| R006 | Excecoes DEVEM ter severity e descricao |
-| R007 | Escalacoes DEVEM ter from_role, to_role e reason |
-| R008 | Eventos operacionais DEVEM ter activation_reason e activation_channel |
-| R009 | Todo evento gera Provenance FHIR automaticamente |
-| R010 | Todo evento gera AuditEvent FHIR automaticamente |
+| Regra | Descricao                                                                                              |
+| ----- | ------------------------------------------------------------------------------------------------------ |
+| R001  | Todo evento de trabalho DEVE ter actor_id, timestamp, category, event_type, location_id, department_id |
+| R002  | Eventos assistenciais DEVEM ter patient_id e encounter_id                                              |
+| R003  | Eventos com SLA DEVEM ter sla_target_minutes preenchido                                                |
+| R004  | Handoffs DEVEM ter handoff_target e pending_items                                                      |
+| R005  | Correcoes DEVEM ter supersedes apontando para o evento original                                        |
+| R006  | Excecoes DEVEM ter severity e descricao                                                                |
+| R007  | Escalacoes DEVEM ter from_role, to_role e reason                                                       |
+| R008  | Eventos operacionais DEVEM ter activation_reason e activation_channel                                  |
+| R009  | Todo evento gera Provenance FHIR automaticamente                                                       |
+| R010  | Todo evento gera AuditEvent FHIR automaticamente                                                       |
 
 ### 6.2 Validacao Temporal
 
-| Regra | Descricao |
-|---|---|
-| T001 | timestamp nao pode ser futuro (tolerancia: 5 minutos) |
-| T002 | timestamp nao pode ser mais de 24h no passado sem justificativa |
-| T003 | recorded_at e sempre o momento do registro (servidor) |
-| T004 | Correcoes tardias (>4h) exigem justificativa e aprovacao |
-| T005 | Eventos de turno devem estar dentro do horario do turno (+/- 30min tolerancia) |
+| Regra | Descricao                                                                      |
+| ----- | ------------------------------------------------------------------------------ |
+| T001  | timestamp nao pode ser futuro (tolerancia: 5 minutos)                          |
+| T002  | timestamp nao pode ser mais de 24h no passado sem justificativa                |
+| T003  | recorded_at e sempre o momento do registro (servidor)                          |
+| T004  | Correcoes tardias (>4h) exigem justificativa e aprovacao                       |
+| T005  | Eventos de turno devem estar dentro do horario do turno (+/- 30min tolerancia) |
 
 ### 6.3 Segregacao de Acesso vs Reporte
 
@@ -458,17 +458,14 @@ interface AccessVsReportPolicy {
   // - PODE reportar: limpeza realizada, tempo, local, tipo, status
   // - NAO PODE acessar: diagnostico do paciente, prescricoes, evolucoes
   // O sistema mostra apenas: numero do leito, tipo de limpeza necessaria
-
   // Maqueiro:
   // - PODE reportar: transporte realizado, origem, destino, horarios
   // - NAO PODE acessar: motivo clinico do transporte, diagnostico
   // O sistema mostra apenas: origem, destino, prioridade, restricoes de transporte
-
   // Tecnico de manutencao:
   // - PODE reportar: reparo realizado, equipamento, tempo, status
   // - NAO PODE acessar: dados de paciente algum
   // O sistema mostra apenas: local, equipamento, tipo de manutencao
-
   // Enfermeiro:
   // - PODE reportar E acessar: dados clinicos do paciente sob seus cuidados
   // - NAO PODE acessar: pacientes de outras unidades sem justificativa
@@ -481,18 +478,18 @@ interface AccessVsReportPolicy {
 
 ### 7.1 Mapeamento de Recursos
 
-| WorkEvent Campo | FHIR Recurso | FHIR Campo |
-|---|---|---|
-| event_id | Provenance.id | identifier |
-| actor_id | Provenance.agent | who |
-| timestamp | Provenance.occurredDateTime | occurredDateTime |
-| action_performed | Provenance.activity | coding |
-| patient_id | Provenance.target | reference(Patient) |
-| encounter_id | Provenance.target | reference(Encounter) |
-| category | AuditEvent.type | coding |
-| event_type | AuditEvent.subtype | coding |
-| actor_id | AuditEvent.agent | who |
-| location_id | AuditEvent.source | site |
+| WorkEvent Campo  | FHIR Recurso                | FHIR Campo           |
+| ---------------- | --------------------------- | -------------------- |
+| event_id         | Provenance.id               | identifier           |
+| actor_id         | Provenance.agent            | who                  |
+| timestamp        | Provenance.occurredDateTime | occurredDateTime     |
+| action_performed | Provenance.activity         | coding               |
+| patient_id       | Provenance.target           | reference(Patient)   |
+| encounter_id     | Provenance.target           | reference(Encounter) |
+| category         | AuditEvent.type             | coding               |
+| event_type       | AuditEvent.subtype          | coding               |
+| actor_id         | AuditEvent.agent            | who                  |
+| location_id      | AuditEvent.source           | site                 |
 
 ### 7.2 FHIR Task para Atividades Pendentes
 
@@ -502,11 +499,13 @@ interface AccessVsReportPolicy {
   "status": "in-progress",
   "intent": "order",
   "code": {
-    "coding": [{
-      "system": "https://velya.health/fhir/CodeSystem/work-event-type",
-      "code": "limpeza_terminal",
-      "display": "Limpeza Terminal"
-    }]
+    "coding": [
+      {
+        "system": "https://velya.health/fhir/CodeSystem/work-event-type",
+        "code": "limpeza_terminal",
+        "display": "Limpeza Terminal"
+      }
+    ]
   },
   "for": {
     "reference": "Location/leito-201-ala-b"
@@ -522,12 +521,14 @@ interface AccessVsReportPolicy {
       "end": "2026-04-08T15:00:00-03:00"
     }
   },
-  "input": [{
-    "type": {
-      "text": "sla_target_minutes"
-    },
-    "valueInteger": 60
-  }]
+  "input": [
+    {
+      "type": {
+        "text": "sla_target_minutes"
+      },
+      "valueInteger": 60
+    }
+  ]
 }
 ```
 
@@ -542,34 +543,34 @@ metrics:
   - name: velya_work_events_total
     type: counter
     labels: [category, event_type, department, delivery_status]
-    help: "Total de eventos de trabalho registrados"
+    help: 'Total de eventos de trabalho registrados'
 
   - name: velya_work_event_duration_minutes
     type: histogram
     labels: [category, event_type, department]
     buckets: [5, 10, 15, 30, 45, 60, 90, 120, 180, 240, 480]
-    help: "Duracao dos eventos de trabalho em minutos"
+    help: 'Duracao dos eventos de trabalho em minutos'
 
   - name: velya_work_event_sla_compliance
     type: gauge
     labels: [category, department]
-    help: "Taxa de conformidade SLA por categoria e departamento"
+    help: 'Taxa de conformidade SLA por categoria e departamento'
 
   - name: velya_work_event_pending_count
     type: gauge
     labels: [category, department, priority]
-    help: "Contagem de eventos pendentes"
+    help: 'Contagem de eventos pendentes'
 
   - name: velya_work_event_handoff_acceptance_seconds
     type: histogram
     labels: [from_department, to_department]
     buckets: [60, 120, 300, 600, 900, 1800, 3600]
-    help: "Tempo ate aceite de handoff em segundos"
+    help: 'Tempo ate aceite de handoff em segundos'
 
   - name: velya_work_event_gap_detected_total
     type: counter
     labels: [gap_type, department, severity]
-    help: "Total de gaps detectados"
+    help: 'Total de gaps detectados'
 ```
 
 ---

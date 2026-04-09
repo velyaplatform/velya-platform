@@ -5,13 +5,13 @@ on:
     branches: [main]
   schedule:
     # Executa a cada 30 minutos para detectar regressões automaticamente
-    - cron: "*/30 * * * *"
+    - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
       environment:
-        description: "Ambiente a validar"
+        description: 'Ambiente a validar'
         required: false
-        default: "dev"
+        default: 'dev'
 
 concurrency:
   group: platform-validation-${{ github.ref }}
@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   validate-frontend-pages:
-    name: "Validar Páginas Frontend"
+    name: 'Validar Páginas Frontend'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -92,7 +92,7 @@ jobs:
           echo "✅ Todas as páginas validadas com sucesso"
 
   validate-grafana:
-    name: "Validar Grafana"
+    name: 'Validar Grafana'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -159,7 +159,7 @@ jobs:
           echo "✅ Grafana validado com sucesso"
 
   validate-kubernetes:
-    name: "Validar Kubernetes"
+    name: 'Validar Kubernetes'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -196,7 +196,7 @@ jobs:
           done
 
   validate-argocd-manifests:
-    name: "Validar ArgoCD Applications"
+    name: 'Validar ArgoCD Applications'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -237,7 +237,7 @@ jobs:
           echo "✅ Estrutura ArgoCD/GitOps validada"
 
   summary:
-    name: "Resumo da Validação"
+    name: 'Resumo da Validação'
     runs-on: ubuntu-latest
     needs:
       - validate-frontend-pages

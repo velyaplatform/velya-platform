@@ -183,16 +183,36 @@ interface ServiceCardProps {
 function ServiceCard({ service, health, latency, onCheck }: ServiceCardProps) {
   const statusConfig = {
     healthy: { dot: 'status-dot-green', card: 'service-card-healthy', label: 'Saudável' },
-    degraded: { dot: 'status-dot-amber status-dot-pulse', card: 'service-card-degraded', label: 'Degradado' },
-    down: { dot: 'status-dot-red status-dot-pulse', card: 'service-card-down', label: 'Indisponível' },
+    degraded: {
+      dot: 'status-dot-amber status-dot-pulse',
+      card: 'service-card-degraded',
+      label: 'Degradado',
+    },
+    down: {
+      dot: 'status-dot-red status-dot-pulse',
+      card: 'service-card-down',
+      label: 'Indisponível',
+    },
     unknown: { dot: 'status-dot-grey', card: 'service-card-unknown', label: 'Desconhecido' },
-    checking: { dot: 'status-dot-grey status-dot-pulse', card: 'service-card-unknown', label: 'Verificando...' },
+    checking: {
+      dot: 'status-dot-grey status-dot-pulse',
+      card: 'service-card-unknown',
+      label: 'Verificando...',
+    },
   };
 
   const cfg = statusConfig[health];
 
   return (
-    <div className={`service-card ${cfg.card}`} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.5rem', padding: '0.875rem 1rem' }}>
+    <div
+      className={`service-card ${cfg.card}`}
+      style={{
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: '0.5rem',
+        padding: '0.875rem 1rem',
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', width: '100%' }}>
         <span className={`status-dot ${cfg.dot}`}></span>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -215,7 +235,11 @@ function ServiceCard({ service, health, latency, onCheck }: ServiceCardProps) {
           href={service.url}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ fontSize: '0.7rem', color: 'var(--color-brand-highlight)', textDecoration: 'none' }}
+          style={{
+            fontSize: '0.7rem',
+            color: 'var(--color-brand-highlight)',
+            textDecoration: 'none',
+          }}
         >
           {service.url.replace('http://', '')}
         </a>
@@ -282,7 +306,7 @@ export default function SystemPage() {
   const downCount = Object.values(healthMap).filter((h) => h === 'down').length;
   const degradedCount = Object.values(healthMap).filter((h) => h === 'degraded').length;
   const unknownCount = Object.values(healthMap).filter(
-    (h) => h === 'unknown' || h === 'checking'
+    (h) => h === 'unknown' || h === 'checking',
   ).length;
 
   return (
@@ -298,17 +322,23 @@ export default function SystemPage() {
       <div className="grid-metrics" style={{ marginBottom: '1.5rem' }}>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-success)' }}>
           <div className="metric-label">Saudável</div>
-          <div className="metric-value" style={{ color: 'var(--color-success)' }}>{healthyCount}</div>
+          <div className="metric-value" style={{ color: 'var(--color-success)' }}>
+            {healthyCount}
+          </div>
           <div className="metric-sub">Serviços operacionais</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-warning)' }}>
           <div className="metric-label">Degradado</div>
-          <div className="metric-value" style={{ color: 'var(--color-warning)' }}>{degradedCount}</div>
+          <div className="metric-value" style={{ color: 'var(--color-warning)' }}>
+            {degradedCount}
+          </div>
           <div className="metric-sub">Desempenho reduzido</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-critical)' }}>
           <div className="metric-label">Indisponível</div>
-          <div className="metric-value" style={{ color: 'var(--color-critical)' }}>{downCount}</div>
+          <div className="metric-value" style={{ color: 'var(--color-critical)' }}>
+            {downCount}
+          </div>
           <div className="metric-sub">Serviço fora do ar</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-neutral)' }}>
@@ -342,9 +372,7 @@ export default function SystemPage() {
               >
                 {CATEGORY_LABELS[category]}
               </h2>
-              <div
-                style={{ flex: 1, height: '1px', background: 'var(--color-border)' }}
-              />
+              <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
             </div>
             <div className="service-grid">
               {categoryServices.map((svc) => (
@@ -460,9 +488,7 @@ export default function SystemPage() {
                   <td className="text-sm font-semibold">{row.name}</td>
                   <td>
                     <strong
-                      style={
-                        row.replicas < row.target ? { color: 'var(--color-warning)' } : {}
-                      }
+                      style={row.replicas < row.target ? { color: 'var(--color-warning)' } : {}}
                     >
                       {row.replicas}
                     </strong>
@@ -521,7 +547,10 @@ export default function SystemPage() {
                   <span className="badge badge-neutral" style={{ fontSize: '10px' }}>
                     {activity.office}
                   </span>
-                  <span className={`badge ${AGENT_STATUS_BADGE[activity.status]}`} style={{ fontSize: '10px' }}>
+                  <span
+                    className={`badge ${AGENT_STATUS_BADGE[activity.status]}`}
+                    style={{ fontSize: '10px' }}
+                  >
                     {AGENT_STATUS_LABEL[activity.status]}
                   </span>
                 </div>
@@ -529,7 +558,9 @@ export default function SystemPage() {
                   {activity.action}
                 </div>
                 {activity.patient && (
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                  <div
+                    style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '2px' }}
+                  >
                     Paciente: {activity.patient}
                   </div>
                 )}

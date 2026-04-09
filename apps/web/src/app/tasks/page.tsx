@@ -99,7 +99,8 @@ const MOCK_TASKS: Task[] = [
     status: 'open',
     group: 'Clinical',
     type: 'Avaliação',
-    description: 'Avaliação da visita médica não documentada — extensão do TMI provável se não feita',
+    description:
+      'Avaliação da visita médica não documentada — extensão do TMI provável se não feita',
     patient: 'Priya Nair',
     mrn: 'MRN-015',
     assignedTo: 'Dr. Ibrahim',
@@ -113,7 +114,8 @@ const MOCK_TASKS: Task[] = [
     status: 'open',
     group: 'Coordination',
     type: 'Serviço Social',
-    description: 'Encaminhamento para serviço social necessário antes da alta — caso de alta complexidade',
+    description:
+      'Encaminhamento para serviço social necessário antes da alta — caso de alta complexidade',
     patient: 'Frank Osei',
     mrn: 'MRN-020',
     assignedTo: 'Serviço Social',
@@ -279,7 +281,13 @@ function TaskCard({ task, onComplete, onDefer, onEscalate }: TaskCardProps) {
         </div>
       </div>
       <div
-        style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '130px', paddingLeft: '1rem' }}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+          minWidth: '130px',
+          paddingLeft: '1rem',
+        }}
       >
         <button className="btn btn-primary btn-sm" onClick={() => onComplete(task.id)}>
           ✓ Concluir
@@ -310,13 +318,13 @@ export default function TasksPage() {
 
   const handleDefer = (id: string) => {
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, status: 'deferred' as TaskStatus } : t))
+      prev.map((t) => (t.id === id ? { ...t, status: 'deferred' as TaskStatus } : t)),
     );
   };
 
   const handleEscalate = (id: string) => {
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, priority: 'urgent' as TaskPriority } : t))
+      prev.map((t) => (t.id === id ? { ...t, priority: 'urgent' as TaskPriority } : t)),
     );
   };
 
@@ -337,12 +345,12 @@ export default function TasksPage() {
 
   const urgentCount = useMemo(
     () => tasks.filter((t) => t.priority === 'urgent' && t.status !== 'deferred').length,
-    [tasks]
+    [tasks],
   );
   const openCount = useMemo(() => tasks.filter((t) => t.status === 'open').length, [tasks]);
   const inProgressCount = useMemo(
     () => tasks.filter((t) => t.status === 'in-progress').length,
-    [tasks]
+    [tasks],
   );
 
   return (
@@ -433,7 +441,9 @@ export default function TasksPage() {
         <div className="card">
           <div className="empty-state">
             <div className="empty-state-icon">✅</div>
-            <div className="empty-state-title">Tudo limpo — nenhuma tarefa corresponde aos filtros</div>
+            <div className="empty-state-title">
+              Tudo limpo — nenhuma tarefa corresponde aos filtros
+            </div>
           </div>
         </div>
       ) : viewMode === 'flat' ? (
@@ -463,7 +473,13 @@ export default function TasksPage() {
                 }}
               >
                 <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {group === 'Urgent' ? '🚨' : group === 'Clinical' ? '🩺' : group === 'Administrative' ? '📋' : '🔗'}{' '}
+                  {group === 'Urgent'
+                    ? '🚨'
+                    : group === 'Clinical'
+                      ? '🩺'
+                      : group === 'Administrative'
+                        ? '📋'
+                        : '🔗'}{' '}
                   {GROUP_DISPLAY[group]}
                 </h2>
                 <span className="badge badge-neutral">{groupTasks.length}</span>

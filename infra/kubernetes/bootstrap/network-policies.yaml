@@ -108,6 +108,7 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: velya-dev-observability
 
+
 # ============================================================
 # velya-dev-platform — Default Deny + Allows
 # ============================================================
@@ -225,6 +226,7 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: velya-dev-observability
 
+
 # ============================================================
 # velya-dev-agents — Default Deny + Allows
 # ============================================================
@@ -325,6 +327,7 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: velya-dev-observability
+
 
 # ============================================================
 # velya-dev-web — Default Deny + Allows

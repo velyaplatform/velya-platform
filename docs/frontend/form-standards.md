@@ -41,11 +41,11 @@ Componente React (shadcn/ui Form)
 ### 2.2 Padrão Base
 
 ```tsx
-'use client'
+'use client';
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Form,
   FormControl,
@@ -54,26 +54,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 // Schema
 const patientSchema = z.object({
-  name: z.string()
+  name: z
+    .string()
     .min(3, 'Nome deve ter no mínimo 3 caracteres')
     .max(100, 'Nome deve ter no máximo 100 caracteres'),
-  cpf: z.string()
-    .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido'),
-  birthDate: z.string()
-    .refine((val) => !isNaN(Date.parse(val)), 'Data inválida'),
+  cpf: z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido'),
+  birthDate: z.string().refine((val) => !isNaN(Date.parse(val)), 'Data inválida'),
   room: z.string().min(1, 'Quarto é obrigatório'),
   bed: z.string().min(1, 'Leito é obrigatório'),
   attendingDoctor: z.string().min(1, 'Médico responsável é obrigatório'),
   notes: z.string().optional(),
-})
+});
 
-type PatientFormValues = z.infer<typeof patientSchema>
+type PatientFormValues = z.infer<typeof patientSchema>;
 
 // Componente
 export function PatientAdmissionForm() {
@@ -88,15 +87,15 @@ export function PatientAdmissionForm() {
       attendingDoctor: '',
       notes: '',
     },
-  })
+  });
 
   async function onSubmit(values: PatientFormValues) {
     try {
-      await admitPatient(values)
-      toast.success('Paciente admitido com sucesso')
-      form.reset()
+      await admitPatient(values);
+      toast.success('Paciente admitido com sucesso');
+      form.reset();
     } catch (error) {
-      toast.error('Erro ao admitir paciente')
+      toast.error('Erro ao admitir paciente');
     }
   }
 
@@ -123,7 +122,7 @@ export function PatientAdmissionForm() {
         </Button>
       </form>
     </Form>
-  )
+  );
 }
 ```
 
@@ -137,7 +136,8 @@ export function PatientAdmissionForm() {
 const medicationSchema = z.object({
   patientId: z.string().uuid('ID do paciente inválido'),
   medicationId: z.string().uuid('ID do medicamento inválido'),
-  dosage: z.number()
+  dosage: z
+    .number()
     .positive('Dosagem deve ser positiva')
     .max(10000, 'Dosagem excede limite máximo'),
   unit: z.enum(['mg', 'ml', 'g', 'UI', 'gotas'], {
@@ -148,60 +148,72 @@ const medicationSchema = z.object({
   }),
   scheduledTime: z.string().datetime('Horário inválido'),
   notes: z.string().max(500, 'Observações devem ter no máximo 500 caracteres').optional(),
-})
+});
 ```
 
 ### 3.2 Validação Assíncrona
 
 ```tsx
 const userSchema = z.object({
-  email: z.string()
+  email: z
+    .string()
     .email('Email inválido')
     .refine(async (email) => {
-      const exists = await checkEmailExists(email)
-      return !exists
+      const exists = await checkEmailExists(email);
+      return !exists;
     }, 'Este email já está em uso'),
 
-  cpf: z.string()
+  cpf: z
+    .string()
     .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'Formato de CPF inválido')
     .refine(async (cpf) => {
-      const valid = await validateCpf(cpf)
-      return valid
+      const valid = await validateCpf(cpf);
+      return valid;
     }, 'CPF inválido ou já cadastrado'),
 
-  coren: z.string()
+  coren: z
+    .string()
     .optional()
     .refine(async (coren) => {
-      if (!coren) return true
-      return await validateCoren(coren)
+      if (!coren) return true;
+      return await validateCoren(coren);
     }, 'COREN inválido'),
-})
+});
 ```
 
 ### 3.3 Validação Condicional
 
 ```tsx
-const handoffSchema = z.object({
-  type: z.enum(['routine', 'emergency', 'transfer']),
-  emergencyReason: z.string().optional(),
-  transferDestination: z.string().optional(),
-}).refine((data) => {
-  if (data.type === 'emergency' && !data.emergencyReason) {
-    return false
-  }
-  return true
-}, {
-  message: 'Motivo da emergência é obrigatório',
-  path: ['emergencyReason'],
-}).refine((data) => {
-  if (data.type === 'transfer' && !data.transferDestination) {
-    return false
-  }
-  return true
-}, {
-  message: 'Destino da transferência é obrigatório',
-  path: ['transferDestination'],
-})
+const handoffSchema = z
+  .object({
+    type: z.enum(['routine', 'emergency', 'transfer']),
+    emergencyReason: z.string().optional(),
+    transferDestination: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.type === 'emergency' && !data.emergencyReason) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Motivo da emergência é obrigatório',
+      path: ['emergencyReason'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.type === 'transfer' && !data.transferDestination) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Destino da transferência é obrigatório',
+      path: ['transferDestination'],
+    },
+  );
 ```
 
 ### 3.4 Schemas Compostos
@@ -216,14 +228,14 @@ const addressSchema = z.object({
   city: z.string().min(1, 'Cidade é obrigatória'),
   state: z.string().length(2, 'Estado deve ter 2 caracteres'),
   zipCode: z.string().regex(/^\d{5}-\d{3}$/, 'CEP inválido'),
-})
+});
 
 const contactSchema = z.object({
   phone: z.string().regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, 'Telefone inválido'),
   email: z.string().email('Email inválido').optional(),
   emergencyContact: z.string().min(1, 'Contato de emergência é obrigatório'),
   emergencyPhone: z.string().regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, 'Telefone inválido'),
-})
+});
 
 // Schema composto
 const fullPatientSchema = z.object({
@@ -241,7 +253,7 @@ const fullPatientSchema = z.object({
   allergies: z.array(z.string()),
   comorbidities: z.array(z.string()),
   bloodType: z.enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']).optional(),
-})
+});
 ```
 
 ### 3.5 Mensagens em Português
@@ -252,32 +264,32 @@ const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
   switch (issue.code) {
     case z.ZodIssueCode.too_small:
       if (issue.type === 'string') {
-        return { message: `Deve ter no mínimo ${issue.minimum} caracteres` }
+        return { message: `Deve ter no mínimo ${issue.minimum} caracteres` };
       }
       if (issue.type === 'number') {
-        return { message: `Deve ser no mínimo ${issue.minimum}` }
+        return { message: `Deve ser no mínimo ${issue.minimum}` };
       }
-      break
+      break;
     case z.ZodIssueCode.too_big:
       if (issue.type === 'string') {
-        return { message: `Deve ter no máximo ${issue.maximum} caracteres` }
+        return { message: `Deve ter no máximo ${issue.maximum} caracteres` };
       }
-      break
+      break;
     case z.ZodIssueCode.invalid_type:
       if (issue.expected === 'string') {
-        return { message: 'Campo obrigatório' }
+        return { message: 'Campo obrigatório' };
       }
-      break
+      break;
     case z.ZodIssueCode.invalid_string:
       if (issue.validation === 'email') {
-        return { message: 'Email inválido' }
+        return { message: 'Email inválido' };
       }
-      break
+      break;
   }
-  return { message: ctx.defaultError }
-}
+  return { message: ctx.defaultError };
+};
 
-z.setErrorMap(customErrorMap)
+z.setErrorMap(customErrorMap);
 ```
 
 ---
@@ -289,45 +301,41 @@ z.setErrorMap(customErrorMap)
 Para formulários longos (admissão, handoff), o estado é salvo automaticamente em localStorage:
 
 ```tsx
-function useFormDraft<T extends z.ZodSchema>(
-  key: string,
-  schema: T,
-  defaultValues: z.infer<T>,
-) {
+function useFormDraft<T extends z.ZodSchema>(key: string, schema: T, defaultValues: z.infer<T>) {
   // Recupera rascunho salvo
   const savedDraft = useMemo(() => {
     try {
-      const stored = localStorage.getItem(`form-draft:${key}`)
-      if (!stored) return null
-      const parsed = JSON.parse(stored)
-      return schema.safeParse(parsed).success ? parsed : null
+      const stored = localStorage.getItem(`form-draft:${key}`);
+      if (!stored) return null;
+      const parsed = JSON.parse(stored);
+      return schema.safeParse(parsed).success ? parsed : null;
     } catch {
-      return null
+      return null;
     }
-  }, [key, schema])
+  }, [key, schema]);
 
   const form = useForm<z.infer<T>>({
     resolver: zodResolver(schema),
     defaultValues: savedDraft || defaultValues,
-  })
+  });
 
   // Salva automaticamente a cada mudança
   useEffect(() => {
     const subscription = form.watch((values) => {
-      localStorage.setItem(`form-draft:${key}`, JSON.stringify(values))
-    })
-    return () => subscription.unsubscribe()
-  }, [form, key])
+      localStorage.setItem(`form-draft:${key}`, JSON.stringify(values));
+    });
+    return () => subscription.unsubscribe();
+  }, [form, key]);
 
   // Limpa rascunho após submit
   const clearDraft = useCallback(() => {
-    localStorage.removeItem(`form-draft:${key}`)
-  }, [key])
+    localStorage.removeItem(`form-draft:${key}`);
+  }, [key]);
 
   // Indica se há rascunho salvo
-  const hasDraft = !!savedDraft
+  const hasDraft = !!savedDraft;
 
-  return { form, clearDraft, hasDraft }
+  return { form, clearDraft, hasDraft };
 }
 ```
 
@@ -338,20 +346,20 @@ function useUnsavedChangesWarning(isDirty: boolean) {
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
-        e.preventDefault()
-        e.returnValue = ''
+        e.preventDefault();
+        e.returnValue = '';
       }
-    }
+    };
 
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [isDirty])
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 }
 
 // Uso
 function AdmissionForm() {
-  const { form } = useFormDraft('admission', schema, defaults)
-  useUnsavedChangesWarning(form.formState.isDirty)
+  const { form } = useFormDraft('admission', schema, defaults);
+  useUnsavedChangesWarning(form.formState.isDirty);
 
   // ...
 }
@@ -360,19 +368,13 @@ function AdmissionForm() {
 ### 4.3 Banner de Rascunho Recuperado
 
 ```tsx
-function DraftRecoveryBanner({
-  onRestore,
-  onDiscard,
-  savedAt,
-}: DraftRecoveryProps) {
+function DraftRecoveryBanner({ onRestore, onDiscard, savedAt }: DraftRecoveryProps) {
   return (
     <Alert>
       <Info className="h-4 w-4" />
       <AlertTitle>Rascunho encontrado</AlertTitle>
       <AlertDescription className="flex items-center justify-between">
-        <span>
-          Um rascunho foi salvo em {formatDateTime(savedAt)}.
-        </span>
+        <span>Um rascunho foi salvo em {formatDateTime(savedAt)}.</span>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={onDiscard}>
             Descartar
@@ -383,7 +385,7 @@ function DraftRecoveryBanner({
         </div>
       </AlertDescription>
     </Alert>
-  )
+  );
 }
 ```
 
@@ -393,14 +395,14 @@ function DraftRecoveryBanner({
 
 ### 5.1 Ações que Requerem Confirmação Forte
 
-| Ação | Nível de Confirmação |
-|---|---|
-| Administrar medicação | Dialog com nome do paciente + medicação |
-| Pular medicação | Dialog com motivo obrigatório |
-| Alta de paciente | Dialog com checklist de pendências |
-| Excluir registro | Dialog com digitação de confirmação |
-| Escalar permissão (break-glass) | Dialog com justificativa + timer |
-| Alterar prescrição | Dialog com diff do antes/depois |
+| Ação                            | Nível de Confirmação                    |
+| ------------------------------- | --------------------------------------- |
+| Administrar medicação           | Dialog com nome do paciente + medicação |
+| Pular medicação                 | Dialog com motivo obrigatório           |
+| Alta de paciente                | Dialog com checklist de pendências      |
+| Excluir registro                | Dialog com digitação de confirmação     |
+| Escalar permissão (break-glass) | Dialog com justificativa + timer        |
+| Alterar prescrição              | Dialog com diff do antes/depois         |
 
 ### 5.2 Dialog de Confirmação Forte
 
@@ -415,11 +417,9 @@ function StrongConfirmationDialog({
   variant = 'destructive',
   requireTyping,
 }: StrongConfirmationProps) {
-  const [typed, setTyped] = useState('')
-  const [reason, setReason] = useState('')
-  const isConfirmEnabled = requireTyping
-    ? typed === confirmText
-    : true
+  const [typed, setTyped] = useState('');
+  const [reason, setReason] = useState('');
+  const isConfirmEnabled = requireTyping ? typed === confirmText : true;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -466,19 +466,15 @@ function StrongConfirmationDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 ```
 
 ### 5.3 Registro de Auditoria no Submit
 
 ```tsx
-async function onSubmitWithAudit(
-  values: FormValues,
-  action: string,
-  session: Session,
-) {
-  const result = await submitForm(values)
+async function onSubmitWithAudit(values: FormValues, action: string, session: Session) {
+  const result = await submitForm(values);
 
   if (result.success) {
     await logAuditEvent({
@@ -491,10 +487,10 @@ async function onSubmitWithAudit(
         ip: session.ip,
         userAgent: navigator.userAgent,
       },
-    })
+    });
   }
 
-  return result
+  return result;
 }
 ```
 
@@ -515,29 +511,29 @@ async function onSubmitWithAudit(
 ```tsx
 // Detecta teclado virtual aberto
 function useVirtualKeyboard() {
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   useEffect(() => {
     if ('virtualKeyboard' in navigator) {
-      navigator.virtualKeyboard.overlaysContent = true
+      navigator.virtualKeyboard.overlaysContent = true;
       const handler = () => {
-        const { height } = navigator.virtualKeyboard.boundingRect
-        setIsKeyboardOpen(height > 0)
-      }
-      navigator.virtualKeyboard.addEventListener('geometrychange', handler)
-      return () => navigator.virtualKeyboard.removeEventListener('geometrychange', handler)
+        const { height } = navigator.virtualKeyboard.boundingRect;
+        setIsKeyboardOpen(height > 0);
+      };
+      navigator.virtualKeyboard.addEventListener('geometrychange', handler);
+      return () => navigator.virtualKeyboard.removeEventListener('geometrychange', handler);
     }
 
     // Fallback: detecta via resize
-    const initialHeight = window.innerHeight
+    const initialHeight = window.innerHeight;
     const handler = () => {
-      setIsKeyboardOpen(window.innerHeight < initialHeight * 0.75)
-    }
-    window.addEventListener('resize', handler)
-    return () => window.removeEventListener('resize', handler)
-  }, [])
+      setIsKeyboardOpen(window.innerHeight < initialHeight * 0.75);
+    };
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
 
-  return isKeyboardOpen
+  return isKeyboardOpen;
 }
 ```
 
@@ -569,20 +565,22 @@ function scrollToFirstError(errors: FieldErrors) {
 // Grid responsivo para formulários
 function FormGrid({ children, columns = 2 }: { children: React.ReactNode; columns?: number }) {
   return (
-    <div className={cn(
-      'grid gap-4',
-      columns === 2 && 'grid-cols-1 md:grid-cols-2',
-      columns === 3 && 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-      columns === 4 && 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
-    )}>
+    <div
+      className={cn(
+        'grid gap-4',
+        columns === 2 && 'grid-cols-1 md:grid-cols-2',
+        columns === 3 && 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+        columns === 4 && 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
+      )}
+    >
       {children}
     </div>
-  )
+  );
 }
 
 // Campo que ocupa toda a largura
 function FormFieldFull({ children }: { children: React.ReactNode }) {
-  return <div className="col-span-full">{children}</div>
+  return <div className="col-span-full">{children}</div>;
 }
 ```
 
@@ -618,21 +616,17 @@ function FormFieldFull({ children }: { children: React.ReactNode }) {
 
 ```tsx
 function StepForm({ steps, currentStep }: StepFormProps) {
-  const stepRef = useRef<HTMLDivElement>(null)
+  const stepRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Foca primeiro input do step ao mudar
-    const firstInput = stepRef.current?.querySelector('input, select, textarea')
+    const firstInput = stepRef.current?.querySelector('input, select, textarea');
     if (firstInput) {
-      ;(firstInput as HTMLElement).focus()
+      (firstInput as HTMLElement).focus();
     }
-  }, [currentStep])
+  }, [currentStep]);
 
-  return (
-    <div ref={stepRef}>
-      {steps[currentStep].content}
-    </div>
-  )
+  return <div ref={stepRef}>{steps[currentStep].content}</div>;
 }
 ```
 
@@ -645,11 +639,11 @@ function StepForm({ steps, currentStep }: StepFormProps) {
 ```tsx
 function CpfInput({ value, onChange, ...props }: InputProps) {
   function formatCpf(raw: string) {
-    const digits = raw.replace(/\D/g, '').slice(0, 11)
+    const digits = raw.replace(/\D/g, '').slice(0, 11);
     return digits
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
   }
 
   return (
@@ -660,7 +654,7 @@ function CpfInput({ value, onChange, ...props }: InputProps) {
       inputMode="numeric"
       placeholder="000.000.000-00"
     />
-  )
+  );
 }
 ```
 
@@ -669,15 +663,11 @@ function CpfInput({ value, onChange, ...props }: InputProps) {
 ```tsx
 function PhoneInput({ value, onChange, ...props }: InputProps) {
   function formatPhone(raw: string) {
-    const digits = raw.replace(/\D/g, '').slice(0, 11)
+    const digits = raw.replace(/\D/g, '').slice(0, 11);
     if (digits.length <= 10) {
-      return digits
-        .replace(/(\d{2})(\d)/, '($1) $2')
-        .replace(/(\d{4})(\d)/, '$1-$2')
+      return digits.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
     }
-    return digits
-      .replace(/(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{5})(\d)/, '$1-$2')
+    return digits.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
   }
 
   return (
@@ -689,7 +679,7 @@ function PhoneInput({ value, onChange, ...props }: InputProps) {
       inputMode="tel"
       placeholder="(00) 00000-0000"
     />
-  )
+  );
 }
 ```
 
@@ -697,7 +687,7 @@ function PhoneInput({ value, onChange, ...props }: InputProps) {
 
 ```tsx
 function PainScaleInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  const levels = Array.from({ length: 11 }, (_, i) => i)
+  const levels = Array.from({ length: 11 }, (_, i) => i);
 
   return (
     <div className="space-y-2">
@@ -721,27 +711,25 @@ function PainScaleInput({ value, onChange }: { value: number; onChange: (v: numb
           </button>
         ))}
       </div>
-      <p className="text-xs text-muted-foreground">
-        {getPainDescription(value)}
-      </p>
+      <p className="text-xs text-muted-foreground">{getPainDescription(value)}</p>
     </div>
-  )
+  );
 }
 
 function getPainColor(level: number): string {
-  if (level === 0) return 'bg-green-500'
-  if (level <= 3) return 'bg-lime-500'
-  if (level <= 6) return 'bg-yellow-500'
-  if (level <= 8) return 'bg-orange-500'
-  return 'bg-red-500'
+  if (level === 0) return 'bg-green-500';
+  if (level <= 3) return 'bg-lime-500';
+  if (level <= 6) return 'bg-yellow-500';
+  if (level <= 8) return 'bg-orange-500';
+  return 'bg-red-500';
 }
 
 function getPainDescription(level: number): string {
-  if (level === 0) return 'Sem dor'
-  if (level <= 3) return 'Dor leve'
-  if (level <= 6) return 'Dor moderada'
-  if (level <= 8) return 'Dor intensa'
-  return 'Pior dor possível'
+  if (level === 0) return 'Sem dor';
+  if (level <= 3) return 'Dor leve';
+  if (level <= 6) return 'Dor moderada';
+  if (level <= 8) return 'Dor intensa';
+  return 'Pior dor possível';
 }
 ```
 
@@ -758,29 +746,29 @@ function FormWizard<T extends z.ZodSchema>({
   defaultValues,
   onSubmit,
 }: FormWizardProps<T>) {
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStep, setCurrentStep] = useState(0);
   const form = useForm<z.infer<T>>({
     resolver: zodResolver(schema),
     defaultValues,
     mode: 'onChange',
-  })
+  });
 
-  const currentStepSchema = steps[currentStep].schema
+  const currentStepSchema = steps[currentStep].schema;
 
   async function handleNext() {
-    const fields = steps[currentStep].fields
-    const isValid = await form.trigger(fields)
+    const fields = steps[currentStep].fields;
+    const isValid = await form.trigger(fields);
     if (isValid) {
       if (currentStep < steps.length - 1) {
-        setCurrentStep((prev) => prev + 1)
+        setCurrentStep((prev) => prev + 1);
       } else {
-        form.handleSubmit(onSubmit)()
+        form.handleSubmit(onSubmit)();
       }
     }
   }
 
   function handleBack() {
-    setCurrentStep((prev) => Math.max(0, prev - 1))
+    setCurrentStep((prev) => Math.max(0, prev - 1));
   }
 
   return (
@@ -790,18 +778,12 @@ function FormWizard<T extends z.ZodSchema>({
 
       {/* Form content */}
       <Form {...form}>
-        <form className="space-y-4">
-          {steps[currentStep].content}
-        </form>
+        <form className="space-y-4">{steps[currentStep].content}</form>
       </Form>
 
       {/* Navigation */}
       <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          disabled={currentStep === 0}
-        >
+        <Button variant="outline" onClick={handleBack} disabled={currentStep === 0}>
           Voltar
         </Button>
         <Button onClick={handleNext}>
@@ -809,7 +791,7 @@ function FormWizard<T extends z.ZodSchema>({
         </Button>
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -822,35 +804,34 @@ function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
       <ol className="flex items-center gap-2">
         {steps.map((step, index) => (
           <li key={index} className="flex items-center gap-2">
-            <div className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium',
-              index < currentStep && 'bg-primary text-primary-foreground',
-              index === currentStep && 'border-2 border-primary text-primary',
-              index > currentStep && 'border text-muted-foreground',
-            )}>
-              {index < currentStep ? (
-                <Check className="h-4 w-4" />
-              ) : (
-                index + 1
+            <div
+              className={cn(
+                'flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium',
+                index < currentStep && 'bg-primary text-primary-foreground',
+                index === currentStep && 'border-2 border-primary text-primary',
+                index > currentStep && 'border text-muted-foreground',
               )}
+            >
+              {index < currentStep ? <Check className="h-4 w-4" /> : index + 1}
             </div>
-            <span className={cn(
-              'text-sm hidden sm:inline',
-              index === currentStep ? 'font-medium' : 'text-muted-foreground',
-            )}>
+            <span
+              className={cn(
+                'text-sm hidden sm:inline',
+                index === currentStep ? 'font-medium' : 'text-muted-foreground',
+              )}
+            >
               {step.title}
             </span>
             {index < steps.length - 1 && (
-              <div className={cn(
-                'h-px w-8 sm:w-16',
-                index < currentStep ? 'bg-primary' : 'bg-border',
-              )} />
+              <div
+                className={cn('h-px w-8 sm:w-16', index < currentStep ? 'bg-primary' : 'bg-border')}
+              />
             )}
           </li>
         ))}
       </ol>
     </nav>
-  )
+  );
 }
 ```
 
@@ -862,7 +843,7 @@ function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
 
 ```tsx
 // Mensagens de erro aparecem abaixo de cada campo
-<FormMessage />  // shadcn/ui component que exibe form.formState.errors
+<FormMessage /> // shadcn/ui component que exibe form.formState.errors
 
 // Estilo: texto vermelho, ícone de alerta, font-size sm
 // Aparece com animação fadeIn suave
@@ -873,25 +854,25 @@ function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
 ```tsx
 async function onSubmit(values: FormValues) {
   try {
-    const result = await createPatient(values)
+    const result = await createPatient(values);
 
     if (result.error) {
       // Erros de campo específicos do servidor
       if (result.fieldErrors) {
         Object.entries(result.fieldErrors).forEach(([field, message]) => {
-          form.setError(field as any, { type: 'server', message })
-        })
-        return
+          form.setError(field as any, { type: 'server', message });
+        });
+        return;
       }
 
       // Erro genérico
-      toast.error(result.error)
-      return
+      toast.error(result.error);
+      return;
     }
 
-    toast.success('Operação realizada com sucesso')
+    toast.success('Operação realizada com sucesso');
   } catch (error) {
-    toast.error('Erro de comunicação com o servidor. Tente novamente.')
+    toast.error('Erro de comunicação com o servidor. Tente novamente.');
   }
 }
 ```
@@ -917,16 +898,16 @@ async function onSubmit(values: FormValues) {
 
 ### 11.1 Formulários por Tipo
 
-| Formulário | Steps | Draft | Confirmação | Auditoria |
-|---|---|---|---|---|
-| Login | 1 | Não | Não | Sim |
-| Admissão de paciente | 3-4 | Sim | Sim | Sim |
-| Registro de medicação | 1 | Não | Forte | Sim |
-| Registro de dor | 1 | Não | Não | Sim |
-| Resposta de chamada | 1 | Não | Não | Sim |
-| Passagem de plantão | 3+ | Sim | Sim | Sim |
-| Cadastro de usuário | 2 | Sim | Sim | Sim |
-| Configurações | 1 | Não | Não | Sim |
+| Formulário            | Steps | Draft | Confirmação | Auditoria |
+| --------------------- | ----- | ----- | ----------- | --------- |
+| Login                 | 1     | Não   | Não         | Sim       |
+| Admissão de paciente  | 3-4   | Sim   | Sim         | Sim       |
+| Registro de medicação | 1     | Não   | Forte       | Sim       |
+| Registro de dor       | 1     | Não   | Não         | Sim       |
+| Resposta de chamada   | 1     | Não   | Não         | Sim       |
+| Passagem de plantão   | 3+    | Sim   | Sim         | Sim       |
+| Cadastro de usuário   | 2     | Sim   | Sim         | Sim       |
+| Configurações         | 1     | Não   | Não         | Sim       |
 
 ### 11.2 Regras de UX por Tipo
 
@@ -949,13 +930,13 @@ async function onSubmit(values: FormValues) {
 
 ### 12.2 Métricas
 
-| Métrica | Target |
-|---|---|
-| Tempo de render do form | < 50ms |
-| Tempo de validação (sync) | < 10ms |
-| Tempo de validação (async) | < 500ms |
-| Re-renders por keystroke | 0 (campos uncontrolled) |
-| Tempo até feedback de erro | < 200ms (on blur) |
+| Métrica                    | Target                  |
+| -------------------------- | ----------------------- |
+| Tempo de render do form    | < 50ms                  |
+| Tempo de validação (sync)  | < 10ms                  |
+| Tempo de validação (async) | < 500ms                 |
+| Re-renders por keystroke   | 0 (campos uncontrolled) |
+| Tempo até feedback de erro | < 200ms (on blur)       |
 
 ---
 
@@ -967,32 +948,32 @@ async function onSubmit(values: FormValues) {
 // Unit test: Schema Zod
 describe('patientSchema', () => {
   it('rejeita CPF inválido', () => {
-    const result = patientSchema.safeParse({ cpf: '000.000.000-00' })
-    expect(result.success).toBe(false)
-  })
+    const result = patientSchema.safeParse({ cpf: '000.000.000-00' });
+    expect(result.success).toBe(false);
+  });
 
   it('aceita dados válidos', () => {
-    const result = patientSchema.safeParse(validPatientData)
-    expect(result.success).toBe(true)
-  })
-})
+    const result = patientSchema.safeParse(validPatientData);
+    expect(result.success).toBe(true);
+  });
+});
 
 // Component test: Interação
 describe('PatientAdmissionForm', () => {
   it('mostra erro quando campo obrigatório vazio', async () => {
-    render(<PatientAdmissionForm />)
-    await userEvent.click(screen.getByText('Admitir paciente'))
-    expect(screen.getByText('Nome deve ter no mínimo 3 caracteres')).toBeInTheDocument()
-  })
+    render(<PatientAdmissionForm />);
+    await userEvent.click(screen.getByText('Admitir paciente'));
+    expect(screen.getByText('Nome deve ter no mínimo 3 caracteres')).toBeInTheDocument();
+  });
 
   it('submete com dados válidos', async () => {
-    render(<PatientAdmissionForm />)
-    await userEvent.type(screen.getByLabelText('Nome completo'), 'João Silva')
+    render(<PatientAdmissionForm />);
+    await userEvent.type(screen.getByLabelText('Nome completo'), 'João Silva');
     // ... preencher outros campos
-    await userEvent.click(screen.getByText('Admitir paciente'))
-    await waitFor(() => expect(mockSubmit).toHaveBeenCalled())
-  })
-})
+    await userEvent.click(screen.getByText('Admitir paciente'));
+    await waitFor(() => expect(mockSubmit).toHaveBeenCalled());
+  });
+});
 ```
 
 ---

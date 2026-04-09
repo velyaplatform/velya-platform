@@ -119,35 +119,35 @@ Consumer Groups:
 
 ### 3.1 Categorias e Tipos
 
-| Categoria | Descricao | Exemplos de Tipos |
-|---|---|---|
-| `clinical` | Atos clinicos diretos | `diagnosis`, `assessment`, `procedure`, `medication_request`, `medication_administration`, `observation`, `vital_signs`, `lab_result`, `imaging_result`, `pain_assessment`, `clinical_note`, `discharge_summary` |
-| `operational` | Fluxo operacional | `admission`, `transfer`, `discharge`, `bed_assignment`, `unit_change`, `handoff_initiated`, `handoff_accepted`, `handoff_refused`, `scheduling`, `transport_request`, `transport_completed` |
-| `administrative` | Processos administrativos | `registration`, `insurance_verification`, `consent_obtained`, `consent_revoked`, `document_signed`, `billing_event`, `authorization_request` |
-| `communication` | Interacoes e chamados | `patient_call`, `call_response`, `call_resolution`, `call_abandoned`, `family_contact`, `interdisciplinary_consult_request`, `interdisciplinary_consult_response`, `message_sent`, `message_read` |
-| `device` | Equipamentos e dispositivos | `monitor_alert`, `infusion_pump_event`, `ventilator_event`, `device_connected`, `device_disconnected`, `alarm_triggered`, `alarm_silenced`, `telemetry_data` |
-| `security` | Seguranca e acesso | `record_accessed`, `record_exported`, `break_glass_activated`, `access_denied`, `signature_applied`, `data_masked` |
-| `system` | Eventos de sistema | `integration_received`, `integration_sent`, `sync_completed`, `sync_failed`, `timeout_detected`, `retry_attempted` |
-| `inferred` | Eventos inferidos por IA/regras | `gap_detected`, `risk_score_updated`, `anomaly_detected`, `pattern_identified`, `completeness_alert`, `deterioration_risk` |
-| `corrected` | Correcoes de eventos anteriores | `event_corrected`, `event_retracted`, `late_documentation`, `addendum`, `amendment` |
-| `automated` | Acoes automatizadas | `auto_escalation`, `auto_notification`, `auto_task_created`, `auto_reminder`, `rule_triggered`, `workflow_step_completed` |
+| Categoria        | Descricao                       | Exemplos de Tipos                                                                                                                                                                                                |
+| ---------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `clinical`       | Atos clinicos diretos           | `diagnosis`, `assessment`, `procedure`, `medication_request`, `medication_administration`, `observation`, `vital_signs`, `lab_result`, `imaging_result`, `pain_assessment`, `clinical_note`, `discharge_summary` |
+| `operational`    | Fluxo operacional               | `admission`, `transfer`, `discharge`, `bed_assignment`, `unit_change`, `handoff_initiated`, `handoff_accepted`, `handoff_refused`, `scheduling`, `transport_request`, `transport_completed`                      |
+| `administrative` | Processos administrativos       | `registration`, `insurance_verification`, `consent_obtained`, `consent_revoked`, `document_signed`, `billing_event`, `authorization_request`                                                                     |
+| `communication`  | Interacoes e chamados           | `patient_call`, `call_response`, `call_resolution`, `call_abandoned`, `family_contact`, `interdisciplinary_consult_request`, `interdisciplinary_consult_response`, `message_sent`, `message_read`                |
+| `device`         | Equipamentos e dispositivos     | `monitor_alert`, `infusion_pump_event`, `ventilator_event`, `device_connected`, `device_disconnected`, `alarm_triggered`, `alarm_silenced`, `telemetry_data`                                                     |
+| `security`       | Seguranca e acesso              | `record_accessed`, `record_exported`, `break_glass_activated`, `access_denied`, `signature_applied`, `data_masked`                                                                                               |
+| `system`         | Eventos de sistema              | `integration_received`, `integration_sent`, `sync_completed`, `sync_failed`, `timeout_detected`, `retry_attempted`                                                                                               |
+| `inferred`       | Eventos inferidos por IA/regras | `gap_detected`, `risk_score_updated`, `anomaly_detected`, `pattern_identified`, `completeness_alert`, `deterioration_risk`                                                                                       |
+| `corrected`      | Correcoes de eventos anteriores | `event_corrected`, `event_retracted`, `late_documentation`, `addendum`, `amendment`                                                                                                                              |
+| `automated`      | Acoes automatizadas             | `auto_escalation`, `auto_notification`, `auto_task_created`, `auto_reminder`, `rule_triggered`, `workflow_step_completed`                                                                                        |
 
 ### 3.2 Subtipos de Medicacao (Detalhamento)
 
-| Subtipo | Descricao |
-|---|---|
-| `medication_request.new` | Nova prescricao |
-| `medication_request.modified` | Alteracao de prescricao |
-| `medication_request.cancelled` | Cancelamento de prescricao |
-| `medication_request.suspended` | Suspensao temporaria |
-| `medication_administration.given` | Medicamento administrado |
-| `medication_administration.refused` | Paciente recusou |
-| `medication_administration.held` | Suspenso pelo profissional |
-| `medication_administration.not_given` | Nao administrado por outro motivo |
-| `medication_administration.delayed` | Administrado com atraso |
-| `medication_administration.substituted` | Substituicao realizada |
-| `medication_administration.double_check` | Dupla verificacao registrada |
-| `medication_administration.adverse_event` | Evento adverso registrado |
+| Subtipo                                   | Descricao                         |
+| ----------------------------------------- | --------------------------------- |
+| `medication_request.new`                  | Nova prescricao                   |
+| `medication_request.modified`             | Alteracao de prescricao           |
+| `medication_request.cancelled`            | Cancelamento de prescricao        |
+| `medication_request.suspended`            | Suspensao temporaria              |
+| `medication_administration.given`         | Medicamento administrado          |
+| `medication_administration.refused`       | Paciente recusou                  |
+| `medication_administration.held`          | Suspenso pelo profissional        |
+| `medication_administration.not_given`     | Nao administrado por outro motivo |
+| `medication_administration.delayed`       | Administrado com atraso           |
+| `medication_administration.substituted`   | Substituicao realizada            |
+| `medication_administration.double_check`  | Dupla verificacao registrada      |
+| `medication_administration.adverse_event` | Evento adverso registrado         |
 
 ---
 
@@ -325,8 +325,7 @@ interface ClinicalAssessmentEvent extends PatientJourneyEvent {
 
 interface MedicationRequestEvent extends PatientJourneyEvent {
   event_category: 'clinical';
-  event_type: `medication_request.${
-    'new' | 'modified' | 'cancelled' | 'suspended'}`;
+  event_type: `medication_request.${'new' | 'modified' | 'cancelled' | 'suspended'}`;
   payload: {
     medication_code: string;
     medication_name: string;
@@ -348,7 +347,14 @@ interface MedicationRequestEvent extends PatientJourneyEvent {
 interface MedicationAdministrationEvent extends PatientJourneyEvent {
   event_category: 'clinical';
   event_type: `medication_administration.${
-    'given' | 'refused' | 'held' | 'not_given' | 'delayed' | 'substituted' | 'double_check' | 'adverse_event'}`;
+    | 'given'
+    | 'refused'
+    | 'held'
+    | 'not_given'
+    | 'delayed'
+    | 'substituted'
+    | 'double_check'
+    | 'adverse_event'}`;
   payload: {
     medication_code: string;
     medication_name: string;
@@ -595,7 +601,12 @@ interface SecurityAccessEvent extends PatientJourneyEvent {
 ```typescript
 interface InferredEvent extends PatientJourneyEvent {
   event_category: 'inferred';
-  event_type: 'gap_detected' | 'risk_score_updated' | 'anomaly_detected' | 'pattern_identified' | 'completeness_alert';
+  event_type:
+    | 'gap_detected'
+    | 'risk_score_updated'
+    | 'anomaly_detected'
+    | 'pattern_identified'
+    | 'completeness_alert';
   payload: {
     rule_id: string;
     rule_name: string;
@@ -616,12 +627,23 @@ interface InferredEvent extends PatientJourneyEvent {
 
 interface CorrectedEvent extends PatientJourneyEvent {
   event_category: 'corrected';
-  event_type: 'event_corrected' | 'event_retracted' | 'late_documentation' | 'addendum' | 'amendment';
+  event_type:
+    | 'event_corrected'
+    | 'event_retracted'
+    | 'late_documentation'
+    | 'addendum'
+    | 'amendment';
   payload: {
     original_event_id: string;
     original_event_type: string;
     reason: string;
-    correction_type: 'factual_error' | 'timing_error' | 'attribution_error' | 'omission' | 'addendum' | 'retraction';
+    correction_type:
+      | 'factual_error'
+      | 'timing_error'
+      | 'attribution_error'
+      | 'omission'
+      | 'addendum'
+      | 'retraction';
     original_values?: Record<string, unknown>;
     corrected_values?: Record<string, unknown>;
     delay_from_original_seconds: number;
@@ -1131,7 +1153,7 @@ interface IngestEventWorkflow {
     'checkGapRules',
     'updateTimelineConfidence',
     'updateDigitalTwin',
-    'notifyIfCritical'
+    'notifyIfCritical',
   ];
 }
 
@@ -1146,7 +1168,7 @@ interface CorrectEventWorkflow {
     'recalculateProjections',
     'updateTimelineConfidence',
     'auditCorrectionTrail',
-    'notifyStakeholders'
+    'notifyStakeholders',
   ];
 }
 ```
@@ -1209,15 +1231,15 @@ Trace: encounter-{encounter_id}
 
 ## 8. Politicas de Retencao e Ciclo de Vida
 
-| Tipo de Dado | Retencao | Armazenamento |
-|---|---|---|
-| Eventos ativos | Ilimitado | PostgreSQL Hot |
-| Eventos de encontros encerrados (>1 ano) | 20 anos | PostgreSQL Cold + S3 |
-| Projecoes | Ate encerramento + 90 dias | PostgreSQL + Redis |
-| Stream NATS | 365 dias | NATS File Store |
-| Logs de auditoria | 20 anos | Loki + S3 |
-| Traces | 90 dias | Tempo |
-| Metricas | 2 anos | Prometheus + Thanos |
+| Tipo de Dado                             | Retencao                   | Armazenamento        |
+| ---------------------------------------- | -------------------------- | -------------------- |
+| Eventos ativos                           | Ilimitado                  | PostgreSQL Hot       |
+| Eventos de encontros encerrados (>1 ano) | 20 anos                    | PostgreSQL Cold + S3 |
+| Projecoes                                | Ate encerramento + 90 dias | PostgreSQL + Redis   |
+| Stream NATS                              | 365 dias                   | NATS File Store      |
+| Logs de auditoria                        | 20 anos                    | Loki + S3            |
+| Traces                                   | 90 dias                    | Tempo                |
+| Metricas                                 | 2 anos                     | Prometheus + Thanos  |
 
 ---
 

@@ -87,7 +87,9 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push(`/verify?email=${encodeURIComponent(email)}${data.devCode ? `&devCode=${data.devCode}` : ''}`);
+      router.push(
+        `/verify?email=${encodeURIComponent(email)}${data.devCode ? `&devCode=${data.devCode}` : ''}`,
+      );
     } catch {
       setError('Erro de conexao. Tente novamente.');
       setLoading(false);
@@ -179,7 +181,9 @@ export default function RegisterPage() {
             >
               <option value="">Selecione sua funcao</option>
               {ROLES.map((r) => (
-                <option key={r} value={r}>{r}</option>
+                <option key={r} value={r}>
+                  {r}
+                </option>
               ))}
             </select>
           </div>
@@ -220,7 +224,10 @@ export default function RegisterPage() {
 
           <div className="text-center mt-2 py-2">
             <span className="text-sm text-velya-subtle">Ja tem conta? </span>
-            <Link href="/login" className="text-sm font-medium text-blue-400 hover:text-blue-300 transition inline-block min-h-[44px] leading-[44px]">
+            <Link
+              href="/login"
+              className="text-sm font-medium text-blue-400 hover:text-blue-300 transition inline-block min-h-[44px] leading-[44px]"
+            >
               Entrar
             </Link>
           </div>

@@ -9,16 +9,16 @@
 
 No contexto da Velya Platform, **entrega assertiva** significa:
 
-| Principio | Definicao Operacional | Evidencia Exigida |
-|---|---|---|
-| Resultados consistentes | O mesmo deploy em condicoes equivalentes produz o mesmo resultado | Historico de deploys com taxa de sucesso >= 99% no ultimo trimestre |
-| Acoes baseadas em evidencia | Nenhuma acao de promocao, rollback ou correcao sem dados que a justifiquem | Link para query Prometheus/Loki que motivou a decisao |
-| Criterios de promocao claros | Gates definidos antes do deploy, nao inventados durante | Spec do Rollout com `analysis` preenchido |
-| Classificacao antes de correcao | Erros sao categorizados antes de qualquer remediation | Label `error-class/*` no issue tracker antes do fix |
-| Rollback quando necessario | Reverter e seguro, rapido e sem perda de dados | Rollback testado em staging na ultima sprint |
-| Rastreabilidade total | Todo artefato conectado a commit, PR, pipeline, deploy, metricas | Chain: commit SHA -> image tag -> rollout revision -> dashboard |
-| Sem passos invisiveis | Nenhuma acao manual fora do GitOps flow | Audit log do ArgoCD sem `sync --force` manual |
-| Erros viram prevencao | Todo incidente gera pelo menos 1 teste ou 1 alerta novo | Issue de follow-up linkado ao postmortem |
+| Principio                       | Definicao Operacional                                                      | Evidencia Exigida                                                   |
+| ------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Resultados consistentes         | O mesmo deploy em condicoes equivalentes produz o mesmo resultado          | Historico de deploys com taxa de sucesso >= 99% no ultimo trimestre |
+| Acoes baseadas em evidencia     | Nenhuma acao de promocao, rollback ou correcao sem dados que a justifiquem | Link para query Prometheus/Loki que motivou a decisao               |
+| Criterios de promocao claros    | Gates definidos antes do deploy, nao inventados durante                    | Spec do Rollout com `analysis` preenchido                           |
+| Classificacao antes de correcao | Erros sao categorizados antes de qualquer remediation                      | Label `error-class/*` no issue tracker antes do fix                 |
+| Rollback quando necessario      | Reverter e seguro, rapido e sem perda de dados                             | Rollback testado em staging na ultima sprint                        |
+| Rastreabilidade total           | Todo artefato conectado a commit, PR, pipeline, deploy, metricas           | Chain: commit SHA -> image tag -> rollout revision -> dashboard     |
+| Sem passos invisiveis           | Nenhuma acao manual fora do GitOps flow                                    | Audit log do ArgoCD sem `sync --force` manual                       |
+| Erros viram prevencao           | Todo incidente gera pelo menos 1 teste ou 1 alerta novo                    | Issue de follow-up linkado ao postmortem                            |
 
 ---
 
@@ -40,19 +40,19 @@ spec:
   deliveryType: application-deploy
   preConditions:
     - name: image-scan-passed
-      check: "trivy scan sem vulnerabilidades CRITICAL"
+      check: 'trivy scan sem vulnerabilidades CRITICAL'
       blocking: true
     - name: unit-tests-passed
-      check: "cobertura >= 80% e 0 falhas"
+      check: 'cobertura >= 80% e 0 falhas'
       blocking: true
     - name: integration-tests-passed
-      check: "suite de integracao com 0 falhas"
+      check: 'suite de integracao com 0 falhas'
       blocking: true
     - name: staging-validation
-      check: "deploy em staging por >= 30min sem alertas"
+      check: 'deploy em staging por >= 30min sem alertas'
       blocking: true
     - name: rollout-strategy-defined
-      check: "AnalysisTemplate referenciado no Rollout"
+      check: 'AnalysisTemplate referenciado no Rollout'
       blocking: true
   promotionGates:
     canary:
@@ -64,47 +64,47 @@ spec:
               sum(rate(http_requests_total{status=~"5..",app="{{ .args.service }}"}[2m]))
               /
               sum(rate(http_requests_total{app="{{ .args.service }}"}[2m]))
-            threshold: "< 0.01"
+            threshold: '< 0.01'
           - name: p99-latency
             query: |
               histogram_quantile(0.99,
                 sum(rate(http_request_duration_seconds_bucket{app="{{ .args.service }}"}[2m])) by (le)
               )
-            threshold: "< 2.0"
+            threshold: '< 2.0'
       - weight: 30
         duration: 10m
         metrics:
           - name: error-rate
-            threshold: "< 0.005"
+            threshold: '< 0.005'
           - name: p99-latency
-            threshold: "< 1.5"
+            threshold: '< 1.5'
       - weight: 70
         duration: 15m
         metrics:
           - name: error-rate
-            threshold: "< 0.005"
+            threshold: '< 0.005'
           - name: saturation
             query: |
               avg(container_memory_working_set_bytes{pod=~"{{ .args.service }}.*"})
               /
               avg(kube_pod_container_resource_limits{resource="memory",pod=~"{{ .args.service }}.*"})
-            threshold: "< 0.85"
+            threshold: '< 0.85'
   observationPeriod:
     active: 30m
     passive: 4h
   successMetrics:
-    - "zero alertas P1/P2 no periodo de observacao"
-    - "metricas de negocio (agendamentos, consultas) sem degradacao > 5%"
-    - "nenhum rollback automatico disparado"
+    - 'zero alertas P1/P2 no periodo de observacao'
+    - 'metricas de negocio (agendamentos, consultas) sem degradacao > 5%'
+    - 'nenhum rollback automatico disparado'
 ```
 
 #### Evidencia Minima
 
-| Fase | Evidencia | Formato | Retencao |
-|---|---|---|---|
-| Pre-deploy | Scan de imagem, testes, aprovacao PR | CI artifacts + GitHub checks | 90 dias |
-| During-deploy | Metricas do canary, logs de analise | Prometheus + ArgoCD events | 30 dias |
-| Post-deploy | Dashboard snapshot, ausencia de alertas | Grafana snapshot URL | 90 dias |
+| Fase          | Evidencia                               | Formato                      | Retencao |
+| ------------- | --------------------------------------- | ---------------------------- | -------- |
+| Pre-deploy    | Scan de imagem, testes, aprovacao PR    | CI artifacts + GitHub checks | 90 dias  |
+| During-deploy | Metricas do canary, logs de analise     | Prometheus + ArgoCD events   | 30 dias  |
+| Post-deploy   | Dashboard snapshot, ausencia de alertas | Grafana snapshot URL         | 90 dias  |
 
 ---
 
@@ -123,38 +123,38 @@ spec:
   deliveryType: infrastructure-change
   preConditions:
     - name: tofu-plan-reviewed
-      check: "OpenTofu plan aprovado por >= 2 engenheiros"
+      check: 'OpenTofu plan aprovado por >= 2 engenheiros'
       blocking: true
     - name: blast-radius-assessed
-      check: "documento de blast radius preenchido"
+      check: 'documento de blast radius preenchido'
       blocking: true
     - name: rollback-plan-documented
-      check: "procedimento de rollback testado em sandbox"
+      check: 'procedimento de rollback testado em sandbox'
       blocking: true
     - name: change-window-approved
-      check: "janela de mudanca aprovada (fora de horario de pico)"
+      check: 'janela de mudanca aprovada (fora de horario de pico)'
       blocking: true
     - name: backup-verified
-      check: "snapshot/backup do estado anterior confirmado"
+      check: 'snapshot/backup do estado anterior confirmado'
       blocking: true
   promotionGates:
     apply:
       - stage: plan-review
-        check: "diff do plan sem surpresas (sem destroys inesperados)"
+        check: 'diff do plan sem surpresas (sem destroys inesperados)'
       - stage: apply-sandbox
-        check: "apply em sandbox/staging sem erros"
+        check: 'apply em sandbox/staging sem erros'
         duration: 15m
       - stage: apply-production
-        check: "apply em producao com monitoramento ativo"
+        check: 'apply em producao com monitoramento ativo'
   observationPeriod:
     active: 1h
     passive: 24h
   successMetrics:
-    - "zero pods em CrashLoopBackOff"
-    - "zero PVCs em Pending"
-    - "kube-state-metrics sem anomalias"
-    - "latencia de rede sem degradacao > 10%"
-    - "NATS JetStream consumers sem lag crescente"
+    - 'zero pods em CrashLoopBackOff'
+    - 'zero PVCs em Pending'
+    - 'kube-state-metrics sem anomalias'
+    - 'latencia de rede sem degradacao > 10%'
+    - 'NATS JetStream consumers sem lag crescente'
 ```
 
 #### Blast Radius Assessment Template
@@ -162,20 +162,20 @@ spec:
 ```yaml
 # Template para avaliar blast radius de mudancas infra
 blastRadiusAssessment:
-  changeDescription: "Atualizar KEDA scaler do patient-service"
+  changeDescription: 'Atualizar KEDA scaler do patient-service'
   affectedComponents:
     direct:
-      - "patient-service HPA"
-      - "patient-service pods"
+      - 'patient-service HPA'
+      - 'patient-service pods'
     indirect:
-      - "scheduling-service (depende de patient-service)"
-      - "billing-service (consulta patient-service)"
-  worstCase: "patient-service escala para 0 replicas durante horario de pico"
+      - 'scheduling-service (depende de patient-service)'
+      - 'billing-service (consulta patient-service)'
+  worstCase: 'patient-service escala para 0 replicas durante horario de pico'
   mitigations:
-    - "minReplicaCount >= 2 sempre"
-    - "PDB configurado com minAvailable: 1"
-  rollbackProcedure: "Reverter commit no Git, ArgoCD sync automatico"
-  estimatedRollbackTime: "< 3 minutos"
+    - 'minReplicaCount >= 2 sempre'
+    - 'PDB configurado com minAvailable: 1'
+  rollbackProcedure: 'Reverter commit no Git, ArgoCD sync automatico'
+  estimatedRollbackTime: '< 3 minutos'
 ```
 
 ---
@@ -195,61 +195,61 @@ spec:
   deliveryType: agent-promotion
   preConditions:
     - name: shadow-period-complete
-      check: "agente operou em modo shadow por >= 7 dias"
+      check: 'agente operou em modo shadow por >= 7 dias'
       blocking: true
     - name: accuracy-threshold
-      check: "taxa de acerto em decisoes >= 95% vs baseline humano"
+      check: 'taxa de acerto em decisoes >= 95% vs baseline humano'
       blocking: true
     - name: false-positive-rate
-      check: "taxa de falsos positivos < 3%"
+      check: 'taxa de falsos positivos < 3%'
       blocking: true
     - name: blast-radius-limited
-      check: "permissoes de escrita limitadas ao dominio aprovado"
+      check: 'permissoes de escrita limitadas ao dominio aprovado'
       blocking: true
     - name: kill-switch-tested
-      check: "kill-switch testado e funcional"
+      check: 'kill-switch testado e funcional'
       blocking: true
     - name: peer-review
-      check: "revisao por >= 2 engenheiros do dominio"
+      check: 'revisao por >= 2 engenheiros do dominio'
       blocking: true
   promotionGates:
     levels:
       - level: observer
-        description: "Le metricas e logs, gera relatorios"
-        requirements: ["shadow 3 dias", "0 falsos positivos criticos"]
+        description: 'Le metricas e logs, gera relatorios'
+        requirements: ['shadow 3 dias', '0 falsos positivos criticos']
       - level: advisor
-        description: "Sugere acoes, humano executa"
-        requirements: ["observer por 7 dias", "acuracia >= 90%"]
+        description: 'Sugere acoes, humano executa'
+        requirements: ['observer por 7 dias', 'acuracia >= 90%']
       - level: executor-low
-        description: "Executa acoes de baixo risco autonomamente"
-        requirements: ["advisor por 14 dias", "acuracia >= 95%"]
+        description: 'Executa acoes de baixo risco autonomamente'
+        requirements: ['advisor por 14 dias', 'acuracia >= 95%']
       - level: executor-medium
-        description: "Executa acoes de medio risco com aprovacao automatica"
-        requirements: ["executor-low por 30 dias", "acuracia >= 98%"]
+        description: 'Executa acoes de medio risco com aprovacao automatica'
+        requirements: ['executor-low por 30 dias', 'acuracia >= 98%']
   observationPeriod:
-    active: 2h   # apos cada acao do agente
-    passive: 7d  # monitoramento continuo do agente
+    active: 2h # apos cada acao do agente
+    passive: 7d # monitoramento continuo do agente
   successMetrics:
-    - "zero acoes destrutivas nao autorizadas"
-    - "tempo medio de resposta a incidentes reduzido em >= 20%"
-    - "taxa de escalacao para humanos estavel ou decrescente"
-    - "nenhum alerta de seguranca gerado pelo agente"
+    - 'zero acoes destrutivas nao autorizadas'
+    - 'tempo medio de resposta a incidentes reduzido em >= 20%'
+    - 'taxa de escalacao para humanos estavel ou decrescente'
+    - 'nenhum alerta de seguranca gerado pelo agente'
 ```
 
 #### Matriz de Permissoes por Nivel
 
-| Capacidade | Observer | Advisor | Executor-Low | Executor-Medium |
-|---|---|---|---|---|
-| Ler metricas/logs | Sim | Sim | Sim | Sim |
-| Gerar relatorios | Sim | Sim | Sim | Sim |
-| Sugerir acoes | Nao | Sim | Sim | Sim |
-| Restart pods (non-critical) | Nao | Nao | Sim | Sim |
-| Scale replicas (dentro de limites) | Nao | Nao | Sim | Sim |
-| Abrir PRs de correcao | Nao | Nao | Sim | Sim |
-| Rollback canary deploy | Nao | Nao | Nao | Sim |
-| Modificar KEDA scalers | Nao | Nao | Nao | Sim |
-| Alterar network policies | Nao | Nao | Nao | Nao |
-| Modificar secrets/credentials | Nao | Nao | Nao | Nao |
+| Capacidade                         | Observer | Advisor | Executor-Low | Executor-Medium |
+| ---------------------------------- | -------- | ------- | ------------ | --------------- |
+| Ler metricas/logs                  | Sim      | Sim     | Sim          | Sim             |
+| Gerar relatorios                   | Sim      | Sim     | Sim          | Sim             |
+| Sugerir acoes                      | Nao      | Sim     | Sim          | Sim             |
+| Restart pods (non-critical)        | Nao      | Nao     | Sim          | Sim             |
+| Scale replicas (dentro de limites) | Nao      | Nao     | Sim          | Sim             |
+| Abrir PRs de correcao              | Nao      | Nao     | Sim          | Sim             |
+| Rollback canary deploy             | Nao      | Nao     | Nao          | Sim             |
+| Modificar KEDA scalers             | Nao      | Nao     | Nao          | Sim             |
+| Alterar network policies           | Nao      | Nao     | Nao          | Nao             |
+| Modificar secrets/credentials      | Nao      | Nao     | Nao          | Nao             |
 
 ---
 
@@ -268,43 +268,43 @@ spec:
   deliveryType: workflow-update
   preConditions:
     - name: versioning-strategy
-      check: "nova versao do workflow registrada (nao sobrescreve a anterior)"
+      check: 'nova versao do workflow registrada (nao sobrescreve a anterior)'
       blocking: true
     - name: replay-test-passed
-      check: "replay de historico existente com nova versao sem erros"
+      check: 'replay de historico existente com nova versao sem erros'
       blocking: true
     - name: backward-compatible
-      check: "workflows em execucao nao sao afetados"
+      check: 'workflows em execucao nao sao afetados'
       blocking: true
     - name: compensation-tested
-      check: "saga compensation testada para cada novo step"
+      check: 'saga compensation testada para cada novo step'
       blocking: true
     - name: timeout-configured
-      check: "timeouts definidos para cada activity (start-to-close, schedule-to-start)"
+      check: 'timeouts definidos para cada activity (start-to-close, schedule-to-start)'
       blocking: true
   promotionGates:
     stages:
       - stage: unit-test
-        check: "testes unitarios de workflow com mock de activities"
+        check: 'testes unitarios de workflow com mock de activities'
       - stage: integration-test
-        check: "teste com Temporal test server"
+        check: 'teste com Temporal test server'
       - stage: staging-deploy
-        check: "deploy em staging com execucao de workflows de teste"
+        check: 'deploy em staging com execucao de workflows de teste'
         duration: 30m
       - stage: production-canary
-        check: "10% do trafego na nova versao do workflow"
+        check: '10% do trafego na nova versao do workflow'
         duration: 1h
       - stage: production-full
-        check: "100% do trafego na nova versao"
+        check: '100% do trafego na nova versao'
   observationPeriod:
     active: 1h
     passive: 24h
   successMetrics:
-    - "zero workflows stuck (> 2x do SLA esperado)"
-    - "zero compensation failures"
-    - "latencia de workflow sem degradacao > 15%"
-    - "DLQ do workflow vazia"
-    - "taxa de retry < baseline + 10%"
+    - 'zero workflows stuck (> 2x do SLA esperado)'
+    - 'zero compensation failures'
+    - 'latencia de workflow sem degradacao > 15%'
+    - 'DLQ do workflow vazia'
+    - 'taxa de retry < baseline + 10%'
 ```
 
 #### Checklist de Compatibilidade Temporal
@@ -337,32 +337,32 @@ spec:
   deliveryType: config-change
   preConditions:
     - name: schema-validated
-      check: "configuracao validada contra JSON Schema"
+      check: 'configuracao validada contra JSON Schema'
       blocking: true
     - name: diff-reviewed
-      check: "diff de configuracao revisado por owner do servico"
+      check: 'diff de configuracao revisado por owner do servico'
       blocking: true
     - name: secret-rotation-safe
-      check: "se secret, rotacao nao quebra conexoes ativas"
+      check: 'se secret, rotacao nao quebra conexoes ativas'
       blocking: true
     - name: restart-strategy-defined
-      check: "definido se requer restart (rolling) ou hot-reload"
+      check: 'definido se requer restart (rolling) ou hot-reload'
       blocking: true
   promotionGates:
     stages:
       - stage: staging-apply
-        check: "aplicado em staging, servico healthy"
+        check: 'aplicado em staging, servico healthy'
         duration: 10m
       - stage: production-apply
-        check: "aplicado em producao, pods reiniciam sem erro"
+        check: 'aplicado em producao, pods reiniciam sem erro'
   observationPeriod:
     active: 15m
     passive: 2h
   successMetrics:
-    - "zero pods em CrashLoopBackOff apos apply"
-    - "zero erros de parsing de configuracao nos logs"
-    - "servico responde ao healthcheck em < 30s apos restart"
-    - "conexoes com dependencias restabelecidas (DB, NATS, Redis)"
+    - 'zero pods em CrashLoopBackOff apos apply'
+    - 'zero erros de parsing de configuracao nos logs'
+    - 'servico responde ao healthcheck em < 30s apos restart'
+    - 'conexoes com dependencias restabelecidas (DB, NATS, Redis)'
 ```
 
 ---
@@ -375,89 +375,89 @@ spec:
 # Template: copiar e preencher para cada deploy
 preDeployChecklist:
   metadata:
-    service: ""           # nome do servico
-    version: ""           # tag da imagem
-    deployer: ""          # quem esta fazendo o deploy
-    date: ""              # data/hora
-    changeType: ""        # app-deploy | infra | agent | workflow | config
-    ticketRef: ""         # referencia ao ticket/PR
+    service: '' # nome do servico
+    version: '' # tag da imagem
+    deployer: '' # quem esta fazendo o deploy
+    date: '' # data/hora
+    changeType: '' # app-deploy | infra | agent | workflow | config
+    ticketRef: '' # referencia ao ticket/PR
 
   items:
     codeQuality:
       - id: PRE-001
-        check: "PR aprovado por >= 1 reviewer"
-        status: pending    # pending | passed | failed | na
-        evidence: ""
+        check: 'PR aprovado por >= 1 reviewer'
+        status: pending # pending | passed | failed | na
+        evidence: ''
       - id: PRE-002
-        check: "CI pipeline verde (build, test, lint, scan)"
+        check: 'CI pipeline verde (build, test, lint, scan)'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: PRE-003
-        check: "Cobertura de testes >= 80%"
+        check: 'Cobertura de testes >= 80%'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: PRE-004
-        check: "Nenhuma vulnerabilidade CRITICAL no scan"
+        check: 'Nenhuma vulnerabilidade CRITICAL no scan'
         status: pending
-        evidence: ""
+        evidence: ''
 
     deployReadiness:
       - id: PRE-010
-        check: "Rollout strategy definida (canary weights e metricas)"
+        check: 'Rollout strategy definida (canary weights e metricas)'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: PRE-011
-        check: "AnalysisTemplate configurado com queries Prometheus"
+        check: 'AnalysisTemplate configurado com queries Prometheus'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: PRE-012
-        check: "Rollback automatico configurado"
+        check: 'Rollback automatico configurado'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: PRE-013
-        check: "PodDisruptionBudget configurado"
+        check: 'PodDisruptionBudget configurado'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: PRE-014
-        check: "Resource requests/limits definidos"
+        check: 'Resource requests/limits definidos'
         status: pending
-        evidence: ""
+        evidence: ''
 
     observability:
       - id: PRE-020
-        check: "Metricas custom emitidas via OpenTelemetry"
+        check: 'Metricas custom emitidas via OpenTelemetry'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: PRE-021
-        check: "Dashboard Grafana atualizado para nova versao"
+        check: 'Dashboard Grafana atualizado para nova versao'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: PRE-022
-        check: "Alertas configurados para SLOs do servico"
+        check: 'Alertas configurados para SLOs do servico'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: PRE-023
-        check: "Tracing configurado com propagacao de contexto"
+        check: 'Tracing configurado com propagacao de contexto'
         status: pending
-        evidence: ""
+        evidence: ''
 
     operacional:
       - id: PRE-030
-        check: "Runbook atualizado para o servico"
+        check: 'Runbook atualizado para o servico'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: PRE-031
-        check: "Janela de deploy aprovada (nao e sexta pos 14h)"
+        check: 'Janela de deploy aprovada (nao e sexta pos 14h)'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: PRE-032
-        check: "Equipe de plantao ciente do deploy"
+        check: 'Equipe de plantao ciente do deploy'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: PRE-033
-        check: "Canal de comunicacao definido para incidentes"
+        check: 'Canal de comunicacao definido para incidentes'
         status: pending
-        evidence: ""
+        evidence: ''
 ```
 
 ### 3.2 Checklist During-Deploy
@@ -467,57 +467,57 @@ duringDeployChecklist:
   items:
     canaryPhase:
       - id: DUR-001
-        check: "Canary 10%: error rate < 1% por 5 min"
+        check: 'Canary 10%: error rate < 1% por 5 min'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: DUR-002
-        check: "Canary 10%: p99 latencia < 2s"
+        check: 'Canary 10%: p99 latencia < 2s'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: DUR-003
-        check: "Canary 30%: error rate < 0.5% por 10 min"
+        check: 'Canary 30%: error rate < 0.5% por 10 min'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: DUR-004
-        check: "Canary 30%: saturacao de memoria < 85%"
+        check: 'Canary 30%: saturacao de memoria < 85%'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: DUR-005
-        check: "Canary 70%: todas as metricas estaveis por 15 min"
+        check: 'Canary 70%: todas as metricas estaveis por 15 min'
         status: pending
-        evidence: ""
+        evidence: ''
 
     systemHealth:
       - id: DUR-010
-        check: "Nenhum pod em CrashLoopBackOff"
+        check: 'Nenhum pod em CrashLoopBackOff'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: DUR-011
-        check: "ArgoCD sync status: Synced + Healthy"
+        check: 'ArgoCD sync status: Synced + Healthy'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: DUR-012
-        check: "NATS JetStream consumers sem lag crescente"
+        check: 'NATS JetStream consumers sem lag crescente'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: DUR-013
-        check: "Temporal workflows completando dentro do SLA"
+        check: 'Temporal workflows completando dentro do SLA'
         status: pending
-        evidence: ""
+        evidence: ''
 
     rollbackReadiness:
       - id: DUR-020
-        check: "Rollback automatico ativo e monitorado"
+        check: 'Rollback automatico ativo e monitorado'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: DUR-021
-        check: "Versao anterior da imagem disponivel no registry"
+        check: 'Versao anterior da imagem disponivel no registry'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: DUR-022
-        check: "Database migration reversivel (se aplicavel)"
+        check: 'Database migration reversivel (se aplicavel)'
         status: pending
-        evidence: ""
+        evidence: ''
 ```
 
 ### 3.3 Checklist Post-Deploy
@@ -525,63 +525,63 @@ duringDeployChecklist:
 ```yaml
 postDeployChecklist:
   items:
-    observacaoAtiva:  # primeiros 30 minutos
+    observacaoAtiva: # primeiros 30 minutos
       - id: POS-001
-        check: "Error rate estavel e < SLO (99.9%)"
+        check: 'Error rate estavel e < SLO (99.9%)'
         status: pending
-        evidence: ""
+        evidence: ''
         query: |
           sum(rate(http_requests_total{status=~"5..",app="SERVICE"}[5m]))
           / sum(rate(http_requests_total{app="SERVICE"}[5m]))
       - id: POS-002
-        check: "Latencia p99 estavel e < SLO"
+        check: 'Latencia p99 estavel e < SLO'
         status: pending
-        evidence: ""
+        evidence: ''
         query: |
           histogram_quantile(0.99,
             sum(rate(http_request_duration_seconds_bucket{app="SERVICE"}[5m])) by (le))
       - id: POS-003
-        check: "Saturacao de recursos < 80%"
+        check: 'Saturacao de recursos < 80%'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: POS-004
-        check: "Zero alertas disparados"
+        check: 'Zero alertas disparados'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: POS-005
-        check: "Logs sem erros inesperados"
+        check: 'Logs sem erros inesperados'
         status: pending
-        evidence: ""
+        evidence: ''
         query: |
           {app="SERVICE"} |= "error" |= "panic" |= "fatal" | count_over_time([5m])
 
-    observacaoPassiva:  # 4 horas seguintes
+    observacaoPassiva: # 4 horas seguintes
       - id: POS-010
-        check: "Metricas de negocio sem degradacao > 5%"
+        check: 'Metricas de negocio sem degradacao > 5%'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: POS-011
-        check: "Nenhum rollback automatico disparado"
+        check: 'Nenhum rollback automatico disparado'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: POS-012
-        check: "Usuarios nao reportaram problemas"
+        check: 'Usuarios nao reportaram problemas'
         status: pending
-        evidence: ""
+        evidence: ''
 
     documentacao:
       - id: POS-020
-        check: "Deploy registrado no changelog"
+        check: 'Deploy registrado no changelog'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: POS-021
-        check: "Grafana snapshot salvo"
+        check: 'Grafana snapshot salvo'
         status: pending
-        evidence: ""
+        evidence: ''
       - id: POS-022
-        check: "Post-deploy report gerado"
+        check: 'Post-deploy report gerado'
         status: pending
-        evidence: ""
+        evidence: ''
 ```
 
 ---
@@ -647,15 +647,15 @@ Deploy iniciado
 
 ### Dashboard de Assertividade (Scorecard Mensal)
 
-| Metrica | Meta | Formula |
-|---|---|---|
-| Taxa de deploy sem rollback | >= 95% | deploys_success / deploys_total |
-| Tempo medio de deploy (canary completo) | < 45min | avg(deploy_duration_seconds) |
-| Cobertura de evidencia | 100% | deploys_com_evidencia / deploys_total |
-| Incidentes pos-deploy | < 2/mes | count(incidents where trigger=deploy) |
-| Tempo medio de deteccao pos-deploy | < 5min | avg(time_to_detect where trigger=deploy) |
-| Rollbacks bem sucedidos | 100% | rollbacks_success / rollbacks_total |
-| PRs com checklist completo | >= 90% | prs_checklist_complete / prs_total |
+| Metrica                                 | Meta    | Formula                                  |
+| --------------------------------------- | ------- | ---------------------------------------- |
+| Taxa de deploy sem rollback             | >= 95%  | deploys_success / deploys_total          |
+| Tempo medio de deploy (canary completo) | < 45min | avg(deploy_duration_seconds)             |
+| Cobertura de evidencia                  | 100%    | deploys_com_evidencia / deploys_total    |
+| Incidentes pos-deploy                   | < 2/mes | count(incidents where trigger=deploy)    |
+| Tempo medio de deteccao pos-deploy      | < 5min  | avg(time_to_detect where trigger=deploy) |
+| Rollbacks bem sucedidos                 | 100%    | rollbacks_success / rollbacks_total      |
+| PRs com checklist completo              | >= 90%  | prs_checklist_complete / prs_total       |
 
 ### PromQL para Scorecard
 
@@ -779,11 +779,11 @@ spec:
               podTemplateHashValue: Latest
       steps:
         - setWeight: 10
-        - pause: {duration: 5m}
+        - pause: { duration: 5m }
         - setWeight: 30
-        - pause: {duration: 10m}
+        - pause: { duration: 10m }
         - setWeight: 70
-        - pause: {duration: 15m}
+        - pause: { duration: 15m }
       maxSurge: 1
       maxUnavailable: 0
       abortScaleDownDelaySeconds: 30
@@ -802,7 +802,7 @@ metadata:
   name: assertive-delivery-audit
   namespace: velya-ops
 spec:
-  schedule: "0 8 * * 1"  # toda segunda as 8h
+  schedule: '0 8 * * 1' # toda segunda as 8h
   jobTemplate:
     spec:
       template:
@@ -813,11 +813,11 @@ spec:
               image: velya/delivery-auditor:latest
               env:
                 - name: PROMETHEUS_URL
-                  value: "http://prometheus.monitoring:9090"
+                  value: 'http://prometheus.monitoring:9090'
                 - name: ARGOCD_URL
-                  value: "https://argocd.velya.internal"
+                  value: 'https://argocd.velya.internal'
                 - name: GRAFANA_URL
-                  value: "http://grafana.monitoring:3000"
+                  value: 'http://grafana.monitoring:3000'
                 - name: SLACK_WEBHOOK
                   valueFrom:
                     secretKeyRef:
@@ -842,12 +842,12 @@ spec:
 
 ## 8. Glossario
 
-| Termo | Definicao |
-|---|---|
-| Observacao Ativa | Periodo onde engenheiro monitora dashboards ativamente |
-| Observacao Passiva | Periodo onde alertas automaticos cobrem a observacao |
-| Gate de Promocao | Criterio que deve ser atendido para avancar o canary |
-| Evidencia | Dados verificaveis que comprovam o estado de um criterio |
-| Blast Radius | Conjunto de componentes afetados por uma mudanca |
-| Scorecard | Relatorio agregado de metricas de assertividade |
-| Kill-switch | Mecanismo de desativacao imediata de um agente/feature |
+| Termo              | Definicao                                                |
+| ------------------ | -------------------------------------------------------- |
+| Observacao Ativa   | Periodo onde engenheiro monitora dashboards ativamente   |
+| Observacao Passiva | Periodo onde alertas automaticos cobrem a observacao     |
+| Gate de Promocao   | Criterio que deve ser atendido para avancar o canary     |
+| Evidencia          | Dados verificaveis que comprovam o estado de um criterio |
+| Blast Radius       | Conjunto de componentes afetados por uma mudanca         |
+| Scorecard          | Relatorio agregado de metricas de assertividade          |
+| Kill-switch        | Mecanismo de desativacao imediata de um agente/feature   |

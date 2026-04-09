@@ -50,13 +50,13 @@ contactPoints:
       - uid: velya-slack-critical-uid
         type: slack
         settings:
-          url: "${SLACK_WEBHOOK_CRITICAL}"  # Secret via ExternalSecret
-          channel: "#velya-ops-critical"
-          title: "{{ template \"velya.slack.title\" . }}"
-          text: "{{ template \"velya.slack.critical.message\" . }}"
-          iconEmoji: ":rotating_light:"
+          url: '${SLACK_WEBHOOK_CRITICAL}' # Secret via ExternalSecret
+          channel: '#velya-ops-critical'
+          title: '{{ template "velya.slack.title" . }}'
+          text: '{{ template "velya.slack.critical.message" . }}'
+          iconEmoji: ':rotating_light:'
           sendResolved: true
-          mentionGroups: "@velya-oncall"  # Pinga o grupo de plantão
+          mentionGroups: '@velya-oncall' # Pinga o grupo de plantão
 
   # Canal alto — impacto em operação clínica, não urgência de segurança
   - orgId: 1
@@ -65,11 +65,11 @@ contactPoints:
       - uid: velya-slack-high-uid
         type: slack
         settings:
-          url: "${SLACK_WEBHOOK_HIGH}"
-          channel: "#velya-ops-high"
-          title: "{{ template \"velya.slack.title\" . }}"
-          text: "{{ template \"velya.slack.high.message\" . }}"
-          iconEmoji: ":warning:"
+          url: '${SLACK_WEBHOOK_HIGH}'
+          channel: '#velya-ops-high'
+          title: '{{ template "velya.slack.title" . }}'
+          text: '{{ template "velya.slack.high.message" . }}'
+          iconEmoji: ':warning:'
           sendResolved: true
 
   # Canal informativo — degradação de qualidade, indicadores preventivos
@@ -79,11 +79,11 @@ contactPoints:
       - uid: velya-slack-info-uid
         type: slack
         settings:
-          url: "${SLACK_WEBHOOK_INFO}"
-          channel: "#velya-ops-info"
-          title: "{{ template \"velya.slack.title\" . }}"
-          text: "{{ template \"velya.slack.info.message\" . }}"
-          iconEmoji: ":information_source:"
+          url: '${SLACK_WEBHOOK_INFO}'
+          channel: '#velya-ops-info'
+          title: '{{ template "velya.slack.title" . }}'
+          text: '{{ template "velya.slack.info.message" . }}'
+          iconEmoji: ':information_source:'
           sendResolved: true
 
   # PagerDuty — apenas para alertas críticos com impacto em pacientes
@@ -93,14 +93,14 @@ contactPoints:
       - uid: velya-pagerduty-uid
         type: pagerduty
         settings:
-          integrationKey: "${PAGERDUTY_INTEGRATION_KEY}"  # Secret via ExternalSecret
-          severity: "{{ .CommonLabels.severity }}"
-          description: "{{ .CommonAnnotations.summary }}"
+          integrationKey: '${PAGERDUTY_INTEGRATION_KEY}' # Secret via ExternalSecret
+          severity: '{{ .CommonLabels.severity }}'
+          description: '{{ .CommonAnnotations.summary }}'
           details:
-            service: "{{ .CommonLabels.service }}"
-            namespace: "{{ .CommonLabels.namespace }}"
-            impact: "{{ .CommonAnnotations.impact }}"
-            runbook: "{{ .CommonAnnotations.runbook_url }}"
+            service: '{{ .CommonLabels.service }}'
+            namespace: '{{ .CommonLabels.namespace }}'
+            impact: '{{ .CommonAnnotations.impact }}'
+            runbook: '{{ .CommonAnnotations.runbook_url }}'
           sendResolved: true
 
   # Email — relatórios diários e escalação de alertas não reconhecidos
@@ -110,10 +110,10 @@ contactPoints:
       - uid: velya-email-daily-uid
         type: email
         settings:
-          addresses: "ops@velya.com.br;security@velya.com.br"
-          subject: "{{ template \"velya.email.subject\" . }}"
-          message: "{{ template \"velya.email.daily.message\" . }}"
-          singleEmail: true  # Um email por grupo de alertas
+          addresses: 'ops@velya.com.br;security@velya.com.br'
+          subject: '{{ template "velya.email.subject" . }}'
+          message: '{{ template "velya.email.daily.message" . }}'
+          singleEmail: true # Um email por grupo de alertas
 
   # Webhook — integração futura com sistema de tickets
   - orgId: 1
@@ -122,10 +122,10 @@ contactPoints:
       - uid: velya-webhook-tickets-uid
         type: webhook
         settings:
-          url: "${TICKET_SYSTEM_WEBHOOK_URL}"
+          url: '${TICKET_SYSTEM_WEBHOOK_URL}'
           httpMethod: POST
           authorizationScheme: Bearer
-          authorizationCredentials: "${TICKET_SYSTEM_TOKEN}"
+          authorizationCredentials: '${TICKET_SYSTEM_TOKEN}'
         disableResolveMessage: false
 ```
 
@@ -139,23 +139,23 @@ apiVersion: 1
 
 policies:
   - orgId: 1
-    receiver: velya-slack-info  # Default receiver
+    receiver: velya-slack-info # Default receiver
     group_by: [alertname, service, namespace]
-    group_wait: 30s      # Aguardar outros alertas do mesmo grupo por 30s antes de enviar
-    group_interval: 5m   # Re-agrupar a cada 5 minutos
-    repeat_interval: 4h  # Re-notificar se alerta ainda ativo após 4 horas
+    group_wait: 30s # Aguardar outros alertas do mesmo grupo por 30s antes de enviar
+    group_interval: 5m # Re-agrupar a cada 5 minutos
+    repeat_interval: 4h # Re-notificar se alerta ainda ativo após 4 horas
 
     routes:
       # Alertas críticos de domínio clínico → PagerDuty + Slack critical
       - receiver: velya-pagerduty
         group_by: [alertname, service]
-        group_wait: 0s   # Crítico clínico: sem espera
+        group_wait: 0s # Crítico clínico: sem espera
         matchers:
           - severity = critical
           - domain = clinical
         routes:
           - receiver: velya-slack-critical
-            continue: true  # Também envia para Slack critical
+            continue: true # Também envia para Slack critical
 
       # Alertas críticos de segurança → PagerDuty + Slack critical + Email CISO
       - receiver: velya-pagerduty
@@ -221,10 +221,10 @@ muteTimes:
   - orgId: 1
     name: manutencao-domingo-madrugada
     time_intervals:
-      - weekdays: ["sunday"]
+      - weekdays: ['sunday']
         times:
-          - start_time: "02:00"
-            end_time: "06:00"
+          - start_time: '02:00'
+            end_time: '06:00'
     # APLICAR APENAS em alertas de domínio infrastructure e platform
     # NUNCA aplicar em domínios: clinical, agents, security, backend
 
@@ -232,10 +232,10 @@ muteTimes:
   - orgId: 1
     name: deploy-janela-planejada
     time_intervals:
-      - weekdays: ["tuesday", "thursday"]
+      - weekdays: ['tuesday', 'thursday']
         times:
-          - start_time: "21:00"
-            end_time: "23:00"
+          - start_time: '21:00'
+            end_time: '23:00'
     # Aplicar apenas em alertas de domínio backend e frontend durante deploys planejados
 
   # Regra absoluta: alertas clínicos NUNCA entram em Mute Timing
@@ -244,6 +244,7 @@ muteTimes:
 ```
 
 **Aplicação dos Mute Timings nas Notification Policies**:
+
 ```yaml
 # Adicionar mute_time_intervals nas policies de infra e plataforma
 - receiver: velya-slack-info
@@ -339,6 +340,7 @@ templates:
 ### 5.2 Exemplo de Mensagem Real no Slack (renderizado)
 
 **Canal #velya-ops-critical**:
+
 ```
 :rotating_light: CRÍTICO — VelyaAgentSilentCritical
 
@@ -373,12 +375,13 @@ Alertas ativos (1):
 # Configuração de repeat com escalação no Alertmanager
 - receiver: velya-pagerduty
   group_wait: 0s
-  repeat_interval: 15m  # Re-notifica a cada 15 min se não resolvido
+  repeat_interval: 15m # Re-notifica a cada 15 min se não resolvido
   matchers:
     - severity = critical
 ```
 
 **PagerDuty** já tem política de escalação automática configurada:
+
 - 0-15 min: engenheiro de plantão
 - 15-30 min: tech lead notificado
 - 30+ min: manager técnico notificado
@@ -388,7 +391,7 @@ Alertas ativos (1):
 ```yaml
 - receiver: velya-slack-high
   group_wait: 1m
-  repeat_interval: 1h  # Re-notifica a cada hora se não resolvido
+  repeat_interval: 1h # Re-notifica a cada hora se não resolvido
   matchers:
     - severity = high
 ```
@@ -396,6 +399,7 @@ Alertas ativos (1):
 ### 6.3 Silences durante Escalação
 
 **Regras para silences**:
+
 - Silences devem ter comentário obrigatório: quem criou, por quê, qual o plano
 - Duração máxima de silence: 4 horas (exceto manutenção programada)
 - Silences em alertas clínicos requerem aprovação de pelo menos dois engenheiros
@@ -447,17 +451,18 @@ curl -X POST "${GRAFANA_URL}/api/v1/alerts/test" \
 
 ## 8. Estado Atual dos Contact Points
 
-| Contact Point | Estado | Próxima ação |
-|-------------|--------|-------------|
-| velya-slack-critical | **NÃO configurado** | Criar Slack webhook + configurar ExternalSecret |
-| velya-slack-high | **NÃO configurado** | Criar Slack webhook + configurar ExternalSecret |
-| velya-slack-info | **NÃO configurado** | Criar Slack webhook + configurar ExternalSecret |
-| velya-pagerduty | **NÃO configurado** | Criar service no PagerDuty + configurar integration key |
-| velya-email-daily | **NÃO configurado** | Configurar SMTP no Grafana |
+| Contact Point        | Estado              | Próxima ação                                            |
+| -------------------- | ------------------- | ------------------------------------------------------- |
+| velya-slack-critical | **NÃO configurado** | Criar Slack webhook + configurar ExternalSecret         |
+| velya-slack-high     | **NÃO configurado** | Criar Slack webhook + configurar ExternalSecret         |
+| velya-slack-info     | **NÃO configurado** | Criar Slack webhook + configurar ExternalSecret         |
+| velya-pagerduty      | **NÃO configurado** | Criar service no PagerDuty + configurar integration key |
+| velya-email-daily    | **NÃO configurado** | Configurar SMTP no Grafana                              |
 
 **Impacto do estado atual**: Todos os alertas existentes (velya-service-alerts com 5 regras) disparam no Prometheus mas não chegam a ninguém. A stack de alerting existe mas é completamente inoperante.
 
 **Ação prioritária**:
+
 1. Criar canais Slack #velya-ops-critical, #velya-ops-high, #velya-ops-info
 2. Configurar Slack apps e gerar webhooks
 3. Armazenar webhooks em AWS Secrets Manager

@@ -18,8 +18,8 @@ spec:
             severity: critical
             team: velya-ops
           annotations:
-            summary: "Velya service {{ $labels.pod }} is down"
-            description: "Service {{ $labels.pod }} in namespace {{ $labels.namespace }} has been down for more than 1 minute."
+            summary: 'Velya service {{ $labels.pod }} is down'
+            description: 'Service {{ $labels.pod }} in namespace {{ $labels.namespace }} has been down for more than 1 minute.'
         - alert: VelyaHighCPU
           expr: |
             sum(rate(container_cpu_usage_seconds_total{namespace=~"velya-dev-.*"}[5m])) by (pod, namespace) > 0.8
@@ -27,7 +27,7 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "High CPU on {{ $labels.pod }}"
+            summary: 'High CPU on {{ $labels.pod }}'
         - alert: VelyaPatientFlowDown
           expr: |
             up{pod=~"patient-flow-.*"} == 0
@@ -36,4 +36,4 @@ spec:
             severity: critical
             team: velya-clinical
           annotations:
-            summary: "CRITICAL: Patient Flow service is down"
+            summary: 'CRITICAL: Patient Flow service is down'

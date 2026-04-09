@@ -9,10 +9,7 @@ export async function POST(request: NextRequest) {
   const { email, password } = body;
 
   if (!email || !password) {
-    return NextResponse.json(
-      { error: 'Email e senha sao obrigatorios' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Email e senha sao obrigatorios' }, { status: 400 });
   }
 
   const user = authenticateUser(email, password);
@@ -30,7 +27,7 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json(
       { error: 'Email ou senha incorretos, ou conta nao verificada' },
-      { status: 401 }
+      { status: 401 },
     );
   }
 

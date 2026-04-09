@@ -25,7 +25,9 @@ export interface VelyaUser {
 }
 
 function hashPassword(password: string): string {
-  return createHash('sha256').update(password + 'velya-salt-2026').digest('hex');
+  return createHash('sha256')
+    .update(password + 'velya-salt-2026')
+    .digest('hex');
 }
 
 export function createUser(params: {
@@ -73,7 +75,10 @@ export function verifyUser(email: string, code: string): boolean {
   user.verified = true;
   user.verificationCode = undefined;
   user.verificationExpiry = undefined;
-  writeFileSync(join(USER_DIR, `${email.toLowerCase().trim()}.json`), JSON.stringify(user, null, 2));
+  writeFileSync(
+    join(USER_DIR, `${email.toLowerCase().trim()}.json`),
+    JSON.stringify(user, null, 2),
+  );
   return true;
 }
 
@@ -85,7 +90,10 @@ export function regenerateVerificationCode(email: string): string | null {
   const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
   user.verificationCode = verificationCode;
   user.verificationExpiry = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-  writeFileSync(join(USER_DIR, `${email.toLowerCase().trim()}.json`), JSON.stringify(user, null, 2));
+  writeFileSync(
+    join(USER_DIR, `${email.toLowerCase().trim()}.json`),
+    JSON.stringify(user, null, 2),
+  );
   return verificationCode;
 }
 
@@ -97,7 +105,10 @@ export function authenticateUser(email: string, password: string): VelyaUser | n
   if (user.passwordHash !== hashPassword(password)) return null;
 
   user.lastLogin = new Date().toISOString();
-  writeFileSync(join(USER_DIR, `${email.toLowerCase().trim()}.json`), JSON.stringify(user, null, 2));
+  writeFileSync(
+    join(USER_DIR, `${email.toLowerCase().trim()}.json`),
+    JSON.stringify(user, null, 2),
+  );
   return user;
 }
 

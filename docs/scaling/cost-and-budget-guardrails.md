@@ -42,11 +42,11 @@
 
 ### Definição de Budget
 
-| Ambiente | Budget Mensal | Teto Absoluto | Alerta em |
-|---|---|---|---|
-| kind-velya-local | $0 (local) | N/A | N/A |
-| EKS Staging | $700 | $900 | $600 (85%) |
-| EKS Produção | $3.000 | $4.000 | $2.500 (83%) |
+| Ambiente         | Budget Mensal | Teto Absoluto | Alerta em    |
+| ---------------- | ------------- | ------------- | ------------ |
+| kind-velya-local | $0 (local)    | N/A           | N/A          |
+| EKS Staging      | $700          | $900          | $600 (85%)   |
+| EKS Produção     | $3.000        | $4.000        | $2.500 (83%) |
 
 ### AWS Budget Alert (produção)
 
@@ -56,15 +56,15 @@ resource "aws_budgets_budget" "eks_prod" {
   name         = "velya-eks-prod-monthly"
   budget_type  = "COST"
   time_unit    = "MONTHLY"
-  
+
   limit_amount = "3000"
   limit_unit   = "USD"
-  
+
   cost_filter {
     name   = "TagKeyValue"
     values = ["user:Project$velya", "user:Environment$prod"]
   }
-  
+
   notification {
     comparison_operator        = "GREATER_THAN"
     threshold                  = 83
@@ -72,7 +72,7 @@ resource "aws_budgets_budget" "eks_prod" {
     notification_type          = "ACTUAL"
     subscriber_email_addresses = ["platform@velya.com.br"]
   }
-  
+
   notification {
     comparison_operator        = "GREATER_THAN"
     threshold                  = 100
@@ -114,13 +114,13 @@ Exemplos de instâncias (us-east-1, 2026):
 
 ResourceQuota não é uma garantia de custo — é um teto de recursos que serve como proxy. O custo real depende da utilização dentro da quota.
 
-| Namespace | CPU Request Limit | Memory Request Limit | Pods Max | Budget Implícito/mês |
-|---|---|---|---|---|
-| velya-dev-core | 20 cores | 40 Gi | 100 | ~$400 |
-| velya-dev-agents | 16 cores | 32 Gi | 80 | ~$300 |
-| velya-dev-platform | 12 cores | 24 Gi | 60 | ~$250 |
-| velya-dev-web | 4 cores | 8 Gi | 20 | ~$80 |
-| velya-dev-observability | 8 cores | 32 Gi | 40 | ~$200 |
+| Namespace               | CPU Request Limit | Memory Request Limit | Pods Max | Budget Implícito/mês |
+| ----------------------- | ----------------- | -------------------- | -------- | -------------------- |
+| velya-dev-core          | 20 cores          | 40 Gi                | 100      | ~$400                |
+| velya-dev-agents        | 16 cores          | 32 Gi                | 80       | ~$300                |
+| velya-dev-platform      | 12 cores          | 24 Gi                | 60       | ~$250                |
+| velya-dev-web           | 4 cores           | 8 Gi                 | 20       | ~$80                 |
+| velya-dev-observability | 8 cores           | 32 Gi                | 40       | ~$200                |
 
 ### ResourceQuota YAML por Namespace
 
@@ -133,14 +133,14 @@ metadata:
   namespace: velya-dev-core
 spec:
   hard:
-    requests.cpu: "20"
+    requests.cpu: '20'
     requests.memory: 40Gi
-    limits.cpu: "40"
+    limits.cpu: '40'
     limits.memory: 80Gi
-    pods: "100"
-    count/deployments.apps: "30"
-    count/services: "30"
-    persistentvolumeclaims: "20"
+    pods: '100'
+    count/deployments.apps: '30'
+    count/services: '30'
+    persistentvolumeclaims: '20'
     requests.storage: 100Gi
 
 ---
@@ -152,13 +152,13 @@ metadata:
   namespace: velya-dev-agents
 spec:
   hard:
-    requests.cpu: "16"
+    requests.cpu: '16'
     requests.memory: 32Gi
-    limits.cpu: "32"
+    limits.cpu: '32'
     limits.memory: 64Gi
-    pods: "80"
-    count/deployments.apps: "25"
-    persistentvolumeclaims: "10"
+    pods: '80'
+    count/deployments.apps: '25'
+    persistentvolumeclaims: '10'
     requests.storage: 50Gi
 
 ---
@@ -170,14 +170,14 @@ metadata:
   namespace: velya-dev-platform
 spec:
   hard:
-    requests.cpu: "12"
+    requests.cpu: '12'
     requests.memory: 24Gi
-    limits.cpu: "24"
+    limits.cpu: '24'
     limits.memory: 48Gi
-    pods: "60"
-    count/deployments.apps: "20"
-    count/statefulsets.apps: "10"
-    persistentvolumeclaims: "20"
+    pods: '60'
+    count/deployments.apps: '20'
+    count/statefulsets.apps: '10'
+    persistentvolumeclaims: '20'
     requests.storage: 200Gi
 
 ---
@@ -189,23 +189,23 @@ metadata:
   namespace: velya-dev-core
 spec:
   limits:
-  - type: Container
-    default:          # limits padrão se não especificado
-      cpu: 500m
-      memory: 512Mi
-    defaultRequest:   # requests padrão se não especificado
-      cpu: 100m
-      memory: 128Mi
-    max:              # Máximo permitido por container
-      cpu: 8
-      memory: 16Gi
-    min:              # Mínimo obrigatório
-      cpu: 10m
-      memory: 32Mi
-  - type: Pod
-    max:
-      cpu: 16
-      memory: 32Gi
+    - type: Container
+      default: # limits padrão se não especificado
+        cpu: 500m
+        memory: 512Mi
+      defaultRequest: # requests padrão se não especificado
+        cpu: 100m
+        memory: 128Mi
+      max: # Máximo permitido por container
+        cpu: 8
+        memory: 16Gi
+      min: # Mínimo obrigatório
+        cpu: 10m
+        memory: 32Mi
+    - type: Pod
+      max:
+        cpu: 16
+        memory: 32Gi
 ```
 
 ---
@@ -222,7 +222,7 @@ metadata:
   name: velya-async-workers
 spec:
   limits:
-    cpu: 256        # Máx ~64 nós m6i.large (4 vCPU cada)
+    cpu: 256 # Máx ~64 nós m6i.large (4 vCPU cada)
     memory: 512Gi
   # Budget implícito: 64 nós × $0.03/h (Spot) × 730h = ~$1.400/mês MAX
   # Budget esperado (com consolidação): ~$100-300/mês
@@ -238,28 +238,27 @@ metadata:
   namespace: velya-dev-observability
 spec:
   groups:
-  - name: nodepool-cost
-    rules:
-    
-    - alert: NodePoolApproachingLimit
-      expr: |
-        karpenter_nodepool_usage_requests{resource="cpu"} /
-        karpenter_nodepool_limit{resource="cpu"} > 0.80
-      for: 10m
-      labels:
-        severity: warning
-      annotations:
-        summary: "NodePool {{ $labels.nodepool }} em 80% do limite de CPU"
-        description: "Uso atual: {{ $value | humanizePercentage }}. Revisar se budget deve ser aumentado ou workload otimizado."
-    
-    - alert: SpotNodeCountHigh
-      expr: |
-        count(kube_node_labels{label_karpenter_sh_capacity_type="spot"}) > 30
-      for: 15m
-      labels:
-        severity: warning
-      annotations:
-        summary: "Mais de 30 nós Spot ativos — verificar custo"
+    - name: nodepool-cost
+      rules:
+        - alert: NodePoolApproachingLimit
+          expr: |
+            karpenter_nodepool_usage_requests{resource="cpu"} /
+            karpenter_nodepool_limit{resource="cpu"} > 0.80
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'NodePool {{ $labels.nodepool }} em 80% do limite de CPU'
+            description: 'Uso atual: {{ $value | humanizePercentage }}. Revisar se budget deve ser aumentado ou workload otimizado.'
+
+        - alert: SpotNodeCountHigh
+          expr: |
+            count(kube_node_labels{label_karpenter_sh_capacity_type="spot"}) > 30
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Mais de 30 nós Spot ativos — verificar custo'
 ```
 
 ---
@@ -268,13 +267,13 @@ spec:
 
 ### Estrutura de Budget LLM
 
-| Office | Budget Diário (tokens) | Budget Mensal (estimado $) | Modelo Padrão |
-|---|---|---|---|
-| Clinical Office | 500.000 | ~$150 | claude-sonnet-4 |
-| Operations Office | 200.000 | ~$60 | claude-haiku-3 |
-| Market Intelligence Office | 2.000.000 | ~$600 | claude-opus-4 |
-| Platform Ops Office | 100.000 | ~$30 | claude-haiku-3 |
-| Agent Factory | 50.000 | ~$15 | claude-haiku-3 |
+| Office                     | Budget Diário (tokens) | Budget Mensal (estimado $) | Modelo Padrão   |
+| -------------------------- | ---------------------- | -------------------------- | --------------- |
+| Clinical Office            | 500.000                | ~$150                      | claude-sonnet-4 |
+| Operations Office          | 200.000                | ~$60                       | claude-haiku-3  |
+| Market Intelligence Office | 2.000.000              | ~$600                      | claude-opus-4   |
+| Platform Ops Office        | 100.000                | ~$30                       | claude-haiku-3  |
+| Agent Factory              | 50.000                 | ~$15                       | claude-haiku-3  |
 
 **Total LLM estimado: ~$855/mês em produção (volume inicial)**
 
@@ -294,19 +293,19 @@ export class BudgetEnforcer {
   async checkAndDeduct(
     officeId: string,
     estimatedTokens: number,
-    priority: 'critical' | 'high' | 'normal' | 'low'
+    priority: 'critical' | 'high' | 'normal' | 'low',
   ): Promise<BudgetCheckResult> {
     const budget = await this.redis.get<TokenBudget>(`budget:${officeId}:${today()}`);
-    
+
     if (!budget) {
       // Inicializar budget do dia
       await this.initializeDailyBudget(officeId);
       return { allowed: true, remaining: this.getBudgetConfig(officeId).dailyLimit };
     }
-    
+
     const remaining = budget.dailyLimit - budget.consumed;
     const usedPercent = (budget.consumed / budget.dailyLimit) * 100;
-    
+
     // Regras por nível de prioridade
     if (priority === 'critical') {
       // Critical sempre passa — budget pode ficar negativo até 10%
@@ -326,16 +325,19 @@ export class BudgetEnforcer {
         return { allowed: false, reason: 'budget_low_at_70_percent' };
       }
     }
-    
+
     // Registrar consumo
     await this.redis.incrby(`budget:${officeId}:${today()}:consumed`, estimatedTokens);
-    
+
     // Emitir métrica Prometheus
-    this.metrics.tokenBudgetConsumed.inc({
-      office_id: officeId,
-      priority,
-    }, estimatedTokens);
-    
+    this.metrics.tokenBudgetConsumed.inc(
+      {
+        office_id: officeId,
+        priority,
+      },
+      estimatedTokens,
+    );
+
     return { allowed: true, remaining: remaining - estimatedTokens };
   }
 }
@@ -378,7 +380,7 @@ data:
           high_threshold_pct: 90
           normal_threshold_pct: 75
           low_threshold_pct: 50
-    
+
     agents:
       discharge-summary-agent:
         daily_token_limit: 100000
@@ -438,8 +440,8 @@ nats stream add velya.discharge.dlq \
   labels:
     severity: warning
   annotations:
-    summary: "Alta taxa de mensagens no limite de retry: stream {{ $labels.stream }}"
-    description: "Mais de 10 msg/min atingindo o limite de 5 retries. Verificar downstream."
+    summary: 'Alta taxa de mensagens no limite de retry: stream {{ $labels.stream }}'
+    description: 'Mais de 10 msg/min atingindo o limite de 5 retries. Verificar downstream.'
 
 - alert: DLQGrowing
   expr: |
@@ -448,8 +450,8 @@ nats stream add velya.discharge.dlq \
   labels:
     severity: warning
   annotations:
-    summary: "DLQ crescendo: {{ $labels.stream }}"
-    description: "Mais de 10 mensagens adicionadas ao DLQ nos últimos 10 minutos"
+    summary: 'DLQ crescendo: {{ $labels.stream }}'
+    description: 'Mais de 10 mensagens adicionadas ao DLQ nos últimos 10 minutos'
 ```
 
 ---
@@ -471,26 +473,26 @@ global:
 
 # Limitar cardinality por job
 scrape_configs:
-- job_name: velya-services
-  metric_relabel_configs:
-  # Remover labels de alta cardinalidade desnecessários
-  - action: labeldrop
-    regex: "pod_uid|node_uid|container_id"
-  # Limitar valores de status code (manter apenas classe: 2xx, 4xx, 5xx)
-  - source_labels: [status_code]
-    regex: "2.."
-    target_label: status_class
-    replacement: "2xx"
-  - source_labels: [status_code]
-    regex: "4.."
-    target_label: status_class
-    replacement: "4xx"
-  - source_labels: [status_code]
-    regex: "5.."
-    target_label: status_class
-    replacement: "5xx"
-  - action: labeldrop
-    regex: "status_code"  # Remover status_code granular após classificar
+  - job_name: velya-services
+    metric_relabel_configs:
+      # Remover labels de alta cardinalidade desnecessários
+      - action: labeldrop
+        regex: 'pod_uid|node_uid|container_id'
+      # Limitar valores de status code (manter apenas classe: 2xx, 4xx, 5xx)
+      - source_labels: [status_code]
+        regex: '2..'
+        target_label: status_class
+        replacement: '2xx'
+      - source_labels: [status_code]
+        regex: '4..'
+        target_label: status_class
+        replacement: '4xx'
+      - source_labels: [status_code]
+        regex: '5..'
+        target_label: status_class
+        replacement: '5xx'
+      - action: labeldrop
+        regex: 'status_code' # Remover status_code granular após classificar
 ```
 
 ### Retenção de Métricas
@@ -499,9 +501,10 @@ scrape_configs:
 # Prometheus values (Helm)
 prometheus:
   prometheusSpec:
-    retention: 15d          # 15 dias de retenção local
-    retentionSize: 20GB     # Máximo 20GB de TSDB
-    
+    retention: 15d # 15 dias de retenção local
+    retentionSize: 20GB # Máximo 20GB de TSDB
+
+
     # Remote write para S3 via Thanos (futuro)
     # remoteWrite:
     # - url: http://thanos-receive:10908/api/v1/receive
@@ -517,14 +520,14 @@ loki:
     s3:
       bucketName: velya-loki-logs
       region: us-east-1
-  
+
   limits_config:
-    retention_period: 30d        # 30 dias de retenção
-    max_streams_per_user: 10000  # Limite de streams por tenant
-    max_line_size: 256000        # Máximo 256KB por linha de log
-    ingestion_rate_mb: 10        # 10 MB/s de ingestão por tenant
-    per_stream_rate_limit: 5MB   # 5 MB/s por stream
-    
+    retention_period: 30d # 30 dias de retenção
+    max_streams_per_user: 10000 # Limite de streams por tenant
+    max_line_size: 256000 # Máximo 256KB por linha de log
+    ingestion_rate_mb: 10 # 10 MB/s de ingestão por tenant
+    per_stream_rate_limit: 5MB # 5 MB/s por stream
+
     # Labels retention diferenciado
     per_tenant_override_config: |
       velya-dev:
@@ -535,12 +538,12 @@ loki:
 
 ### Custo Estimado de Observabilidade
 
-| Componente | Storage | Custo/mês |
-|---|---|---|
-| Prometheus TSDB (20 GB EBS) | 20 GB | $2 |
-| Loki logs em S3 (100 GB/mês) | 100 GB | $2.30 |
-| Tempo traces em S3 (50 GB/mês) | 50 GB | $1.15 |
-| **Total Observabilidade** | | **~$5.45/mês** |
+| Componente                     | Storage | Custo/mês      |
+| ------------------------------ | ------- | -------------- |
+| Prometheus TSDB (20 GB EBS)    | 20 GB   | $2             |
+| Loki logs em S3 (100 GB/mês)   | 100 GB  | $2.30          |
+| Tempo traces em S3 (50 GB/mês) | 50 GB   | $1.15          |
+| **Total Observabilidade**      |         | **~$5.45/mês** |
 
 ---
 
@@ -548,20 +551,20 @@ loki:
 
 ### Tabela de Ações
 
-| Budget | Nível | Threshold | Ação Automática | Escalada Humana |
-|---|---|---|---|---|
-| Cluster EKS | Warning | 83% do mensal | Slack #velya-ops-alerts | Não |
-| Cluster EKS | Critical | 95% do mensal | Slack + PagerDuty | Sim |
-| Cluster EKS | Exceeded | 100% do mensal | PagerDuty + freeze novos nós | Sim (CTO) |
-| Namespace CPU | Warning | 80% da quota | Slack | Não |
-| Namespace CPU | Critical | 95% da quota | Slack + bloquear novos deploys | Sim |
-| LLM tokens/dia | Warning | 85% | Throttle agents low-priority | Não |
-| LLM tokens/dia | Critical | 95% | Throttle agents normal-priority | Sim |
-| LLM tokens/dia | Exceeded | 105% | Bloquear todos exceto critical | Sim |
-| DLQ messages | Warning | > 100 msgs | Slack | Não |
-| DLQ messages | Critical | > 1000 msgs | Slack + PagerDuty | Sim |
-| Spot eviction rate | Warning | > 5/hora | Slack | Não |
-| Spot eviction rate | Critical | > 20/hora | Fallback para On-Demand | Sim |
+| Budget             | Nível    | Threshold      | Ação Automática                 | Escalada Humana |
+| ------------------ | -------- | -------------- | ------------------------------- | --------------- |
+| Cluster EKS        | Warning  | 83% do mensal  | Slack #velya-ops-alerts         | Não             |
+| Cluster EKS        | Critical | 95% do mensal  | Slack + PagerDuty               | Sim             |
+| Cluster EKS        | Exceeded | 100% do mensal | PagerDuty + freeze novos nós    | Sim (CTO)       |
+| Namespace CPU      | Warning  | 80% da quota   | Slack                           | Não             |
+| Namespace CPU      | Critical | 95% da quota   | Slack + bloquear novos deploys  | Sim             |
+| LLM tokens/dia     | Warning  | 85%            | Throttle agents low-priority    | Não             |
+| LLM tokens/dia     | Critical | 95%            | Throttle agents normal-priority | Sim             |
+| LLM tokens/dia     | Exceeded | 105%           | Bloquear todos exceto critical  | Sim             |
+| DLQ messages       | Warning  | > 100 msgs     | Slack                           | Não             |
+| DLQ messages       | Critical | > 1000 msgs    | Slack + PagerDuty               | Sim             |
+| Spot eviction rate | Warning  | > 5/hora       | Slack                           | Não             |
+| Spot eviction rate | Critical | > 20/hora      | Fallback para On-Demand         | Sim             |
 
 ### Implementação: KEDA maxReplicaCount como Guardrail de Custo
 
@@ -573,13 +576,13 @@ metadata:
   name: discharge-worker-so
   namespace: velya-dev-agents
   annotations:
-    velya.io/cost-guardrail: "true"
-    velya.io/max-cost-per-month-usd: "300"
+    velya.io/cost-guardrail: 'true'
+    velya.io/max-cost-per-month-usd: '300'
 spec:
   scaleTargetRef:
     name: discharge-orchestrator-worker
   minReplicaCount: 2
-  maxReplicaCount: 20    # Guardrail: 20 pods × m6i.xlarge Spot = ~$600/mês max
+  maxReplicaCount: 20 # Guardrail: 20 pods × m6i.xlarge Spot = ~$600/mês max
   # Cálculo:
   # 20 workers × 4 vCPU × 0.25 vCPU alocado = 5 nós m6i.xlarge
   # 5 nós × $0.192/h × 730h × 0.3 (Spot) = ~$210/mês
@@ -636,20 +639,20 @@ rate(velya_ai_request_blocked_by_budget_total[1h])
 
 ## Resumo Executivo
 
-| Componente | Custo Mês Atual | Budget | Utilização |
-|---|---|---|---|
-| EKS Compute (Nodes) | $0 (kind local) | N/A | N/A |
-| LLM API (Anthropic) | $145 | $855 | 17% |
-| S3 Storage | $3.50 | $50 | 7% |
-| Total | $148.50 | $905 | 16.4% |
+| Componente          | Custo Mês Atual | Budget | Utilização |
+| ------------------- | --------------- | ------ | ---------- |
+| EKS Compute (Nodes) | $0 (kind local) | N/A    | N/A        |
+| LLM API (Anthropic) | $145            | $855   | 17%        |
+| S3 Storage          | $3.50           | $50    | 7%         |
+| Total               | $148.50         | $905   | 16.4%      |
 
 ## LLM por Office
 
-| Office | Tokens/dia (média) | Custo/dia | Vs Budget |
-|---|---|---|---|
-| Clinical Office | 125.000 | $37 | 25% do budget |
-| Operations | 45.000 | $7 | 23% do budget |
-| Market Intel | 380.000 | $95 | 19% do budget |
+| Office          | Tokens/dia (média) | Custo/dia | Vs Budget     |
+| --------------- | ------------------ | --------- | ------------- |
+| Clinical Office | 125.000            | $37       | 25% do budget |
+| Operations      | 45.000             | $7        | 23% do budget |
+| Market Intel    | 380.000            | $95       | 19% do budget |
 
 ## Anomalias
 
@@ -663,4 +666,4 @@ rate(velya_ai_request_blocked_by_budget_total[1h])
 
 ---
 
-*Budget guardrails são revisados mensalmente ou após qualquer evento de breach.*
+_Budget guardrails são revisados mensalmente ou após qualquer evento de breach._

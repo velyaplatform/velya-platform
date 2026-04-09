@@ -3,7 +3,7 @@
 **Versão:** 1.0  
 **Cluster:** kind-velya-local (simulando AWS EKS)  
 **Namespace:** velya-dev-agents  
-**Última revisão:** 2026-04-08  
+**Última revisão:** 2026-04-08
 
 ---
 
@@ -62,11 +62,13 @@ Cada agent na Velya pode estar em um dos seguintes estados formais. O estado atu
 **Definição:** Processamento de novas tasks suspenso por decisão operacional. Tasks em andamento são concluídas normalmente.
 
 **Quem pode pausar:**
+
 - Watchdog Office (resposta automática a anomalia)
 - On-call engineer (via comando manual)
 - Sistema durante transição de modo operacional
 
 **Comportamento durante pause:**
+
 - Worker para de consumir novas mensagens da fila NATS (não dá pull em novas mensagens)
 - Tarefas já com lease adquirido são concluídas ou têm lease liberado
 - Heartbeat continua com `current_state: paused`
@@ -74,6 +76,7 @@ Cada agent na Velya pode estar em um dos seguintes estados formais. O estado atu
 - Após 30 minutos em pause, sistema sugere resume ou transição para maintenance
 
 **Como pausar um agent:**
+
 ```bash
 # Via comando kubectl (patch no ConfigMap)
 kubectl patch configmap agent-state \
@@ -94,6 +97,7 @@ velya-ops agent pause task-inbox-worker \
 **Definição:** Janela de manutenção planejada. O agent está indisponível intencionalmente para atualização, migração ou reconfiguração.
 
 **Comportamento:**
+
 - Pod pode ser reiniciado, atualizado ou deletado
 - Tasks na fila são redirecionadas para fallback se configurado
 - Heartbeat pode estar ausente (tolerado durante maintenance)
@@ -106,12 +110,14 @@ velya-ops agent pause task-inbox-worker \
 **Definição:** Agent funcionando com capacidade reduzida. Pode estar processando mais lentamente, com accuracy reduzida, ou com algumas ferramentas indisponíveis.
 
 **Critérios de entrada automática:**
+
 - Confidence médio 1h < 0.70 (mas > 0.50)
 - Taxa de erro de tools > 30%
 - Latência de processamento > 3x o P99 normal
 - Retry rate > 30%
 
 **Comportamento:**
+
 - Continua processando apenas tasks de alta prioridade
 - Emite heartbeat com `health.status: degraded`
 - Watchdog é notificado imediatamente
@@ -124,6 +130,7 @@ velya-ops agent pause task-inbox-worker \
 **Definição:** Agent executa em modo sombra — processa as mesmas mensagens que o sistema de produção mas não aplica os outputs. Usado para validação de novos agents e mudanças de comportamento.
 
 **Comportamento:**
+
 - Recebe mensagens via fan-out NATS
 - Processa normalmente, incluindo chamadas a LLM
 - Publica outputs em `velya.agents.shadow.{agent_name}` (não no destino real)
@@ -131,6 +138,7 @@ velya-ops agent pause task-inbox-worker \
 - Nenhuma escrita em sistemas reais
 
 **Critérios de promoção de shadow para active:**
+
 - 7+ dias em shadow sem incidentes
 - Accuracy comparada a produção >= 0.90
 - Custo de inferência dentro do budget estimado
@@ -151,6 +159,7 @@ velya-ops agent pause task-inbox-worker \
 **Definição:** Agent recentemente requalificado após quarantine ou shadow. Monitorado com intensidade maior por período definido.
 
 **Comportamento:**
+
 - Processa tasks normalmente (semelhante a active)
 - Heartbeat mais frequente (50% do intervalo normal)
 - Todas as tasks passam por revisão manual ou por Governance Agent
@@ -164,6 +173,7 @@ velya-ops agent pause task-inbox-worker \
 **Definição:** Investigação formal em andamento. Agent estava em quarantine e está sendo analisado para determinar se pode ser requalificado ou deve ser aposentado.
 
 **Ações durante investigation:**
+
 - Code review do agent
 - Análise de logs históricos
 - Análise de padrões de erro
@@ -185,6 +195,7 @@ velya-ops agent pause task-inbox-worker \
 ### 2.1 Registro Obrigatório
 
 Toda transição de estado de agent gera um evento de auditoria persistido em:
+
 - NATS stream `VELYA_AUDIT`: `velya.audit.agent-state.{agent_name}`
 - Loki com label `event_type=agent_state_transition`
 - ConfigMap `agent-state-history` (últimas 50 transições por agent)
@@ -230,11 +241,13 @@ O quarantine na Velya tem quatro níveis com graus crescentes de isolamento e im
 ### 3.1 Quarantine L1 — Soft Isolation
 
 **Triggers automáticos:**
+
 - Retry rate > 50% por mais de 15 minutos
 - Confidence médio < 0.60 por mais de 1 hora
 - Taxa de validação falha > 30% em 1 hora
 
 **Restrições aplicadas:**
+
 - Agent para de consumir novas mensagens (pause on new tasks)
 - Tasks em andamento são concluídas
 - Heartbeat continua normalmente
@@ -245,6 +258,7 @@ O quarantine na Velya tem quatro níveis com graus crescentes de isolamento e im
 **SLA de investigação:** 2 horas
 
 **Saída do L1:**
+
 - Causa identificada e corrigida
 - Retry rate < 0.10 por 15 minutos consecutivos
 - Human approval do on-call engineer
@@ -254,11 +268,13 @@ O quarantine na Velya tem quatro níveis com graus crescentes de isolamento e im
 ### 3.2 Quarantine L2 — Hard Isolation
 
 **Triggers automáticos:**
+
 - Quarantine L1 não resolvido em 2 horas
 - Evidence de comportamento fora do escopo definido detectada
 - 3+ validações clínicas falhando na mesma hora
 
 **Restrições aplicadas:**
+
 - Todas as permissões de escrita suspensas
 - Acesso a ferramentas clínicas revogado
 - Fila redirecionada para worker de fallback
@@ -270,6 +286,7 @@ O quarantine na Velya tem quatro níveis com graus crescentes de isolamento e im
 **SLA de investigação:** 4 horas com primeiro update em 30 minutos
 
 **Saída do L2:**
+
 - Investigation formal iniciada
 - Root cause identificado
 - Fix implementado e testado em shadow
@@ -280,12 +297,14 @@ O quarantine na Velya tem quatro níveis com graus crescentes de isolamento e im
 ### 3.3 Quarantine L3 — Security Isolation
 
 **Triggers:**
+
 - Tentativa de self-modification detectada
 - Acesso a dados fora do escopo de RBAC
 - Violação de Network Policy detectada
 - Output contendo dados de outros pacientes (data leak)
 
 **Restrições aplicadas:**
+
 - Pod imediatamente terminado (não graceful shutdown)
 - NetworkPolicy atualizada para bloquear todo tráfego do pod
 - Secret access revogado para o ServiceAccount
@@ -297,6 +316,7 @@ O quarantine na Velya tem quatro níveis com graus crescentes de isolamento e im
 **SLA de investigação:** Imediato. Ponto único de foco até resolução.
 
 **Saída do L3:**
+
 - Security review completo
 - Root cause documentado como Security Incident Report
 - Aprovação do Security & Compliance Office E Architecture Review Office
@@ -307,11 +327,13 @@ O quarantine na Velya tem quatro níveis com graus crescentes de isolamento e im
 ### 3.4 Quarantine L4 — Permanent Decommission
 
 **Triggers:**
+
 - Quarantine L3 com evidence de comportamento malicioso
 - Agent obsoleto com dependências irrecuperáveis
 - Decisão de aposentadoria após Investigation Office review
 
 **Restrições aplicadas:**
+
 - Pod terminado permanentemente
 - Deployment deletado
 - ServiceAccount e RBAC deletados
@@ -319,6 +341,7 @@ O quarantine na Velya tem quatro níveis com graus crescentes de isolamento e im
 - Configurações arquivadas em repositório de agents aposentados
 
 **Processo de aposentadoria formal:**
+
 1. Decision formal do Architecture Review Office
 2. Período de 30 dias em retired (preservado para auditoria)
 3. Knowledge transfer: lições aprendidas registradas no Knowledge Office
@@ -392,18 +415,18 @@ velya-ops llm-circuit-breaker open \
 
 ## 5. Mapeamento de Transições Automáticas vs Manuais
 
-| Transição | Automática? | Gatilho | Aprovação necessária |
-|---|---|---|---|
-| active → paused | Sim | Watchdog: retry storm, queue buildup | Não |
-| active → degraded | Sim | Confidence < 0.60 por 1h | Não |
-| active → shadow | Não | Deploy de nova versão | Architecture Review |
-| active → quarantine L1 | Sim | Retry rate > 50% por 15min | Não |
-| active → quarantine L3 | Sim | Security policy violation | Não (imediato) |
-| quarantine → investigation | Não | Após L1/L2 confirmado | On-call engineer |
-| investigation → probation | Não | Root cause corrigido | Architecture Review |
-| probation → active | Não | 30 dias limpos | Architecture Review |
-| any → retired | Não | Decisão formal | Architecture Review + 2 seniors |
-| shadow → active | Não | 7 dias limpos com accuracy >= 0.90 | Architecture Review |
+| Transição                  | Automática? | Gatilho                              | Aprovação necessária            |
+| -------------------------- | ----------- | ------------------------------------ | ------------------------------- |
+| active → paused            | Sim         | Watchdog: retry storm, queue buildup | Não                             |
+| active → degraded          | Sim         | Confidence < 0.60 por 1h             | Não                             |
+| active → shadow            | Não         | Deploy de nova versão                | Architecture Review             |
+| active → quarantine L1     | Sim         | Retry rate > 50% por 15min           | Não                             |
+| active → quarantine L3     | Sim         | Security policy violation            | Não (imediato)                  |
+| quarantine → investigation | Não         | Após L1/L2 confirmado                | On-call engineer                |
+| investigation → probation  | Não         | Root cause corrigido                 | Architecture Review             |
+| probation → active         | Não         | 30 dias limpos                       | Architecture Review             |
+| any → retired              | Não         | Decisão formal                       | Architecture Review + 2 seniors |
+| shadow → active            | Não         | 7 dias limpos com accuracy >= 0.90   | Architecture Review             |
 
 ---
 
@@ -417,19 +440,19 @@ metadata:
   namespace: velya-dev-agents
 data:
   # Formato: {agent_name}.{campo}: {valor}
-  task-inbox-worker.state: "active"
-  task-inbox-worker.state_since: "2026-04-08T10:00:00Z"
-  task-inbox-worker.state_reason: "normal operation"
-  task-inbox-worker.state_set_by: "system"
-  
-  discharge-worker.state: "shadow"
-  discharge-worker.state_since: "2026-04-08T08:00:00Z"
-  discharge-worker.state_reason: "new version validation"
-  discharge-worker.shadow_target_agent: "discharge-worker-v1"
-  
-  validation-worker.state: "probation"
-  validation-worker.state_since: "2026-03-15T00:00:00Z"
-  validation-worker.probation_start: "2026-03-15T00:00:00Z"
-  validation-worker.probation_end: "2026-04-15T00:00:00Z"
-  validation-worker.probation_days_clean: "24"
+  task-inbox-worker.state: 'active'
+  task-inbox-worker.state_since: '2026-04-08T10:00:00Z'
+  task-inbox-worker.state_reason: 'normal operation'
+  task-inbox-worker.state_set_by: 'system'
+
+  discharge-worker.state: 'shadow'
+  discharge-worker.state_since: '2026-04-08T08:00:00Z'
+  discharge-worker.state_reason: 'new version validation'
+  discharge-worker.shadow_target_agent: 'discharge-worker-v1'
+
+  validation-worker.state: 'probation'
+  validation-worker.state_since: '2026-03-15T00:00:00Z'
+  validation-worker.probation_start: '2026-03-15T00:00:00Z'
+  validation-worker.probation_end: '2026-04-15T00:00:00Z'
+  validation-worker.probation_days_clean: '24'
 ```

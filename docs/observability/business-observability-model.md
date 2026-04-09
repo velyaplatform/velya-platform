@@ -8,9 +8,9 @@
 
 ## 1. Princípio: Separação entre Sinais Técnicos e Clínicos
 
-| Tipo | Exemplo de pergunta | Ferramenta |
-|------|--------------------|-----------| 
-| Técnico | O discharge-orchestrator está respondendo em < 500ms? | Prometheus + API RED dashboard |
+| Tipo    | Exemplo de pergunta                                         | Ferramenta                                       |
+| ------- | ----------------------------------------------------------- | ------------------------------------------------ |
+| Técnico | O discharge-orchestrator está respondendo em < 500ms?       | Prometheus + API RED dashboard                   |
 | Clínico | Quantos pacientes estão aguardando alta há mais de 4 horas? | Métricas de negócio + Patient Flow Command Board |
 
 Os dois tipos são complementares. Um serviço tecnicamente saudável pode estar falhando clinicamente (processando altas corretamente mas com bloqueadores clínicos não resolvidos). E vice-versa.
@@ -34,6 +34,7 @@ velya_patient_flow_active_count{unit, status}
 ```
 
 **Exemplo de implementação**:
+
 ```typescript
 // patient-flow-service: src/metrics/bed-capacity.metrics.ts
 import { Gauge } from 'prom-client';
@@ -58,6 +59,7 @@ async function updateBedMetrics(): Promise<void> {
 ```
 
 **Queries para visualização**:
+
 ```promql
 # % de ocupação por unidade
 velya_patient_flow_active_count{status="occupied"} /
@@ -124,6 +126,7 @@ velya_discharge_pending_total{status, blocker_type, unit}
 ```
 
 **Visualização no Grafana — Bar Chart de Bloqueadores**:
+
 ```promql
 # Bloqueadores por tipo na última hora
 sum(velya_discharge_pending_total{status!="complete"}) by (blocker_type)
@@ -309,34 +312,44 @@ histogram_quantile(0.95,
 ### Linha 1: KPIs Hospitalares (5 Stat panels)
 
 **Painel 1 — Total de Pacientes Aguardando Alta**
+
 ```promql
 sum(velya_discharge_pending_total{status!="complete"})
 ```
+
 Threshold: verde < 10, amarelo < 20, vermelho > 20
 
 **Painel 2 — Leitos Disponíveis Total**
+
 ```promql
 sum(velya_patient_flow_active_count{status="available"})
 ```
+
 Threshold: verde > 20, amarelo > 10, vermelho < 10
 
 **Painel 3 — Bloqueador Mais Antigo (em horas)**
+
 ```promql
 max(velya_discharge_blocker_age_seconds) / 3600
 ```
+
 Threshold: verde < 2h, amarelo < 4h, vermelho > 4h
 
 **Painel 4 — Tarefas Críticas Vencidas**
+
 ```promql
 sum(velya_task_overdue_total{priority="critical"})
 ```
+
 Threshold: verde = 0, vermelho > 0
 
 **Painel 5 — Taxa de Alta Dentro do Prazo (últimas 24h)**
+
 ```promql
 sum(rate(velya_discharge_on_time_total[24h])) /
 sum(rate(velya_discharge_total[24h]))
 ```
+
 Threshold: verde > 0.85, amarelo > 0.70, vermelho < 0.70
 
 ---
@@ -346,6 +359,7 @@ Threshold: verde > 0.85, amarelo > 0.70, vermelho < 0.70
 **Visualização**: Canvas com planta esquemática das unidades hospitalares
 
 **Implementação**:
+
 - Cada unidade representada como bloco retangular
 - Leitos representados como pontos dentro da unidade
 - Cor do leito baseada em `velya_patient_flow_active_count`:
@@ -361,9 +375,11 @@ Threshold: verde > 0.85, amarelo > 0.70, vermelho < 0.70
 ### Linha 3: Bloqueadores de Alta (Bar Chart + Table)
 
 **Painel 3a — Bar Chart: Bloqueadores por Tipo**
+
 ```promql
 sum(velya_discharge_pending_total{status!="complete"}) by (blocker_type)
 ```
+
 Bar Chart horizontal, ordenado por quantidade descendente.
 Cores: cada tipo de bloqueador tem cor distinta.
 
@@ -383,15 +399,19 @@ Data Link: click em linha → abre logs do Loki com `workflow_id` do processo de
 ### Linha 4: Evolução Temporal (Time Series)
 
 **Painel 4a — Altas Pendentes ao Longo do Turno**
+
 ```promql
 sum(velya_discharge_pending_total{status!="complete"}) by (unit)
 ```
+
 Time Series com linhas por unidade, threshold line visual em 20 altas pendentes.
 
 **Painel 4b — Profundidade da Inbox por Prioridade**
+
 ```promql
 velya_task_inbox_depth
 ```
+
 Time Series com linhas por prioridade (critical=vermelho, high=laranja, medium=amarelo, low=verde).
 
 ---
@@ -403,6 +423,7 @@ Time Series com linhas por prioridade (critical=vermelho, high=laranja, medium=a
 ```promql
 increase(velya_task_completed_total[8h])
 ```
+
 Colunas: Tipo de Tarefa | Prioridade | Quantidade | Dentro do SLA | % SLA
 
 ---
@@ -419,12 +440,12 @@ Colunas: Tipo de Tarefa | Prioridade | Quantidade | Dentro do SLA | % SLA
 
 Configurar annotations automáticas no Patient Flow Command Board para:
 
-| Evento | Quando | Cor |
-|--------|--------|-----|
-| Alta Concluída | `increase(velya_discharge_total[1m]) > 0` | Verde |
-| Bloqueador > 4h | `velya_discharge_blocker_age_seconds > 14400` | Vermelho |
-| Pico de Admissões | `rate(velya_patient_admission_total[30m]) > threshold` | Laranja |
-| Troca de Turno | Horários fixos: 07:00, 13:00, 19:00 | Cinza |
+| Evento            | Quando                                                 | Cor      |
+| ----------------- | ------------------------------------------------------ | -------- |
+| Alta Concluída    | `increase(velya_discharge_total[1m]) > 0`              | Verde    |
+| Bloqueador > 4h   | `velya_discharge_blocker_age_seconds > 14400`          | Vermelho |
+| Pico de Admissões | `rate(velya_patient_admission_total[30m]) > threshold` | Laranja  |
+| Troca de Turno    | Horários fixos: 07:00, 13:00, 19:00                    | Cinza    |
 
 **Resultado**: O dashboard mostra visualmente quando eventos clínicos críticos ocorreram, facilitando correlação temporal ("a fila de tarefas cresceu logo após a troca de turno das 19h").
 

@@ -89,8 +89,8 @@ grafana_stat_total_dashboards
     severity: critical
     team: platform
   annotations:
-    summary: "Grafana esta indisponivel"
-    runbook_url: "https://docs.velya.health/runbooks/grafana-down"
+    summary: 'Grafana esta indisponivel'
+    runbook_url: 'https://docs.velya.health/runbooks/grafana-down'
 
 - alert: GrafanaHighMemory
   expr: process_resident_memory_bytes{job="grafana"} / 1024 / 1024 > 2048
@@ -99,7 +99,7 @@ grafana_stat_total_dashboards
     severity: warning
     team: platform
   annotations:
-    summary: "Grafana usando {{ $value }}MB de memoria"
+    summary: 'Grafana usando {{ $value }}MB de memoria'
 
 - alert: GrafanaDatasourceErrors
   expr: rate(grafana_datasource_request_total{status="error"}[5m]) > 0.1
@@ -108,7 +108,7 @@ grafana_stat_total_dashboards
     severity: warning
     team: platform
   annotations:
-    summary: "Erros de query ao datasource {{ $labels.datasource }}"
+    summary: 'Erros de query ao datasource {{ $labels.datasource }}'
 
 - alert: GrafanaHighQueryLatency
   expr: |
@@ -120,7 +120,7 @@ grafana_stat_total_dashboards
     severity: warning
     team: platform
   annotations:
-    summary: "P95 de latencia de query do Grafana acima de 10s"
+    summary: 'P95 de latencia de query do Grafana acima de 10s'
 ```
 
 ---
@@ -199,7 +199,7 @@ prometheus_remote_storage_samples_failed_total
     severity: critical
     team: platform
   annotations:
-    summary: "Prometheus esta indisponivel"
+    summary: 'Prometheus esta indisponivel'
 
 - alert: PrometheusScrapeFailures
   expr: |
@@ -209,7 +209,7 @@ prometheus_remote_storage_samples_failed_total
     severity: warning
     team: platform
   annotations:
-    summary: "{{ $value }}% dos targets de scrape estao falhando"
+    summary: '{{ $value }}% dos targets de scrape estao falhando'
 
 - alert: PrometheusHighCardinality
   expr: prometheus_tsdb_head_series > 1000000
@@ -218,7 +218,7 @@ prometheus_remote_storage_samples_failed_total
     severity: warning
     team: platform
   annotations:
-    summary: "Prometheus com {{ $value }} series ativas (alta cardinalidade)"
+    summary: 'Prometheus com {{ $value }} series ativas (alta cardinalidade)'
 
 - alert: PrometheusWALCorruption
   expr: increase(prometheus_tsdb_wal_corruptions_total[1h]) > 0
@@ -226,7 +226,7 @@ prometheus_remote_storage_samples_failed_total
     severity: critical
     team: platform
   annotations:
-    summary: "Corrupcao detectada no WAL do Prometheus"
+    summary: 'Corrupcao detectada no WAL do Prometheus'
 
 - alert: PrometheusCompactionFailed
   expr: increase(prometheus_tsdb_compactions_failed_total[1h]) > 0
@@ -234,7 +234,7 @@ prometheus_remote_storage_samples_failed_total
     severity: warning
     team: platform
   annotations:
-    summary: "Falha de compaction no Prometheus"
+    summary: 'Falha de compaction no Prometheus'
 
 - alert: PrometheusStorageNearFull
   expr: |
@@ -245,7 +245,7 @@ prometheus_remote_storage_samples_failed_total
     severity: warning
     team: platform
   annotations:
-    summary: "Storage do Prometheus proximo do limite"
+    summary: 'Storage do Prometheus proximo do limite'
 
 - alert: PrometheusRuleEvaluationSlow
   expr: |
@@ -257,7 +257,7 @@ prometheus_remote_storage_samples_failed_total
     severity: warning
     team: platform
   annotations:
-    summary: "Avaliacao de regras lenta no Prometheus"
+    summary: 'Avaliacao de regras lenta no Prometheus'
 ```
 
 ---
@@ -310,7 +310,7 @@ loki_ingester_tailers_current
     severity: critical
     team: platform
   annotations:
-    summary: "Loki esta indisponivel"
+    summary: 'Loki esta indisponivel'
 
 - alert: LokiIngestionDrop
   expr: |
@@ -321,7 +321,7 @@ loki_ingester_tailers_current
     severity: warning
     team: platform
   annotations:
-    summary: "Taxa de ingestao do Loki caiu mais de 50%"
+    summary: 'Taxa de ingestao do Loki caiu mais de 50%'
 
 - alert: LokiHighQueryLatency
   expr: |
@@ -333,7 +333,7 @@ loki_ingester_tailers_current
     severity: warning
     team: platform
   annotations:
-    summary: "P95 de latencia de query do Loki acima de 30s"
+    summary: 'P95 de latencia de query do Loki acima de 30s'
 
 - alert: LokiIngestionErrors
   expr: |
@@ -343,7 +343,7 @@ loki_ingester_tailers_current
     severity: warning
     team: platform
   annotations:
-    summary: "Erros de ingestao no Loki"
+    summary: 'Erros de ingestao no Loki'
 
 - alert: LokiRateLimited
   expr: rate(loki_distributor_lines_received_total{status="rate_limited"}[5m]) > 0
@@ -352,7 +352,7 @@ loki_ingester_tailers_current
     severity: warning
     team: platform
   annotations:
-    summary: "Loki esta rate limiting ingestao"
+    summary: 'Loki esta rate limiting ingestao'
 ```
 
 ---
@@ -402,7 +402,7 @@ tempo_ingester_live_traces
     severity: critical
     team: platform
   annotations:
-    summary: "Tempo esta indisponivel"
+    summary: 'Tempo esta indisponivel'
 
 - alert: TempoIngestionDrop
   expr: |
@@ -413,7 +413,7 @@ tempo_ingester_live_traces
     severity: warning
     team: platform
   annotations:
-    summary: "Taxa de ingestao do Tempo caiu mais de 50%"
+    summary: 'Taxa de ingestao do Tempo caiu mais de 50%'
 
 - alert: TempoCompactionBacklog
   expr: tempo_compactor_outstanding_blocks > 100
@@ -422,7 +422,7 @@ tempo_ingester_live_traces
     severity: warning
     team: platform
   annotations:
-    summary: "Backlog de compaction do Tempo com {{ $value }} blocos pendentes"
+    summary: 'Backlog de compaction do Tempo com {{ $value }} blocos pendentes'
 
 - alert: TempoHighQueryLatency
   expr: |
@@ -434,7 +434,7 @@ tempo_ingester_live_traces
     severity: warning
     team: platform
   annotations:
-    summary: "P95 de query do Tempo acima de 15s"
+    summary: 'P95 de query do Tempo acima de 15s'
 ```
 
 ---
@@ -475,7 +475,7 @@ alertmanager_silences_active_total
     severity: warning
     team: platform
   annotations:
-    summary: "Erros na avaliacao de regras de alerta"
+    summary: 'Erros na avaliacao de regras de alerta'
 
 - alert: AlertNotificationFailures
   expr: increase(grafana_alerting_notification_failed_total[5m]) > 0
@@ -484,7 +484,7 @@ alertmanager_silences_active_total
     severity: critical
     team: platform
   annotations:
-    summary: "Falha no envio de notificacoes de alerta"
+    summary: 'Falha no envio de notificacoes de alerta'
 
 - alert: TooManyPendingAlerts
   expr: count(ALERTS{alertstate="pending"}) > 20
@@ -493,7 +493,7 @@ alertmanager_silences_active_total
     severity: warning
     team: platform
   annotations:
-    summary: "{{ $value }} alertas no estado pending por mais de 30 minutos"
+    summary: '{{ $value }} alertas no estado pending por mais de 30 minutos'
 ```
 
 ---
@@ -547,7 +547,7 @@ rate(otelcol_receiver_refused_metric_points_total[5m])
     severity: critical
     team: platform
   annotations:
-    summary: "Alloy collector esta indisponivel"
+    summary: 'Alloy collector esta indisponivel'
 
 - alert: AlloyHighDropRate
   expr: |
@@ -561,7 +561,7 @@ rate(otelcol_receiver_refused_metric_points_total[5m])
     severity: warning
     team: platform
   annotations:
-    summary: "Alloy dropando dados - {{ $value }} itens/s"
+    summary: 'Alloy dropando dados - {{ $value }} itens/s'
 
 - alert: AlloyExportErrors
   expr: |
@@ -575,7 +575,7 @@ rate(otelcol_receiver_refused_metric_points_total[5m])
     severity: warning
     team: platform
   annotations:
-    summary: "Alloy com erros de exportacao"
+    summary: 'Alloy com erros de exportacao'
 
 - alert: AlloyQueueNearFull
   expr: otelcol_exporter_queue_size / otelcol_exporter_queue_capacity * 100 > 80
@@ -584,7 +584,7 @@ rate(otelcol_receiver_refused_metric_points_total[5m])
     severity: warning
     team: platform
   annotations:
-    summary: "Queue do Alloy em {{ $value }}% de capacidade"
+    summary: 'Queue do Alloy em {{ $value }}% de capacidade'
 ```
 
 ---
@@ -602,56 +602,56 @@ metadata:
     prometheus: velya
 spec:
   groups:
-  - name: meta-monitoring-grafana
-    interval: 30s
-    rules:
-    # Recording rules para simplificar alertas
-    - record: velya:grafana:up
-      expr: up{job="grafana"}
-    - record: velya:grafana:memory_mb
-      expr: process_resident_memory_bytes{job="grafana"} / 1024 / 1024
-    - record: velya:grafana:query_error_rate
-      expr: rate(grafana_datasource_request_total{status="error"}[5m])
+    - name: meta-monitoring-grafana
+      interval: 30s
+      rules:
+        # Recording rules para simplificar alertas
+        - record: velya:grafana:up
+          expr: up{job="grafana"}
+        - record: velya:grafana:memory_mb
+          expr: process_resident_memory_bytes{job="grafana"} / 1024 / 1024
+        - record: velya:grafana:query_error_rate
+          expr: rate(grafana_datasource_request_total{status="error"}[5m])
 
-  - name: meta-monitoring-prometheus
-    interval: 30s
-    rules:
-    - record: velya:prometheus:scrape_success_rate
-      expr: sum(up{job=~"velya-.*"}) / count(up{job=~"velya-.*"}) * 100
-    - record: velya:prometheus:head_series
-      expr: prometheus_tsdb_head_series
-    - record: velya:prometheus:ingestion_rate
-      expr: rate(prometheus_tsdb_head_samples_appended_total[5m])
+    - name: meta-monitoring-prometheus
+      interval: 30s
+      rules:
+        - record: velya:prometheus:scrape_success_rate
+          expr: sum(up{job=~"velya-.*"}) / count(up{job=~"velya-.*"}) * 100
+        - record: velya:prometheus:head_series
+          expr: prometheus_tsdb_head_series
+        - record: velya:prometheus:ingestion_rate
+          expr: rate(prometheus_tsdb_head_samples_appended_total[5m])
 
-  - name: meta-monitoring-loki
-    interval: 30s
-    rules:
-    - record: velya:loki:ingestion_rate
-      expr: rate(loki_distributor_lines_received_total[5m])
-    - record: velya:loki:query_latency_p95
-      expr: |
-        histogram_quantile(0.95,
-          rate(loki_request_duration_seconds_bucket{route=~"loki_api_v1_query.*"}[5m]))
+    - name: meta-monitoring-loki
+      interval: 30s
+      rules:
+        - record: velya:loki:ingestion_rate
+          expr: rate(loki_distributor_lines_received_total[5m])
+        - record: velya:loki:query_latency_p95
+          expr: |
+            histogram_quantile(0.95,
+              rate(loki_request_duration_seconds_bucket{route=~"loki_api_v1_query.*"}[5m]))
 
-  - name: meta-monitoring-tempo
-    interval: 30s
-    rules:
-    - record: velya:tempo:ingestion_rate
-      expr: rate(tempo_distributor_spans_received_total[5m])
+    - name: meta-monitoring-tempo
+      interval: 30s
+      rules:
+        - record: velya:tempo:ingestion_rate
+          expr: rate(tempo_distributor_spans_received_total[5m])
 
-  - name: meta-monitoring-alloy
-    interval: 30s
-    rules:
-    - record: velya:alloy:total_export_rate
-      expr: |
-        rate(otelcol_exporter_sent_metric_points_total[5m]) +
-        rate(otelcol_exporter_sent_log_records_total[5m]) +
-        rate(otelcol_exporter_sent_spans_total[5m])
-    - record: velya:alloy:total_drop_rate
-      expr: |
-        rate(otelcol_processor_dropped_metric_points_total[5m]) +
-        rate(otelcol_processor_dropped_log_records_total[5m]) +
-        rate(otelcol_processor_dropped_spans_total[5m])
+    - name: meta-monitoring-alloy
+      interval: 30s
+      rules:
+        - record: velya:alloy:total_export_rate
+          expr: |
+            rate(otelcol_exporter_sent_metric_points_total[5m]) +
+            rate(otelcol_exporter_sent_log_records_total[5m]) +
+            rate(otelcol_exporter_sent_spans_total[5m])
+        - record: velya:alloy:total_drop_rate
+          expr: |
+            rate(otelcol_processor_dropped_metric_points_total[5m]) +
+            rate(otelcol_processor_dropped_log_records_total[5m]) +
+            rate(otelcol_processor_dropped_spans_total[5m])
 ```
 
 ---
@@ -669,20 +669,20 @@ spec:
       {
         "title": "Status Geral dos Componentes",
         "type": "stat",
-        "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+        "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
         "targets": [
-          {"expr": "up{job=\"grafana\"}", "legendFormat": "Grafana"},
-          {"expr": "up{job=\"prometheus\"}", "legendFormat": "Prometheus"},
-          {"expr": "up{job=\"loki\"}", "legendFormat": "Loki"},
-          {"expr": "up{job=\"tempo\"}", "legendFormat": "Tempo"},
-          {"expr": "up{job=\"pyroscope\"}", "legendFormat": "Pyroscope"},
-          {"expr": "up{job=\"alloy\"}", "legendFormat": "Alloy"}
+          { "expr": "up{job=\"grafana\"}", "legendFormat": "Grafana" },
+          { "expr": "up{job=\"prometheus\"}", "legendFormat": "Prometheus" },
+          { "expr": "up{job=\"loki\"}", "legendFormat": "Loki" },
+          { "expr": "up{job=\"tempo\"}", "legendFormat": "Tempo" },
+          { "expr": "up{job=\"pyroscope\"}", "legendFormat": "Pyroscope" },
+          { "expr": "up{job=\"alloy\"}", "legendFormat": "Alloy" }
         ],
         "fieldConfig": {
           "defaults": {
             "mappings": [
-              {"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}}},
-              {"type": "value", "options": {"1": {"text": "UP", "color": "green"}}}
+              { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" } } },
+              { "type": "value", "options": { "1": { "text": "UP", "color": "green" } } }
             ]
           }
         }
@@ -690,49 +690,43 @@ spec:
       {
         "title": "Prometheus - Scrape Success Rate",
         "type": "gauge",
-        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 4},
+        "gridPos": { "h": 6, "w": 6, "x": 0, "y": 4 },
         "targets": [
-          {"expr": "velya:prometheus:scrape_success_rate", "legendFormat": "Success %"}
+          { "expr": "velya:prometheus:scrape_success_rate", "legendFormat": "Success %" }
         ],
-        "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}}
+        "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } }
       },
       {
         "title": "Prometheus - Head Series (Cardinalidade)",
         "type": "stat",
-        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 4},
-        "targets": [
-          {"expr": "velya:prometheus:head_series", "legendFormat": "Series"}
-        ]
+        "gridPos": { "h": 6, "w": 6, "x": 6, "y": 4 },
+        "targets": [{ "expr": "velya:prometheus:head_series", "legendFormat": "Series" }]
       },
       {
         "title": "Loki - Ingestion Rate (logs/s)",
         "type": "timeseries",
-        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 4},
-        "targets": [
-          {"expr": "velya:loki:ingestion_rate", "legendFormat": "logs/s"}
-        ]
+        "gridPos": { "h": 6, "w": 6, "x": 12, "y": 4 },
+        "targets": [{ "expr": "velya:loki:ingestion_rate", "legendFormat": "logs/s" }]
       },
       {
         "title": "Tempo - Ingestion Rate (spans/s)",
         "type": "timeseries",
-        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 4},
-        "targets": [
-          {"expr": "velya:tempo:ingestion_rate", "legendFormat": "spans/s"}
-        ]
+        "gridPos": { "h": 6, "w": 6, "x": 18, "y": 4 },
+        "targets": [{ "expr": "velya:tempo:ingestion_rate", "legendFormat": "spans/s" }]
       },
       {
         "title": "Alloy - Export vs Drop Rate",
         "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 10},
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
         "targets": [
-          {"expr": "velya:alloy:total_export_rate", "legendFormat": "Exported/s"},
-          {"expr": "velya:alloy:total_drop_rate", "legendFormat": "Dropped/s"}
+          { "expr": "velya:alloy:total_export_rate", "legendFormat": "Exported/s" },
+          { "expr": "velya:alloy:total_drop_rate", "legendFormat": "Dropped/s" }
         ]
       },
       {
         "title": "Grafana - Query Latency & Errors",
         "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 10},
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
         "targets": [
           {
             "expr": "histogram_quantile(0.95, rate(grafana_datasource_request_duration_seconds_bucket[5m]))",
@@ -747,18 +741,21 @@ spec:
       {
         "title": "Prometheus - TSDB & Storage",
         "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 18},
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 18 },
         "targets": [
-          {"expr": "prometheus_tsdb_storage_blocks_bytes / 1024 / 1024 / 1024", "legendFormat": "Storage (GB)"},
-          {"expr": "velya:prometheus:ingestion_rate", "legendFormat": "Samples/s"}
+          {
+            "expr": "prometheus_tsdb_storage_blocks_bytes / 1024 / 1024 / 1024",
+            "legendFormat": "Storage (GB)"
+          },
+          { "expr": "velya:prometheus:ingestion_rate", "legendFormat": "Samples/s" }
         ]
       },
       {
         "title": "Alertas Ativos por Estado",
         "type": "bargauge",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 18},
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 18 },
         "targets": [
-          {"expr": "count by (alertstate) (ALERTS)", "legendFormat": "{{ alertstate }}"}
+          { "expr": "count by (alertstate) (ALERTS)", "legendFormat": "{{ alertstate }}" }
         ]
       }
     ]
@@ -770,23 +767,23 @@ spec:
 
 ## Checklist de Meta-Monitoramento
 
-| Componente   | Metrica Chave                     | Threshold OK        | Frequencia de Verificacao |
-|-------------|-----------------------------------|---------------------|---------------------------|
-| Grafana     | up                                | == 1                | 30s                       |
-| Grafana     | Memoria                           | < 2GB               | 1m                        |
-| Grafana     | Query latency P95                 | < 10s               | 1m                        |
-| Prometheus  | up                                | == 1                | 30s                       |
-| Prometheus  | Scrape success rate               | > 95%               | 1m                        |
-| Prometheus  | Head series                       | < 1M                | 5m                        |
-| Prometheus  | WAL corruptions                   | == 0                | 1m                        |
-| Loki        | up                                | == 1                | 30s                       |
-| Loki        | Ingestion rate                    | > 0                 | 1m                        |
-| Loki        | Query latency P95                 | < 30s               | 1m                        |
-| Tempo       | up                                | == 1                | 30s                       |
-| Tempo       | Ingestion rate                    | > 0                 | 1m                        |
-| Tempo       | Compaction backlog                | < 100 blocos        | 5m                        |
-| Alloy       | up                                | == 1                | 30s                       |
-| Alloy       | Drop rate                         | < 1%                | 1m                        |
-| Alloy       | Queue usage                       | < 80%               | 1m                        |
-| Alerting    | Eval failures                     | == 0                | 1m                        |
-| Alerting    | Notification failures             | == 0                | 1m                        |
+| Componente | Metrica Chave         | Threshold OK | Frequencia de Verificacao |
+| ---------- | --------------------- | ------------ | ------------------------- |
+| Grafana    | up                    | == 1         | 30s                       |
+| Grafana    | Memoria               | < 2GB        | 1m                        |
+| Grafana    | Query latency P95     | < 10s        | 1m                        |
+| Prometheus | up                    | == 1         | 30s                       |
+| Prometheus | Scrape success rate   | > 95%        | 1m                        |
+| Prometheus | Head series           | < 1M         | 5m                        |
+| Prometheus | WAL corruptions       | == 0         | 1m                        |
+| Loki       | up                    | == 1         | 30s                       |
+| Loki       | Ingestion rate        | > 0          | 1m                        |
+| Loki       | Query latency P95     | < 30s        | 1m                        |
+| Tempo      | up                    | == 1         | 30s                       |
+| Tempo      | Ingestion rate        | > 0          | 1m                        |
+| Tempo      | Compaction backlog    | < 100 blocos | 5m                        |
+| Alloy      | up                    | == 1         | 30s                       |
+| Alloy      | Drop rate             | < 1%         | 1m                        |
+| Alloy      | Queue usage           | < 80%        | 1m                        |
+| Alerting   | Eval failures         | == 0         | 1m                        |
+| Alerting   | Notification failures | == 0         | 1m                        |

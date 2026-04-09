@@ -16,15 +16,15 @@ Todas as politicas sao gerenciadas via GitOps (ArgoCD) e nao podem ser alteradas
 
 ### Namespaces Cobertos
 
-| Namespace | Descricao | Nivel de Restricao |
-|---|---|---|
-| `velya-dev-core` | Servicos clinicos criticos | Maximo |
-| `velya-dev-platform` | Infraestrutura e plataforma | Alto |
-| `velya-dev-agents` | Agentes de IA | Alto + restricoes de egress |
-| `velya-dev-web` | Frontend | Padrao |
+| Namespace                 | Descricao                        | Nivel de Restricao            |
+| ------------------------- | -------------------------------- | ----------------------------- |
+| `velya-dev-core`          | Servicos clinicos criticos       | Maximo                        |
+| `velya-dev-platform`      | Infraestrutura e plataforma      | Alto                          |
+| `velya-dev-agents`        | Agentes de IA                    | Alto + restricoes de egress   |
+| `velya-dev-web`           | Frontend                         | Padrao                        |
 | `velya-dev-observability` | Prometheus, Grafana, Loki, Tempo | Alto (privilegios de leitura) |
-| `velya-dev-argocd` | ArgoCD | Maximo (auto-gerenciado) |
-| `velya-dev-temporal` | Temporal Server | Alto |
+| `velya-dev-argocd`        | ArgoCD                           | Maximo (auto-gerenciado)      |
+| `velya-dev-temporal`      | Temporal Server                  | Alto                          |
 
 ---
 
@@ -43,14 +43,14 @@ spec:
   failurePolicy: Fail
   matchConstraints:
     resourceRules:
-      - apiGroups: [""]
-        apiVersions: ["v1"]
-        operations: ["CREATE", "UPDATE"]
-        resources: ["pods"]
-      - apiGroups: ["apps"]
-        apiVersions: ["v1"]
-        operations: ["CREATE", "UPDATE"]
-        resources: ["deployments", "statefulsets", "daemonsets"]
+      - apiGroups: ['']
+        apiVersions: ['v1']
+        operations: ['CREATE', 'UPDATE']
+        resources: ['pods']
+      - apiGroups: ['apps']
+        apiVersions: ['v1']
+        operations: ['CREATE', 'UPDATE']
+        resources: ['deployments', 'statefulsets', 'daemonsets']
   validations:
     - expression: >-
         object.spec.template.spec.containers.all(c,
@@ -78,21 +78,21 @@ spec:
   matchResources:
     namespaceSelector:
       matchLabels:
-        velya.io/managed: "true"
+        velya.io/managed: 'true'
 ```
 
 **Limites recomendados por servico:**
 
-| Servico | CPU Request | CPU Limit | Memory Request | Memory Limit |
-|---|---|---|---|---|
-| patient-flow | 250m | 1000m | 256Mi | 512Mi |
-| discharge-orchestrator | 250m | 1000m | 256Mi | 512Mi |
-| task-inbox | 200m | 500m | 256Mi | 512Mi |
-| ai-gateway | 500m | 2000m | 512Mi | 2Gi |
-| velya-web | 100m | 500m | 128Mi | 256Mi |
-| auth-service | 200m | 500m | 256Mi | 512Mi |
-| notification-hub | 200m | 500m | 256Mi | 512Mi |
-| agent-coordinator | 250m | 1000m | 256Mi | 1Gi |
+| Servico                | CPU Request | CPU Limit | Memory Request | Memory Limit |
+| ---------------------- | ----------- | --------- | -------------- | ------------ |
+| patient-flow           | 250m        | 1000m     | 256Mi          | 512Mi        |
+| discharge-orchestrator | 250m        | 1000m     | 256Mi          | 512Mi        |
+| task-inbox             | 200m        | 500m      | 256Mi          | 512Mi        |
+| ai-gateway             | 500m        | 2000m     | 512Mi          | 2Gi          |
+| velya-web              | 100m        | 500m      | 128Mi          | 256Mi        |
+| auth-service           | 200m        | 500m      | 256Mi          | 512Mi        |
+| notification-hub       | 200m        | 500m      | 256Mi          | 512Mi        |
+| agent-coordinator      | 250m        | 1000m     | 256Mi          | 1Gi          |
 
 ---
 
@@ -107,10 +107,10 @@ spec:
   failurePolicy: Fail
   matchConstraints:
     resourceRules:
-      - apiGroups: ["apps"]
-        apiVersions: ["v1"]
-        operations: ["CREATE", "UPDATE"]
-        resources: ["deployments", "statefulsets", "daemonsets"]
+      - apiGroups: ['apps']
+        apiVersions: ['v1']
+        operations: ['CREATE', 'UPDATE']
+        resources: ['deployments', 'statefulsets', 'daemonsets']
   validations:
     - expression: >-
         has(object.metadata.labels) &&
@@ -137,36 +137,36 @@ spec:
   matchResources:
     namespaceSelector:
       matchLabels:
-        velya.io/managed: "true"
+        velya.io/managed: 'true'
 ```
 
 **Labels obrigatorias e valores aceitos:**
 
 ```yaml
 required_labels:
-  "app.kubernetes.io/name":
-    description: "Nome do servico"
-    examples: ["patient-flow", "ai-gateway", "velya-web"]
+  'app.kubernetes.io/name':
+    description: 'Nome do servico'
+    examples: ['patient-flow', 'ai-gateway', 'velya-web']
 
-  "app.kubernetes.io/version":
-    description: "Versao semantica ou SHA do commit"
+  'app.kubernetes.io/version':
+    description: 'Versao semantica ou SHA do commit'
     pattern: "^(v?\\d+\\.\\d+\\.\\d+|[a-f0-9]{7,40})$"
 
-  "app.kubernetes.io/component":
-    description: "Tipo de componente"
-    allowed_values: ["api", "worker", "web", "agent", "gateway", "scheduler"]
+  'app.kubernetes.io/component':
+    description: 'Tipo de componente'
+    allowed_values: ['api', 'worker', 'web', 'agent', 'gateway', 'scheduler']
 
-  "app.kubernetes.io/managed-by":
-    description: "Ferramenta de gerenciamento"
-    allowed_values: ["argocd", "helm", "kustomize"]
+  'app.kubernetes.io/managed-by':
+    description: 'Ferramenta de gerenciamento'
+    allowed_values: ['argocd', 'helm', 'kustomize']
 
-  "velya.io/team":
-    description: "Squad responsavel"
-    allowed_values: ["squad-clinical", "squad-ai", "squad-platform", "squad-frontend"]
+  'velya.io/team':
+    description: 'Squad responsavel'
+    allowed_values: ['squad-clinical', 'squad-ai', 'squad-platform', 'squad-frontend']
 
-  "velya.io/risk-level":
-    description: "Nivel de risco do servico"
-    allowed_values: ["low", "medium", "high", "critical"]
+  'velya.io/risk-level':
+    description: 'Nivel de risco do servico'
+    allowed_values: ['low', 'medium', 'high', 'critical']
 ```
 
 ---
@@ -182,10 +182,10 @@ spec:
   failurePolicy: Fail
   matchConstraints:
     resourceRules:
-      - apiGroups: ["apps"]
-        apiVersions: ["v1"]
-        operations: ["CREATE", "UPDATE"]
-        resources: ["deployments", "statefulsets"]
+      - apiGroups: ['apps']
+        apiVersions: ['v1']
+        operations: ['CREATE', 'UPDATE']
+        resources: ['deployments', 'statefulsets']
   validations:
     - expression: >-
         object.spec.template.spec.containers.all(c,
@@ -209,7 +209,7 @@ spec:
   matchResources:
     namespaceSelector:
       matchLabels:
-        velya.io/managed: "true"
+        velya.io/managed: 'true'
 ```
 
 **Configuracao de probes recomendada por servico:**
@@ -246,7 +246,7 @@ probes:
     initialDelaySeconds: 5
     periodSeconds: 5
     timeoutSeconds: 5
-    failureThreshold: 30  # 30 * 5s = 150s max startup time
+    failureThreshold: 30 # 30 * 5s = 150s max startup time
     # /health/startup verifica: migrations rodaram, config carregada
 ```
 
@@ -263,10 +263,10 @@ spec:
   failurePolicy: Fail
   matchConstraints:
     resourceRules:
-      - apiGroups: ["apps"]
-        apiVersions: ["v1"]
-        operations: ["CREATE", "UPDATE"]
-        resources: ["deployments", "statefulsets", "daemonsets"]
+      - apiGroups: ['apps']
+        apiVersions: ['v1']
+        operations: ['CREATE', 'UPDATE']
+        resources: ['deployments', 'statefulsets', 'daemonsets']
   validations:
     - expression: >-
         object.spec.template.spec.containers.all(c,
@@ -287,7 +287,7 @@ spec:
           has(c.securityContext.privileged) &&
           c.securityContext.privileged == true
         ))
-      message: "Containers privilegiados sao proibidos em namespaces Velya"
+      message: 'Containers privilegiados sao proibidos em namespaces Velya'
       reason: Forbidden
 ---
 apiVersion: admissionregistration.k8s.io/v1
@@ -300,7 +300,7 @@ spec:
   matchResources:
     namespaceSelector:
       matchLabels:
-        velya.io/managed: "true"
+        velya.io/managed: 'true'
 ```
 
 ---
@@ -316,14 +316,14 @@ spec:
   failurePolicy: Fail
   matchConstraints:
     resourceRules:
-      - apiGroups: [""]
-        apiVersions: ["v1"]
-        operations: ["CREATE", "UPDATE"]
-        resources: ["pods"]
-      - apiGroups: ["apps"]
-        apiVersions: ["v1"]
-        operations: ["CREATE", "UPDATE"]
-        resources: ["deployments", "statefulsets", "daemonsets"]
+      - apiGroups: ['']
+        apiVersions: ['v1']
+        operations: ['CREATE', 'UPDATE']
+        resources: ['pods']
+      - apiGroups: ['apps']
+        apiVersions: ['v1']
+        operations: ['CREATE', 'UPDATE']
+        resources: ['deployments', 'statefulsets', 'daemonsets']
   validations:
     - expression: >-
         object.spec.template.spec.containers.all(c,
@@ -353,7 +353,7 @@ spec:
   matchResources:
     namespaceSelector:
       matchLabels:
-        velya.io/managed: "true"
+        velya.io/managed: 'true'
 ```
 
 ---
@@ -369,10 +369,10 @@ spec:
   failurePolicy: Fail
   matchConstraints:
     resourceRules:
-      - apiGroups: ["apps"]
-        apiVersions: ["v1"]
-        operations: ["CREATE", "UPDATE"]
-        resources: ["deployments", "statefulsets", "daemonsets"]
+      - apiGroups: ['apps']
+        apiVersions: ['v1']
+        operations: ['CREATE', 'UPDATE']
+        resources: ['deployments', 'statefulsets', 'daemonsets']
   validations:
     - expression: >-
         object.spec.template.spec.containers.all(c,
@@ -397,7 +397,7 @@ kind: ClusterPolicy
 metadata:
   name: velya-enforce-external-secrets
   annotations:
-    policies.kyverno.io/title: "Enforce External Secrets Operator"
+    policies.kyverno.io/title: 'Enforce External Secrets Operator'
     policies.kyverno.io/description: >-
       Proibe criacao direta de Secrets em namespaces Velya.
       Todas as secrets devem ser provisionadas via ExternalSecret.
@@ -413,20 +413,20 @@ spec:
               kinds:
                 - Secret
               namespaces:
-                - "velya-dev-core"
-                - "velya-dev-platform"
-                - "velya-dev-agents"
-                - "velya-dev-web"
+                - 'velya-dev-core'
+                - 'velya-dev-platform'
+                - 'velya-dev-agents'
+                - 'velya-dev-web'
       exclude:
         any:
           - resources:
               annotations:
-                "externalsecrets.external-secrets.io/managed": "true"
+                'externalsecrets.external-secrets.io/managed': 'true'
           - resources:
               # Permitir secrets gerenciadas pelo Helm/ArgoCD para TLS
               labels:
-                "app.kubernetes.io/managed-by": "Helm"
-                "velya.io/secret-type": "tls"
+                'app.kubernetes.io/managed-by': 'Helm'
+                'velya.io/secret-type': 'tls'
       validate:
         message: >-
           Criacao direta de Secrets e proibida. Use ExternalSecret com
@@ -482,7 +482,7 @@ kind: ClusterPolicy
 metadata:
   name: velya-enforce-network-policy
   annotations:
-    policies.kyverno.io/title: "Require NetworkPolicy in Velya Namespaces"
+    policies.kyverno.io/title: 'Require NetworkPolicy in Velya Namespaces'
     policies.kyverno.io/severity: high
 spec:
   validationFailureAction: Enforce
@@ -495,15 +495,15 @@ spec:
               kinds:
                 - Deployment
               namespaces:
-                - "velya-dev-core"
-                - "velya-dev-platform"
-                - "velya-dev-agents"
-                - "velya-dev-web"
+                - 'velya-dev-core'
+                - 'velya-dev-platform'
+                - 'velya-dev-agents'
+                - 'velya-dev-web'
       preconditions:
         all:
-          - key: "{{ request.operation }}"
+          - key: '{{ request.operation }}'
             operator: In
-            value: ["CREATE"]
+            value: ['CREATE']
       validate:
         message: >-
           Todo Deployment deve ter um NetworkPolicy correspondente no
@@ -512,9 +512,9 @@ spec:
         deny:
           conditions:
             all:
-              - key: "{{ request.object.metadata.labels.\"app.kubernetes.io/name\" }}"
+              - key: '{{ request.object.metadata.labels."app.kubernetes.io/name" }}'
                 operator: AnyNotIn
-                value: "{{ networkpolicies.metadata.name }}"
+                value: '{{ networkpolicies.metadata.name }}'
 ```
 
 **NetworkPolicy padrao para servicos Velya:**
@@ -564,7 +564,7 @@ spec:
     - to:
         # Database
         - ipBlock:
-            cidr: 10.0.0.0/16  # VPC interna
+            cidr: 10.0.0.0/16 # VPC interna
       ports:
         - port: 5432
           protocol: TCP
@@ -602,7 +602,7 @@ kind: ClusterPolicy
 metadata:
   name: velya-restrict-agent-egress
   annotations:
-    policies.kyverno.io/title: "Restrict Egress for AI Agents"
+    policies.kyverno.io/title: 'Restrict Egress for AI Agents'
     policies.kyverno.io/description: >-
       Agentes de IA so podem se comunicar com endpoints aprovados.
       Acesso externo e restrito a APIs de LLM configuradas.
@@ -618,7 +618,7 @@ spec:
               kinds:
                 - NetworkPolicy
               namespaces:
-                - "velya-dev-agents"
+                - 'velya-dev-agents'
       validate:
         message: >-
           NetworkPolicies no namespace velya-dev-agents devem restringir
@@ -630,7 +630,7 @@ spec:
               - Egress
             egress:
               - to:
-                  - (ipBlock | namespaceSelector): "*"
+                  - (ipBlock | namespaceSelector): '*'
 ```
 
 **NetworkPolicy para ai-gateway (namespace agents):**
@@ -674,7 +674,7 @@ spec:
     - to:
         - namespaceSelector:
             matchLabels:
-              velya.io/managed: "true"
+              velya.io/managed: 'true'
       ports:
         - port: 8080
           protocol: TCP
@@ -699,7 +699,7 @@ kind: ClusterPolicy
 metadata:
   name: velya-enforce-ownership
   annotations:
-    policies.kyverno.io/title: "Enforce Resource Ownership"
+    policies.kyverno.io/title: 'Enforce Resource Ownership'
     policies.kyverno.io/severity: medium
 spec:
   validationFailureAction: Enforce
@@ -715,7 +715,7 @@ spec:
                 - Service
                 - ConfigMap
               namespaces:
-                - "velya-dev-*"
+                - 'velya-dev-*'
       validate:
         message: >-
           Recursos em namespaces Velya devem ter annotations de ownership:
@@ -724,9 +724,9 @@ spec:
         pattern:
           metadata:
             annotations:
-              velya.io/owner: "?*"
-              velya.io/oncall-channel: "#?*"
-              velya.io/runbook-url: "https://?*"
+              velya.io/owner: '?*'
+              velya.io/oncall-channel: '#?*'
+              velya.io/runbook-url: 'https://?*'
 ```
 
 ---
@@ -739,7 +739,7 @@ kind: ClusterPolicy
 metadata:
   name: velya-inject-otel-collector
   annotations:
-    policies.kyverno.io/title: "Auto-inject OpenTelemetry Collector Sidecar"
+    policies.kyverno.io/title: 'Auto-inject OpenTelemetry Collector Sidecar'
 spec:
   validationFailureAction: Audit
   background: false
@@ -751,11 +751,11 @@ spec:
               kinds:
                 - Deployment
               namespaces:
-                - "velya-dev-core"
-                - "velya-dev-platform"
-                - "velya-dev-agents"
+                - 'velya-dev-core'
+                - 'velya-dev-platform'
+                - 'velya-dev-agents'
               annotations:
-                velya.io/otel-inject: "true"
+                velya.io/otel-inject: 'true'
       mutate:
         patchStrategicMerge:
           spec:
@@ -763,9 +763,9 @@ spec:
               spec:
                 containers:
                   - name: otel-collector
-                    image: "ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.96.0"
+                    image: 'ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.96.0'
                     args:
-                      - "--config=/etc/otel/config.yaml"
+                      - '--config=/etc/otel/config.yaml'
                     resources:
                       requests:
                         cpu: 50m
@@ -786,20 +786,20 @@ spec:
 
 ## 4. Tabela de Rejeicoes e Justificativas
 
-| O que e rejeitado | Politica | Justificativa |
-|---|---|---|
-| Container sem resource limits | `velya-require-resource-limits` | Pods sem limites podem causar noisy neighbor e OOM em outros servicos |
-| Labels obrigatorias ausentes | `velya-require-labels` | Impossibilita rastreabilidade, monitoramento e ownership |
-| Sem liveness/readiness/startup probe | `velya-require-probes` | Pod pode parecer saudavel sem estar funcional |
-| Container rodando como root | `velya-require-security-context` | Risco de escalacao de privilegio e acesso ao host |
-| Container privilegiado | `velya-require-security-context` | Acesso total ao host, inaceitavel para workloads |
-| Filesystem read-write | `velya-require-security-context` | Atacante pode gravar binarios maliciosos |
-| Imagem de registry nao confiavel | `velya-restrict-registry` | Risco de supply chain attack |
-| Tag :latest | `velya-deny-latest-tag` | Impossibilita reprodutibilidade e rollback |
-| Secret criada diretamente | `velya-enforce-external-secrets` | Secrets devem vir do AWS Secrets Manager via ESO |
-| Deployment sem NetworkPolicy | `velya-enforce-network-policy` | Comunicacao irrestrita entre pods |
-| Agente com egress irrestrito | `velya-restrict-agent-egress` | Agente pode exfiltrar dados para endpoints nao autorizados |
-| Recurso sem ownership | `velya-enforce-ownership` | Sem responsavel identificavel para incidentes |
+| O que e rejeitado                    | Politica                         | Justificativa                                                         |
+| ------------------------------------ | -------------------------------- | --------------------------------------------------------------------- |
+| Container sem resource limits        | `velya-require-resource-limits`  | Pods sem limites podem causar noisy neighbor e OOM em outros servicos |
+| Labels obrigatorias ausentes         | `velya-require-labels`           | Impossibilita rastreabilidade, monitoramento e ownership              |
+| Sem liveness/readiness/startup probe | `velya-require-probes`           | Pod pode parecer saudavel sem estar funcional                         |
+| Container rodando como root          | `velya-require-security-context` | Risco de escalacao de privilegio e acesso ao host                     |
+| Container privilegiado               | `velya-require-security-context` | Acesso total ao host, inaceitavel para workloads                      |
+| Filesystem read-write                | `velya-require-security-context` | Atacante pode gravar binarios maliciosos                              |
+| Imagem de registry nao confiavel     | `velya-restrict-registry`        | Risco de supply chain attack                                          |
+| Tag :latest                          | `velya-deny-latest-tag`          | Impossibilita reprodutibilidade e rollback                            |
+| Secret criada diretamente            | `velya-enforce-external-secrets` | Secrets devem vir do AWS Secrets Manager via ESO                      |
+| Deployment sem NetworkPolicy         | `velya-enforce-network-policy`   | Comunicacao irrestrita entre pods                                     |
+| Agente com egress irrestrito         | `velya-restrict-agent-egress`    | Agente pode exfiltrar dados para endpoints nao autorizados            |
+| Recurso sem ownership                | `velya-enforce-ownership`        | Sem responsavel identificavel para incidentes                         |
 
 ---
 
@@ -810,8 +810,8 @@ spec:
 namespace_configuration:
   velya-dev-core:
     labels:
-      velya.io/managed: "true"
-      velya.io/tier: "critical"
+      velya.io/managed: 'true'
+      velya.io/tier: 'critical'
     policies:
       - velya-require-resource-limits
       - velya-require-labels
@@ -824,16 +824,16 @@ namespace_configuration:
       - velya-enforce-ownership
     pod_security_standard: restricted
     resource_quotas:
-      requests.cpu: "8"
-      requests.memory: "16Gi"
-      limits.cpu: "16"
-      limits.memory: "32Gi"
-      pods: "50"
+      requests.cpu: '8'
+      requests.memory: '16Gi'
+      limits.cpu: '16'
+      limits.memory: '32Gi'
+      pods: '50'
 
   velya-dev-platform:
     labels:
-      velya.io/managed: "true"
-      velya.io/tier: "platform"
+      velya.io/managed: 'true'
+      velya.io/tier: 'platform'
     policies:
       - velya-require-resource-limits
       - velya-require-labels
@@ -845,16 +845,16 @@ namespace_configuration:
       - velya-enforce-ownership
     pod_security_standard: restricted
     resource_quotas:
-      requests.cpu: "4"
-      requests.memory: "8Gi"
-      limits.cpu: "8"
-      limits.memory: "16Gi"
-      pods: "30"
+      requests.cpu: '4'
+      requests.memory: '8Gi'
+      limits.cpu: '8'
+      limits.memory: '16Gi'
+      pods: '30'
 
   velya-dev-agents:
     labels:
-      velya.io/managed: "true"
-      velya.io/tier: "agents"
+      velya.io/managed: 'true'
+      velya.io/tier: 'agents'
     policies:
       - velya-require-resource-limits
       - velya-require-labels
@@ -868,16 +868,16 @@ namespace_configuration:
       - velya-enforce-ownership
     pod_security_standard: restricted
     resource_quotas:
-      requests.cpu: "8"
-      requests.memory: "16Gi"
-      limits.cpu: "16"
-      limits.memory: "32Gi"
-      pods: "40"
+      requests.cpu: '8'
+      requests.memory: '16Gi'
+      limits.cpu: '16'
+      limits.memory: '32Gi'
+      pods: '40'
 
   velya-dev-web:
     labels:
-      velya.io/managed: "true"
-      velya.io/tier: "web"
+      velya.io/managed: 'true'
+      velya.io/tier: 'web'
     policies:
       - velya-require-resource-limits
       - velya-require-labels
@@ -887,11 +887,11 @@ namespace_configuration:
       - velya-deny-latest-tag
     pod_security_standard: baseline
     resource_quotas:
-      requests.cpu: "2"
-      requests.memory: "4Gi"
-      limits.cpu: "4"
-      limits.memory: "8Gi"
-      pods: "20"
+      requests.cpu: '2'
+      requests.memory: '4Gi'
+      limits.cpu: '4'
+      limits.memory: '8Gi'
+      pods: '20'
 ```
 
 ---
@@ -906,15 +906,15 @@ metadata:
   namespace: velya-dev-core
 spec:
   hard:
-    requests.cpu: "8"
-    requests.memory: "16Gi"
-    limits.cpu: "16"
-    limits.memory: "32Gi"
-    pods: "50"
-    services: "20"
-    persistentvolumeclaims: "10"
-    secrets: "30"
-    configmaps: "30"
+    requests.cpu: '8'
+    requests.memory: '16Gi'
+    limits.cpu: '16'
+    limits.memory: '32Gi'
+    pods: '50'
+    services: '20'
+    persistentvolumeclaims: '10'
+    secrets: '30'
+    configmaps: '30'
 ---
 apiVersion: v1
 kind: LimitRange
@@ -925,21 +925,21 @@ spec:
   limits:
     - type: Container
       default:
-        cpu: "500m"
-        memory: "512Mi"
+        cpu: '500m'
+        memory: '512Mi'
       defaultRequest:
-        cpu: "200m"
-        memory: "256Mi"
+        cpu: '200m'
+        memory: '256Mi'
       min:
-        cpu: "50m"
-        memory: "64Mi"
+        cpu: '50m'
+        memory: '64Mi'
       max:
-        cpu: "4"
-        memory: "4Gi"
+        cpu: '4'
+        memory: '4Gi'
     - type: Pod
       max:
-        cpu: "8"
-        memory: "8Gi"
+        cpu: '8'
+        memory: '8Gi'
 ```
 
 ---
@@ -967,7 +967,7 @@ spec:
             severity: warning
             team: platform
           annotations:
-            summary: "Violacao de politica de admission detectada"
+            summary: 'Violacao de politica de admission detectada'
             description: >-
               {{ $value }} rejeicoes pela politica {{ $labels.name }}
               nos ultimos 5 minutos.
@@ -983,7 +983,7 @@ spec:
             severity: warning
             team: platform
           annotations:
-            summary: "Violacao de politica Kyverno detectada"
+            summary: 'Violacao de politica Kyverno detectada'
             description: >-
               Politica {{ $labels.policy_name }} falhou {{ $value }}
               vezes nos ultimos 5 minutos.
@@ -998,7 +998,7 @@ spec:
             severity: critical
             team: platform
           annotations:
-            summary: "Possivel tentativa de bypass de politica"
+            summary: 'Possivel tentativa de bypass de politica'
             description: >-
               Mais de 10 rejeicoes pela politica {{ $labels.name }}
               na ultima hora. Investigar se ha tentativa de bypass.
@@ -1008,9 +1008,9 @@ spec:
 
 ## 8. Documentos Relacionados
 
-| Documento | Descricao |
-|---|---|
-| `layered-assurance-model.md` | Modelo completo de assurance (L4 = Admission) |
-| `zero-unvalidated-change-policy.md` | Politica de zero mudancas nao validadas |
-| `progressive-delivery-strategy.md` | Estrategias de deployment pos-admission |
-| `runtime-integrity-model.md` | Monitoramento apos deploy |
+| Documento                           | Descricao                                     |
+| ----------------------------------- | --------------------------------------------- |
+| `layered-assurance-model.md`        | Modelo completo de assurance (L4 = Admission) |
+| `zero-unvalidated-change-policy.md` | Politica de zero mudancas nao validadas       |
+| `progressive-delivery-strategy.md`  | Estrategias de deployment pos-admission       |
+| `runtime-integrity-model.md`        | Monitoramento apos deploy                     |

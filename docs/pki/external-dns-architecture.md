@@ -72,7 +72,7 @@ image:
 provider: aws
 
 # Modo de operacao
-policy: upsert-only  # Nao deletar registros nao gerenciados
+policy: upsert-only # Nao deletar registros nao gerenciados
 
 # Fontes de registros
 sources:
@@ -84,7 +84,7 @@ domainFilters:
   - velya.health
 
 # Filtro por annotation (opcional, para controle fino)
-annotationFilter: "external-dns.alpha.kubernetes.io/managed=true"
+annotationFilter: 'external-dns.alpha.kubernetes.io/managed=true'
 
 # Tipo de registro
 registry: txt
@@ -119,7 +119,7 @@ serviceAccount:
   create: true
   name: external-dns
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/external-dns-route53"
+    eks.amazonaws.com/role-arn: 'arn:aws:iam::ACCOUNT_ID:role/external-dns-route53'
 
 # Security context
 securityContext:
@@ -171,11 +171,11 @@ helm install external-dns external-dns/external-dns \
 
 ### 4.1 Comparacao
 
-| Policy | Comportamento | Risco |
-|---|---|---|
-| upsert-only | Cria e atualiza, nunca deleta | Baixo -- registros orfaos possiveis |
-| sync | Cria, atualiza e deleta | Medio -- pode deletar registros manuais |
-| create-only | Apenas cria, nunca atualiza/deleta | Muito baixo -- nao atualiza |
+| Policy      | Comportamento                      | Risco                                   |
+| ----------- | ---------------------------------- | --------------------------------------- |
+| upsert-only | Cria e atualiza, nunca deleta      | Baixo -- registros orfaos possiveis     |
+| sync        | Cria, atualiza e deleta            | Medio -- pode deletar registros manuais |
+| create-only | Apenas cria, nunca atualiza/deleta | Muito baixo -- nao atualiza             |
 
 ### 4.2 Recomendacao Velya
 
@@ -224,7 +224,7 @@ namespaceFilter:
 ### 5.3 Filtro por Annotation
 
 ```yaml
-annotationFilter: "external-dns.alpha.kubernetes.io/managed=true"
+annotationFilter: 'external-dns.alpha.kubernetes.io/managed=true'
 ```
 
 Apenas recursos com esta annotation serao processados:
@@ -235,8 +235,8 @@ kind: Ingress
 metadata:
   name: app-ingress
   annotations:
-    external-dns.alpha.kubernetes.io/managed: "true"
-    external-dns.alpha.kubernetes.io/hostname: "app.velya.health"
+    external-dns.alpha.kubernetes.io/managed: 'true'
+    external-dns.alpha.kubernetes.io/hostname: 'app.velya.health'
 ```
 
 ### 5.4 Filtro por Ingress Class
@@ -270,19 +270,13 @@ ingressClassNames:
     {
       "Sid": "ExternalDNSRoute53ChangeRecords",
       "Effect": "Allow",
-      "Action": [
-        "route53:ChangeResourceRecordSets"
-      ],
-      "Resource": [
-        "arn:aws:route53:::hostedzone/HOSTED_ZONE_ID"
-      ]
+      "Action": ["route53:ChangeResourceRecordSets"],
+      "Resource": ["arn:aws:route53:::hostedzone/HOSTED_ZONE_ID"]
     },
     {
       "Sid": "ExternalDNSRoute53GetChange",
       "Effect": "Allow",
-      "Action": [
-        "route53:GetChange"
-      ],
+      "Action": ["route53:GetChange"],
       "Resource": "*"
     }
   ]
@@ -318,13 +312,13 @@ ingressClassNames:
 
 ### 7.1 Annotations Suportadas
 
-| Annotation | Descricao | Exemplo |
-|---|---|---|
-| external-dns.alpha.kubernetes.io/hostname | Hostname explicito | app.velya.health |
-| external-dns.alpha.kubernetes.io/ttl | TTL do registro | "300" |
-| external-dns.alpha.kubernetes.io/target | Target explicito | "lb.velya.health" |
-| external-dns.alpha.kubernetes.io/managed | Flag de gerenciamento | "true" |
-| external-dns.alpha.kubernetes.io/alias | Usar ALIAS record | "true" |
+| Annotation                                | Descricao             | Exemplo           |
+| ----------------------------------------- | --------------------- | ----------------- |
+| external-dns.alpha.kubernetes.io/hostname | Hostname explicito    | app.velya.health  |
+| external-dns.alpha.kubernetes.io/ttl      | TTL do registro       | "300"             |
+| external-dns.alpha.kubernetes.io/target   | Target explicito      | "lb.velya.health" |
+| external-dns.alpha.kubernetes.io/managed  | Flag de gerenciamento | "true"            |
+| external-dns.alpha.kubernetes.io/alias    | Usar ALIAS record     | "true"            |
 
 ### 7.2 Exemplo Completo
 
@@ -335,11 +329,11 @@ metadata:
   name: grafana-ingress
   namespace: monitoring
   annotations:
-    external-dns.alpha.kubernetes.io/managed: "true"
-    external-dns.alpha.kubernetes.io/hostname: "grafana.velya.health"
-    external-dns.alpha.kubernetes.io/ttl: "300"
-    cert-manager.io/cluster-issuer: "acme-production"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    external-dns.alpha.kubernetes.io/managed: 'true'
+    external-dns.alpha.kubernetes.io/hostname: 'grafana.velya.health'
+    external-dns.alpha.kubernetes.io/ttl: '300'
+    cert-manager.io/cluster-issuer: 'acme-production'
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
 spec:
   ingressClassName: nginx
   tls:
@@ -372,8 +366,8 @@ metadata:
   name: auth-service
   namespace: velya-auth
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: "auth.velya.health"
-    external-dns.alpha.kubernetes.io/ttl: "300"
+    external-dns.alpha.kubernetes.io/hostname: 'auth.velya.health'
+    external-dns.alpha.kubernetes.io/ttl: '300'
 spec:
   type: LoadBalancer
   selector:
@@ -410,13 +404,13 @@ kubectl logs -n external-dns -l app.kubernetes.io/name=external-dns | \
 
 ### 9.2 Problemas Comuns
 
-| Problema | Causa | Solucao |
-|---|---|---|
-| Registro nao criado | Annotation ausente | Adicionar annotation |
-| Permissao negada | IAM policy incorreta | Verificar policy |
-| Registro desatualizado | Intervalo de sync | Esperar ou restart |
-| Conflito de registro | TXT ownership | Verificar txtOwnerId |
-| DNS nao resolve | Propagacao | Esperar TTL |
+| Problema               | Causa                | Solucao              |
+| ---------------------- | -------------------- | -------------------- |
+| Registro nao criado    | Annotation ausente   | Adicionar annotation |
+| Permissao negada       | IAM policy incorreta | Verificar policy     |
+| Registro desatualizado | Intervalo de sync    | Esperar ou restart   |
+| Conflito de registro   | TXT ownership        | Verificar txtOwnerId |
+| DNS nao resolve        | Propagacao           | Esperar TTL          |
 
 ---
 
@@ -424,13 +418,13 @@ kubectl logs -n external-dns -l app.kubernetes.io/name=external-dns | \
 
 ### 10.1 Metricas
 
-| Metrica | Descricao |
-|---|---|
-| external_dns_source_endpoints | Endpoints detectados |
-| external_dns_registry_endpoints | Endpoints no registry |
-| external_dns_controller_last_sync_timestamp | Ultimo sync |
-| external_dns_source_errors_total | Erros de fonte |
-| external_dns_registry_errors_total | Erros de registry |
+| Metrica                                     | Descricao             |
+| ------------------------------------------- | --------------------- |
+| external_dns_source_endpoints               | Endpoints detectados  |
+| external_dns_registry_endpoints             | Endpoints no registry |
+| external_dns_controller_last_sync_timestamp | Ultimo sync           |
+| external_dns_source_errors_total            | Erros de fonte        |
+| external_dns_registry_errors_total          | Erros de registry     |
 
 ### 10.2 Alertas
 
@@ -450,7 +444,7 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "ExternalDNS esta down"
+            summary: 'ExternalDNS esta down'
 
         - alert: ExternalDNSSyncFailed
           expr: increase(external_dns_source_errors_total[5m]) > 0
@@ -458,7 +452,7 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "ExternalDNS encontrou erros de sincronizacao"
+            summary: 'ExternalDNS encontrou erros de sincronizacao'
 
         - alert: ExternalDNSSyncStale
           expr: time() - external_dns_controller_last_sync_timestamp > 600
@@ -466,7 +460,7 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "ExternalDNS nao sincroniza ha mais de 10 minutos"
+            summary: 'ExternalDNS nao sincroniza ha mais de 10 minutos'
 ```
 
 ---
@@ -492,15 +486,16 @@ spec:
 
 ### 12.1 Configuracao por Ambiente
 
-| Ambiente | Domain Filter | Hosted Zone | Policy |
-|---|---|---|---|
-| Production | velya.health | Z0123PROD | upsert-only |
-| Staging | staging.velya.health | Z0123STAGING | sync |
-| Development | dev.velya.health | Z0123DEV | sync |
+| Ambiente    | Domain Filter        | Hosted Zone  | Policy      |
+| ----------- | -------------------- | ------------ | ----------- |
+| Production  | velya.health         | Z0123PROD    | upsert-only |
+| Staging     | staging.velya.health | Z0123STAGING | sync        |
+| Development | dev.velya.health     | Z0123DEV     | sync        |
 
 ### 12.2 Isolamento
 
 Cada ambiente tem:
+
 - Instalacao ExternalDNS separada.
 - IAM role separada.
 - Hosted Zone separada (ou subzone delegada).
@@ -527,10 +522,10 @@ Cada ambiente tem:
 
 ## 14. Changelog
 
-| Data | Versao | Descricao |
-|---|---|---|
-| 2026-04-09 | 1.0 | Versao inicial da arquitetura ExternalDNS |
+| Data       | Versao | Descricao                                 |
+| ---------- | ------ | ----------------------------------------- |
+| 2026-04-09 | 1.0    | Versao inicial da arquitetura ExternalDNS |
 
 ---
 
-*Documento mantido pelo Platform Team. Revisao trimestral obrigatoria.*
+_Documento mantido pelo Platform Team. Revisao trimestral obrigatoria._

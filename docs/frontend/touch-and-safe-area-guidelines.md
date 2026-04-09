@@ -24,24 +24,24 @@ Profissionais de saúde operam a plataforma Velya com pressa, mãos ocupadas (lu
 
 ### 2.1 Tamanhos Mínimos
 
-| Tipo de Elemento | Tamanho Mínimo | Tamanho Recomendado | Contexto |
-|---|---|---|---|
-| Botão primário | 44x44px | 48x48px | Ações principais |
-| Botão secundário | 44x44px | 44x44px | Ações auxiliares |
-| Botão de ação crítica | 48x48px | 56x48px | Medicação, chamada |
-| Ícone de ação | 44x44px (hit area) | 44x44px (hit area) | Ícones visuais menores ok |
-| Link de texto | 44px height | 48px height | Padding vertical no link |
-| Checkbox | 44x44px (hit area) | 44x44px (hit area) | Label clicável incluso |
-| Radio button | 44x44px (hit area) | 44x44px (hit area) | Label clicável incluso |
-| Switch/Toggle | 44x28px mínimo | 52x32px | Largura maior que altura |
-| Tab | 44px height | 48px height | Largura flexível |
-| Dropdown trigger | 44px height | 48px height | Full-width em mobile |
-| Input field | 44px height | 48px height | Font-size 16px mínimo |
-| Row de lista/tabela | 48px height | 56px height | Inclui padding |
-| Card clicável | 48px min-height | 64px min-height | Área completa clicável |
-| Close button (X) | 44x44px | 44x44px | Em modals, sheets |
-| Navigation item | 44x44px | 48x48px | Sidebar/bottom nav |
-| Pagination button | 44x44px | 44x44px | Botões de página |
+| Tipo de Elemento      | Tamanho Mínimo     | Tamanho Recomendado | Contexto                  |
+| --------------------- | ------------------ | ------------------- | ------------------------- |
+| Botão primário        | 44x44px            | 48x48px             | Ações principais          |
+| Botão secundário      | 44x44px            | 44x44px             | Ações auxiliares          |
+| Botão de ação crítica | 48x48px            | 56x48px             | Medicação, chamada        |
+| Ícone de ação         | 44x44px (hit area) | 44x44px (hit area)  | Ícones visuais menores ok |
+| Link de texto         | 44px height        | 48px height         | Padding vertical no link  |
+| Checkbox              | 44x44px (hit area) | 44x44px (hit area)  | Label clicável incluso    |
+| Radio button          | 44x44px (hit area) | 44x44px (hit area)  | Label clicável incluso    |
+| Switch/Toggle         | 44x28px mínimo     | 52x32px             | Largura maior que altura  |
+| Tab                   | 44px height        | 48px height         | Largura flexível          |
+| Dropdown trigger      | 44px height        | 48px height         | Full-width em mobile      |
+| Input field           | 44px height        | 48px height         | Font-size 16px mínimo     |
+| Row de lista/tabela   | 48px height        | 56px height         | Inclui padding            |
+| Card clicável         | 48px min-height    | 64px min-height     | Área completa clicável    |
+| Close button (X)      | 44x44px            | 44x44px             | Em modals, sheets         |
+| Navigation item       | 44x44px            | 48x48px             | Sidebar/bottom nav        |
+| Pagination button     | 44x44px            | 44x44px             | Botões de página          |
 
 ### 2.2 Implementação em Tailwind
 
@@ -85,9 +85,9 @@ function TouchTarget({
   size = 'base',
   ...props
 }: {
-  children: React.ReactNode
-  className?: string
-  size?: 'base' | 'large'
+  children: React.ReactNode;
+  className?: string;
+  size?: 'base' | 'large';
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
@@ -102,13 +102,13 @@ function TouchTarget({
     >
       {children}
     </button>
-  )
+  );
 }
 
 // Uso
 <TouchTarget aria-label="Editar paciente" onClick={handleEdit}>
   <Pencil className="h-4 w-4" />
-</TouchTarget>
+</TouchTarget>;
 ```
 
 ---
@@ -117,16 +117,16 @@ function TouchTarget({
 
 ### 3.1 Regras de Espaçamento
 
-| Cenário | Espaçamento Mínimo | Classe Tailwind |
-|---|---|---|
-| Botões adjacentes horizontais | 8px | `gap-2` |
-| Botões adjacentes verticais | 8px | `gap-2` ou `space-y-2` |
-| Ícones de ação em toolbar | 4px | `gap-1` |
-| Items de lista | 1px (border) | `divide-y` |
-| Cards em grid | 12px | `gap-3` |
-| Form fields | 16px | `space-y-4` |
-| Ações críticas vs destrutivas | 16px+ | `gap-4` ou separador |
-| Navigation items | 4px | `gap-1` |
+| Cenário                       | Espaçamento Mínimo | Classe Tailwind        |
+| ----------------------------- | ------------------ | ---------------------- |
+| Botões adjacentes horizontais | 8px                | `gap-2`                |
+| Botões adjacentes verticais   | 8px                | `gap-2` ou `space-y-2` |
+| Ícones de ação em toolbar     | 4px                | `gap-1`                |
+| Items de lista                | 1px (border)       | `divide-y`             |
+| Cards em grid                 | 12px               | `gap-3`                |
+| Form fields                   | 16px               | `space-y-4`            |
+| Ações críticas vs destrutivas | 16px+              | `gap-4` ou separador   |
+| Navigation items              | 4px                | `gap-1`                |
 
 ### 3.2 Anti-padrões
 
@@ -155,11 +155,11 @@ AINDA MELHOR: Ações destrutivas separadas visualmente
   <Button variant="outline" onClick={handleCancel}>
     Cancelar
   </Button>
-  <Button onClick={handleConfirm}>
-    Confirmar administração
-  </Button>
-</div>
-{/* justify-between coloca máximo espaço entre os botões */}
+  <Button onClick={handleConfirm}>Confirmar administração</Button>
+</div>;
+{
+  /* justify-between coloca máximo espaço entre os botões */
+}
 ```
 
 ---
@@ -258,21 +258,18 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1">{children}</main>
       <MobileBottomNav />
     </div>
-  )
+  );
 }
 
 // Bottom sheet com safe area
 function BottomSheet({ children, open, onClose }: BottomSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent
-        side="bottom"
-        className="pb-[max(env(safe-area-inset-bottom),1rem)]"
-      >
+      <SheetContent side="bottom" className="pb-[max(env(safe-area-inset-bottom),1rem)]">
         {children}
       </SheetContent>
     </Sheet>
-  )
+  );
 }
 
 // Mobile bottom navigation
@@ -290,20 +287,20 @@ function MobileBottomNav() {
         <NavItem icon={Menu} label="Mais" href="/more" />
       </div>
     </nav>
-  )
+  );
 }
 ```
 
 ### 4.5 Dispositivos com Safe Areas
 
-| Dispositivo | Top | Bottom | Left | Right |
-|---|---|---|---|---|
-| iPhone 14+ (portrait) | 59px (Dynamic Island) | 34px (home indicator) | 0 | 0 |
-| iPhone 14+ (landscape) | 0 | 21px | 59px | 59px |
-| iPhone SE | 20px (status bar) | 0 | 0 | 0 |
-| iPad Pro (portrait) | 24px | 20px | 0 | 0 |
-| Android (gesture nav) | 24px | 16px | 0 | 0 |
-| Android (button nav) | 24px | 48px | 0 | 0 |
+| Dispositivo            | Top                   | Bottom                | Left | Right |
+| ---------------------- | --------------------- | --------------------- | ---- | ----- |
+| iPhone 14+ (portrait)  | 59px (Dynamic Island) | 34px (home indicator) | 0    | 0     |
+| iPhone 14+ (landscape) | 0                     | 21px                  | 59px | 59px  |
+| iPhone SE              | 20px (status bar)     | 0                     | 0    | 0     |
+| iPad Pro (portrait)    | 24px                  | 20px                  | 0    | 0     |
+| Android (gesture nav)  | 24px                  | 16px                  | 0    | 0     |
+| Android (button nav)   | 24px                  | 48px                  | 0    | 0     |
 
 ---
 
@@ -382,36 +379,36 @@ Quando o teclado virtual abre:
 
 ```tsx
 function useVirtualKeyboard() {
-  const [keyboardHeight, setKeyboardHeight] = useState(0)
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   useEffect(() => {
     // Visual Viewport API (melhor suporte)
     if (window.visualViewport) {
       function handleResize() {
-        const viewport = window.visualViewport!
-        const keyboardH = window.innerHeight - viewport.height
-        setKeyboardHeight(Math.max(0, keyboardH))
-        setIsKeyboardOpen(keyboardH > 100) // threshold
+        const viewport = window.visualViewport!;
+        const keyboardH = window.innerHeight - viewport.height;
+        setKeyboardHeight(Math.max(0, keyboardH));
+        setIsKeyboardOpen(keyboardH > 100); // threshold
       }
 
-      window.visualViewport.addEventListener('resize', handleResize)
-      return () => window.visualViewport?.removeEventListener('resize', handleResize)
+      window.visualViewport.addEventListener('resize', handleResize);
+      return () => window.visualViewport?.removeEventListener('resize', handleResize);
     }
 
     // Fallback: window resize
-    const initialHeight = window.innerHeight
+    const initialHeight = window.innerHeight;
     function handleResize() {
-      const diff = initialHeight - window.innerHeight
-      setKeyboardHeight(Math.max(0, diff))
-      setIsKeyboardOpen(diff > 100)
+      const diff = initialHeight - window.innerHeight;
+      setKeyboardHeight(Math.max(0, diff));
+      setIsKeyboardOpen(diff > 100);
     }
 
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  return { keyboardHeight, isKeyboardOpen }
+  return { keyboardHeight, isKeyboardOpen };
 }
 ```
 
@@ -421,37 +418,41 @@ function useVirtualKeyboard() {
 function useScrollToFocusedField() {
   useEffect(() => {
     function handleFocus(e: FocusEvent) {
-      const target = e.target as HTMLElement
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT'
+      ) {
         // Delay para aguardar teclado abrir
         setTimeout(() => {
           target.scrollIntoView({
             behavior: 'smooth',
             block: 'center',
-          })
-        }, 300)
+          });
+        }, 300);
       }
     }
 
-    document.addEventListener('focusin', handleFocus)
-    return () => document.removeEventListener('focusin', handleFocus)
-  }, [])
+    document.addEventListener('focusin', handleFocus);
+    return () => document.removeEventListener('focusin', handleFocus);
+  }, []);
 }
 ```
 
 ### 6.4 Input Types para Teclado Adequado
 
-| Campo | Input Type | inputMode | Teclado |
-|---|---|---|---|
-| Email | `type="email"` | `email` | @ e . acessíveis |
-| Telefone | `type="tel"` | `tel` | Numérico com + e - |
-| CPF | `type="text"` | `numeric` | Numérico |
-| Número (dosagem) | `type="text"` | `decimal` | Numérico com ponto |
-| Busca | `type="search"` | `search` | Enter = "Buscar" |
-| Senha | `type="password"` | - | Alfanumérico com show/hide |
-| Data | `type="date"` | - | Date picker nativo |
-| Hora | `type="time"` | - | Time picker nativo |
-| Texto geral | `type="text"` | `text` | Alfanumérico padrão |
+| Campo            | Input Type        | inputMode | Teclado                    |
+| ---------------- | ----------------- | --------- | -------------------------- |
+| Email            | `type="email"`    | `email`   | @ e . acessíveis           |
+| Telefone         | `type="tel"`      | `tel`     | Numérico com + e -         |
+| CPF              | `type="text"`     | `numeric` | Numérico                   |
+| Número (dosagem) | `type="text"`     | `decimal` | Numérico com ponto         |
+| Busca            | `type="search"`   | `search`  | Enter = "Buscar"           |
+| Senha            | `type="password"` | -         | Alfanumérico com show/hide |
+| Data             | `type="date"`     | -         | Date picker nativo         |
+| Hora             | `type="time"`     | -         | Time picker nativo         |
+| Texto geral      | `type="text"`     | `text`    | Alfanumérico padrão        |
 
 ### 6.5 Prevenção de Zoom no iOS
 
@@ -473,15 +474,15 @@ textarea {
 
 ### 7.1 Gestos Suportados
 
-| Gesto | Uso na Velya | Implementação |
-|---|---|---|
-| Tap | Ação principal (clicar) | `onClick` padrão |
-| Long press | Menu contextual | Custom handler (300ms) |
-| Swipe horizontal | Ações em lista (aceitar/rejeitar) | Custom ou lib |
-| Swipe para baixo | Pull-to-refresh (page level) | Browser nativo ou custom |
-| Pinch to zoom | Desabilitado em formulários | `maximum-scale=1` |
-| Two-finger scroll | Scroll natural | Nativo |
-| Edge swipe (iOS) | Back navigation | Nativo — não bloquear |
+| Gesto             | Uso na Velya                      | Implementação            |
+| ----------------- | --------------------------------- | ------------------------ |
+| Tap               | Ação principal (clicar)           | `onClick` padrão         |
+| Long press        | Menu contextual                   | Custom handler (300ms)   |
+| Swipe horizontal  | Ações em lista (aceitar/rejeitar) | Custom ou lib            |
+| Swipe para baixo  | Pull-to-refresh (page level)      | Browser nativo ou custom |
+| Pinch to zoom     | Desabilitado em formulários       | `maximum-scale=1`        |
+| Two-finger scroll | Scroll natural                    | Nativo                   |
+| Edge swipe (iOS)  | Back navigation                   | Nativo — não bloquear    |
 
 ### 7.2 Regras de Gestos
 
@@ -502,42 +503,54 @@ function SwipeableListItem({
   rightAction,
 }: SwipeableProps) {
   // Implementação com touch events
-  const touchStart = useRef<{ x: number; y: number } | null>(null)
-  const [offset, setOffset] = useState(0)
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const [offset, setOffset] = useState(0);
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStart.current = {
       x: e.touches[0].clientX,
       y: e.touches[0].clientY,
-    }
+    };
   }
 
   function handleTouchMove(e: React.TouchEvent) {
-    if (!touchStart.current) return
-    const deltaX = e.touches[0].clientX - touchStart.current.x
-    const deltaY = e.touches[0].clientY - touchStart.current.y
+    if (!touchStart.current) return;
+    const deltaX = e.touches[0].clientX - touchStart.current.x;
+    const deltaY = e.touches[0].clientY - touchStart.current.y;
 
     // Ignorar se scroll vertical
-    if (Math.abs(deltaY) > Math.abs(deltaX)) return
+    if (Math.abs(deltaY) > Math.abs(deltaX)) return;
 
-    setOffset(deltaX)
+    setOffset(deltaX);
   }
 
   function handleTouchEnd() {
-    if (offset > 80) onSwipeRight?.()
-    if (offset < -80) onSwipeLeft?.()
-    setOffset(0)
-    touchStart.current = null
+    if (offset > 80) onSwipeRight?.();
+    if (offset < -80) onSwipeLeft?.();
+    setOffset(0);
+    touchStart.current = null;
   }
 
   return (
     <div className="relative overflow-hidden">
       {/* Background actions */}
       <div className="absolute inset-0 flex items-center justify-between px-4">
-        <div className={cn('text-success', offset > 40 && 'opacity-100', 'opacity-0 transition-opacity')}>
+        <div
+          className={cn(
+            'text-success',
+            offset > 40 && 'opacity-100',
+            'opacity-0 transition-opacity',
+          )}
+        >
           {rightAction}
         </div>
-        <div className={cn('text-destructive', offset < -40 && 'opacity-100', 'opacity-0 transition-opacity')}>
+        <div
+          className={cn(
+            'text-destructive',
+            offset < -40 && 'opacity-100',
+            'opacity-0 transition-opacity',
+          )}
+        >
           {leftAction}
         </div>
       </div>
@@ -553,7 +566,7 @@ function SwipeableListItem({
         {children}
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -565,14 +578,14 @@ function SwipeableListItem({
 
 Todo conteúdo e funcionalidade acessível via hover deve ter alternativa para touch:
 
-| Hover Pattern (Desktop) | Touch Alternative (Mobile) |
-|---|---|
-| Tooltip on hover | Tap para mostrar / info icon com popover |
-| Row actions on hover | Sempre visíveis ou menu (three dots) |
-| Preview on hover | Tap para expandir / long press |
-| Color change on hover | Active state (`:active`) |
-| Submenu on hover | Tap para expandir menu |
-| Card details on hover | Tap para abrir detail view |
+| Hover Pattern (Desktop) | Touch Alternative (Mobile)               |
+| ----------------------- | ---------------------------------------- |
+| Tooltip on hover        | Tap para mostrar / info icon com popover |
+| Row actions on hover    | Sempre visíveis ou menu (three dots)     |
+| Preview on hover        | Tap para expandir / long press           |
+| Color change on hover   | Active state (`:active`)                 |
+| Submenu on hover        | Tap para expandir menu                   |
+| Card details on hover   | Tap para abrir detail view               |
 
 ### 8.2 Implementação
 
@@ -591,21 +604,25 @@ function TableRowActions({ row, isMobile }: RowActionsProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent>{/* actions */}</DropdownMenuContent>
       </DropdownMenu>
-    )
+    );
   }
 
   // Desktop: botões aparecem no hover da row
   return (
     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-      <Button variant="ghost" size="sm">Editar</Button>
-      <Button variant="ghost" size="sm">Ver</Button>
+      <Button variant="ghost" size="sm">
+        Editar
+      </Button>
+      <Button variant="ghost" size="sm">
+        Ver
+      </Button>
     </div>
-  )
+  );
 }
 
 // Tooltip acessível sem hover
 function AccessibleTooltip({ content, children }: TooltipProps) {
-  const isTouchDevice = useMediaQuery('(pointer: coarse)')
+  const isTouchDevice = useMediaQuery('(pointer: coarse)');
 
   if (isTouchDevice) {
     return (
@@ -613,7 +630,7 @@ function AccessibleTooltip({ content, children }: TooltipProps) {
         <PopoverTrigger asChild>{children}</PopoverTrigger>
         <PopoverContent>{content}</PopoverContent>
       </Popover>
-    )
+    );
   }
 
   return (
@@ -621,7 +638,7 @@ function AccessibleTooltip({ content, children }: TooltipProps) {
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent>{content}</TooltipContent>
     </Tooltip>
-  )
+  );
 }
 ```
 
@@ -699,11 +716,15 @@ html {
 }
 
 /* Active state rápido */
-button, a, [role="button"] {
+button,
+a,
+[role='button'] {
   -webkit-tap-highlight-color: transparent;
 }
 
-button:active, a:active, [role="button"]:active {
+button:active,
+a:active,
+[role='button']:active {
   opacity: 0.8;
   transition: opacity 50ms;
 }

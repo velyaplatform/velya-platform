@@ -47,6 +47,7 @@ ativacao, limites, validacao pos-healing e rollback em caso de falha.
 ## 2. Conceito de Healing Budget
 
 Cada servico tem um **budget de healing** por hora. Isso previne:
+
 - Healing loops (remediacao causa mais falhas que disparam mais remediacao)
 - Mascaramento de problemas reais (reiniciar infinitamente esconde bugs)
 - Exaustao de recursos (escalar sem parar)
@@ -60,7 +61,7 @@ healing_budget:
 
   formula: |
     budget_restante = budget_maximo - acoes_executadas_na_hora_atual
-    
+
     Se budget_restante <= 0:
       - Bloquear todas as acoes de auto-healing para o servico
       - Disparar alerta VelyaHealingBudgetExhausted
@@ -71,7 +72,7 @@ healing_budget:
     patient-flow:
       tier1_infrastructure: 10
       tier2_application: 15
-      tier3_agents: 0  # nao e agente
+      tier3_agents: 0 # nao e agente
       total: 25
 
     discharge-orchestrator:
@@ -127,21 +128,21 @@ healing_budget:
 
 ### 3.1 Acoes Permitidas
 
-| Acao | Condicao | Limite | Validacao Pos-Acao |
-|---|---|---|---|
-| Pod restart (K8s nativo) | CrashLoopBackOff, OOMKilled | Definido por restartPolicy + backoff K8s | Pod volta a Running + Ready |
-| Pod restart (forcado) | Liveness probe falha | 3 falhas consecutivas (failureThreshold) | Pod Running em < 2 min |
-| Reschedule de pod | Node NotReady, pressao de recursos | PDB minAvailable respeitado | Pod Ready em outro node |
-| Scale out (HPA) | CPU > 70%, Memory > 75% | maxReplicas do HPA | Novos pods Ready, saturacao reduz |
-| Scale out (KEDA) | Queue lag > threshold | maxReplicaCount do ScaledObject | Lag reduz em < 5 min |
-| Scale in (HPA/KEDA) | Baixa utilizacao por > 5 min | minReplicas respeitado | Servico sem degradacao |
-| Node drain (EKS managed) | Node unhealthy | 1 node por vez, PDB respeitado | Pods realocados com sucesso |
+| Acao                     | Condicao                           | Limite                                   | Validacao Pos-Acao                |
+| ------------------------ | ---------------------------------- | ---------------------------------------- | --------------------------------- |
+| Pod restart (K8s nativo) | CrashLoopBackOff, OOMKilled        | Definido por restartPolicy + backoff K8s | Pod volta a Running + Ready       |
+| Pod restart (forcado)    | Liveness probe falha               | 3 falhas consecutivas (failureThreshold) | Pod Running em < 2 min            |
+| Reschedule de pod        | Node NotReady, pressao de recursos | PDB minAvailable respeitado              | Pod Ready em outro node           |
+| Scale out (HPA)          | CPU > 70%, Memory > 75%            | maxReplicas do HPA                       | Novos pods Ready, saturacao reduz |
+| Scale out (KEDA)         | Queue lag > threshold              | maxReplicaCount do ScaledObject          | Lag reduz em < 5 min              |
+| Scale in (HPA/KEDA)      | Baixa utilizacao por > 5 min       | minReplicas respeitado                   | Servico sem degradacao            |
+| Node drain (EKS managed) | Node unhealthy                     | 1 node por vez, PDB respeitado           | Pods realocados com sucesso       |
 
 ### 3.2 Configuracao Detalhada
 
 ```yaml
 # Pod restart - configuracao K8s nativa
-apiVersion: apps/v1  # via Rollout na pratica
+apiVersion: apps/v1 # via Rollout na pratica
 spec:
   template:
     spec:
@@ -162,7 +163,7 @@ metadata:
   name: patient-flow-pdb
   namespace: velya-dev-core
 spec:
-  minAvailable: 2  # sempre pelo menos 2 pods disponiveis
+  minAvailable: 2 # sempre pelo menos 2 pods disponiveis
   selector:
     matchLabels:
       app.kubernetes.io/name: patient-flow
@@ -214,7 +215,7 @@ spec:
     kind: Rollout
     name: patient-flow
   updatePolicy:
-    updateMode: "Off"  # apenas recomendacao, nao aplica
+    updateMode: 'Off' # apenas recomendacao, nao aplica
   resourcePolicy:
     containerPolicies:
       - containerName: patient-flow
@@ -231,19 +232,19 @@ spec:
 ```yaml
 tier1_rollback:
   pod_restart_fails:
-    condition: "Pod nao volta a Ready em 120s apos restart"
-    action: "Tentar reschedule para outro node"
-    if_reschedule_fails: "Escalar para on-call"
+    condition: 'Pod nao volta a Ready em 120s apos restart'
+    action: 'Tentar reschedule para outro node'
+    if_reschedule_fails: 'Escalar para on-call'
 
   scale_out_fails:
-    condition: "Novos pods nao ficam Ready em 300s"
-    action: "Verificar se ha recursos no cluster (ResourceQuota, node capacity)"
-    if_no_resources: "Escalar para on-call para provisionar nodes"
+    condition: 'Novos pods nao ficam Ready em 300s'
+    action: 'Verificar se ha recursos no cluster (ResourceQuota, node capacity)'
+    if_no_resources: 'Escalar para on-call para provisionar nodes'
 
   node_drain_fails:
-    condition: "Pods nao realocados em 600s"
-    action: "Cancelar drain, investigar PDB violations"
-    escalation: "On-call + infra team"
+    condition: 'Pods nao realocados em 600s'
+    action: 'Cancelar drain, investigar PDB violations'
+    escalation: 'On-call + infra team'
 ```
 
 ---
@@ -252,14 +253,14 @@ tier1_rollback:
 
 ### 4.1 Acoes Permitidas
 
-| Acao | Condicao | Limite | Validacao Pos-Acao |
-|---|---|---|---|
-| Reconexao automatica | Conexao perdida (DB, NATS, Redis, Temporal) | 10 tentativas com backoff exponencial | Health check passando |
-| Ativacao de fallback | Dependencia indisponivel > 30s | Duration maxima do fallback | Servico respondendo (degradado) |
-| Circuit breaker recovery | CB em OPEN > timeout | 3 requests de teste | CB fecha se testes passam |
-| Retry com backoff | Operacao falhou por erro transitorio | Max 5 retries, backoff max 30s | Operacao completada |
-| Cache degradado | DB indisponivel | Enquanto DB nao voltar | Dados servidos do cache (possivelmente stale) |
-| Queue replay | Consumer crashou durante processamento | 1 replay por mensagem | Mensagem processada com sucesso |
+| Acao                     | Condicao                                    | Limite                                | Validacao Pos-Acao                            |
+| ------------------------ | ------------------------------------------- | ------------------------------------- | --------------------------------------------- |
+| Reconexao automatica     | Conexao perdida (DB, NATS, Redis, Temporal) | 10 tentativas com backoff exponencial | Health check passando                         |
+| Ativacao de fallback     | Dependencia indisponivel > 30s              | Duration maxima do fallback           | Servico respondendo (degradado)               |
+| Circuit breaker recovery | CB em OPEN > timeout                        | 3 requests de teste                   | CB fecha se testes passam                     |
+| Retry com backoff        | Operacao falhou por erro transitorio        | Max 5 retries, backoff max 30s        | Operacao completada                           |
+| Cache degradado          | DB indisponivel                             | Enquanto DB nao voltar                | Dados servidos do cache (possivelmente stale) |
+| Queue replay             | Consumer crashou durante processamento      | 1 replay por mensagem                 | Mensagem processada com sucesso               |
 
 ### 4.2 Implementacao: Reconexao
 
@@ -479,24 +480,24 @@ export class CircuitBreaker {
 ```yaml
 tier2_rollback:
   reconnection_fails:
-    condition: "Max retries atingido"
-    action: "Marcar servico como unhealthy (readiness fail)"
-    result: "Servico removido do pool do Service, trafego vai para pods saudaveis"
+    condition: 'Max retries atingido'
+    action: 'Marcar servico como unhealthy (readiness fail)'
+    result: 'Servico removido do pool do Service, trafego vai para pods saudaveis'
 
   fallback_exceeds_duration:
-    condition: "Fallback ativo por mais de max_fallback_duration"
-    action: "Escalar para on-call"
-    result: "Investigacao da dependencia primaria"
+    condition: 'Fallback ativo por mais de max_fallback_duration'
+    action: 'Escalar para on-call'
+    result: 'Investigacao da dependencia primaria'
 
   circuit_breaker_stuck_open:
-    condition: "CB aberto por > 5 minutos"
-    action: "Alerta para on-call"
-    result: "Investigacao manual da dependencia"
+    condition: 'CB aberto por > 5 minutos'
+    action: 'Alerta para on-call'
+    result: 'Investigacao manual da dependencia'
 
   retry_max_exceeded:
-    condition: "Max retries atingido para operacao"
-    action: "Enviar mensagem para DLQ com contexto de erro"
-    result: "Mensagem preservada para reprocessamento futuro"
+    condition: 'Max retries atingido para operacao'
+    action: 'Enviar mensagem para DLQ com contexto de erro'
+    result: 'Mensagem preservada para reprocessamento futuro'
 ```
 
 ---
@@ -505,14 +506,14 @@ tier2_rollback:
 
 ### 5.1 Acoes Permitidas
 
-| Acao | Condicao | Limite | Validacao Pos-Acao |
-|---|---|---|---|
-| Restart de agente stateless | Heartbeat stale > 90s | 3 restarts por hora | Heartbeat retoma, guardrails ativos |
-| Quarentena de agente | Output invalido 3x, acesso nao autorizado 2x | Ilimitado (mas requer review humano para reverter) | Agente isolado, nao recebe requests |
-| Reducao de permissoes | Comportamento anomalo detectado | 1 reducao por hora (cada vez mais restritivo) | Agente opera com permissoes reduzidas |
-| Coordinator swap | Coordinator primario unhealthy | 1 swap por 30 minutos | Coordinator secundario assume |
-| Provider fallback | Provider de LLM indisponivel | Chain de fallback ate esgotar | Respostas sendo geradas por fallback provider |
-| Token budget reset | Budget diario esgotado por comportamento normal | 1 reset parcial (50% do budget) por dia | Agente pode processar requests novamente |
+| Acao                        | Condicao                                        | Limite                                             | Validacao Pos-Acao                            |
+| --------------------------- | ----------------------------------------------- | -------------------------------------------------- | --------------------------------------------- |
+| Restart de agente stateless | Heartbeat stale > 90s                           | 3 restarts por hora                                | Heartbeat retoma, guardrails ativos           |
+| Quarentena de agente        | Output invalido 3x, acesso nao autorizado 2x    | Ilimitado (mas requer review humano para reverter) | Agente isolado, nao recebe requests           |
+| Reducao de permissoes       | Comportamento anomalo detectado                 | 1 reducao por hora (cada vez mais restritivo)      | Agente opera com permissoes reduzidas         |
+| Coordinator swap            | Coordinator primario unhealthy                  | 1 swap por 30 minutos                              | Coordinator secundario assume                 |
+| Provider fallback           | Provider de LLM indisponivel                    | Chain de fallback ate esgotar                      | Respostas sendo geradas por fallback provider |
+| Token budget reset          | Budget diario esgotado por comportamento normal | 1 reset parcial (50% do budget) por dia            | Agente pode processar requests novamente      |
 
 ### 5.2 Implementacao: Agente Controller
 
@@ -528,13 +529,13 @@ metadata:
     app.kubernetes.io/component: controller
     velya.io/team: squad-ai
 spec:
-  schedule: "*/1 * * * *"  # a cada minuto
+  schedule: '*/1 * * * *' # a cada minuto
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
-      activeDeadlineSeconds: 55  # termina antes do proximo ciclo
+      activeDeadlineSeconds: 55 # termina antes do proximo ciclo
       backoffLimit: 0
       template:
         spec:
@@ -557,11 +558,11 @@ spec:
                 allowPrivilegeEscalation: false
               env:
                 - name: PROMETHEUS_URL
-                  value: "http://prometheus.velya-dev-observability:9090"
+                  value: 'http://prometheus.velya-dev-observability:9090'
                 - name: NAMESPACE
-                  value: "velya-dev-agents"
+                  value: 'velya-dev-agents'
                 - name: HEALING_BUDGET_CONFIGMAP
-                  value: "healing-budget-state"
+                  value: 'healing-budget-state'
                 - name: SLACK_WEBHOOK_URL
                   valueFrom:
                     secretRef:
@@ -573,14 +574,14 @@ spec:
                 - |
                   #!/bin/sh
                   set -e
-                  
+
                   echo "=== Velya Agent Healing Controller - $(date -u) ==="
-                  
+
                   # 1. Verificar heartbeats stale
                   STALE_AGENTS=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
                     --data-urlencode 'query=time() - velya_heartbeat_last_timestamp_seconds{namespace="velya-dev-agents"} > 90' \
                     | jq -r '.data.result[].metric.pod // empty')
-                  
+
                   for POD in $STALE_AGENTS; do
                     SERVICE=$(echo $POD | sed 's/-[a-z0-9]*-[a-z0-9]*$//')
                     
@@ -617,12 +618,12 @@ spec:
                     
                     echo "Restart executado. Budget: $NEW_BUDGET/$BUDGET_LIMIT"
                   done
-                  
+
                   # 2. Verificar agentes em loop
                   LOOPING_AGENTS=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
                     --data-urlencode 'query=velya_agent_repeated_output_count{namespace="velya-dev-agents"} > 5' \
                     | jq -r '.data.result[].metric.pod // empty')
-                  
+
                   for POD in $LOOPING_AGENTS; do
                     echo "Quarentinando agente em loop: $POD"
                     kubectl label pod $POD -n $NAMESPACE \
@@ -634,12 +635,12 @@ spec:
                       -H 'Content-type: application/json' \
                       -d "{\"text\":\"QUARENTENA: Agente $POD quarentinado por loop de output. Review manual necessario para restaurar.\"}"
                   done
-                  
+
                   # 3. Verificar guardrails
                   NO_GUARDRAILS=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
                     --data-urlencode 'query=velya_ai_guardrails_active{namespace="velya-dev-agents"} == 0' \
                     | jq -r '.data.result[].metric.pod // empty')
-                  
+
                   for POD in $NO_GUARDRAILS; do
                     echo "CRITICO: Agente $POD sem guardrails ativos. Quarentinando."
                     kubectl label pod $POD -n $NAMESPACE \
@@ -651,7 +652,7 @@ spec:
                       -H 'Content-type: application/json' \
                       -d "{\"text\":\"CRITICO: Agente $POD quarentinado - guardrails INATIVOS. Investigacao IMEDIATA necessaria.\"}"
                   done
-                  
+
                   echo "=== Healing cycle completo ==="
 ```
 
@@ -665,15 +666,15 @@ metadata:
   namespace: velya-dev-agents
 data:
   # Contadores de uso (resetados a cada hora pelo CronJob de reset)
-  ai-gateway_tier3_used: "0"
-  ai-gateway_tier3_limit: "10"
-  agent-coordinator_tier3_used: "0"
-  agent-coordinator_tier3_limit: "10"
-  prompt-registry_tier3_used: "0"
-  prompt-registry_tier3_limit: "5"
-  
+  ai-gateway_tier3_used: '0'
+  ai-gateway_tier3_limit: '10'
+  agent-coordinator_tier3_used: '0'
+  agent-coordinator_tier3_limit: '10'
+  prompt-registry_tier3_used: '0'
+  prompt-registry_tier3_limit: '5'
+
   # Timestamp do ultimo reset
-  last_reset_timestamp: "2026-04-08T14:00:00Z"
+  last_reset_timestamp: '2026-04-08T14:00:00Z'
 ```
 
 ### 5.4 CronJob de Reset de Budget
@@ -688,7 +689,7 @@ metadata:
     app.kubernetes.io/name: healing-budget-reset
     velya.io/team: squad-ai
 spec:
-  schedule: "0 * * * *"  # a cada hora cheia
+  schedule: '0 * * * *' # a cada hora cheia
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -713,7 +714,7 @@ spec:
                 - -c
                 - |
                   echo "Resetando healing budget - $(date -u)"
-                  
+
                   kubectl patch configmap healing-budget-state -n velya-dev-agents \
                     --type merge -p '{
                       "data": {
@@ -723,7 +724,7 @@ spec:
                         "last_reset_timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
                       }
                     }'
-                  
+
                   echo "Budget resetado com sucesso"
 ```
 
@@ -736,29 +737,29 @@ coordinator_swap:
     Temporal garante que workflows em andamento nao sao perdidos.
 
   conditions:
-    - "agent-coordinator primario com readiness falhando por > 60s"
-    - "agent-coordinator primario com heartbeat stale por > 90s"
+    - 'agent-coordinator primario com readiness falhando por > 60s'
+    - 'agent-coordinator primario com heartbeat stale por > 90s'
 
   implementation:
-    strategy: "Active-passive com Temporal task queue"
-    primary_task_queue: "agent-coordinator-primary"
-    secondary_task_queue: "agent-coordinator-secondary"
-    
+    strategy: 'Active-passive com Temporal task queue'
+    primary_task_queue: 'agent-coordinator-primary'
+    secondary_task_queue: 'agent-coordinator-secondary'
+
     swap_procedure:
-      1: "Detectar primario unhealthy"
-      2: "Promover secundario para task queue primaria"
-      3: "Temporal redireciona workflows para secundario"
-      4: "Validar que secundario esta processando"
-      5: "Notificar on-call sobre swap"
-      6: "Investigar primario"
+      1: 'Detectar primario unhealthy'
+      2: 'Promover secundario para task queue primaria'
+      3: 'Temporal redireciona workflows para secundario'
+      4: 'Validar que secundario esta processando'
+      5: 'Notificar on-call sobre swap'
+      6: 'Investigar primario'
 
   limits:
     max_swaps_per_hour: 2
-    min_time_as_primary: 15m  # evita flip-flop
-    
+    min_time_as_primary: 15m # evita flip-flop
+
   rollback:
-    condition: "Secundario tambem fica unhealthy"
-    action: "Escalar para on-call. Ambos coordinators com problema."
+    condition: 'Secundario tambem fica unhealthy'
+    action: 'Escalar para on-call. Ambos coordinators com problema.'
 ```
 
 ---
@@ -822,28 +823,28 @@ healing_metrics:
   - name: velya_healing_actions_total
     type: counter
     labels: [service, tier, action_type, result]
-    description: "Total de acoes de healing executadas"
+    description: 'Total de acoes de healing executadas'
 
   - name: velya_healing_duration_seconds
     type: histogram
     labels: [service, tier, action_type]
-    description: "Duracao das acoes de healing"
+    description: 'Duracao das acoes de healing'
     buckets: [1, 5, 10, 30, 60, 120, 300]
 
   - name: velya_healing_budget_remaining
     type: gauge
     labels: [service, tier]
-    description: "Budget de healing restante"
+    description: 'Budget de healing restante'
 
   - name: velya_healing_escalations_total
     type: counter
     labels: [service, tier, reason]
-    description: "Total de escalacoes para humano"
+    description: 'Total de escalacoes para humano'
 
   - name: velya_healing_effectiveness_ratio
     type: gauge
     labels: [service, tier]
-    description: "Proporcao de healings que resolveram o problema"
+    description: 'Proporcao de healings que resolveram o problema'
 ```
 
 ### Alertas
@@ -864,8 +865,8 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "Healing budget esgotado para {{ $labels.service }} tier {{ $labels.tier }}"
-            action: "Auto-healing desativado. Investigacao manual necessaria."
+            summary: 'Healing budget esgotado para {{ $labels.service }} tier {{ $labels.tier }}'
+            action: 'Auto-healing desativado. Investigacao manual necessaria.'
 
         - alert: VelyaHealingLoopDetected
           expr: |
@@ -876,8 +877,8 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "Healing loop detectado para {{ $labels.service }}"
-            description: "Multiplas tentativas de healing sem sucesso. Possivel problema sistematico."
+            summary: 'Healing loop detectado para {{ $labels.service }}'
+            description: 'Multiplas tentativas de healing sem sucesso. Possivel problema sistematico.'
 
         - alert: VelyaHealingEffectivenessLow
           expr: |
@@ -890,8 +891,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Eficacia de healing abaixo de 50% para {{ $labels.service }}"
-            description: "Menos da metade das acoes de healing esta funcionando."
+            summary: 'Eficacia de healing abaixo de 50% para {{ $labels.service }}'
+            description: 'Menos da metade das acoes de healing esta funcionando.'
 ```
 
 ---
@@ -908,7 +909,7 @@ metadata:
     app.kubernetes.io/name: healing-monitor
     velya.io/team: squad-platform
 spec:
-  schedule: "*/5 * * * *"  # a cada 5 minutos
+  schedule: '*/5 * * * *' # a cada 5 minutos
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -930,50 +931,50 @@ spec:
                   memory: 256Mi
               env:
                 - name: PROMETHEUS_URL
-                  value: "http://prometheus.velya-dev-observability:9090"
+                  value: 'http://prometheus.velya-dev-observability:9090'
                 - name: LOKI_URL
-                  value: "http://loki.velya-dev-observability:3100"
+                  value: 'http://loki.velya-dev-observability:3100'
               command:
                 - /bin/sh
                 - -c
                 - |
                   #!/bin/sh
                   echo "=== Velya Healing Monitor - $(date -u) ==="
-                  
+
                   # 1. Coletar eventos de healing dos ultimos 5 minutos
                   HEALING_EVENTS=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
                     --data-urlencode 'query=increase(velya_healing_actions_total[5m]) > 0' \
                     | jq -r '.data.result[] | "\(.metric.service) \(.metric.tier) \(.metric.action_type) \(.metric.result) \(.value[1])"')
-                  
+
                   if [ -z "$HEALING_EVENTS" ]; then
                     echo "Nenhum evento de healing nos ultimos 5 minutos."
                     exit 0
                   fi
-                  
+
                   echo "Eventos de healing detectados:"
                   echo "$HEALING_EVENTS" | while read SERVICE TIER ACTION RESULT COUNT; do
                     echo "  $SERVICE | Tier $TIER | $ACTION | $RESULT | count=$COUNT"
                   done
-                  
+
                   # 2. Verificar se ha healing loops
                   LOOPS=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
                     --data-urlencode 'query=increase(velya_healing_actions_total{result="failure"}[30m]) > 5' \
                     | jq -r '.data.result[].metric.service // empty')
-                  
+
                   if [ -n "$LOOPS" ]; then
                     echo "ALERTA: Healing loop detectado para: $LOOPS"
                   fi
-                  
+
                   # 3. Verificar budgets
                   LOW_BUDGETS=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
                     --data-urlencode 'query=velya_healing_budget_remaining < 3' \
                     | jq -r '.data.result[] | "\(.metric.service) tier=\(.metric.tier) remaining=\(.value[1])"')
-                  
+
                   if [ -n "$LOW_BUDGETS" ]; then
                     echo "AVISO: Budgets baixos:"
                     echo "$LOW_BUDGETS"
                   fi
-                  
+
                   # 4. Gerar relatorio consolidado para Loki
                   REPORT=$(cat <<REPORT_EOF
                   {
@@ -985,7 +986,7 @@ spec:
                   }
                   REPORT_EOF
                   )
-                  
+
                   echo "Relatorio: $REPORT"
                   echo "=== Monitor completo ==="
 ```
@@ -1007,17 +1008,17 @@ metadata:
   name: agent-healing-controller
   namespace: velya-dev-agents
 rules:
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["get", "list", "delete"]
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["patch"]
+  - apiGroups: ['']
+    resources: ['pods']
+    verbs: ['get', 'list', 'delete']
+  - apiGroups: ['']
+    resources: ['pods']
+    verbs: ['patch']
     # Apenas para adicionar labels de quarentena
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["get", "patch"]
-    resourceNames: ["healing-budget-state"]
+  - apiGroups: ['']
+    resources: ['configmaps']
+    verbs: ['get', 'patch']
+    resourceNames: ['healing-budget-state']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -1045,10 +1046,10 @@ metadata:
   name: healing-budget-controller
   namespace: velya-dev-agents
 rules:
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["get", "patch"]
-    resourceNames: ["healing-budget-state"]
+  - apiGroups: ['']
+    resources: ['configmaps']
+    verbs: ['get', 'patch']
+    resourceNames: ['healing-budget-state']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -1069,10 +1070,10 @@ roleRef:
 
 ## 10. Documentos Relacionados
 
-| Documento | Descricao |
-|---|---|
-| `layered-assurance-model.md` | Modelo completo (L7 = Remediation) |
+| Documento                          | Descricao                                 |
+| ---------------------------------- | ----------------------------------------- |
+| `layered-assurance-model.md`       | Modelo completo (L7 = Remediation)        |
 | `auto-remediation-safety-model.md` | Limites de seguranca para auto-remediacao |
-| `runtime-integrity-model.md` | Metricas e alertas que disparam healing |
-| `progressive-delivery-strategy.md` | Rollback via Argo Rollouts |
-| `kubernetes-policy-guardrails.md` | Politicas de admission |
+| `runtime-integrity-model.md`       | Metricas e alertas que disparam healing   |
+| `progressive-delivery-strategy.md` | Rollback via Argo Rollouts                |
+| `kubernetes-policy-guardrails.md`  | Politicas de admission                    |

@@ -21,17 +21,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(JSON.stringify({
-      level: 'info',
-      service: 'velya-web',
-      event: 'remediation_action_logged',
-      action: body.action,
-      target: body.target,
-      result: body.result,
-      triggeredBy: body.triggeredBy,
-      eventId: stored.id,
-      timestamp: stored.receivedAt,
-    }));
+    console.log(
+      JSON.stringify({
+        level: 'info',
+        service: 'velya-web',
+        event: 'remediation_action_logged',
+        action: body.action,
+        target: body.target,
+        result: body.result,
+        triggeredBy: body.triggeredBy,
+        eventId: stored.id,
+        timestamp: stored.receivedAt,
+      }),
+    );
 
     return NextResponse.json({ received: true, id: stored.id });
   } catch {

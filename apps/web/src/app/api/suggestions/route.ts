@@ -5,8 +5,25 @@ import { audit } from '@/lib/audit-logger';
 type SuggestionStatus = 'pending' | 'reviewing' | 'implementing' | 'done' | 'rejected';
 type SuggestionPriority = 'low' | 'medium' | 'high';
 
-const HIGH_KEYWORDS = ['urgente', 'crítico', 'grave', 'emergência', 'perigo', 'risco', 'falha crítica'];
-const MEDIUM_KEYWORDS = ['importante', 'necessário', 'melhorar', 'problema', 'erro', 'bug', 'lento', 'demora'];
+const HIGH_KEYWORDS = [
+  'urgente',
+  'crítico',
+  'grave',
+  'emergência',
+  'perigo',
+  'risco',
+  'falha crítica',
+];
+const MEDIUM_KEYWORDS = [
+  'importante',
+  'necessário',
+  'melhorar',
+  'problema',
+  'erro',
+  'bug',
+  'lento',
+  'demora',
+];
 
 function detectPriority(text: string): SuggestionPriority {
   const lower = text.toLowerCase();
@@ -123,7 +140,13 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'id, status e actor são obrigatórios' }, { status: 400 });
     }
 
-    const validStatuses: SuggestionStatus[] = ['pending', 'reviewing', 'implementing', 'done', 'rejected'];
+    const validStatuses: SuggestionStatus[] = [
+      'pending',
+      'reviewing',
+      'implementing',
+      'done',
+      'rejected',
+    ];
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: 'Status inválido' }, { status: 400 });
     }

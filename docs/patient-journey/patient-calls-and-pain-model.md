@@ -46,39 +46,39 @@ nenhum chamado fique sem resposta e que nenhuma dor fique sem avaliacao e interv
 
 ### 2.1 Tipos de Fonte
 
-| Fonte | Codigo | Descricao | Prioridade Default |
-|---|---|---|---|
-| Botao de leito | `bed_button` | Botao fisico no leito do paciente | routine |
-| Tablet do leito | `tablet` | Tablet fixo no leito com app de chamado | routine |
-| App do paciente | `app` | Aplicativo mobile do paciente | routine |
-| Chamado por voz | `voice` | Paciente chama verbalmente (detectado por staff) | routine |
-| Acompanhante | `companion` | Acompanhante aciona em nome do paciente | routine |
-| Staff proativo | `staff` | Profissional identifica necessidade nao verbalizada | routine |
-| Alarme de dispositivo | `device_alarm` | Monitor ou equipamento aciona por parametro | urgent |
-| Alarme de deterioracao | `deterioration_alert` | Sistema detecta risco de deterioracao | emergency |
+| Fonte                  | Codigo                | Descricao                                           | Prioridade Default |
+| ---------------------- | --------------------- | --------------------------------------------------- | ------------------ |
+| Botao de leito         | `bed_button`          | Botao fisico no leito do paciente                   | routine            |
+| Tablet do leito        | `tablet`              | Tablet fixo no leito com app de chamado             | routine            |
+| App do paciente        | `app`                 | Aplicativo mobile do paciente                       | routine            |
+| Chamado por voz        | `voice`               | Paciente chama verbalmente (detectado por staff)    | routine            |
+| Acompanhante           | `companion`           | Acompanhante aciona em nome do paciente             | routine            |
+| Staff proativo         | `staff`               | Profissional identifica necessidade nao verbalizada | routine            |
+| Alarme de dispositivo  | `device_alarm`        | Monitor ou equipamento aciona por parametro         | urgent             |
+| Alarme de deterioracao | `deterioration_alert` | Sistema detecta risco de deterioracao               | emergency          |
 
 ### 2.2 Categorias de Chamado
 
 ```typescript
 type CallCategory =
-  | 'pain'                // Dor - qualquer queixa de dor
-  | 'physical_help'       // Auxilio fisico - levantar, sentar, caminhar
-  | 'hygiene'             // Higiene - banho, troca, fralda
-  | 'positioning'         // Posicionamento - mudar de posicao, decubito
-  | 'water_food'          // Agua/alimento - sede, fome, dieta
-  | 'discomfort'          // Desconforto - calor, frio, barulho, luz
-  | 'missing_medication'  // Medicacao ausente - paciente questiona atraso
-  | 'equipment'           // Equipamento - soro acabando, alarme, bomba
-  | 'anxiety_fear'        // Ansiedade/medo - necessidade emocional
-  | 'urgent_need'         // Necessidade urgente - mal estar subito
-  | 'information'         // Informacao - duvida, visita medica, resultado
-  | 'bathroom'            // Banheiro - auxilio para ir ao banheiro
-  | 'nausea_vomiting'     // Nausea/vomito - queixa gastrointestinal
-  | 'respiratory'         // Respiratorio - dispneia, falta de ar
-  | 'fall_risk'           // Queda - paciente tentando levantar sozinho
-  | 'visitor'             // Visitante - solicitacao sobre visitas
-  | 'discharge'           // Alta - duvidas sobre alta
-  | 'other';              // Outros
+  | 'pain' // Dor - qualquer queixa de dor
+  | 'physical_help' // Auxilio fisico - levantar, sentar, caminhar
+  | 'hygiene' // Higiene - banho, troca, fralda
+  | 'positioning' // Posicionamento - mudar de posicao, decubito
+  | 'water_food' // Agua/alimento - sede, fome, dieta
+  | 'discomfort' // Desconforto - calor, frio, barulho, luz
+  | 'missing_medication' // Medicacao ausente - paciente questiona atraso
+  | 'equipment' // Equipamento - soro acabando, alarme, bomba
+  | 'anxiety_fear' // Ansiedade/medo - necessidade emocional
+  | 'urgent_need' // Necessidade urgente - mal estar subito
+  | 'information' // Informacao - duvida, visita medica, resultado
+  | 'bathroom' // Banheiro - auxilio para ir ao banheiro
+  | 'nausea_vomiting' // Nausea/vomito - queixa gastrointestinal
+  | 'respiratory' // Respiratorio - dispneia, falta de ar
+  | 'fall_risk' // Queda - paciente tentando levantar sozinho
+  | 'visitor' // Visitante - solicitacao sobre visitas
+  | 'discharge' // Alta - duvidas sobre alta
+  | 'other'; // Outros
 ```
 
 ---
@@ -115,10 +115,10 @@ interface PatientCallRecord {
 
   /** Dados de dor (se categoria = pain) */
   pain_data?: {
-    intensity: number;           // 0-10
+    intensity: number; // 0-10
     scale_used: PainScale;
     location: string;
-    character: string;           // pontada, queimacao, pressao, etc.
+    character: string; // pontada, queimacao, pressao, etc.
     onset: 'sudden' | 'gradual' | 'chronic' | 'worsening';
     duration: string;
     aggravating_factors: string[];
@@ -182,7 +182,7 @@ interface PatientCallRecord {
 
   /** Acao clinica vinculada (se gerou acao) */
   linked_clinical_actions?: Array<{
-    action_type: string;       // medication_given, assessment, procedure, etc.
+    action_type: string; // medication_given, assessment, procedure, etc.
     event_id: string;
     description: string;
     performed_at: string;
@@ -206,23 +206,37 @@ interface PatientCallRecord {
   };
 }
 
-type CallSource = 'bed_button' | 'tablet' | 'app' | 'voice'
-               | 'companion' | 'staff' | 'device_alarm' | 'deterioration_alert';
+type CallSource =
+  | 'bed_button'
+  | 'tablet'
+  | 'app'
+  | 'voice'
+  | 'companion'
+  | 'staff'
+  | 'device_alarm'
+  | 'deterioration_alert';
 
-type CallStatus = 'pending' | 'acknowledged' | 'responding' | 'resolved'
-               | 'abandoned' | 'redirected' | 'escalated' | 'cancelled';
+type CallStatus =
+  | 'pending'
+  | 'acknowledged'
+  | 'responding'
+  | 'resolved'
+  | 'abandoned'
+  | 'redirected'
+  | 'escalated'
+  | 'cancelled';
 
 type CallResolutionType =
-  | 'immediate_action'        // Acao imediata no leito
-  | 'medication_given'        // Medicacao administrada
-  | 'assessment_performed'    // Avaliacao realizada
-  | 'comfort_measure'         // Medida de conforto
-  | 'patient_education'       // Orientacao ao paciente
-  | 'physician_notified'      // Medico notificado (pendencia transferida)
-  | 'scheduled_for_later'     // Agendado para horario posterior
-  | 'equipment_adjusted'      // Equipamento ajustado
-  | 'no_action_needed'        // Verificado, sem acao necessaria
-  | 'patient_self_resolved';  // Paciente resolveu sozinho
+  | 'immediate_action' // Acao imediata no leito
+  | 'medication_given' // Medicacao administrada
+  | 'assessment_performed' // Avaliacao realizada
+  | 'comfort_measure' // Medida de conforto
+  | 'patient_education' // Orientacao ao paciente
+  | 'physician_notified' // Medico notificado (pendencia transferida)
+  | 'scheduled_for_later' // Agendado para horario posterior
+  | 'equipment_adjusted' // Equipamento ajustado
+  | 'no_action_needed' // Verificado, sem acao necessaria
+  | 'patient_self_resolved'; // Paciente resolveu sozinho
 
 type PainScale = 'NRS' | 'VAS' | 'Wong-Baker' | 'BPS' | 'CPOT' | 'FLACC' | 'NIPS';
 ```
@@ -349,12 +363,12 @@ interface PainIntervention {
 }
 
 type PainInterventionType =
-  | 'pharmacological'          // Medicacao analgesica
-  | 'non_pharmacological'      // Tecnicas nao farmacologicas
-  | 'positioning'              // Mudanca de posicao
-  | 'combined'                 // Farmacologica + nao farmacologica
-  | 'physician_consultation'   // Consulta medica para revisao
-  | 'specialist_referral';     // Encaminhamento para especialista da dor
+  | 'pharmacological' // Medicacao analgesica
+  | 'non_pharmacological' // Tecnicas nao farmacologicas
+  | 'positioning' // Mudanca de posicao
+  | 'combined' // Farmacologica + nao farmacologica
+  | 'physician_consultation' // Consulta medica para revisao
+  | 'specialist_referral'; // Encaminhamento para especialista da dor
 ```
 
 ### 4.2 Regras de Dor
@@ -370,11 +384,7 @@ const PAIN_RULES = [
       no_intervention_within_minutes: 30,
     },
     severity: 'critical',
-    actions: [
-      'notify_responsible_nurse',
-      'notify_prescriber',
-      'create_gap_event',
-    ],
+    actions: ['notify_responsible_nurse', 'notify_prescriber', 'create_gap_event'],
   },
   {
     rule_id: 'PAIN-002',
@@ -386,10 +396,7 @@ const PAIN_RULES = [
       reassessment_window_minutes: 60, // Padrao: 1h apos intervencao
     },
     severity: 'high',
-    actions: [
-      'notify_responsible_nurse',
-      'create_gap_event',
-    ],
+    actions: ['notify_responsible_nurse', 'create_gap_event'],
   },
   {
     rule_id: 'PAIN-003',
@@ -400,10 +407,7 @@ const PAIN_RULES = [
       no_physician_review_since_first: true,
     },
     severity: 'high',
-    actions: [
-      'notify_prescriber',
-      'suggest_plan_review',
-    ],
+    actions: ['notify_prescriber', 'suggest_plan_review'],
   },
   {
     rule_id: 'PAIN-004',
@@ -415,11 +419,7 @@ const PAIN_RULES = [
       no_improvement_documented: true,
     },
     severity: 'high',
-    actions: [
-      'notify_prescriber',
-      'notify_charge_nurse',
-      'create_pain_management_alert',
-    ],
+    actions: ['notify_prescriber', 'notify_charge_nurse', 'create_pain_management_alert'],
   },
   {
     rule_id: 'PAIN-005',
@@ -430,10 +430,7 @@ const PAIN_RULES = [
       patient_conscious: true,
     },
     severity: 'medium',
-    actions: [
-      'notify_responsible_nurse',
-      'create_gap_event',
-    ],
+    actions: ['notify_responsible_nurse', 'create_gap_event'],
   },
   {
     rule_id: 'PAIN-006',
@@ -444,10 +441,7 @@ const PAIN_RULES = [
       no_pain_plan_review: true,
     },
     severity: 'medium',
-    actions: [
-      'notify_prescriber',
-      'suggest_scheduled_analgesic',
-    ],
+    actions: ['notify_prescriber', 'suggest_scheduled_analgesic'],
   },
 ];
 ```
@@ -469,10 +463,7 @@ const CALL_RULES = [
       elapsed_minutes: { gte: 5 },
     },
     severity: 'high',
-    actions: [
-      'escalate_to_charge_nurse',
-      'alert_dashboard',
-    ],
+    actions: ['escalate_to_charge_nurse', 'alert_dashboard'],
   },
   {
     rule_id: 'CALL-002',
@@ -484,12 +475,7 @@ const CALL_RULES = [
       elapsed_minutes: { gte: 2 },
     },
     severity: 'critical',
-    actions: [
-      'escalate_to_charge_nurse',
-      'escalate_to_coordinator',
-      'alert_dashboard',
-      'send_sms',
-    ],
+    actions: ['escalate_to_charge_nurse', 'escalate_to_coordinator', 'alert_dashboard', 'send_sms'],
   },
   {
     rule_id: 'CALL-003',
@@ -502,10 +488,7 @@ const CALL_RULES = [
       no_resolution: true,
     },
     severity: 'medium',
-    actions: [
-      'remind_documentation',
-      'flag_in_timeline',
-    ],
+    actions: ['remind_documentation', 'flag_in_timeline'],
   },
   {
     rule_id: 'CALL-004',
@@ -516,11 +499,7 @@ const CALL_RULES = [
       same_patient: true,
     },
     severity: 'high',
-    actions: [
-      'notify_charge_nurse',
-      'flag_as_recurring',
-      'suggest_proactive_visit',
-    ],
+    actions: ['notify_charge_nurse', 'flag_as_recurring', 'suggest_proactive_visit'],
   },
   {
     rule_id: 'CALL-005',
@@ -562,10 +541,7 @@ const CALL_RULES = [
       no_clinical_event_within_minutes: 30,
     },
     severity: 'medium',
-    actions: [
-      'flag_documentation_gap',
-      'create_gap_event',
-    ],
+    actions: ['flag_documentation_gap', 'create_gap_event'],
   },
 ];
 ```
@@ -843,9 +819,9 @@ interface BedButtonIntegration {
   };
 
   mapping: {
-    single_press: { urgency: 'routine', auto_category: null };     // Pede classificacao
-    double_press: { urgency: 'urgent', auto_category: null };      // Pede classificacao
-    long_press: { urgency: 'emergency', auto_category: 'urgent_need' }; // Auto-classifica
+    single_press: { urgency: 'routine'; auto_category: null }; // Pede classificacao
+    double_press: { urgency: 'urgent'; auto_category: null }; // Pede classificacao
+    long_press: { urgency: 'emergency'; auto_category: 'urgent_need' }; // Auto-classifica
   };
 }
 ```
@@ -863,9 +839,9 @@ interface BedTabletIntegration {
     /** Campos coletados */
     fields: {
       category: { required: true };
-      pain_intensity: { required: false, show_if: 'category == pain' };
+      pain_intensity: { required: false; show_if: 'category == pain' };
       description: { required: false };
-      urgency: { required: false, default: 'routine' };
+      urgency: { required: false; default: 'routine' };
     };
 
     /** Feedback visual */
@@ -923,13 +899,7 @@ interface CallMonitoringWorkflow {
     'scheduleSatisfactionCollection',
   ];
 
-  signals: [
-    'callResponded',
-    'callResolved',
-    'callAbandoned',
-    'callReopened',
-    'callCancelled',
-  ];
+  signals: ['callResponded', 'callResolved', 'callAbandoned', 'callReopened', 'callCancelled'];
 
   timers: {
     response_timeout_routine: '5m';
@@ -978,18 +948,18 @@ interface PainMonitoringWorkflow {
 
 ## 11. Alertas e Notificacoes
 
-| Alerta | Condicao | Destinatario | Canal | Timeout para Escalacao |
-|---|---|---|---|---|
-| `CallPending` | Chamado > 5 min sem resposta | Enf. Responsavel | Push | 3 min -> Chefe |
-| `CallUrgent` | Chamado urgente > 2 min | Enf. + Chefe | Push + SMS | 1 min -> Coord. |
-| `CallEmergency` | Chamado emergencia > 30s | Equipe toda | Push + SMS + Alarme | Imediato |
-| `CallAbandoned` | Chamado abandonado | Chefe + Qualidade | Push + Email | - |
-| `CallRecurring` | 3+ chamados em 2h | Chefe | Push | - |
-| `PainHigh` | Dor >= 7 | Enf. + Medico | Push | 15 min |
-| `PainNoIntervention` | Dor >= 7 sem intervencao 30 min | Chefe + Medico | Push | - |
-| `PainReassessmentDue` | Reavaliacao em atraso | Enf. Responsavel | Push | 30 min -> Chefe |
-| `PainPersistent` | Dor alta persistente (3 avaliacoes) | Medico | Push | - |
-| `MissingMedCall` | Chamado "medicacao ausente" | Enf. + Farmacia | Push | - |
+| Alerta                | Condicao                            | Destinatario      | Canal               | Timeout para Escalacao |
+| --------------------- | ----------------------------------- | ----------------- | ------------------- | ---------------------- |
+| `CallPending`         | Chamado > 5 min sem resposta        | Enf. Responsavel  | Push                | 3 min -> Chefe         |
+| `CallUrgent`          | Chamado urgente > 2 min             | Enf. + Chefe      | Push + SMS          | 1 min -> Coord.        |
+| `CallEmergency`       | Chamado emergencia > 30s            | Equipe toda       | Push + SMS + Alarme | Imediato               |
+| `CallAbandoned`       | Chamado abandonado                  | Chefe + Qualidade | Push + Email        | -                      |
+| `CallRecurring`       | 3+ chamados em 2h                   | Chefe             | Push                | -                      |
+| `PainHigh`            | Dor >= 7                            | Enf. + Medico     | Push                | 15 min                 |
+| `PainNoIntervention`  | Dor >= 7 sem intervencao 30 min     | Chefe + Medico    | Push                | -                      |
+| `PainReassessmentDue` | Reavaliacao em atraso               | Enf. Responsavel  | Push                | 30 min -> Chefe        |
+| `PainPersistent`      | Dor alta persistente (3 avaliacoes) | Medico            | Push                | -                      |
+| `MissingMedCall`      | Chamado "medicacao ausente"         | Enf. + Farmacia   | Push                | -                      |
 
 ---
 

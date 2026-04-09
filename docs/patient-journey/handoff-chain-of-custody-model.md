@@ -80,28 +80,28 @@ interface CustodyHolder {
   practitioner_id: string;
   name: string;
   role: string;
-  registration: string;       // CRM, COREN, CREFITO, etc.
+  registration: string; // CRM, COREN, CREFITO, etc.
   assumed_at: string;
   shift: 'morning' | 'afternoon' | 'night' | 'on_call' | 'continuous';
-  expected_until?: string;     // Quando espera-se a troca
+  expected_until?: string; // Quando espera-se a troca
   handoff_received_from?: string;
   handoff_id?: string;
 }
 
 type CustodyStatus =
-  | 'complete'           // Todas as funcoes essenciais preenchidas
-  | 'partial_gap'        // Alguma funcao sem responsavel (mas tem cobertura minima)
-  | 'critical_gap'       // Funcao critica sem responsavel
+  | 'complete' // Todas as funcoes essenciais preenchidas
+  | 'partial_gap' // Alguma funcao sem responsavel (mas tem cobertura minima)
+  | 'critical_gap' // Funcao critica sem responsavel
   | 'handoff_in_progress' // Transicao em andamento
-  | 'undefined';         // Estado nao definido (erro)
+  | 'undefined'; // Estado nao definido (erro)
 
 interface CustodyGap {
   gap_id: string;
-  role: string;              // Papel sem responsavel
+  role: string; // Papel sem responsavel
   started_at: string;
   duration_seconds: number;
   severity: 'critical' | 'high' | 'medium';
-  reason: string;            // 'handoff_not_accepted', 'no_assignment', 'shift_gap'
+  reason: string; // 'handoff_not_accepted', 'no_assignment', 'shift_gap'
   escalated: boolean;
   escalated_to?: string;
 }
@@ -229,7 +229,7 @@ interface StructuredHandoff {
   /** Ciclo de vida do handoff */
   lifecycle: {
     initiated_at: string;
-    communicated_at?: string;   // Quando o conteudo foi transmitido
+    communicated_at?: string; // Quando o conteudo foi transmitido
     communication_method: 'in_person' | 'phone' | 'video' | 'written_only';
     read_back_performed?: boolean; // Leitura de retorno feita?
 
@@ -239,10 +239,10 @@ interface StructuredHandoff {
     refused_at?: string;
     refusal_reason?: string;
 
-    expired_at?: string;  // Se nao aceito dentro do SLA
+    expired_at?: string; // Se nao aceito dentro do SLA
 
-    transition_time_seconds?: number;  // Tempo entre inicio e aceitacao
-    dead_time_seconds?: number;        // Tempo sem custodia definida
+    transition_time_seconds?: number; // Tempo entre inicio e aceitacao
+    dead_time_seconds?: number; // Tempo sem custodia definida
   };
 
   /** Status */
@@ -259,32 +259,32 @@ interface StructuredHandoff {
     created_at: string;
     updated_at: string;
     auto_generated: boolean; // Se foi gerado automaticamente pelo sistema
-    quality_score: number;   // Score de qualidade do handoff (0-100)
+    quality_score: number; // Score de qualidade do handoff (0-100)
   };
 }
 
 type HandoffReason =
-  | 'shift_change'           // Troca de turno
-  | 'unit_transfer'          // Transferencia de unidade
-  | 'procedure_transfer'     // Ida para procedimento
-  | 'specialist_referral'    // Encaminhamento para especialista
-  | 'break_coverage'         // Cobertura de intervalo
+  | 'shift_change' // Troca de turno
+  | 'unit_transfer' // Transferencia de unidade
+  | 'procedure_transfer' // Ida para procedimento
+  | 'specialist_referral' // Encaminhamento para especialista
+  | 'break_coverage' // Cobertura de intervalo
   | 'emergency_reassignment' // Reatribuicao por emergencia
-  | 'census_balancing'       // Balanceamento de censo
-  | 'discharge_handoff'      // Handoff para alta
-  | 'patient_request'        // Solicitacao do paciente
+  | 'census_balancing' // Balanceamento de censo
+  | 'discharge_handoff' // Handoff para alta
+  | 'patient_request' // Solicitacao do paciente
   | 'other';
 
 type HandoffFormat = 'SBAR' | 'I-PASS' | 'closed_loop' | 'simplified';
 
 type HandoffStatus =
-  | 'initiated'    // Handoff criado, ainda nao comunicado
+  | 'initiated' // Handoff criado, ainda nao comunicado
   | 'communicated' // Conteudo transmitido ao destinatario
-  | 'pending'      // Aguardando aceitacao
-  | 'accepted'     // Aceito pelo destinatario
-  | 'refused'      // Recusado pelo destinatario
-  | 'expired'      // Nao aceito dentro do SLA
-  | 'cancelled';   // Cancelado pelo originador
+  | 'pending' // Aguardando aceitacao
+  | 'accepted' // Aceito pelo destinatario
+  | 'refused' // Recusado pelo destinatario
+  | 'expired' // Nao aceito dentro do SLA
+  | 'cancelled'; // Cancelado pelo originador
 ```
 
 ### 3.2 Formatos de Handoff
@@ -346,7 +346,7 @@ interface IPASSContent {
   };
 
   patient_summary: {
-    one_liner: string;  // Resumo em uma frase
+    one_liner: string; // Resumo em uma frase
     events_leading_to_admission: string;
     hospital_course: string;
     ongoing_assessment: string;
@@ -362,16 +362,17 @@ interface IPASSContent {
   }>;
 
   situation_awareness: {
-    know_about: string[];      // O que precisa saber
-    anticipate: string[];      // O que antecipar
-    if_then_plans: Array<{     // Planos condicionais
+    know_about: string[]; // O que precisa saber
+    anticipate: string[]; // O que antecipar
+    if_then_plans: Array<{
+      // Planos condicionais
       condition: string;
       action: string;
     }>;
   };
 
   synthesis_by_receiver: {
-    summary: string;           // Resumo do receptor
+    summary: string; // Resumo do receptor
     questions: string[];
     read_back_confirmed: boolean;
   };
@@ -417,11 +418,11 @@ interface ClosedLoopContent {
 interface SimplifiedContent {
   format: 'simplified';
 
-  patient_summary: string;       // Resumo em 2-3 frases
-  critical_now: string[];        // Itens criticos imediatos
-  pending: string[];             // Pendencias
-  next_actions: string[];        // Proximas acoes
-  special_attention: string[];   // Atencao especial
+  patient_summary: string; // Resumo em 2-3 frases
+  critical_now: string[]; // Itens criticos imediatos
+  pending: string[]; // Pendencias
+  next_actions: string[]; // Proximas acoes
+  special_attention: string[]; // Atencao especial
 }
 ```
 
@@ -433,10 +434,16 @@ interface SimplifiedContent {
 interface HandoffPendingItem {
   item_id: string;
   description: string;
-  category: 'clinical' | 'medication' | 'diagnostic' | 'procedural' | 'communication' | 'administrative';
+  category:
+    | 'clinical'
+    | 'medication'
+    | 'diagnostic'
+    | 'procedural'
+    | 'communication'
+    | 'administrative';
   priority: 'critical' | 'high' | 'medium' | 'low';
   due_at?: string;
-  source_event_id?: string;  // Evento que originou a pendencia
+  source_event_id?: string; // Evento que originou a pendencia
   status: 'transferred' | 'acknowledged' | 'in_progress' | 'completed' | 'dropped';
   completed_at?: string;
   completed_by?: string;
@@ -463,13 +470,13 @@ interface HandoffPendingItem {
 
 ### 5.1 SLAs de Aceitacao
 
-| Tipo de Handoff | SLA de Aceitacao | Escalacao Nivel 1 | Escalacao Nivel 2 |
-|---|---|---|---|
-| Troca de turno | 10 minutos | Enfermeiro Chefe | Coordenacao |
-| Transferencia de unidade | 15 minutos | Enf. Chefe destino | Supervisao |
-| Cobertura de intervalo | 5 minutos | Enfermeiro Chefe | - |
-| Emergencia | 2 minutos | Coordenacao | Diretoria |
-| Alta | 30 minutos | Enf. Chefe | - |
+| Tipo de Handoff          | SLA de Aceitacao | Escalacao Nivel 1  | Escalacao Nivel 2 |
+| ------------------------ | ---------------- | ------------------ | ----------------- |
+| Troca de turno           | 10 minutos       | Enfermeiro Chefe   | Coordenacao       |
+| Transferencia de unidade | 15 minutos       | Enf. Chefe destino | Supervisao        |
+| Cobertura de intervalo   | 5 minutos        | Enfermeiro Chefe   | -                 |
+| Emergencia               | 2 minutos        | Coordenacao        | Diretoria         |
+| Alta                     | 30 minutos       | Enf. Chefe         | -                 |
 
 ### 5.2 Regras de Deteccao
 
@@ -484,11 +491,7 @@ const HANDOFF_RULES = [
       elapsed_beyond_sla: true,
     },
     severity: 'high',
-    actions: [
-      'escalate_per_sla_config',
-      'flag_in_custody_view',
-      'create_gap_event',
-    ],
+    actions: ['escalate_per_sla_config', 'flag_in_custody_view', 'create_gap_event'],
   },
   {
     rule_id: 'HO-002',
@@ -500,11 +503,7 @@ const HANDOFF_RULES = [
       elapsed_minutes: { gte: 5 },
     },
     severity: 'critical',
-    actions: [
-      'escalate_to_coordinator',
-      'maintain_origin_custody',
-      'create_critical_alert',
-    ],
+    actions: ['escalate_to_coordinator', 'maintain_origin_custody', 'create_critical_alert'],
   },
   {
     rule_id: 'HO-003',
@@ -515,11 +514,7 @@ const HANDOFF_RULES = [
       duration_minutes: { gte: 5 },
     },
     severity: 'critical',
-    actions: [
-      'escalate_to_coordinator',
-      'alert_command_center',
-      'create_incident',
-    ],
+    actions: ['escalate_to_coordinator', 'alert_command_center', 'create_incident'],
   },
   {
     rule_id: 'HO-004',
@@ -531,11 +526,7 @@ const HANDOFF_RULES = [
       patient_status: 'active',
     },
     severity: 'high',
-    actions: [
-      'notify_incoming_nurse',
-      'notify_charge_nurse',
-      'create_gap_event',
-    ],
+    actions: ['notify_incoming_nurse', 'notify_charge_nurse', 'create_gap_event'],
   },
   {
     rule_id: 'HO-005',
@@ -546,10 +537,7 @@ const HANDOFF_RULES = [
       system_open_items: { gte: 1 },
     },
     severity: 'medium',
-    actions: [
-      'flag_quality_concern',
-      'suggest_review',
-    ],
+    actions: ['flag_quality_concern', 'suggest_review'],
   },
   {
     rule_id: 'HO-006',
@@ -560,11 +548,7 @@ const HANDOFF_RULES = [
       item_status: 'transferred',
     },
     severity: 'high',
-    actions: [
-      'escalate_to_coordinator',
-      'flag_persistent_pending',
-      'create_task_for_resolution',
-    ],
+    actions: ['escalate_to_coordinator', 'flag_persistent_pending', 'create_task_for_resolution'],
   },
   {
     rule_id: 'HO-007',
@@ -575,11 +559,7 @@ const HANDOFF_RULES = [
       no_handoff_within_minutes: 30,
     },
     severity: 'critical',
-    actions: [
-      'notify_both_units',
-      'create_gap_event',
-      'require_retroactive_handoff',
-    ],
+    actions: ['notify_both_units', 'create_gap_event', 'require_retroactive_handoff'],
   },
   {
     rule_id: 'HO-008',
@@ -589,10 +569,7 @@ const HANDOFF_RULES = [
       quality_score: { lt: 60 },
     },
     severity: 'medium',
-    actions: [
-      'flag_for_quality_review',
-      'suggest_improvement',
-    ],
+    actions: ['flag_for_quality_review', 'suggest_improvement'],
   },
 ];
 ```
@@ -605,9 +582,7 @@ const HANDOFF_RULES = [
 /**
  * Calcula o score de qualidade de um handoff (0-100).
  */
-function calculateHandoffQualityScore(
-  handoff: StructuredHandoff
-): number {
+function calculateHandoffQualityScore(handoff: StructuredHandoff): number {
   let score = 0;
   const criteria: Array<{ name: string; weight: number; check: () => boolean }> = [
     {
@@ -631,7 +606,7 @@ function calculateHandoffQualityScore(
     {
       name: 'Pendencias com prioridade definida',
       weight: 5,
-      check: () => handoff.pending_items.every(item => !!item.priority),
+      check: () => handoff.pending_items.every((item) => !!item.priority),
     },
     {
       name: 'Avaliacao de risco preenchida',
@@ -662,9 +637,7 @@ function calculateHandoffQualityScore(
     {
       name: 'Comunicacao presencial ou por telefone',
       weight: 10,
-      check: () => ['in_person', 'phone', 'video'].includes(
-        handoff.lifecycle.communication_method
-      ),
+      check: () => ['in_person', 'phone', 'video'].includes(handoff.lifecycle.communication_method),
     },
     {
       name: 'Read-back realizado',
@@ -877,12 +850,12 @@ interface CustodyMonitoringWorkflow {
 
   // Executa continuamente durante a internacao
   steps: [
-    'checkCurrentCustody',          // Verifica custodia atual
-    'detectShiftBoundaries',        // Detecta limites de turno
-    'checkHandoffExpected',         // Verifica se handoff deveria ter ocorrido
-    'checkGaps',                    // Verifica gaps
-    'updateCustodyProjection',      // Atualiza projecao
-    'sleep_5m',                     // Aguarda 5 minutos
+    'checkCurrentCustody', // Verifica custodia atual
+    'detectShiftBoundaries', // Detecta limites de turno
+    'checkHandoffExpected', // Verifica se handoff deveria ter ocorrido
+    'checkGaps', // Verifica gaps
+    'updateCustodyProjection', // Atualiza projecao
+    'sleep_5m', // Aguarda 5 minutos
     // Loop
   ];
 
@@ -1028,16 +1001,16 @@ interface CustodyMonitoringWorkflow {
 
 ## 11. Alertas e Notificacoes
 
-| Alerta | Condicao | Destinatario | Canal |
-|---|---|---|---|
-| `HandoffPending` | Handoff > SLA sem aceitacao | Enf. Chefe | Push |
-| `HandoffRefused` | Handoff recusado | Coordenacao | Push + Email |
-| `CustodyGap` | Paciente sem responsavel > 5 min | Coordenacao | Push + SMS |
-| `ShiftNoHandoff` | Turno iniciou sem handoff | Enf. entrante + Chefe | Push |
-| `TransferNoHandoff` | Transferencia sem handoff | Ambas unidades | Push |
-| `PendingCirculating` | Pendencia em 3+ handoffs | Coordenacao | Push |
-| `LowQualityHandoff` | Score < 60 | Enf. Chefe | Push |
-| `DeadTime` | Tempo morto > 10 min em transicao | Coordenacao | Push |
+| Alerta               | Condicao                          | Destinatario          | Canal        |
+| -------------------- | --------------------------------- | --------------------- | ------------ |
+| `HandoffPending`     | Handoff > SLA sem aceitacao       | Enf. Chefe            | Push         |
+| `HandoffRefused`     | Handoff recusado                  | Coordenacao           | Push + Email |
+| `CustodyGap`         | Paciente sem responsavel > 5 min  | Coordenacao           | Push + SMS   |
+| `ShiftNoHandoff`     | Turno iniciou sem handoff         | Enf. entrante + Chefe | Push         |
+| `TransferNoHandoff`  | Transferencia sem handoff         | Ambas unidades        | Push         |
+| `PendingCirculating` | Pendencia em 3+ handoffs          | Coordenacao           | Push         |
+| `LowQualityHandoff`  | Score < 60                        | Enf. Chefe            | Push         |
+| `DeadTime`           | Tempo morto > 10 min em transicao | Coordenacao           | Push         |
 
 ---
 

@@ -40,30 +40,30 @@ e cada recurso FHIR gera obrigatoriamente um **Provenance** e um **AuditEvent**.
 
 ### 2.1 Tabela de Mapeamento: Evento -> Recurso FHIR
 
-| Tipo de Evento | Recurso FHIR Principal | Recursos Associados |
-|---|---|---|
-| `admission` | Encounter | Location, Practitioner, Condition |
-| `transfer` | Encounter (update) + EncounterHistory | Location |
-| `discharge` | Encounter (update) | EncounterHistory |
-| `diagnosis` | Condition | Encounter |
-| `assessment` | Observation | Encounter, Practitioner |
-| `vital_signs` | Observation (category: vital-signs) | Encounter, Device |
-| `pain_assessment` | Observation (code: pain-severity) | Encounter |
-| `medication_request.*` | MedicationRequest | Encounter, Practitioner, Medication |
-| `medication_administration.*` | MedicationAdministration | MedicationRequest, Encounter, Practitioner |
-| `procedure` | Procedure | Encounter, Practitioner |
-| `lab_result` | DiagnosticReport + Observation | ServiceRequest, Specimen |
-| `imaging_result` | DiagnosticReport + ImagingStudy | ServiceRequest |
-| `clinical_note` | DocumentReference | Encounter, Practitioner |
-| `care_plan` | CarePlan | Condition, Goal, Activity |
-| `patient_call` | Communication | Encounter, Patient |
-| `call_response` | Communication (reply) | Communication (original) |
-| `handoff_initiated` | Task (status: requested) | Encounter, Practitioner |
-| `handoff_accepted` | Task (status: accepted) | Task (original) |
-| `scheduling` | ServiceRequest | Encounter |
-| `consent_obtained` | Consent | Patient, Organization |
-| `record_accessed` | AuditEvent | Patient, Practitioner |
-| `any_event` | Provenance | (recurso alvo) |
+| Tipo de Evento                | Recurso FHIR Principal                | Recursos Associados                        |
+| ----------------------------- | ------------------------------------- | ------------------------------------------ |
+| `admission`                   | Encounter                             | Location, Practitioner, Condition          |
+| `transfer`                    | Encounter (update) + EncounterHistory | Location                                   |
+| `discharge`                   | Encounter (update)                    | EncounterHistory                           |
+| `diagnosis`                   | Condition                             | Encounter                                  |
+| `assessment`                  | Observation                           | Encounter, Practitioner                    |
+| `vital_signs`                 | Observation (category: vital-signs)   | Encounter, Device                          |
+| `pain_assessment`             | Observation (code: pain-severity)     | Encounter                                  |
+| `medication_request.*`        | MedicationRequest                     | Encounter, Practitioner, Medication        |
+| `medication_administration.*` | MedicationAdministration              | MedicationRequest, Encounter, Practitioner |
+| `procedure`                   | Procedure                             | Encounter, Practitioner                    |
+| `lab_result`                  | DiagnosticReport + Observation        | ServiceRequest, Specimen                   |
+| `imaging_result`              | DiagnosticReport + ImagingStudy       | ServiceRequest                             |
+| `clinical_note`               | DocumentReference                     | Encounter, Practitioner                    |
+| `care_plan`                   | CarePlan                              | Condition, Goal, Activity                  |
+| `patient_call`                | Communication                         | Encounter, Patient                         |
+| `call_response`               | Communication (reply)                 | Communication (original)                   |
+| `handoff_initiated`           | Task (status: requested)              | Encounter, Practitioner                    |
+| `handoff_accepted`            | Task (status: accepted)               | Task (original)                            |
+| `scheduling`                  | ServiceRequest                        | Encounter                                  |
+| `consent_obtained`            | Consent                               | Patient, Organization                      |
+| `record_accessed`             | AuditEvent                            | Patient, Practitioner                      |
+| `any_event`                   | Provenance                            | (recurso alvo)                             |
 
 ---
 
@@ -78,9 +78,7 @@ e cada recurso FHIR gera obrigatoriamente um **Provenance** e um **AuditEvent**.
   "meta": {
     "versionId": "3",
     "lastUpdated": "2026-04-08T12:05:00-03:00",
-    "profile": [
-      "http://velya.health/fhir/StructureDefinition/VelyaEncounter"
-    ]
+    "profile": ["http://velya.health/fhir/StructureDefinition/VelyaEncounter"]
   },
   "identifier": [
     {
@@ -262,9 +260,7 @@ e cada recurso FHIR gera obrigatoriamente um **Provenance** e um **AuditEvent**.
   "resourceType": "MedicationRequest",
   "id": "med-request-001",
   "meta": {
-    "profile": [
-      "http://velya.health/fhir/StructureDefinition/VelyaMedicationRequest"
-    ]
+    "profile": ["http://velya.health/fhir/StructureDefinition/VelyaMedicationRequest"]
   },
   "identifier": [
     {
@@ -393,9 +389,7 @@ e cada recurso FHIR gera obrigatoriamente um **Provenance** e um **AuditEvent**.
   "resourceType": "MedicationAdministration",
   "id": "med-admin-001",
   "meta": {
-    "profile": [
-      "http://velya.health/fhir/StructureDefinition/VelyaMedicationAdministration"
-    ]
+    "profile": ["http://velya.health/fhir/StructureDefinition/VelyaMedicationAdministration"]
   },
   "identifier": [
     {
@@ -510,9 +504,7 @@ e cada recurso FHIR gera obrigatoriamente um **Provenance** e um **AuditEvent**.
   "resourceType": "Observation",
   "id": "obs-vitals-001",
   "meta": {
-    "profile": [
-      "http://hl7.org/fhir/StructureDefinition/vitalsigns"
-    ]
+    "profile": ["http://hl7.org/fhir/StructureDefinition/vitalsigns"]
   },
   "status": "final",
   "category": [
@@ -849,9 +841,7 @@ e cada recurso FHIR gera obrigatoriamente um **Provenance** e um **AuditEvent**.
   "resourceType": "Task",
   "id": "task-handoff-001",
   "meta": {
-    "profile": [
-      "http://velya.health/fhir/StructureDefinition/VelyaHandoffTask"
-    ]
+    "profile": ["http://velya.health/fhir/StructureDefinition/VelyaHandoffTask"]
   },
   "identifier": [
     {
@@ -1112,9 +1102,7 @@ e cada recurso FHIR gera obrigatoriamente um **Provenance** e um **AuditEvent**.
   "resourceType": "Communication",
   "id": "comm-call-001",
   "meta": {
-    "profile": [
-      "http://velya.health/fhir/StructureDefinition/VelyaPatientCall"
-    ]
+    "profile": ["http://velya.health/fhir/StructureDefinition/VelyaPatientCall"]
   },
   "status": "completed",
   "category": [
@@ -1642,9 +1630,7 @@ interface ProvenanceService {
   /**
    * Valida integridade da cadeia de proveniencia.
    */
-  validateProvenanceChain(
-    resourceReference: string
-  ): Promise<{
+  validateProvenanceChain(resourceReference: string): Promise<{
     valid: boolean;
     issues: string[];
     chainLength: number;
@@ -1721,10 +1707,7 @@ class ProvenanceMiddleware {
   private provenanceService: ProvenanceService;
   private auditService: AuditEventService;
 
-  async onResourceCreated(
-    resource: FHIRResource,
-    context: RequestContext
-  ): Promise<void> {
+  async onResourceCreated(resource: FHIRResource, context: RequestContext): Promise<void> {
     // 1. Criar Provenance
     await this.provenanceService.createProvenance({
       targetResource: resource,
@@ -1760,10 +1743,7 @@ class ProvenanceMiddleware {
     });
   }
 
-  async onResourceRead(
-    resource: FHIRResource,
-    context: RequestContext
-  ): Promise<void> {
+  async onResourceRead(resource: FHIRResource, context: RequestContext): Promise<void> {
     // Apenas AuditEvent para leituras
     await this.auditService.recordAccess({
       action: 'R',
@@ -1781,7 +1761,7 @@ class ProvenanceMiddleware {
   async onResourceUpdated(
     resource: FHIRResource,
     previousVersion: FHIRResource,
-    context: RequestContext
+    context: RequestContext,
   ): Promise<void> {
     // Provenance com referencia a versao anterior
     await this.provenanceService.createProvenance({
@@ -1822,16 +1802,13 @@ class ProvenanceMiddleware {
 
   private extractPatientId(resource: FHIRResource): string {
     if (resource.resourceType === 'Patient') return resource.id!;
-    const subjectRef =
-      (resource as any).subject?.reference ||
-      (resource as any).patient?.reference;
+    const subjectRef = (resource as any).subject?.reference || (resource as any).patient?.reference;
     return subjectRef?.replace('Patient/', '') || 'unknown';
   }
 
   private extractEncounterId(resource: FHIRResource): string | undefined {
     const encounterRef =
-      (resource as any).encounter?.reference ||
-      (resource as any).context?.reference;
+      (resource as any).encounter?.reference || (resource as any).context?.reference;
     return encounterRef?.replace('Encounter/', '');
   }
 }
@@ -1843,29 +1820,29 @@ class ProvenanceMiddleware {
 
 ### 8.1 Regras de Validacao
 
-| Regra | Descricao | Severidade |
-|---|---|---|
-| Provenance obrigatorio | Todo recurso clinico deve ter Provenance | Critico |
-| Agente valido | Provenance deve ter ao menos um agente identificado | Critico |
-| Recurso alvo valido | Target do Provenance deve existir | Critico |
-| Timestamp consistente | recorded >= occurred | Alto |
-| AuditEvent para acesso | Todo acesso deve gerar AuditEvent | Alto |
-| Cadeia de revisoes | Updates devem referenciar versao anterior | Medio |
-| Break-glass justificado | Break-glass sem justificativa gera alerta | Critico |
+| Regra                   | Descricao                                           | Severidade |
+| ----------------------- | --------------------------------------------------- | ---------- |
+| Provenance obrigatorio  | Todo recurso clinico deve ter Provenance            | Critico    |
+| Agente valido           | Provenance deve ter ao menos um agente identificado | Critico    |
+| Recurso alvo valido     | Target do Provenance deve existir                   | Critico    |
+| Timestamp consistente   | recorded >= occurred                                | Alto       |
+| AuditEvent para acesso  | Todo acesso deve gerar AuditEvent                   | Alto       |
+| Cadeia de revisoes      | Updates devem referenciar versao anterior           | Medio      |
+| Break-glass justificado | Break-glass sem justificativa gera alerta           | Critico    |
 
 ### 8.2 Job de Validacao
 
 ```typescript
 interface ProvenanceIntegrityJob {
   schedule: '*/15 * * * *'; // A cada 15 minutos
-  
+
   checks: [
-    'orphaned_resources',      // Recursos sem Provenance
-    'broken_chains',           // Cadeias de revisao quebradas
-    'missing_agents',          // Provenance sem agente
-    'timestamp_anomalies',     // Timestamps inconsistentes
-    'unaudited_accesses',      // Acessos sem AuditEvent
-    'unjustified_breakglass',  // Break-glass sem justificativa
+    'orphaned_resources', // Recursos sem Provenance
+    'broken_chains', // Cadeias de revisao quebradas
+    'missing_agents', // Provenance sem agente
+    'timestamp_anomalies', // Timestamps inconsistentes
+    'unaudited_accesses', // Acessos sem AuditEvent
+    'unjustified_breakglass', // Break-glass sem justificativa
   ];
 
   actions: {

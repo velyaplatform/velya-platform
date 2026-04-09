@@ -9,12 +9,12 @@
 
 ## Quick Reference
 
-| Tool | URL | Credentials | Status |
-|---|---|---|---|
-| Grafana | http://grafana.172.19.0.6.nip.io | admin / prom-operator | Running |
-| Prometheus | http://prometheus.172.19.0.6.nip.io | None (open in dev) | Running |
-| Alertmanager | http://alertmanager.172.19.0.6.nip.io | None (open in dev) | Running |
-| OTel Collector | Internal only (4317/4318) | N/A | Running |
+| Tool           | URL                                   | Credentials           | Status  |
+| -------------- | ------------------------------------- | --------------------- | ------- |
+| Grafana        | http://grafana.172.19.0.6.nip.io      | admin / prom-operator | Running |
+| Prometheus     | http://prometheus.172.19.0.6.nip.io   | None (open in dev)    | Running |
+| Alertmanager   | http://alertmanager.172.19.0.6.nip.io | None (open in dev)    | Running |
+| OTel Collector | Internal only (4317/4318)             | N/A                   | Running |
 
 **Security Note**: These URLs are HTTP only. Do not transmit sensitive data via Grafana in dev. Credentials above are development defaults — must be changed before production.
 
@@ -82,6 +82,7 @@ curl http://prometheus.172.19.0.6.nip.io/api/v1/query?query=up
 ### 1.5 Common Grafana Queries
 
 #### Cluster Overview
+
 ```promql
 # Number of running pods
 sum(kube_pod_status_phase{phase="Running"})
@@ -97,6 +98,7 @@ sum(increase(kube_pod_container_status_restarts_total[1h])) by (pod, namespace)
 ```
 
 #### Service Health (requires application ServiceMonitors — not yet configured)
+
 ```promql
 # Service request rate (once ServiceMonitors are added)
 rate(http_requests_total{job="patient-flow"}[5m])
@@ -276,11 +278,11 @@ kubectl logs -n velya-dev-observability -l app.kubernetes.io/name=opentelemetry-
 
 ### 5.2 OTel Receiver Ports
 
-| Protocol | Port | Usage |
-|---|---|---|
-| OTLP gRPC | 4317 | Trace and metric ingestion from services |
-| OTLP HTTP | 4318 | Alternative OTLP endpoint |
-| Prometheus scrape | 8888 | OTel Collector self-metrics |
+| Protocol          | Port | Usage                                    |
+| ----------------- | ---- | ---------------------------------------- |
+| OTLP gRPC         | 4317 | Trace and metric ingestion from services |
+| OTLP HTTP         | 4318 | Alternative OTLP endpoint                |
+| Prometheus scrape | 8888 | OTel Collector self-metrics              |
 
 ### 5.3 Sending Test Traces
 
@@ -350,6 +352,7 @@ curl -X POST http://alertmanager.172.19.0.6.nip.io/api/v2/silences \
 **Root cause**: Application ServiceMonitors not configured (known gap — NOT IMPLEMENTED).
 
 **Workaround**:
+
 1. Check `kubectl logs` for the service directly
 2. Use `kubectl exec` to check internal metrics endpoint: `curl localhost:3000/metrics`
 3. Track issue: ServiceMonitors must be created — see `docs/validation/observability-validation.md`
@@ -400,10 +403,10 @@ kubectl logs -n velya-dev-observability -l app.kubernetes.io/name=loki-canary | 
 
 ## 8. Credentials and Secrets
 
-| Secret | Namespace | Secret Name | Key |
-|---|---|---|---|
-| Grafana admin password | velya-dev-observability | grafana | admin-password |
-| Prometheus RBAC token | velya-dev-observability | N/A | N/A |
+| Secret                 | Namespace               | Secret Name | Key            |
+| ---------------------- | ----------------------- | ----------- | -------------- |
+| Grafana admin password | velya-dev-observability | grafana     | admin-password |
+| Prometheus RBAC token  | velya-dev-observability | N/A         | N/A            |
 
 ```bash
 # Retrieve Grafana admin password
@@ -416,14 +419,14 @@ kubectl get secret -n velya-dev-observability grafana -o jsonpath='{.data.admin-
 
 ## 9. When to Escalate
 
-| Situation | Escalate To |
-|---|---|
-| Prometheus TSDB corruption | Platform Lead |
-| > 30 minutes of log gaps in Loki | Platform Lead |
-| Observability stack consuming > 50% cluster resources | Platform Lead |
-| Grafana breach (unauthorized access) | Security Team immediately |
-| Loss of audit trail from audit-service | Security + Compliance immediately |
+| Situation                                             | Escalate To                       |
+| ----------------------------------------------------- | --------------------------------- |
+| Prometheus TSDB corruption                            | Platform Lead                     |
+| > 30 minutes of log gaps in Loki                      | Platform Lead                     |
+| Observability stack consuming > 50% cluster resources | Platform Lead                     |
+| Grafana breach (unauthorized access)                  | Security Team immediately         |
+| Loss of audit trail from audit-service                | Security + Compliance immediately |
 
 ---
 
-*Runbook maintained by: Platform Team (Observability). Review quarterly or after any observability incident.*
+_Runbook maintained by: Platform Team (Observability). Review quarterly or after any observability incident._

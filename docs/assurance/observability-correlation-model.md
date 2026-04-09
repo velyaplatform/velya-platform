@@ -14,22 +14,22 @@ A observabilidade da Velya integra multiplos sinais (logs, metricas, traces, pro
 
 ## 2. Sinais de Observabilidade
 
-| Sinal | Fonte | Armazenamento | Retencao | Formato |
-|---|---|---|---|---|
-| Logs estruturados | Aplicacoes, infra | Loki | 30 dias | JSON (LogQL) |
-| Metricas | Prometheus exporters, OTEL | Prometheus/Thanos | 90 dias | Time-series (PromQL) |
-| Traces distribuidos | OpenTelemetry SDK | Tempo | 14 dias | OTLP (TraceQL) |
-| Profiles | Pyroscope agent | Pyroscope | 7 dias | pprof |
-| Deploy events | ArgoCD, Argo Rollouts | Prometheus annotations | 90 dias | Annotations |
-| Policy denials | policy-engine, OPA | Loki + Prometheus | 30 dias | JSON + counters |
-| Rollout analysis | Argo Rollouts | Prometheus | 90 dias | Metrics |
-| Agent decisions | decision-log-service | PostgreSQL + Loki | 365 dias | JSON |
-| Workflow states | Temporal | Temporal persistence | 90 dias | Protobuf |
-| Frontend errors | velya-web (Sentry/OTEL) | Loki + Tempo | 14 dias | JSON + spans |
-| Backend errors | Servicos (OTEL) | Loki + Tempo | 30 dias | JSON + spans |
-| Infra symptoms | Node exporters, kube-state | Prometheus | 90 dias | Time-series |
-| Remediation events | Self-healing controllers | Loki + Prometheus | 30 dias | JSON + counters |
-| Learning events | memory-service | PostgreSQL + Loki | 365 dias | JSON |
+| Sinal               | Fonte                      | Armazenamento          | Retencao | Formato              |
+| ------------------- | -------------------------- | ---------------------- | -------- | -------------------- |
+| Logs estruturados   | Aplicacoes, infra          | Loki                   | 30 dias  | JSON (LogQL)         |
+| Metricas            | Prometheus exporters, OTEL | Prometheus/Thanos      | 90 dias  | Time-series (PromQL) |
+| Traces distribuidos | OpenTelemetry SDK          | Tempo                  | 14 dias  | OTLP (TraceQL)       |
+| Profiles            | Pyroscope agent            | Pyroscope              | 7 dias   | pprof                |
+| Deploy events       | ArgoCD, Argo Rollouts      | Prometheus annotations | 90 dias  | Annotations          |
+| Policy denials      | policy-engine, OPA         | Loki + Prometheus      | 30 dias  | JSON + counters      |
+| Rollout analysis    | Argo Rollouts              | Prometheus             | 90 dias  | Metrics              |
+| Agent decisions     | decision-log-service       | PostgreSQL + Loki      | 365 dias | JSON                 |
+| Workflow states     | Temporal                   | Temporal persistence   | 90 dias  | Protobuf             |
+| Frontend errors     | velya-web (Sentry/OTEL)    | Loki + Tempo           | 14 dias  | JSON + spans         |
+| Backend errors      | Servicos (OTEL)            | Loki + Tempo           | 30 dias  | JSON + spans         |
+| Infra symptoms      | Node exporters, kube-state | Prometheus             | 90 dias  | Time-series          |
+| Remediation events  | Self-healing controllers   | Loki + Prometheus      | 30 dias  | JSON + counters      |
+| Learning events     | memory-service             | PostgreSQL + Loki      | 365 dias | JSON                 |
 
 ---
 
@@ -37,23 +37,23 @@ A observabilidade da Velya integra multiplos sinais (logs, metricas, traces, pro
 
 ### 3.1 Chaves Primarias
 
-| Chave | Formato | Propagacao | Uso |
-|---|---|---|---|
-| `traceId` | 32 hex chars (W3C) | HTTP header `traceparent`, NATS header `trace-id`, Temporal header | Correlacionar todos os sinais de uma requisicao end-to-end |
-| `spanId` | 16 hex chars (W3C) | Dentro do trace context | Identificar operacao especifica dentro de um trace |
-| `correlationId` | UUID v4 | HTTP header `X-Velya-Correlation-Id`, NATS header, Temporal memo | Correlacionar operacoes de negocio que abrangem multiplos traces |
+| Chave           | Formato            | Propagacao                                                         | Uso                                                              |
+| --------------- | ------------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| `traceId`       | 32 hex chars (W3C) | HTTP header `traceparent`, NATS header `trace-id`, Temporal header | Correlacionar todos os sinais de uma requisicao end-to-end       |
+| `spanId`        | 16 hex chars (W3C) | Dentro do trace context                                            | Identificar operacao especifica dentro de um trace               |
+| `correlationId` | UUID v4            | HTTP header `X-Velya-Correlation-Id`, NATS header, Temporal memo   | Correlacionar operacoes de negocio que abrangem multiplos traces |
 
 ### 3.2 Chaves Secundarias
 
-| Chave | Formato | Contexto | Uso |
-|---|---|---|---|
-| `deploymentId` | `{service}-{gitSha}-{timestamp}` | ArgoCD sync, Argo Rollouts revision | Correlacionar incidentes com deploys |
-| `rolloutId` | `{service}-{revision}` | Argo Rollouts | Correlacionar metricas canary com traces |
-| `workflowRunId` | UUID | Temporal workflow execution | Correlacionar logs/traces de um workflow |
-| `patientId` | UUID | Dominio clinico | Correlacionar todos os eventos de um paciente |
-| `agentId` | `{type}-{version}-{instance}` | Agent orchestrator | Correlacionar decisoes e metricas de um agente |
-| `incidentId` | `INC-{timestamp}-{hash}` | Alert manager | Agrupar todos os sinais de um incidente |
-| `sessionId` | UUID | velya-web frontend | Correlacionar acoes do usuario com backend |
+| Chave           | Formato                          | Contexto                            | Uso                                            |
+| --------------- | -------------------------------- | ----------------------------------- | ---------------------------------------------- |
+| `deploymentId`  | `{service}-{gitSha}-{timestamp}` | ArgoCD sync, Argo Rollouts revision | Correlacionar incidentes com deploys           |
+| `rolloutId`     | `{service}-{revision}`           | Argo Rollouts                       | Correlacionar metricas canary com traces       |
+| `workflowRunId` | UUID                             | Temporal workflow execution         | Correlacionar logs/traces de um workflow       |
+| `patientId`     | UUID                             | Dominio clinico                     | Correlacionar todos os eventos de um paciente  |
+| `agentId`       | `{type}-{version}-{instance}`    | Agent orchestrator                  | Correlacionar decisoes e metricas de um agente |
+| `incidentId`    | `INC-{timestamp}-{hash}`         | Alert manager                       | Agrupar todos os sinais de um incidente        |
+| `sessionId`     | UUID                             | velya-web frontend                  | Correlacionar acoes do usuario com backend     |
 
 ### 3.3 Propagacao de Contexto
 
@@ -111,7 +111,7 @@ export function extractVelyaContext(headers: Record<string, string>) {
 
 export function injectVelyaContext(
   headers: Record<string, string>,
-  velyaContext: VelyaContext
+  velyaContext: VelyaContext,
 ): void {
   // W3C trace context e propagado automaticamente pelo SDK
   propagation.inject(context.active(), headers);
@@ -129,10 +129,7 @@ export function injectVelyaContext(
 }
 
 // Para NATS JetStream
-export function injectNatsHeaders(
-  natsHeaders: MsgHdrs,
-  velyaContext: VelyaContext
-): void {
+export function injectNatsHeaders(natsHeaders: MsgHdrs, velyaContext: VelyaContext): void {
   const carrier: Record<string, string> = {};
   propagation.inject(context.active(), carrier);
 
@@ -294,7 +291,7 @@ histogram_quantile(0.95,
 ```promql
 keda_scaler_metrics_value{
   namespace=~"velya-.*"
-} 
+}
 # Correlacionar com replica count
 kube_deployment_spec_replicas{namespace=~"velya-.*"}
 ```
@@ -734,18 +731,18 @@ exporters:
     endpoint: http://prometheus.observability:9090/api/v1/write
     resource_to_telemetry_conversion:
       enabled: true
-  
+
   loki:
     endpoint: http://loki.observability:3100/loki/api/v1/push
     labels:
       resource:
-        service.name: "service"
-        service.namespace: "namespace"
+        service.name: 'service'
+        service.namespace: 'namespace'
       attributes:
-        level: ""
-        velya.correlation_id: "correlationId"
-        velya.patient_id: "patientId"
-  
+        level: ''
+        velya.correlation_id: 'correlationId'
+        velya.patient_id: 'patientId'
+
   otlp/tempo:
     endpoint: tempo.observability:4317
     tls:
@@ -819,14 +816,15 @@ datasources:
 
 ## 8. Retencao e Custos
 
-| Sinal | Volume Estimado/Dia | Retencao | Custo Estimado/Mes |
-|---|---|---|---|
-| Logs (Loki) | 50 GB | 30 dias | S3 storage: ~$35 |
-| Metricas (Prometheus) | 2M series | 90 dias | EBS: ~$150 |
-| Traces (Tempo) | 20 GB | 14 dias | S3: ~$10 |
-| Profiles (Pyroscope) | 5 GB | 7 dias | EBS: ~$15 |
+| Sinal                 | Volume Estimado/Dia | Retencao | Custo Estimado/Mes |
+| --------------------- | ------------------- | -------- | ------------------ |
+| Logs (Loki)           | 50 GB               | 30 dias  | S3 storage: ~$35   |
+| Metricas (Prometheus) | 2M series           | 90 dias  | EBS: ~$150         |
+| Traces (Tempo)        | 20 GB               | 14 dias  | S3: ~$10           |
+| Profiles (Pyroscope)  | 5 GB                | 7 dias   | EBS: ~$15          |
 
 **Otimizacoes aplicadas:**
+
 - Sampling de traces: 10% para requests normais, 100% para erros
 - Log level `debug` desabilitado em producao
 - Metricas com cardinalidade alta agregadas no recording rules

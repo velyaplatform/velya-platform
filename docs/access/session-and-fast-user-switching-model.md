@@ -4,7 +4,7 @@
 **Versao:** 1.0.0  
 **Data:** 2026-04-08  
 **Classificacao:** Interno - Engenharia  
-**Responsavel:** Time de Plataforma Velya  
+**Responsavel:** Time de Plataforma Velya
 
 ---
 
@@ -24,15 +24,15 @@ Em ambientes hospitalares, estacoes de trabalho sao compartilhadas por multiplos
 
 ### 2.1 Componentes Envolvidos
 
-| Componente | Responsabilidade |
-|---|---|
-| `SessionManager` | Gerencia ciclo de vida da sessao no cliente |
-| `AuthGateway` | Valida credenciais e emite tokens |
-| `SessionStore` (Redis) | Armazena sessoes ativas server-side |
-| `AuditEmitter` | Registra eventos de sessao no log de auditoria |
-| `WorkstationAgent` | Identifica e registra o dispositivo fisico |
-| `UIContextGuard` | Limpa cache e estado visual na troca de usuario |
-| `StepUpAuthProvider` | Gerencia autenticacao elevada para acoes criticas |
+| Componente             | Responsabilidade                                  |
+| ---------------------- | ------------------------------------------------- |
+| `SessionManager`       | Gerencia ciclo de vida da sessao no cliente       |
+| `AuthGateway`          | Valida credenciais e emite tokens                 |
+| `SessionStore` (Redis) | Armazena sessoes ativas server-side               |
+| `AuditEmitter`         | Registra eventos de sessao no log de auditoria    |
+| `WorkstationAgent`     | Identifica e registra o dispositivo fisico        |
+| `UIContextGuard`       | Limpa cache e estado visual na troca de usuario   |
+| `StepUpAuthProvider`   | Gerencia autenticacao elevada para acoes criticas |
 
 ### 2.2 Identificacao de Estacao de Trabalho
 
@@ -46,48 +46,48 @@ Cada estacao de trabalho hospitalar recebe um identificador unico (`workstation_
 ```yaml
 # workstation-registry.yaml
 workstations:
-  - id: "WS-UTI-3A-001"
-    mac: "AA:BB:CC:DD:EE:01"
-    certificate_cn: "ws-uti-3a-001.velya.hospital.internal"
+  - id: 'WS-UTI-3A-001'
+    mac: 'AA:BB:CC:DD:EE:01'
+    certificate_cn: 'ws-uti-3a-001.velya.hospital.internal'
     location:
-      building: "Principal"
+      building: 'Principal'
       floor: 3
-      wing: "A"
-      unit: "UTI Adulto"
-      room: "Posto de Enfermagem 1"
-    timeout_profile: "icu"
+      wing: 'A'
+      unit: 'UTI Adulto'
+      room: 'Posto de Enfermagem 1'
+    timeout_profile: 'icu'
     allowed_roles:
       - medico_intensivista
       - enfermeiro_uti
       - tecnico_enfermagem_uti
       - fisioterapeuta_uti
 
-  - id: "WS-ENF-2B-003"
-    mac: "AA:BB:CC:DD:EE:03"
-    certificate_cn: "ws-enf-2b-003.velya.hospital.internal"
+  - id: 'WS-ENF-2B-003'
+    mac: 'AA:BB:CC:DD:EE:03'
+    certificate_cn: 'ws-enf-2b-003.velya.hospital.internal'
     location:
-      building: "Principal"
+      building: 'Principal'
       floor: 2
-      wing: "B"
-      unit: "Enfermaria Clinica"
-      room: "Posto de Enfermagem 3"
-    timeout_profile: "ward"
+      wing: 'B'
+      unit: 'Enfermaria Clinica'
+      room: 'Posto de Enfermagem 3'
+    timeout_profile: 'ward'
     allowed_roles:
       - medico_clinico
       - enfermeiro
       - tecnico_enfermagem
       - nutricionista
 
-  - id: "WS-ADM-1A-002"
-    mac: "AA:BB:CC:DD:EE:05"
-    certificate_cn: "ws-adm-1a-002.velya.hospital.internal"
+  - id: 'WS-ADM-1A-002'
+    mac: 'AA:BB:CC:DD:EE:05'
+    certificate_cn: 'ws-adm-1a-002.velya.hospital.internal'
     location:
-      building: "Administrativo"
+      building: 'Administrativo'
       floor: 1
-      wing: "A"
-      unit: "Diretoria Clinica"
-      room: "Sala 102"
-    timeout_profile: "admin"
+      wing: 'A'
+      unit: 'Diretoria Clinica'
+      room: 'Sala 102'
+    timeout_profile: 'admin'
     allowed_roles:
       - diretor_clinico
       - gestor_qualidade
@@ -100,12 +100,12 @@ workstations:
 
 O timeout de sessao varia conforme a criticidade e o fluxo de pessoas na localizacao:
 
-| Perfil | Localizacao Tipica | Timeout Inatividade | Aviso Pre-Lock | Lock Automatico | Logout Forçado |
-|---|---|---|---|---|---|
-| `icu` | UTI, Centro Cirurgico, Sala de Emergencia | 5 minutos | 1 min antes | Apos timeout | 30 min apos lock |
-| `ward` | Enfermarias, Ambulatorio, Posto de Enfermagem | 10 minutos | 2 min antes | Apos timeout | 60 min apos lock |
-| `office` | Consultorios, Salas de Laudo, Farmacia | 15 minutos | 3 min antes | Apos timeout | 120 min apos lock |
-| `admin` | Escritorios Administrativos, TI, Diretoria | 30 minutos | 5 min antes | Apos timeout | 240 min apos lock |
+| Perfil   | Localizacao Tipica                            | Timeout Inatividade | Aviso Pre-Lock | Lock Automatico | Logout Forçado    |
+| -------- | --------------------------------------------- | ------------------- | -------------- | --------------- | ----------------- |
+| `icu`    | UTI, Centro Cirurgico, Sala de Emergencia     | 5 minutos           | 1 min antes    | Apos timeout    | 30 min apos lock  |
+| `ward`   | Enfermarias, Ambulatorio, Posto de Enfermagem | 10 minutos          | 2 min antes    | Apos timeout    | 60 min apos lock  |
+| `office` | Consultorios, Salas de Laudo, Farmacia        | 15 minutos          | 3 min antes    | Apos timeout    | 120 min apos lock |
+| `admin`  | Escritorios Administrativos, TI, Diretoria    | 30 minutos          | 5 min antes    | Apos timeout    | 240 min apos lock |
 
 ### 3.1 Configuracao de Timeout
 
@@ -223,19 +223,19 @@ Usr_B            |               |               |               |              
 
 ### 4.2 Etapas Detalhadas
 
-| Etapa | Acao | Tempo Maximo | Fallback |
-|---|---|---|---|
-| 1 | Usuario clica "Trocar Usuario" | - | Atalho Ctrl+Shift+L |
-| 2 | Sessao atual e bloqueada (LOCKED) | 100ms | Se falhar, força logout |
-| 3 | Cache UI e limpo (React state, stores) | 200ms | Hard refresh se falhar |
-| 4 | Tela de login rapido e exibida | 100ms | - |
-| 5 | Novo usuario apresenta credenciais | 30s | Timeout retorna ao lock |
-| 6 | Credenciais validadas no AuthGateway | 500ms | Retry 1x, depois offline |
-| 7 | Sessao anterior invalidada server-side | 100ms | Async, nao bloqueia |
-| 8 | Nova sessao criada no SessionStore | 100ms | Retry com backoff |
-| 9 | LocalStorage/IndexedDB limpos | 200ms | Force clear |
-| 10 | Evento USER_SWITCH emitido para auditoria | Async | Fila persistente |
-| 11 | Dashboard do novo usuario renderizado | 500ms | Skeleton loading |
+| Etapa | Acao                                      | Tempo Maximo | Fallback                 |
+| ----- | ----------------------------------------- | ------------ | ------------------------ |
+| 1     | Usuario clica "Trocar Usuario"            | -            | Atalho Ctrl+Shift+L      |
+| 2     | Sessao atual e bloqueada (LOCKED)         | 100ms        | Se falhar, força logout  |
+| 3     | Cache UI e limpo (React state, stores)    | 200ms        | Hard refresh se falhar   |
+| 4     | Tela de login rapido e exibida            | 100ms        | -                        |
+| 5     | Novo usuario apresenta credenciais        | 30s          | Timeout retorna ao lock  |
+| 6     | Credenciais validadas no AuthGateway      | 500ms        | Retry 1x, depois offline |
+| 7     | Sessao anterior invalidada server-side    | 100ms        | Async, nao bloqueia      |
+| 8     | Nova sessao criada no SessionStore        | 100ms        | Retry com backoff        |
+| 9     | LocalStorage/IndexedDB limpos             | 200ms        | Force clear              |
+| 10    | Evento USER_SWITCH emitido para auditoria | Async        | Fila persistente         |
+| 11    | Dashboard do novo usuario renderizado     | 500ms        | Skeleton loading         |
 
 **Tempo total alvo: < 2 segundos** do clique em "Trocar Usuario" ate o dashboard do novo usuario.
 
@@ -282,7 +282,7 @@ export interface SessionContext {
   userId: string;
   userName: string;
   profession: string;
-  councilNumber: string;         // CRM, COREN, CRF, etc.
+  councilNumber: string; // CRM, COREN, CRF, etc.
   activeRole: string;
   activeUnit: string;
   workstation: WorkstationInfo;
@@ -297,9 +297,9 @@ export interface SessionContext {
 
 export enum StepUpLevel {
   NONE = 'none',
-  STANDARD = 'standard',        // Badge + PIN
-  HIGH = 'high',                 // Biometria
-  CRITICAL = 'critical',        // Biometria + PIN + Justificativa
+  STANDARD = 'standard', // Badge + PIN
+  HIGH = 'high', // Biometria
+  CRITICAL = 'critical', // Biometria + PIN + Justificativa
 }
 
 export interface SessionEvent {
@@ -532,10 +532,7 @@ export class SessionManager {
     if (!this.currentSession) return;
 
     this.currentSession.status = SessionStatus.LOCKED;
-    await this.sessionStore.updateStatus(
-      this.currentSession.sessionId,
-      SessionStatus.LOCKED,
-    );
+    await this.sessionStore.updateStatus(this.currentSession.sessionId, SessionStatus.LOCKED);
 
     this.clearInactivityTimer();
     this.startLockTimer();
@@ -583,9 +580,7 @@ export class SessionManager {
 
     if (result.success) {
       this.currentSession.stepUpLevel = requiredLevel;
-      this.currentSession.stepUpExpiresAt = new Date(
-        Date.now() + result.elevationDurationMs,
-      );
+      this.currentSession.stepUpExpiresAt = new Date(Date.now() + result.elevationDurationMs);
 
       await this.emitEvent('STEP_UP_GRANTED', {
         level: requiredLevel,
@@ -658,9 +653,7 @@ export class SessionManager {
     this.tokenRotationTimer = setInterval(async () => {
       if (!this.currentSession) return;
       try {
-        const newToken = await this.authGateway.rotateToken(
-          this.currentSession.sessionId,
-        );
+        const newToken = await this.authGateway.rotateToken(this.currentSession.sessionId);
         this.currentSession.tokenVersion += 1;
         await this.sessionStore.updateToken(
           this.currentSession.sessionId,
@@ -844,15 +837,15 @@ Na troca de usuario ou logout, o servidor executa:
 
 ## 7. Politica de Rotacao de Token
 
-| Parametro | Valor |
-|---|---|
-| Algoritmo de assinatura | EdDSA (Ed25519) |
-| Tempo de vida do access token | 15 minutos |
-| Rotacao automatica | A cada 15 minutos enquanto sessao ativa |
-| Refresh token | Vinculado a sessao, rotacionado junto |
-| Versao do token | Incrementada a cada rotacao |
-| Tokens anteriores | Invalidados imediatamente apos rotacao |
-| Verificacao server-side | Token version deve coincidir com SessionStore |
+| Parametro                     | Valor                                         |
+| ----------------------------- | --------------------------------------------- |
+| Algoritmo de assinatura       | EdDSA (Ed25519)                               |
+| Tempo de vida do access token | 15 minutos                                    |
+| Rotacao automatica            | A cada 15 minutos enquanto sessao ativa       |
+| Refresh token                 | Vinculado a sessao, rotacionado junto         |
+| Versao do token               | Incrementada a cada rotacao                   |
+| Tokens anteriores             | Invalidados imediatamente apos rotacao        |
+| Verificacao server-side       | Token version deve coincidir com SessionStore |
 
 ---
 
@@ -860,16 +853,16 @@ Na troca de usuario ou logout, o servidor executa:
 
 ### 8.1 Acoes que Exigem Step-Up
 
-| Acao | Nivel Minimo | Duracao da Elevacao | Justificativa Obrigatoria |
-|---|---|---|---|
-| Prescrever medicamento | `standard` | 30 min | Nao |
-| Assinar documento clinico | `standard` | 15 min | Nao |
-| Exportar dados de paciente | `high` | 10 min | Sim |
-| Acesso break-glass | `critical` | 15 min | Sim |
-| Alterar dados demograficos | `standard` | 15 min | Nao |
-| Imprimir prontuario completo | `high` | 5 min | Sim |
-| Acessar dados Classe D/E | `high` | 10 min | Sim |
-| Acoes administrativas (RBAC) | `critical` | 5 min | Sim |
+| Acao                         | Nivel Minimo | Duracao da Elevacao | Justificativa Obrigatoria |
+| ---------------------------- | ------------ | ------------------- | ------------------------- |
+| Prescrever medicamento       | `standard`   | 30 min              | Nao                       |
+| Assinar documento clinico    | `standard`   | 15 min              | Nao                       |
+| Exportar dados de paciente   | `high`       | 10 min              | Sim                       |
+| Acesso break-glass           | `critical`   | 15 min              | Sim                       |
+| Alterar dados demograficos   | `standard`   | 15 min              | Nao                       |
+| Imprimir prontuario completo | `high`       | 5 min               | Sim                       |
+| Acessar dados Classe D/E     | `high`       | 10 min              | Sim                       |
+| Acoes administrativas (RBAC) | `critical`   | 5 min               | Sim                       |
 
 ### 8.2 Fluxo de Step-Up
 
@@ -921,13 +914,13 @@ O badge do usuario e exibido permanentemente no canto superior direito da aplica
 
 ### 9.2 Timer de Sessao
 
-| Estado | Indicador Visual | Cor |
-|---|---|---|
-| Ativo (> 50% tempo) | Barra de progresso verde | `#22C55E` |
-| Ativo (25-50% tempo) | Barra de progresso amarela | `#EAB308` |
-| Aviso pre-lock | Barra pulsante vermelha + modal de aviso | `#EF4444` |
-| Bloqueado (locked) | Tela de lock com campo de autenticacao | `#6B7280` |
-| Step-up ativo | Icone de escudo ao lado do badge | `#3B82F6` |
+| Estado               | Indicador Visual                         | Cor       |
+| -------------------- | ---------------------------------------- | --------- |
+| Ativo (> 50% tempo)  | Barra de progresso verde                 | `#22C55E` |
+| Ativo (25-50% tempo) | Barra de progresso amarela               | `#EAB308` |
+| Aviso pre-lock       | Barra pulsante vermelha + modal de aviso | `#EF4444` |
+| Bloqueado (locked)   | Tela de lock com campo de autenticacao   | `#6B7280` |
+| Step-up ativo        | Icone de escudo ao lado do badge         | `#3B82F6` |
 
 ### 9.3 Aviso de Auto-Lock
 
@@ -950,15 +943,15 @@ Quando o timer de pre-aviso e acionado, um modal nao-bloqueante aparece:
 
 ### 10.1 Garantias de Isolamento
 
-| Vetor de Risco | Mitigacao |
-|---|---|
-| Dados do usuario anterior em cache | UICacheCleaner limpa todos os caches |
+| Vetor de Risco                               | Mitigacao                                     |
+| -------------------------------------------- | --------------------------------------------- |
+| Dados do usuario anterior em cache           | UICacheCleaner limpa todos os caches          |
 | Requisicoes em andamento do usuario anterior | AbortController cancela requisicoes pendentes |
-| WebSocket com contexto anterior | Reconexao com novo token na troca |
-| Service Worker com cache do usuario anterior | Caches prefixados por usuario sao deletados |
-| Estado em variaveis globais JavaScript | Reset de todos os stores (Zustand/Jotai) |
-| Token do usuario anterior ainda valido | Blacklist imediata + invalidacao server-side |
-| Browser back button mostra dados anteriores | `no-store` cache headers + replace history |
+| WebSocket com contexto anterior              | Reconexao com novo token na troca             |
+| Service Worker com cache do usuario anterior | Caches prefixados por usuario sao deletados   |
+| Estado em variaveis globais JavaScript       | Reset de todos os stores (Zustand/Jotai)      |
+| Token do usuario anterior ainda valido       | Blacklist imediata + invalidacao server-side  |
+| Browser back button mostra dados anteriores  | `no-store` cache headers + replace history    |
 
 ### 10.2 Restricoes de Sessao Concorrente
 
@@ -986,7 +979,7 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Taxa alta de troca de usuario na estacao {{ $labels.workstation_id }}"
+          summary: 'Taxa alta de troca de usuario na estacao {{ $labels.workstation_id }}'
 
       - alert: SessionTokenRotationFailure
         expr: increase(velya_token_rotation_failures_total[15m]) > 0
@@ -994,7 +987,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Falha na rotacao de token para sessao ativa"
+          summary: 'Falha na rotacao de token para sessao ativa'
 ```
 
 ---
@@ -1007,11 +1000,11 @@ session:
   max_concurrent_per_user: 1
   max_concurrent_admin: 2
   token:
-    algorithm: "EdDSA"
+    algorithm: 'EdDSA'
     access_ttl_seconds: 900
     rotation_interval_seconds: 900
-    issuer: "velya-auth-gateway"
-    audience: "velya-platform"
+    issuer: 'velya-auth-gateway'
+    audience: 'velya-platform'
   switch:
     max_auth_wait_seconds: 30
     cache_clear_timeout_ms: 500
@@ -1023,17 +1016,17 @@ session:
     max_attempts: 3
     lockout_duration_seconds: 300
   redis:
-    prefix: "velya:session:"
+    prefix: 'velya:session:'
     cluster: true
-    sentinel_master: "velya-session"
+    sentinel_master: 'velya-session'
     read_from_replica: false
   audit:
     emit_async: true
-    queue: "velya.session.events"
+    queue: 'velya.session.events'
     retry_count: 3
     retry_delay_ms: 1000
 ```
 
 ---
 
-*Documento gerado para a plataforma Velya. Uso interno - Engenharia e Seguranca.*
+_Documento gerado para a plataforma Velya. Uso interno - Engenharia e Seguranca._

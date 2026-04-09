@@ -16,37 +16,37 @@
 
 ```typescript
 interface Session {
-  session_id: string;                    // UUID v7
-  user_id: string;                       // ID unico do usuario
-  professional_id: string;               // ID do profissional (vinculado)
+  session_id: string; // UUID v7
+  user_id: string; // ID unico do usuario
+  professional_id: string; // ID do profissional (vinculado)
 
   // --- Autenticacao ---
   auth_method: AuthMethod;
-  auth_factor_count: number;             // 1FA, 2FA, MFA
-  auth_provider: string;                 // IdP usado
+  auth_factor_count: number; // 1FA, 2FA, MFA
+  auth_provider: string; // IdP usado
   credential_type: CredentialType;
 
   // --- Dispositivo ---
-  device_id: string;                     // ID unico do dispositivo
+  device_id: string; // ID unico do dispositivo
   device_type: DeviceType;
   device_name?: string;
-  workstation_id?: string;               // ID da estacao de trabalho
+  workstation_id?: string; // ID da estacao de trabalho
   ip_address: string;
   user_agent: string;
   mac_address?: string;
 
   // --- Contexto ---
-  unit_id: string;                       // Unidade de login
+  unit_id: string; // Unidade de login
   department_id: string;
-  location_id?: string;                  // Localizacao fisica (se detectavel)
-  shift_id?: string;                     // Turno vigente no momento do login
+  location_id?: string; // Localizacao fisica (se detectavel)
+  shift_id?: string; // Turno vigente no momento do login
 
   // --- Temporal ---
-  login_at: string;                      // Momento do login
-  last_activity_at: string;              // Ultima atividade
-  logout_at?: string;                    // Momento do logout
-  session_duration_minutes?: number;     // Duracao total
-  idle_time_minutes: number;             // Tempo ocioso atual
+  login_at: string; // Momento do login
+  last_activity_at: string; // Ultima atividade
+  logout_at?: string; // Momento do logout
+  session_duration_minutes?: number; // Duracao total
+  idle_time_minutes: number; // Tempo ocioso atual
 
   // --- Status ---
   status: SessionStatus;
@@ -58,8 +58,8 @@ interface Session {
   temporary_elevation?: PrivilegeElevation;
 
   // --- Historico de troca ---
-  previous_session_id?: string;          // Sessao anterior (se fast switch)
-  switch_count: number;                  // Quantas trocas neste dispositivo
+  previous_session_id?: string; // Sessao anterior (se fast switch)
+  switch_count: number; // Quantas trocas neste dispositivo
 }
 
 enum AuthMethod {
@@ -69,24 +69,24 @@ enum AuthMethod {
   SMARTCARD = 'smartcard',
   SSO = 'sso',
   CERTIFICATE = 'certificate',
-  EMERGENCY = 'emergency',              // Acesso emergencial
+  EMERGENCY = 'emergency', // Acesso emergencial
 }
 
 enum CredentialType {
-  PESSOAL = 'pessoal',                  // Credencial pessoal intransferivel
-  TEMPORARIA = 'temporaria',            // Credencial temporaria (residente, estagiario)
-  EMERGENCIAL = 'emergencial',          // Acesso break-glass
-  SERVICO = 'servico',                  // Conta de servico (integracao)
+  PESSOAL = 'pessoal', // Credencial pessoal intransferivel
+  TEMPORARIA = 'temporaria', // Credencial temporaria (residente, estagiario)
+  EMERGENCIAL = 'emergencial', // Acesso break-glass
+  SERVICO = 'servico', // Conta de servico (integracao)
 }
 
 enum DeviceType {
-  WORKSTATION = 'workstation',           // Estacao de trabalho fixa
+  WORKSTATION = 'workstation', // Estacao de trabalho fixa
   NOTEBOOK = 'notebook',
   TABLET = 'tablet',
   MOBILE = 'mobile',
-  TOTEM = 'totem',                       // Totem de autoatendimento
-  BEIRA_LEITO = 'beira_leito',          // Terminal beira-leito
-  IMPRESSORA = 'impressora',            // Impressora com autenticacao
+  TOTEM = 'totem', // Totem de autoatendimento
+  BEIRA_LEITO = 'beira_leito', // Terminal beira-leito
+  IMPRESSORA = 'impressora', // Impressora com autenticacao
 }
 
 enum SessionStatus {
@@ -95,16 +95,16 @@ enum SessionStatus {
   BLOQUEADO = 'bloqueado',
   ENCERRADO = 'encerrado',
   EXPIRADO = 'expirado',
-  FORÇADO = 'forcado',                  // Encerrado forcadamente
+  FORÇADO = 'forcado', // Encerrado forcadamente
 }
 
 enum LogoutReason {
-  VOLUNTARIO = 'voluntario',             // Usuario fez logout
-  INATIVIDADE = 'inatividade',           // Auto-logoff por inatividade
-  TIMEOUT_SESSAO = 'timeout_sessao',     // Sessao expirou
-  TROCA_USUARIO = 'troca_usuario',       // Fast user switch
-  ADMIN_FORCADO = 'admin_forcado',       // Administrador encerrou sessao
-  REVOGACAO = 'revogacao',              // Credencial revogada
+  VOLUNTARIO = 'voluntario', // Usuario fez logout
+  INATIVIDADE = 'inatividade', // Auto-logoff por inatividade
+  TIMEOUT_SESSAO = 'timeout_sessao', // Sessao expirou
+  TROCA_USUARIO = 'troca_usuario', // Fast user switch
+  ADMIN_FORCADO = 'admin_forcado', // Administrador encerrou sessao
+  REVOGACAO = 'revogacao', // Credencial revogada
   DISPOSITIVO_BLOQUEADO = 'dispositivo_bloqueado',
   ERRO_SISTEMA = 'erro_sistema',
 }
@@ -114,7 +114,7 @@ enum LogoutReason {
 
 ```typescript
 interface SessionAuditEvent {
-  event_id: string;                      // UUID v7
+  event_id: string; // UUID v7
   event_type: SessionEventType;
   session_id: string;
   user_id: string;
@@ -124,9 +124,9 @@ interface SessionAuditEvent {
   ip_address: string;
   unit_id: string;
   details: SessionEventDetails;
-  risk_score?: number;                   // 0-100, calculado automaticamente
+  risk_score?: number; // 0-100, calculado automaticamente
   provenance_id: string;
-  audit_event_id: string;               // FHIR AuditEvent ID
+  audit_event_id: string; // FHIR AuditEvent ID
 }
 
 enum SessionEventType {
@@ -234,7 +234,7 @@ interface PrivilegeElevation {
   granted_at: string;
   expires_at: string;
   revoked_at?: string;
-  actions_during_elevation: string[];    // Acoes realizadas durante elevacao
+  actions_during_elevation: string[]; // Acoes realizadas durante elevacao
 }
 ```
 
@@ -244,18 +244,18 @@ interface PrivilegeElevation {
 
 ### 3.1 Auto-logoff por Area
 
-| Area | Timeout Inatividade | Timeout Sessao | Re-auth Sensivel | MFA |
-|---|---|---|---|---|
-| UTI | 15 min | 12h | Sim | Obrigatorio |
-| Centro Cirurgico | 15 min | 12h | Sim | Obrigatorio |
-| Pronto Atendimento | 10 min | 12h | Sim | Obrigatorio |
-| Enfermaria | 15 min | 12h | Sim | Obrigatorio |
-| Laboratorio | 20 min | 12h | Sim | Recomendado |
-| Farmacia | 15 min | 12h | Sim (dispensacao) | Obrigatorio |
-| Recepcao | 10 min | 8h | Nao | Recomendado |
-| Administrativo | 30 min | 8h | Nao | Recomendado |
-| TI | 30 min | 8h | Sim (admin) | Obrigatorio |
-| Direcao | 30 min | 8h | Sim | Obrigatorio |
+| Area               | Timeout Inatividade | Timeout Sessao | Re-auth Sensivel  | MFA         |
+| ------------------ | ------------------- | -------------- | ----------------- | ----------- |
+| UTI                | 15 min              | 12h            | Sim               | Obrigatorio |
+| Centro Cirurgico   | 15 min              | 12h            | Sim               | Obrigatorio |
+| Pronto Atendimento | 10 min              | 12h            | Sim               | Obrigatorio |
+| Enfermaria         | 15 min              | 12h            | Sim               | Obrigatorio |
+| Laboratorio        | 20 min              | 12h            | Sim               | Recomendado |
+| Farmacia           | 15 min              | 12h            | Sim (dispensacao) | Obrigatorio |
+| Recepcao           | 10 min              | 8h             | Nao               | Recomendado |
+| Administrativo     | 30 min              | 8h             | Nao               | Recomendado |
+| TI                 | 30 min              | 8h             | Sim (admin)       | Obrigatorio |
+| Direcao            | 30 min              | 8h             | Sim               | Obrigatorio |
 
 ### 3.2 Configuracao YAML
 
@@ -264,10 +264,10 @@ interface PrivilegeElevation {
 session:
   global:
     max_concurrent_sessions: 2
-    session_absolute_timeout: "12h"
-    token_refresh_interval: "15m"
+    session_absolute_timeout: '12h'
+    token_refresh_interval: '15m'
     max_login_attempts: 5
-    lockout_duration: "30m"
+    lockout_duration: '30m'
     password_policy:
       min_length: 12
       require_uppercase: true
@@ -279,14 +279,14 @@ session:
       prohibit_common: true
 
   auto_logoff:
-    default_idle_timeout: "15m"
+    default_idle_timeout: '15m'
     overrides:
-      pronto_atendimento: "10m"
-      recepcao: "10m"
-      administrativo: "30m"
-      ti: "30m"
-      direcao: "30m"
-      laboratorio: "20m"
+      pronto_atendimento: '10m'
+      recepcao: '10m'
+      administrativo: '30m'
+      ti: '30m'
+      direcao: '30m'
+      laboratorio: '20m'
 
   reauth:
     sensitive_actions:
@@ -299,7 +299,7 @@ session:
       - elevacao_privilegio
       - cancelamento_prescricao
       - retificacao_evolucao
-    reauth_validity: "5m"
+    reauth_validity: '5m'
     reauth_methods:
       - password
       - biometric
@@ -312,7 +312,7 @@ session:
 
   break_glass:
     enabled: true
-    max_duration: "60m"
+    max_duration: '60m'
     requires_justification: true
     requires_post_review: true
     review_deadline_hours: 24
@@ -438,65 +438,79 @@ const sessionAnomalyRules: SessionAnomalyRule[] = [
     "code": "110114",
     "display": "User Authentication"
   },
-  "subtype": [{
-    "system": "http://dicom.nema.org/resources/ontology/DCM",
-    "code": "110122",
-    "display": "Login"
-  }],
+  "subtype": [
+    {
+      "system": "http://dicom.nema.org/resources/ontology/DCM",
+      "code": "110122",
+      "display": "Login"
+    }
+  ],
   "action": "E",
   "period": {
     "start": "2026-04-08T07:02:15-03:00"
   },
   "recorded": "2026-04-08T07:02:15-03:00",
   "outcome": "0",
-  "agent": [{
-    "type": {
-      "coding": [{
-        "system": "http://terminology.hl7.org/CodeSystem/extra-security-role-type",
-        "code": "humanuser"
-      }]
-    },
-    "who": {
-      "reference": "Practitioner/enf-maria-silva",
-      "display": "Maria Silva - Enfermeira"
-    },
-    "requestor": true,
-    "network": {
-      "address": "10.0.5.42",
-      "type": "2"
+  "agent": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/extra-security-role-type",
+            "code": "humanuser"
+          }
+        ]
+      },
+      "who": {
+        "reference": "Practitioner/enf-maria-silva",
+        "display": "Maria Silva - Enfermeira"
+      },
+      "requestor": true,
+      "network": {
+        "address": "10.0.5.42",
+        "type": "2"
+      }
     }
-  }],
+  ],
   "source": {
     "site": "UTI-Adulto-Posto-1",
     "observer": {
       "reference": "Device/workstation-uti-01"
     },
-    "type": [{
-      "system": "http://terminology.hl7.org/CodeSystem/security-source-type",
-      "code": "4",
-      "display": "Application Server"
-    }]
+    "type": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/security-source-type",
+        "code": "4",
+        "display": "Application Server"
+      }
+    ]
   },
-  "entity": [{
-    "what": {
-      "reference": "Session/sess-uuid-123"
-    },
-    "type": {
-      "system": "http://terminology.hl7.org/CodeSystem/audit-entity-type",
-      "code": "2",
-      "display": "System Object"
-    },
-    "detail": [{
-      "type": "auth_method",
-      "valueString": "password_mfa"
-    }, {
-      "type": "device_type",
-      "valueString": "workstation"
-    }, {
-      "type": "unit_id",
-      "valueString": "uti-adulto"
-    }]
-  }]
+  "entity": [
+    {
+      "what": {
+        "reference": "Session/sess-uuid-123"
+      },
+      "type": {
+        "system": "http://terminology.hl7.org/CodeSystem/audit-entity-type",
+        "code": "2",
+        "display": "System Object"
+      },
+      "detail": [
+        {
+          "type": "auth_method",
+          "valueString": "password_mfa"
+        },
+        {
+          "type": "device_type",
+          "valueString": "workstation"
+        },
+        {
+          "type": "unit_id",
+          "valueString": "uti-adulto"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -510,21 +524,25 @@ const sessionAnomalyRules: SessionAnomalyRule[] = [
     "code": "110114",
     "display": "User Authentication"
   },
-  "subtype": [{
-    "system": "https://velya.health/fhir/CodeSystem/session-event",
-    "code": "fast_switch",
-    "display": "Fast User Switch"
-  }],
+  "subtype": [
+    {
+      "system": "https://velya.health/fhir/CodeSystem/session-event",
+      "code": "fast_switch",
+      "display": "Fast User Switch"
+    }
+  ],
   "action": "E",
   "recorded": "2026-04-08T10:15:30-03:00",
   "outcome": "0",
   "agent": [
     {
       "type": {
-        "coding": [{
-          "system": "https://velya.health/fhir/CodeSystem/agent-role",
-          "code": "outgoing_user"
-        }]
+        "coding": [
+          {
+            "system": "https://velya.health/fhir/CodeSystem/agent-role",
+            "code": "outgoing_user"
+          }
+        ]
       },
       "who": {
         "reference": "Practitioner/enf-maria-silva"
@@ -533,10 +551,12 @@ const sessionAnomalyRules: SessionAnomalyRule[] = [
     },
     {
       "type": {
-        "coding": [{
-          "system": "https://velya.health/fhir/CodeSystem/agent-role",
-          "code": "incoming_user"
-        }]
+        "coding": [
+          {
+            "system": "https://velya.health/fhir/CodeSystem/agent-role",
+            "code": "incoming_user"
+          }
+        ]
       },
       "who": {
         "reference": "Practitioner/med-joao-santos"
@@ -659,27 +679,27 @@ CREATE INDEX idx_elevations_active ON privilege_elevations(expires_at) WHERE rev
 
 ```yaml
 subjects:
-  - "velya.session.login.success"
-  - "velya.session.login.failure"
-  - "velya.session.login.blocked"
-  - "velya.session.logout.voluntary"
-  - "velya.session.logout.inactivity"
-  - "velya.session.logout.timeout"
-  - "velya.session.logout.forced"
-  - "velya.session.switch.out"
-  - "velya.session.switch.in"
-  - "velya.session.reauth.required"
-  - "velya.session.reauth.success"
-  - "velya.session.reauth.failure"
-  - "velya.session.elevation.request"
-  - "velya.session.elevation.granted"
-  - "velya.session.elevation.denied"
-  - "velya.session.elevation.expired"
-  - "velya.session.breakglass.request"
-  - "velya.session.breakglass.granted"
-  - "velya.session.breakglass.expired"
-  - "velya.session.breakglass.reviewed"
-  - "velya.session.anomaly.detected"
+  - 'velya.session.login.success'
+  - 'velya.session.login.failure'
+  - 'velya.session.login.blocked'
+  - 'velya.session.logout.voluntary'
+  - 'velya.session.logout.inactivity'
+  - 'velya.session.logout.timeout'
+  - 'velya.session.logout.forced'
+  - 'velya.session.switch.out'
+  - 'velya.session.switch.in'
+  - 'velya.session.reauth.required'
+  - 'velya.session.reauth.success'
+  - 'velya.session.reauth.failure'
+  - 'velya.session.elevation.request'
+  - 'velya.session.elevation.granted'
+  - 'velya.session.elevation.denied'
+  - 'velya.session.elevation.expired'
+  - 'velya.session.breakglass.request'
+  - 'velya.session.breakglass.granted'
+  - 'velya.session.breakglass.expired'
+  - 'velya.session.breakglass.reviewed'
+  - 'velya.session.anomaly.detected'
 ```
 
 ---
@@ -691,61 +711,61 @@ metrics:
   - name: velya_session_active_count
     type: gauge
     labels: [unit, department, device_type]
-    help: "Sessoes ativas por unidade e tipo de dispositivo"
+    help: 'Sessoes ativas por unidade e tipo de dispositivo'
 
   - name: velya_session_login_total
     type: counter
     labels: [auth_method, outcome, unit]
-    help: "Total de tentativas de login"
+    help: 'Total de tentativas de login'
 
   - name: velya_session_duration_minutes
     type: histogram
     labels: [unit, role]
     buckets: [30, 60, 120, 240, 360, 480, 720]
-    help: "Duracao das sessoes em minutos"
+    help: 'Duracao das sessoes em minutos'
 
   - name: velya_session_switch_total
     type: counter
     labels: [device_id, unit]
-    help: "Total de trocas de usuario"
+    help: 'Total de trocas de usuario'
 
   - name: velya_session_anomaly_total
     type: counter
     labels: [anomaly_type, severity]
-    help: "Total de anomalias de sessao detectadas"
+    help: 'Total de anomalias de sessao detectadas'
 
   - name: velya_session_breakglass_total
     type: counter
     labels: [unit, review_outcome]
-    help: "Total de acessos break-glass"
+    help: 'Total de acessos break-glass'
 
   - name: velya_session_idle_timeout_total
     type: counter
     labels: [unit, role]
-    help: "Total de logoffs por inatividade"
+    help: 'Total de logoffs por inatividade'
 
   - name: velya_session_lockout_total
     type: counter
     labels: [unit]
-    help: "Total de bloqueios por tentativas excessivas"
+    help: 'Total de bloqueios por tentativas excessivas'
 ```
 
 ---
 
 ## 9. Regras de Negocio
 
-| ID | Regra | Descricao |
-|---|---|---|
-| SS001 | ID unico por usuario | Cada profissional tem credencial pessoal intransferivel |
-| SS002 | Auto-logoff configuravel | Inatividade encerra sessao conforme area |
-| SS003 | Re-auth para acoes sensiveis | Prescricao controlada, exportacao, break-glass |
-| SS004 | Fast switch com trilha completa | Registra quem saiu e quem entrou |
-| SS005 | Break-glass com justificativa e revisao | Obrigatoriamente revisado em 24h |
-| SS006 | Elevacao temporaria com expiracao | Privilegio elevado expira automaticamente |
-| SS007 | Max sessoes concorrentes = 2 | Terceira sessao bloqueia |
-| SS008 | Login de IP desconhecido bloqueado | Apenas rede hospitalar autorizada |
-| SS009 | 5 falhas = lockout 30 min | Protecao contra forca bruta |
-| SS010 | Toda sessao gera AuditEvent FHIR | Rastreabilidade completa |
+| ID    | Regra                                   | Descricao                                               |
+| ----- | --------------------------------------- | ------------------------------------------------------- |
+| SS001 | ID unico por usuario                    | Cada profissional tem credencial pessoal intransferivel |
+| SS002 | Auto-logoff configuravel                | Inatividade encerra sessao conforme area                |
+| SS003 | Re-auth para acoes sensiveis            | Prescricao controlada, exportacao, break-glass          |
+| SS004 | Fast switch com trilha completa         | Registra quem saiu e quem entrou                        |
+| SS005 | Break-glass com justificativa e revisao | Obrigatoriamente revisado em 24h                        |
+| SS006 | Elevacao temporaria com expiracao       | Privilegio elevado expira automaticamente               |
+| SS007 | Max sessoes concorrentes = 2            | Terceira sessao bloqueia                                |
+| SS008 | Login de IP desconhecido bloqueado      | Apenas rede hospitalar autorizada                       |
+| SS009 | 5 falhas = lockout 30 min               | Protecao contra forca bruta                             |
+| SS010 | Toda sessao gera AuditEvent FHIR        | Rastreabilidade completa                                |
 
 ---
 

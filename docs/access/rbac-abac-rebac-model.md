@@ -47,22 +47,22 @@ Um usuario nunca recebe permissoes diretamente - sempre atraves de um role.
 
 ```typescript
 interface Role {
-  id: string;                      // Ex: 'medical_staff_attending'
-  displayName: string;             // Ex: 'Medico Assistente'
+  id: string; // Ex: 'medical_staff_attending'
+  displayName: string; // Ex: 'Medico Assistente'
   description: string;
   accessLevel: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
-  inheritsFrom?: string[];        // Roles dos quais herda permissoes
+  inheritsFrom?: string[]; // Roles dos quais herda permissoes
   permissions: Permission[];
   constraints: RoleConstraint[];
   metadata: RoleMetadata;
 }
 
 interface Permission {
-  id: string;                      // Ex: 'prescribe_medication'
-  resource: string;                // Ex: 'patient_chart'
-  actions: Action[];               // Ex: ['create', 'read']
-  dataClasses: DataClass[];        // Ex: ['A', 'B', 'C']
-  fields?: string[];               // Campos especificos permitidos
+  id: string; // Ex: 'prescribe_medication'
+  resource: string; // Ex: 'patient_chart'
+  actions: Action[]; // Ex: ['create', 'read']
+  dataClasses: DataClass[]; // Ex: ['A', 'B', 'C']
+  fields?: string[]; // Campos especificos permitidos
   conditions?: PermissionCondition[];
 }
 
@@ -75,8 +75,8 @@ interface RoleConstraint {
 }
 
 interface RoleMetadata {
-  council?: string;                // Ex: 'CRM', 'COREN'
-  credentialRequired?: string;     // Ex: 'coren_enfermeiro'
+  council?: string; // Ex: 'CRM', 'COREN'
+  credentialRequired?: string; // Ex: 'coren_enfermeiro'
   auditLevel: 'standard' | 'elevated' | 'maximum';
   breakGlassEligible: boolean;
   jit: boolean;
@@ -111,12 +111,12 @@ de roles inferiores na mesma cadeia profissional.
 ```typescript
 // Configuracao de heranca
 const roleHierarchy: Record<string, string[]> = {
-  clinical_director: [],                      // Topo - nao herda
-  medical_staff_attending: [],                // Cadeia medica independente
-  medical_staff_on_call: ['medical_staff_attending'],  // Herda permissoes base do assistente
-  nurse: [],                                  // Topo da cadeia de enfermagem
-  nursing_technician: [],                     // Nao herda automaticamente de nurse
-  nursing_assistant: [],                      // Nao herda automaticamente
+  clinical_director: [], // Topo - nao herda
+  medical_staff_attending: [], // Cadeia medica independente
+  medical_staff_on_call: ['medical_staff_attending'], // Herda permissoes base do assistente
+  nurse: [], // Topo da cadeia de enfermagem
+  nursing_technician: [], // Nao herda automaticamente de nurse
+  nursing_assistant: [], // Nao herda automaticamente
 };
 
 // Resolucao de permissoes efetivas
@@ -129,8 +129,8 @@ function resolveEffectivePermissions(roleId: string): Permission[] {
   }
 
   const inheritedPermissions = role.inheritsFrom
-    .flatMap(parentId => resolveEffectivePermissions(parentId))
-    .filter(p => !p.exclusive);  // Nao herda permissoes exclusivas
+    .flatMap((parentId) => resolveEffectivePermissions(parentId))
+    .filter((p) => !p.exclusive); // Nao herda permissoes exclusivas
 
   return deduplicatePermissions([...ownPermissions, ...inheritedPermissions]);
 }
@@ -147,9 +147,9 @@ role_assignment:
 
     # 2. Roles mutuamente exclusivos
     mutual_exclusions:
-      - [compliance_auditor, clinical_director]    # Auditor nao pode ser o auditado
-      - [it_support_jit, security_admin_jit]       # Segregacao de funcao de TI
-      - [billing_authorization, medical_staff_attending]  # Segregacao financeira
+      - [compliance_auditor, clinical_director] # Auditor nao pode ser o auditado
+      - [it_support_jit, security_admin_jit] # Segregacao de funcao de TI
+      - [billing_authorization, medical_staff_attending] # Segregacao financeira
 
     # 3. Pre-requisitos para atribuicao
     prerequisites:
@@ -173,8 +173,8 @@ role_assignment:
         auto_activate: true
         auto_deactivate: true
       it_support_jit:
-        condition: "jit_request.approved AND jit_request.not_expired"
-        max_duration: "4h"
+        condition: 'jit_request.approved AND jit_request.not_expired'
+        max_duration: '4h'
         requires_ticket: true
 ```
 
@@ -210,7 +210,7 @@ async function evaluateRbac(request: RbacEvaluationRequest): Promise<RbacEvaluat
   if (role.metadata.credentialRequired) {
     const credentialValid = await credentialService.verify(
       request.userId,
-      role.metadata.credentialRequired
+      role.metadata.credentialRequired,
     );
     if (!credentialValid) {
       return { decision: 'DENY', reason: 'CREDENTIAL_INVALID_OR_EXPIRED' };
@@ -221,10 +221,11 @@ async function evaluateRbac(request: RbacEvaluationRequest): Promise<RbacEvaluat
   const effectivePermissions = resolveEffectivePermissions(request.activeRole);
 
   // 4. Encontrar permissao aplicavel
-  const matchingPermission = effectivePermissions.find(p =>
-    p.resource === request.resource &&
-    p.actions.includes(request.action) &&
-    (!request.dataClass || p.dataClasses.includes(request.dataClass))
+  const matchingPermission = effectivePermissions.find(
+    (p) =>
+      p.resource === request.resource &&
+      p.actions.includes(request.action) &&
+      (!request.dataClass || p.dataClasses.includes(request.dataClass)),
   );
 
   if (!matchingPermission) {
@@ -233,7 +234,7 @@ async function evaluateRbac(request: RbacEvaluationRequest): Promise<RbacEvaluat
 
   // 5. Filtrar campos permitidos
   const allowedFields = matchingPermission.fields || ['*'];
-  const deniedFields = request.fields?.filter(f => !fieldMatchesPattern(f, allowedFields)) || [];
+  const deniedFields = request.fields?.filter((f) => !fieldMatchesPattern(f, allowedFields)) || [];
 
   return {
     decision: 'ALLOW',
@@ -257,15 +258,15 @@ da LGPD.
 
 ```typescript
 interface Relationship {
-  id: string;                       // UUID
+  id: string; // UUID
   type: RelationshipType;
-  subjectUserId: string;            // Profissional
-  objectPatientId: string;          // Paciente
-  objectScope?: string;             // Unidade/setor (para relacoes de setor)
+  subjectUserId: string; // Profissional
+  objectPatientId: string; // Paciente
+  objectScope?: string; // Unidade/setor (para relacoes de setor)
   status: RelationshipStatus;
-  createdAt: string;                // ISO 8601
-  createdBy: string;                // Quem criou a relacao
-  expiresAt?: string;               // Expiracao automatica
+  createdAt: string; // ISO 8601
+  createdBy: string; // Quem criou a relacao
+  expiresAt?: string; // Expiracao automatica
   revokedAt?: string;
   revokedBy?: string;
   revokeReason?: string;
@@ -273,57 +274,53 @@ interface Relationship {
 }
 
 type RelationshipType =
-  | 'attending_physician'       // Medico assistente do paciente
-  | 'on_call_physician'        // Plantonista do setor
-  | 'consulting_physician'     // Interconsultor
-  | 'nursing_team_assigned'    // Equipe de enfermagem do paciente/setor
-  | 'multidisciplinary_team'   // Equipe multidisciplinar
-  | 'physiotherapy_assigned'   // Fisioterapeuta designado
-  | 'nutrition_assigned'       // Nutricionista designado
-  | 'psychology_assigned'      // Psicologo designado
-  | 'social_work_assigned'     // Assistente social designado
-  | 'speech_therapy_assigned'  // Fonoaudiologo designado
-  | 'ot_assigned'              // Terapeuta ocupacional designado
-  | 'pharmacy_service'         // Servico de farmacia (por setor)
-  | 'lab_service'              // Servico de laboratorio (por setor)
-  | 'imaging_service'          // Servico de imagem (por setor)
-  | 'transport_assigned'       // Transporte designado
-  | 'cleaning_assigned'        // Limpeza designada (com leito, nao paciente)
+  | 'attending_physician' // Medico assistente do paciente
+  | 'on_call_physician' // Plantonista do setor
+  | 'consulting_physician' // Interconsultor
+  | 'nursing_team_assigned' // Equipe de enfermagem do paciente/setor
+  | 'multidisciplinary_team' // Equipe multidisciplinar
+  | 'physiotherapy_assigned' // Fisioterapeuta designado
+  | 'nutrition_assigned' // Nutricionista designado
+  | 'psychology_assigned' // Psicologo designado
+  | 'social_work_assigned' // Assistente social designado
+  | 'speech_therapy_assigned' // Fonoaudiologo designado
+  | 'ot_assigned' // Terapeuta ocupacional designado
+  | 'pharmacy_service' // Servico de farmacia (por setor)
+  | 'lab_service' // Servico de laboratorio (por setor)
+  | 'imaging_service' // Servico de imagem (por setor)
+  | 'transport_assigned' // Transporte designado
+  | 'cleaning_assigned' // Limpeza designada (com leito, nao paciente)
   | 'case_management_assigned' // Gestor de caso designado
-  | 'audit_access'             // Acesso de auditoria (temporario)
-  | 'break_glass_emergency';   // Relacao de emergencia (break-glass)
+  | 'audit_access' // Acesso de auditoria (temporario)
+  | 'break_glass_emergency'; // Relacao de emergencia (break-glass)
 
-type RelationshipStatus =
-  | 'active'
-  | 'expired'
-  | 'revoked'
-  | 'pending_approval';
+type RelationshipStatus = 'active' | 'expired' | 'revoked' | 'pending_approval';
 
 interface RelationshipMetadata {
-  sourceSystem: string;          // 'shift_schedule', 'admission', 'manual', 'break_glass'
-  shiftId?: string;              // ID do turno (para relacoes de plantao)
-  admissionId?: string;          // ID da internacao
-  taskId?: string;               // ID da tarefa (para transport, cleaning)
-  dataClassScope?: DataClass[];  // Classes de dados permitidas pela relacao
-  actionScope?: string[];        // Acoes permitidas pela relacao
+  sourceSystem: string; // 'shift_schedule', 'admission', 'manual', 'break_glass'
+  shiftId?: string; // ID do turno (para relacoes de plantao)
+  admissionId?: string; // ID da internacao
+  taskId?: string; // ID da tarefa (para transport, cleaning)
+  dataClassScope?: DataClass[]; // Classes de dados permitidas pela relacao
+  actionScope?: string[]; // Acoes permitidas pela relacao
 }
 ```
 
 ### 3.2 Tipos de Relacao Detalhados
 
-| Tipo de Relacao            | Criacao                                    | Expiracao                        | Escopo de Dados      | Revogacao               |
-|----------------------------|--------------------------------------------|----------------------------------|----------------------|-------------------------|
-| attending_physician        | Admissao ou designacao pelo clinical_director | Alta do paciente               | C, D (E com step-up) | Transferencia de medico |
-| on_call_physician          | Inicio do plantao (automatico)             | Fim do plantao (automatico)      | C, D                 | Automatica              |
-| consulting_physician       | Solicitacao de interconsulta                | 72h apos resposta da interconsulta | C, D (do caso)     | Manual ou automatica    |
-| nursing_team_assigned      | Escala de enfermagem                        | Fim do turno (automatico)        | C, D (enf.)          | Automatica              |
-| multidisciplinary_team     | Inclusao na equipe pelo clinical_director   | Alta do paciente                 | Variavel por profissao | Manual                |
-| physiotherapy_assigned     | Solicitacao de fisioterapia                 | Alta ou conclusao do tratamento  | C (parcial)          | Manual                  |
-| nutrition_assigned         | Solicitacao de nutricao                     | Alta ou conclusao               | C (parcial)          | Manual                  |
-| psychology_assigned        | Solicitacao de psicologia                   | Alta ou conclusao               | C, D (saude mental)  | Manual                  |
-| transport_assigned         | Criacao da ordem de transporte              | Conclusao do transporte          | A (minimo)           | Automatica              |
-| cleaning_assigned          | Criacao da ordem de limpeza                 | Conclusao da limpeza             | A (minimo)           | Automatica              |
-| break_glass_emergency      | Ativacao de break-glass                     | Timer (1h-4h por classe)         | A-E                  | Automatica              |
+| Tipo de Relacao        | Criacao                                       | Expiracao                          | Escopo de Dados        | Revogacao               |
+| ---------------------- | --------------------------------------------- | ---------------------------------- | ---------------------- | ----------------------- |
+| attending_physician    | Admissao ou designacao pelo clinical_director | Alta do paciente                   | C, D (E com step-up)   | Transferencia de medico |
+| on_call_physician      | Inicio do plantao (automatico)                | Fim do plantao (automatico)        | C, D                   | Automatica              |
+| consulting_physician   | Solicitacao de interconsulta                  | 72h apos resposta da interconsulta | C, D (do caso)         | Manual ou automatica    |
+| nursing_team_assigned  | Escala de enfermagem                          | Fim do turno (automatico)          | C, D (enf.)            | Automatica              |
+| multidisciplinary_team | Inclusao na equipe pelo clinical_director     | Alta do paciente                   | Variavel por profissao | Manual                  |
+| physiotherapy_assigned | Solicitacao de fisioterapia                   | Alta ou conclusao do tratamento    | C (parcial)            | Manual                  |
+| nutrition_assigned     | Solicitacao de nutricao                       | Alta ou conclusao                  | C (parcial)            | Manual                  |
+| psychology_assigned    | Solicitacao de psicologia                     | Alta ou conclusao                  | C, D (saude mental)    | Manual                  |
+| transport_assigned     | Criacao da ordem de transporte                | Conclusao do transporte            | A (minimo)             | Automatica              |
+| cleaning_assigned      | Criacao da ordem de limpeza                   | Conclusao da limpeza               | A (minimo)             | Automatica              |
+| break_glass_emergency  | Ativacao de break-glass                       | Timer (1h-4h por classe)           | A-E                    | Automatica              |
 
 ### 3.3 Ciclo de Vida das Relacoes
 
@@ -380,7 +377,7 @@ async function evaluateRebac(request: RebacEvaluationRequest): Promise<RebacEval
   // 2. Buscar relacoes ativas entre o profissional e o paciente
   const relationships = await relationshipStore.getActiveRelationships(
     request.userId,
-    request.patientId
+    request.patientId,
   );
 
   if (relationships.length === 0) {
@@ -394,7 +391,7 @@ async function evaluateRebac(request: RebacEvaluationRequest): Promise<RebacEval
   }
 
   // 3. Verificar se alguma relacao cobre a classe de dados solicitada
-  const coveringRelationship = relationships.find(rel => {
+  const coveringRelationship = relationships.find((rel) => {
     const allowedClasses = rel.metadata.dataClassScope || getDefaultClassScope(rel.type);
     return allowedClasses.includes(request.dataClass);
   });
@@ -408,8 +405,8 @@ async function evaluateRebac(request: RebacEvaluationRequest): Promise<RebacEval
   }
 
   // 4. Verificar se a relacao permite a acao solicitada
-  const allowedActions = coveringRelationship.metadata.actionScope ||
-    getDefaultActionScope(coveringRelationship.type);
+  const allowedActions =
+    coveringRelationship.metadata.actionScope || getDefaultActionScope(coveringRelationship.type);
   if (allowedActions && !allowedActions.includes(request.action)) {
     return {
       decision: 'DENY',
@@ -428,6 +425,7 @@ async function evaluateRebac(request: RebacEvaluationRequest): Promise<RebacEval
 ### 3.5 Grafo de Relacoes
 
 O ReBAC e implementado como um grafo direcionado onde:
+
 - Nos = Usuarios, Pacientes, Unidades, Leitos, Tarefas
 - Arestas = Relacoes tipadas com metadados
 
@@ -509,18 +507,18 @@ mesmo quando o RBAC e ReBAC ja concederam acesso.
 interface AttributeCatalog {
   // Atributos do Sujeito (Profissional)
   subject: {
-    profession: string;              // 'medico', 'enfermeiro', etc.
-    council: string;                 // 'CRM', 'COREN', etc.
+    profession: string; // 'medico', 'enfermeiro', etc.
+    council: string; // 'CRM', 'COREN', etc.
     councilStatus: 'active' | 'suspended' | 'cancelled';
     councilNumber: string;
-    specialties: string[];           // Especialidades registradas
-    unit: string;                    // Unidade atual
+    specialties: string[]; // Especialidades registradas
+    unit: string; // Unidade atual
     shift: 'morning' | 'afternoon' | 'night' | 'on_call' | 'none';
     shiftActive: boolean;
-    team: string;                    // Equipe atual
+    team: string; // Equipe atual
     yearsOfExperience: number;
     seniorityLevel: 'junior' | 'mid' | 'senior';
-    lastMfaVerification: string;     // Timestamp
+    lastMfaVerification: string; // Timestamp
     deviceTrust: 'trusted' | 'untrusted' | 'unknown';
     locationType: 'hospital_network' | 'vpn' | 'remote' | 'unknown';
     ipAddress: string;
@@ -532,11 +530,11 @@ interface AttributeCatalog {
     patientType: 'inpatient' | 'outpatient' | 'emergency' | 'icu';
     dataRisk: 'low' | 'medium' | 'high' | 'critical';
     dataClass: DataClass;
-    recordAge: Duration;             // Idade do registro
-    isSealed: boolean;               // Registro lacrado/sequestrado
-    isFlagged: boolean;              // Registro com flag especial
+    recordAge: Duration; // Idade do registro
+    isSealed: boolean; // Registro lacrado/sequestrado
+    isFlagged: boolean; // Registro com flag especial
     department: string;
-    sensitiveFlags: string[];        // 'hiv', 'mental_health', 'violence', etc.
+    sensitiveFlags: string[]; // 'hiv', 'mental_health', 'violence', etc.
   };
 
   // Atributos do Contexto (Ambiente)
@@ -545,7 +543,7 @@ interface AttributeCatalog {
     dayOfWeek: string;
     isHoliday: boolean;
     isBusinessHours: boolean;
-    emergencyDeclared: boolean;      // Emergencia institucional (ex: catastrofe)
+    emergencyDeclared: boolean; // Emergencia institucional (ex: catastrofe)
     systemLoad: 'normal' | 'high' | 'critical';
     concurrentSessions: number;
   };
@@ -553,8 +551,8 @@ interface AttributeCatalog {
   // Atributos da Acao
   action: {
     type: Action;
-    purpose: string;                 // Finalidade declarada
-    taskId?: string;                 // Tarefa associada
+    purpose: string; // Finalidade declarada
+    taskId?: string; // Tarefa associada
     consent: {
       exists: boolean;
       type: string;
@@ -863,7 +861,7 @@ async function authorize(request: AuthorizationRequest): Promise<AuthorizationRe
           `ReBAC: ${rebacResult.reason}`,
           startTime,
           request,
-          rebacResult.breakGlassAvailable
+          rebacResult.breakGlassAvailable,
         );
       }
     }
@@ -885,7 +883,7 @@ async function authorize(request: AuthorizationRequest): Promise<AuthorizationRe
     request.activeRole,
     request.dataClass,
     request.fields || ['*'],
-    rbacResult.allowedFields || ['*']
+    rbacResult.allowedFields || ['*'],
   );
 
   return {
@@ -907,29 +905,29 @@ async function authorize(request: AuthorizationRequest): Promise<AuthorizationRe
 caching:
   rbac:
     # Roles e permissoes mudam raramente
-    cache_type: distributed  # Redis
-    ttl: 300s                # 5 minutos
-    invalidation: event_driven  # Invalidar quando role muda
+    cache_type: distributed # Redis
+    ttl: 300s # 5 minutos
+    invalidation: event_driven # Invalidar quando role muda
 
   rebac:
     # Relacoes mudam com frequencia (turnos, admissoes)
-    cache_type: local        # In-memory LRU
-    ttl: 60s                 # 1 minuto
+    cache_type: local # In-memory LRU
+    ttl: 60s # 1 minuto
     invalidation: event_driven + ttl
-    preload: true            # Pre-carregar relacoes no inicio do turno
+    preload: true # Pre-carregar relacoes no inicio do turno
 
   abac:
     # Atributos contextuais mudam constantemente
-    cache_type: none         # Sem cache - sempre avaliar em tempo real
+    cache_type: none # Sem cache - sempre avaliar em tempo real
     exception:
-      - attribute: subject.council_status  # Cache o status do conselho
-        ttl: 3600s                          # 1 hora
+      - attribute: subject.council_status # Cache o status do conselho
+        ttl: 3600s # 1 hora
 
   decision:
     # Cache de decisoes recentes (mesma combinacao = mesmo resultado)
     cache_type: local
     ttl: 30s
-    key: "userId:roleId:patientId:action:resource:dataClass"
+    key: 'userId:roleId:patientId:action:resource:dataClass'
     invalidation: any_input_change
 
 performance:
@@ -937,11 +935,11 @@ performance:
     p50: 5ms
     p95: 15ms
     p99: 50ms
-  max_latency: 100ms  # Acima disso, circuit breaker entra em acao
+  max_latency: 100ms # Acima disso, circuit breaker entra em acao
   circuit_breaker:
-    threshold: 10  # 10 falhas consecutivas
+    threshold: 10 # 10 falhas consecutivas
     recovery_time: 30s
-    fallback: deny_all  # Em caso de falha, negar tudo (seguranca)
+    fallback: deny_all # Em caso de falha, negar tudo (seguranca)
 ```
 
 ---
@@ -958,7 +956,7 @@ interface SeparationOfDutyRule {
   conflictingActions: [string, string];
   conflictingRoles?: [string, string];
   scope: 'same_patient' | 'same_resource' | 'global';
-  enforcement: 'hard' | 'soft';  // hard = block, soft = alert
+  enforcement: 'hard' | 'soft'; // hard = block, soft = alert
 }
 
 const sodRules: SeparationOfDutyRule[] = [
@@ -1020,7 +1018,7 @@ pap:
       requires:
         all:
           - role: security_admin_jit
-          - approval: clinical_director  # Para roles clinicos
+          - approval: clinical_director # Para roles clinicos
     manage_abac_policies:
       requires:
         all:
@@ -1028,13 +1026,13 @@ pap:
           - approval: compliance_auditor
     manage_rebac_relationships:
       auto_managed:
-        - shift_schedule_system   # Relacoes de plantao
-        - admission_system        # Relacoes de internacao
-        - task_management_system  # Relacoes de tarefa
+        - shift_schedule_system # Relacoes de plantao
+        - admission_system # Relacoes de internacao
+        - task_management_system # Relacoes de tarefa
       manual:
         requires:
-          - role: clinical_director  # Para relacoes clinicas
-          - role: unit_manager       # Para relacoes da unidade
+          - role: clinical_director # Para relacoes clinicas
+          - role: unit_manager # Para relacoes da unidade
 
   change_control:
     # Toda alteracao de politica passa por workflow de aprovacao
@@ -1045,10 +1043,10 @@ pap:
         actor: compliance_auditor
       - step: review_clinical
         actor: clinical_director
-        condition: "change affects clinical roles"
+        condition: 'change affects clinical roles'
       - step: approve
         actor: hospital_owner_executive
-        condition: "change is high impact"
+        condition: 'change is high impact'
       - step: deploy
         actor: security_admin_jit
         requires: all_approvals
@@ -1095,17 +1093,17 @@ monitoring:
       notify: [security_team]
 
     - name: break_glass_spike
-      condition: "increase(break_glass_activations_total[1h]) > 3"
+      condition: 'increase(break_glass_activations_total[1h]) > 3'
       severity: critical
       notify: [security_team, clinical_director, compliance]
 
     - name: authz_latency_high
-      condition: "histogram_quantile(0.99, authz_evaluation_duration_ms) > 100"
+      condition: 'histogram_quantile(0.99, authz_evaluation_duration_ms) > 100'
       severity: warning
       notify: [engineering_team]
 
     - name: policy_errors
-      condition: "rate(policy_evaluation_errors_total[5m]) > 0"
+      condition: 'rate(policy_evaluation_errors_total[5m]) > 0'
       severity: critical
       notify: [engineering_team, security_team]
 ```
@@ -1128,7 +1126,9 @@ describe('RBAC Policies', () => {
       resource: 'prescription',
       dataClass: 'D',
       purpose: 'direct_patient_care',
-      context: { /* hospital network, trusted device */ },
+      context: {
+        /* hospital network, trusted device */
+      },
     });
     expect(result.decision).toBe('ALLOW');
   });
@@ -1142,7 +1142,9 @@ describe('RBAC Policies', () => {
       resource: 'prescription',
       dataClass: 'D',
       purpose: 'direct_patient_care',
-      context: { /* hospital network, trusted device */ },
+      context: {
+        /* hospital network, trusted device */
+      },
     });
     expect(result.decision).toBe('DENY');
     expect(result.reason).toContain('RBAC');
@@ -1152,12 +1154,14 @@ describe('RBAC Policies', () => {
     const result = await authorize({
       userId: 'dr-outro',
       activeRole: 'medical_staff_attending',
-      patientId: 'patient-456',  // Nao e paciente deste medico
+      patientId: 'patient-456', // Nao e paciente deste medico
       action: 'read',
       resource: 'patient_chart',
       dataClass: 'C',
       purpose: 'direct_patient_care',
-      context: { /* hospital network */ },
+      context: {
+        /* hospital network */
+      },
     });
     expect(result.decision).toBe('DENY');
     expect(result.reason).toContain('ReBAC');
@@ -1173,7 +1177,9 @@ describe('RBAC Policies', () => {
       resource: 'patient_chart',
       dataClass: 'C',
       purpose: 'registration',
-      context: { /* reception workstation */ },
+      context: {
+        /* reception workstation */
+      },
     });
     expect(result.decision).toBe('DENY');
     expect(result.reason).toContain('RBAC');
@@ -1183,5 +1189,5 @@ describe('RBAC Policies', () => {
 
 ---
 
-*Documento mantido pela equipe de Arquitetura de Seguranca - Velya Platform.*
-*Proxima revisao programada: 2026-07-08.*
+_Documento mantido pela equipe de Arquitetura de Seguranca - Velya Platform._
+_Proxima revisao programada: 2026-07-08._

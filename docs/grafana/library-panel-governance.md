@@ -8,16 +8,16 @@ Library Panels no Grafana sao componentes visuais reutilizaveis compartilhados e
 
 ## Catalogo de Library Panels Velya
 
-| UID                          | Nome                     | Tipo           | Versao | Dashboards Consumidores | Owner          | Criticidade |
-|------------------------------|--------------------------|----------------|--------|------------------------|----------------|-------------|
-| velya-golden-signals         | Golden Signals           | Row (4 panels) | 3.2    | 18                     | Platform Eng   | Critical    |
-| velya-slo-status             | SLO Status               | Stat + Gauge   | 2.1    | 12                     | Platform Eng   | Critical    |
-| velya-pod-resources          | Pod Resources            | Time Series    | 2.4    | 22                     | Platform Eng   | High        |
-| velya-log-volume             | Log Volume by Level      | Bar Chart      | 1.8    | 15                     | Platform Eng   | High        |
-| velya-error-log-stream       | Error Log Stream         | Logs           | 1.5    | 14                     | Platform Eng   | High        |
-| velya-trace-duration-hist    | Trace Duration Histogram | Histogram      | 1.3    | 10                     | Platform Eng   | Medium      |
-| velya-cpu-profile            | CPU Profile              | Flame Graph    | 1.1    | 5                      | Platform Eng   | Medium      |
-| velya-alert-status           | Alert Status Timeline    | State Timeline | 1.6    | 8                      | Platform Eng   | High        |
+| UID                       | Nome                     | Tipo           | Versao | Dashboards Consumidores | Owner        | Criticidade |
+| ------------------------- | ------------------------ | -------------- | ------ | ----------------------- | ------------ | ----------- |
+| velya-golden-signals      | Golden Signals           | Row (4 panels) | 3.2    | 18                      | Platform Eng | Critical    |
+| velya-slo-status          | SLO Status               | Stat + Gauge   | 2.1    | 12                      | Platform Eng | Critical    |
+| velya-pod-resources       | Pod Resources            | Time Series    | 2.4    | 22                      | Platform Eng | High        |
+| velya-log-volume          | Log Volume by Level      | Bar Chart      | 1.8    | 15                      | Platform Eng | High        |
+| velya-error-log-stream    | Error Log Stream         | Logs           | 1.5    | 14                      | Platform Eng | High        |
+| velya-trace-duration-hist | Trace Duration Histogram | Histogram      | 1.3    | 10                      | Platform Eng | Medium      |
+| velya-cpu-profile         | CPU Profile              | Flame Graph    | 1.1    | 5                       | Platform Eng | Medium      |
+| velya-alert-status        | Alert Status Timeline    | State Timeline | 1.6    | 8                       | Platform Eng | High        |
 
 ---
 
@@ -31,41 +31,41 @@ Toda nova library panel comeca com uma proposta formal.
 # library-panel-proposal.yaml
 proposal:
   id: LP-2026-003
-  name: "velya-request-rate-compare"
-  description: "Painel comparativo de request rate atual vs periodo anterior"
+  name: 'velya-request-rate-compare'
+  description: 'Painel comparativo de request rate atual vs periodo anterior'
   justification: |
     Multiplos dashboards de servico precisam comparar request rate
     com periodo anterior (dia, semana). Atualmente cada dashboard
     implementa diferente, gerando inconsistencia.
-  type: "timeseries"
-  datasource: "prometheus"
+  type: 'timeseries'
+  datasource: 'prometheus'
   queries:
-    - name: "current"
+    - name: 'current'
       expr: 'sum(rate(http_requests_total{namespace="$namespace", job="$service"}[5m]))'
-    - name: "previous_day"
+    - name: 'previous_day'
       expr: 'sum(rate(http_requests_total{namespace="$namespace", job="$service"}[5m] offset 1d))'
   target_dashboards:
-    - "velya-patient-api"
-    - "velya-scheduling-api"
-    - "velya-auth-service"
-    - "velya-billing-service"
-  owner: "platform-engineering"
-  criticality: "high"
-  reviewer: "sre-lead"
-  submitted_by: "joao.silva"
-  submitted_at: "2026-04-05"
+    - 'velya-patient-api'
+    - 'velya-scheduling-api'
+    - 'velya-auth-service'
+    - 'velya-billing-service'
+  owner: 'platform-engineering'
+  criticality: 'high'
+  reviewer: 'sre-lead'
+  submitted_by: 'joao.silva'
+  submitted_at: '2026-04-05'
 ```
 
 ### 2. Revisao e Aprovacao
 
-| Criterio de Revisao                | Aprovador        | Obrigatorio |
-|------------------------------------|------------------|-------------|
-| Query e correta e performatica     | SRE Lead         | Sim         |
-| Visualizacao e adequada            | Platform Lead    | Sim         |
-| Unidades e thresholds corretos     | Dashboard Owner  | Sim         |
-| Descricao e titulo claros          | Qualquer revisor | Sim         |
-| Nao duplica library panel existente| Platform Eng     | Sim         |
-| Testada em pelo menos 2 dashboards | Autor            | Sim         |
+| Criterio de Revisao                 | Aprovador        | Obrigatorio |
+| ----------------------------------- | ---------------- | ----------- |
+| Query e correta e performatica      | SRE Lead         | Sim         |
+| Visualizacao e adequada             | Platform Lead    | Sim         |
+| Unidades e thresholds corretos      | Dashboard Owner  | Sim         |
+| Descricao e titulo claros           | Qualquer revisor | Sim         |
+| Nao duplica library panel existente | Platform Eng     | Sim         |
+| Testada em pelo menos 2 dashboards  | Autor            | Sim         |
 
 ### 3. Versionamento
 
@@ -129,41 +129,41 @@ Antes de publicar qualquer atualizacao, a library panel deve passar por testes d
 regression_tests:
   velya-golden-signals:
     test_scenarios:
-      - name: "query_returns_data"
-        description: "Todas as 4 queries retornam dados com variaveis padrao"
-        method: "execute_queries_with_defaults"
-        expected: "all_queries_return_data"
+      - name: 'query_returns_data'
+        description: 'Todas as 4 queries retornam dados com variaveis padrao'
+        method: 'execute_queries_with_defaults'
+        expected: 'all_queries_return_data'
 
-      - name: "query_performance"
-        description: "Queries executam em tempo aceitavel"
-        method: "measure_query_duration"
-        expected: "all_queries < 3s"
+      - name: 'query_performance'
+        description: 'Queries executam em tempo aceitavel'
+        method: 'measure_query_duration'
+        expected: 'all_queries < 3s'
 
-      - name: "rendering"
-        description: "Painel renderiza sem erros visuais"
-        method: "screenshot_comparison"
-        expected: "no_render_errors"
+      - name: 'rendering'
+        description: 'Painel renderiza sem erros visuais'
+        method: 'screenshot_comparison'
+        expected: 'no_render_errors'
 
-      - name: "variable_resolution"
-        description: "Todas as variaveis referenciadas resolvem"
-        method: "check_variable_resolution"
-        expected: "all_variables_resolve"
+      - name: 'variable_resolution'
+        description: 'Todas as variaveis referenciadas resolvem'
+        method: 'check_variable_resolution'
+        expected: 'all_variables_resolve'
 
-      - name: "cross_dashboard_consistency"
-        description: "Painel funciona em todos os dashboards consumidores"
-        method: "test_in_all_consumers"
-        expected: "works_in_all_dashboards"
+      - name: 'cross_dashboard_consistency'
+        description: 'Painel funciona em todos os dashboards consumidores'
+        method: 'test_in_all_consumers'
+        expected: 'works_in_all_dashboards'
 
-      - name: "threshold_validation"
-        description: "Thresholds sao atingidos com dados reais"
-        method: "check_threshold_visibility"
-        expected: "thresholds_visible_with_real_data"
+      - name: 'threshold_validation'
+        description: 'Thresholds sao atingidos com dados reais'
+        method: 'check_threshold_visibility'
+        expected: 'thresholds_visible_with_real_data'
 
     test_environments:
-      - name: "staging"
-        grafana_url: "http://grafana-staging.velya.health"
-      - name: "preview"
-        grafana_url: "http://grafana-preview.velya.health"
+      - name: 'staging'
+        grafana_url: 'http://grafana-staging.velya.health'
+      - name: 'preview'
+        grafana_url: 'http://grafana-preview.velya.health'
 ```
 
 ### 5. Propagacao de Atualizacao
@@ -216,7 +216,7 @@ Verifica se algum dashboard alterou a library panel localmente, quebrando a cons
 
 ```yaml
 divergence_detection:
-  check_frequency: "*/30 * * * *"  # a cada 30 min
+  check_frequency: '*/30 * * * *' # a cada 30 min
   method: |
     Para cada library panel:
       1. Obter JSON da library panel central
@@ -231,8 +231,8 @@ divergence_detection:
     - metric: dae_library_panel_divergence{uid, dashboard_uid}
   auto_correction:
     enabled: true
-    condition: "divergence_is_local_edit AND library_panel_is_source_of_truth"
-    action: "force_sync_from_library_panel"
+    condition: 'divergence_is_local_edit AND library_panel_is_source_of_truth'
+    action: 'force_sync_from_library_panel'
 ```
 
 ### 7. Processo de Deprecacao
@@ -240,35 +240,35 @@ divergence_detection:
 ```yaml
 deprecation_process:
   stages:
-    - stage: "announce"
-      duration: "30d"
+    - stage: 'announce'
+      duration: '30d'
       actions:
-        - add_tag: "deprecated"
-        - add_description_prefix: "[DEPRECATED] "
+        - add_tag: 'deprecated'
+        - add_description_prefix: '[DEPRECATED] '
         - notify_all_consumers: true
         - create_migration_guide: true
         - metric: dae_library_panel_deprecated{uid, replacement_uid}
 
-    - stage: "warn"
-      duration: "30d"
+    - stage: 'warn'
+      duration: '30d'
       actions:
-        - add_warning_annotation: "Este library panel sera removido em {removal_date}"
+        - add_warning_annotation: 'Este library panel sera removido em {removal_date}'
         - block_new_usage: true
         - weekly_reminder_to_consumers: true
 
-    - stage: "migrate"
-      duration: "14d"
+    - stage: 'migrate'
+      duration: '14d'
       actions:
         - auto_replace_in_consumers: true
-        - condition: "replacement_panel_exists AND replacement_tested"
-        - fallback: "manual_migration_required"
+        - condition: 'replacement_panel_exists AND replacement_tested'
+        - fallback: 'manual_migration_required'
 
-    - stage: "remove"
+    - stage: 'remove'
       actions:
         - verify_zero_consumers: true
-        - if_consumers_remain: "abort_and_escalate"
-        - if_zero_consumers: "delete_library_panel"
-        - archive: "s3://velya-observability-archive/library-panels/"
+        - if_consumers_remain: 'abort_and_escalate'
+        - if_zero_consumers: 'delete_library_panel'
+        - archive: 's3://velya-observability-archive/library-panels/'
 ```
 
 ---
@@ -285,7 +285,7 @@ metadata:
     app: dashboard-assurance-engine
     component: library-panel-health
 spec:
-  schedule: "*/15 * * * *"
+  schedule: '*/15 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -298,40 +298,40 @@ spec:
           labels:
             app: dae-library-panel-health
           annotations:
-            prometheus.io/scrape: "true"
-            prometheus.io/port: "8080"
+            prometheus.io/scrape: 'true'
+            prometheus.io/port: '8080'
         spec:
           serviceAccountName: dae-scanner
           containers:
-          - name: library-panel-checker
-            image: velya/dae-library-panel-checker:1.4.0
-            env:
-            - name: GRAFANA_URL
-              value: "http://grafana.velya-observability.svc:3000"
-            - name: GRAFANA_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: dae-credentials
-                  key: grafana-api-token
-            - name: PUSHGATEWAY_URL
-              value: "http://prometheus-pushgateway.velya-observability.svc:9091"
-            command:
-            - python3
-            - /app/library_panel_health.py
-            args:
-            - --grafana-url=$(GRAFANA_URL)
-            - --check-versions
-            - --check-divergence
-            - --check-consumers
-            - --check-deprecated
-            - --push-metrics
-            resources:
-              requests:
-                cpu: 50m
-                memory: 64Mi
-              limits:
-                cpu: 200m
-                memory: 128Mi
+            - name: library-panel-checker
+              image: velya/dae-library-panel-checker:1.4.0
+              env:
+                - name: GRAFANA_URL
+                  value: 'http://grafana.velya-observability.svc:3000'
+                - name: GRAFANA_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: dae-credentials
+                      key: grafana-api-token
+                - name: PUSHGATEWAY_URL
+                  value: 'http://prometheus-pushgateway.velya-observability.svc:9091'
+              command:
+                - python3
+                - /app/library_panel_health.py
+              args:
+                - --grafana-url=$(GRAFANA_URL)
+                - --check-versions
+                - --check-divergence
+                - --check-consumers
+                - --check-deprecated
+                - --push-metrics
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 128Mi
           restartPolicy: OnFailure
 ```
 
@@ -347,63 +347,63 @@ metadata:
   namespace: velya-observability
 spec:
   groups:
-  - name: library-panel-governance
-    interval: 60s
-    rules:
-    - alert: LibraryPanelRegressionDetected
-      expr: dae_library_panel_regression_count > 0
-      for: 5m
-      labels:
-        severity: warning
-        team: platform
-      annotations:
-        summary: "Library panel {{ $labels.uid }} causou regressao em {{ $value }} dashboards"
-        description: "Uma atualizacao recente do library panel causou degradacao em dashboards consumidores."
+    - name: library-panel-governance
+      interval: 60s
+      rules:
+        - alert: LibraryPanelRegressionDetected
+          expr: dae_library_panel_regression_count > 0
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: 'Library panel {{ $labels.uid }} causou regressao em {{ $value }} dashboards'
+            description: 'Uma atualizacao recente do library panel causou degradacao em dashboards consumidores.'
 
-    - alert: LibraryPanelDivergenceDetected
-      expr: dae_library_panel_divergence > 0
-      for: 30m
-      labels:
-        severity: info
-        team: platform
-      annotations:
-        summary: "Library panel {{ $labels.uid }} divergiu no dashboard {{ $labels.dashboard_uid }}"
-        description: "Um dashboard alterou localmente a library panel, quebrando consistencia."
+        - alert: LibraryPanelDivergenceDetected
+          expr: dae_library_panel_divergence > 0
+          for: 30m
+          labels:
+            severity: info
+            team: platform
+          annotations:
+            summary: 'Library panel {{ $labels.uid }} divergiu no dashboard {{ $labels.dashboard_uid }}'
+            description: 'Um dashboard alterou localmente a library panel, quebrando consistencia.'
 
-    - alert: DeprecatedLibraryPanelStillInUse
-      expr: dae_library_panel_deprecated{stage="remove"} > 0 and dae_library_panel_consumers_count > 0
-      for: 1h
-      labels:
-        severity: warning
-        team: platform
-      annotations:
-        summary: "Library panel deprecated {{ $labels.uid }} ainda tem {{ $value }} consumidores"
+        - alert: DeprecatedLibraryPanelStillInUse
+          expr: dae_library_panel_deprecated{stage="remove"} > 0 and dae_library_panel_consumers_count > 0
+          for: 1h
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: 'Library panel deprecated {{ $labels.uid }} ainda tem {{ $value }} consumidores'
 
-    - alert: LibraryPanelWithoutOwner
-      expr: dae_library_panel_has_owner == 0
-      for: 24h
-      labels:
-        severity: info
-        team: platform
-      annotations:
-        summary: "Library panel {{ $labels.uid }} sem owner atribuido"
+        - alert: LibraryPanelWithoutOwner
+          expr: dae_library_panel_has_owner == 0
+          for: 24h
+          labels:
+            severity: info
+            team: platform
+          annotations:
+            summary: 'Library panel {{ $labels.uid }} sem owner atribuido'
 ```
 
 ---
 
 ## Matriz de Responsabilidade
 
-| Atividade                      | Autor | Revisor | Platform Eng | SRE  | Dashboard Owner |
-|-------------------------------|-------|---------|--------------|------|-----------------|
-| Propor nova library panel     | R     | C       | A            | C    | I               |
-| Revisar proposta              | I     | R       | A            | C    | I               |
-| Implementar library panel     | R     | C       | A            | I    | I               |
-| Testar regressao              | R     | C       | C            | I    | I               |
-| Aprovar publicacao            | I     | I       | R/A          | C    | I               |
-| Monitorar propagacao          | I     | I       | R            | C    | I               |
-| Detectar divergencia          | -     | -       | R (DAE)      | I    | I               |
-| Iniciar deprecacao            | I     | I       | R/A          | C    | C               |
-| Migrar consumidores           | I     | I       | R            | C    | R               |
+| Atividade                 | Autor | Revisor | Platform Eng | SRE | Dashboard Owner |
+| ------------------------- | ----- | ------- | ------------ | --- | --------------- |
+| Propor nova library panel | R     | C       | A            | C   | I               |
+| Revisar proposta          | I     | R       | A            | C   | I               |
+| Implementar library panel | R     | C       | A            | I   | I               |
+| Testar regressao          | R     | C       | C            | I   | I               |
+| Aprovar publicacao        | I     | I       | R/A          | C   | I               |
+| Monitorar propagacao      | I     | I       | R            | C   | I               |
+| Detectar divergencia      | -     | -       | R (DAE)      | I   | I               |
+| Iniciar deprecacao        | I     | I       | R/A          | C   | C               |
+| Migrar consumidores       | I     | I       | R            | C   | R               |
 
 **R** = Responsavel | **A** = Aprovador | **C** = Consultado | **I** = Informado
 

@@ -74,24 +74,24 @@ Alternativamente, pode-se usar **um unico certificado** com ambos os SANs:
 
 ```yaml
 dnsNames:
-  - "*.velya.health"
-  - "velya.health"
+  - '*.velya.health'
+  - 'velya.health'
 ```
 
 ### 3.2 Tabela de Cobertura
 
-| Host | Coberto por Wildcard | Coberto por Apex | Certificado Necessario |
-|---|---|---|---|
-| velya.health | Nao | Sim | Apex ou combo |
-| app.velya.health | Sim | Nao | Wildcard |
-| api.velya.health | Sim | Nao | Wildcard |
-| auth.velya.health | Sim | Nao | Wildcard |
-| grafana.velya.health | Sim | Nao | Wildcard |
-| ops.velya.health | Sim | Nao | Wildcard |
-| status.velya.health | Sim | Nao | Wildcard |
-| docs.velya.health | Sim | Nao | Wildcard |
-| app.staging.velya.health | Nao | Nao | *.staging.velya.health |
-| staging.velya.health | Sim | Nao | Wildcard |
+| Host                     | Coberto por Wildcard | Coberto por Apex | Certificado Necessario  |
+| ------------------------ | -------------------- | ---------------- | ----------------------- |
+| velya.health             | Nao                  | Sim              | Apex ou combo           |
+| app.velya.health         | Sim                  | Nao              | Wildcard                |
+| api.velya.health         | Sim                  | Nao              | Wildcard                |
+| auth.velya.health        | Sim                  | Nao              | Wildcard                |
+| grafana.velya.health     | Sim                  | Nao              | Wildcard                |
+| ops.velya.health         | Sim                  | Nao              | Wildcard                |
+| status.velya.health      | Sim                  | Nao              | Wildcard                |
+| docs.velya.health        | Sim                  | Nao              | Wildcard                |
+| app.staging.velya.health | Nao                  | Nao              | \*.staging.velya.health |
+| staging.velya.health     | Sim                  | Nao              | Wildcard                |
 
 ---
 
@@ -146,11 +146,11 @@ spec:
 
   # SANs: wildcard
   dnsNames:
-    - "*.velya.health"
+    - '*.velya.health'
 
   # Duracao e renovacao
-  duration: 2160h    # 90 dias
-  renewBefore: 720h  # 30 dias antes
+  duration: 2160h # 90 dias
+  renewBefore: 720h # 30 dias antes
 
   # Chave privada ECDSA
   privateKey:
@@ -185,7 +185,7 @@ spec:
     kind: ClusterIssuer
 
   dnsNames:
-    - "velya.health"
+    - 'velya.health'
 
   duration: 2160h
   renewBefore: 720h
@@ -222,8 +222,8 @@ spec:
 
   # Ambos os SANs no mesmo certificado
   dnsNames:
-    - "*.velya.health"
-    - "velya.health"
+    - '*.velya.health'
+    - 'velya.health'
 
   duration: 2160h
   renewBefore: 720h
@@ -253,8 +253,8 @@ spec:
     kind: ClusterIssuer
 
   dnsNames:
-    - "*.staging.velya.health"
-    - "staging.velya.health"
+    - '*.staging.velya.health'
+    - 'staging.velya.health'
 
   duration: 2160h
   renewBefore: 720h
@@ -284,7 +284,7 @@ spec:
   tls:
     - hosts:
         - app.velya.health
-      secretName: velya-health-wildcard-tls  # mesmo Secret
+      secretName: velya-health-wildcard-tls # mesmo Secret
   rules:
     - host: app.velya.health
       http:
@@ -308,7 +308,7 @@ spec:
   tls:
     - hosts:
         - api.velya.health
-      secretName: velya-health-wildcard-tls  # mesmo Secret
+      secretName: velya-health-wildcard-tls # mesmo Secret
   rules:
     - host: api.velya.health
       http:
@@ -335,9 +335,9 @@ metadata:
   name: velya-health-wildcard-tls
   namespace: velya-system
   annotations:
-    reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-    reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "velya-app,monitoring,velya-auth"
-    reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+    reflector.v1.k8s.emberstack.com/reflection-allowed: 'true'
+    reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: 'velya-app,monitoring,velya-auth'
+    reflector.v1.k8s.emberstack.com/reflection-auto-enabled: 'true'
 type: kubernetes.io/tls
 ```
 
@@ -347,24 +347,26 @@ type: kubernetes.io/tls
 
 ### 7.1 Comparacao
 
-| Criterio | Wildcard | Individual por Host |
-|---|---|---|
-| Numero de certificados | 1 | N (um por host) |
-| Rate limit impact | 1 emissao | N emissoes |
-| Blast radius | Maior (1 cert = todos os hosts) | Menor (1 cert = 1 host) |
-| Complexidade | Menor | Maior |
-| Flexibilidade | Menor (mesma chave) | Maior (chaves independentes) |
-| Renovacao | 1 renovacao | N renovacoes |
-| DNS-01 | Obrigatorio | HTTP-01 ou DNS-01 |
+| Criterio               | Wildcard                        | Individual por Host          |
+| ---------------------- | ------------------------------- | ---------------------------- |
+| Numero de certificados | 1                               | N (um por host)              |
+| Rate limit impact      | 1 emissao                       | N emissoes                   |
+| Blast radius           | Maior (1 cert = todos os hosts) | Menor (1 cert = 1 host)      |
+| Complexidade           | Menor                           | Maior                        |
+| Flexibilidade          | Menor (mesma chave)             | Maior (chaves independentes) |
+| Renovacao              | 1 renovacao                     | N renovacoes                 |
+| DNS-01                 | Obrigatorio                     | HTTP-01 ou DNS-01            |
 
 ### 7.2 Decisao Velya
 
 **Wildcard** para subdominios de producao (`*.velya.health`):
+
 - Simplicidade operacional.
 - Minimo impacto em rate limits.
 - Todos os subdominios cobertos automaticamente.
 
 **Individual** apenas quando:
+
 - Subdominio requer chave privada isolada.
 - Requisito de compliance exige certificado dedicado.
 - Subdominio esta em namespace com restricoes especiais.
@@ -433,9 +435,9 @@ CORRETO: Emitir *.staging.velya.health separadamente
 
 ## 10. Checklist
 
-- [ ] Wildcard certificate emitido para *.velya.health
+- [ ] Wildcard certificate emitido para \*.velya.health
 - [ ] Apex certificate emitido para velya.health
-- [ ] Wildcard staging emitido para *.staging.velya.health
+- [ ] Wildcard staging emitido para \*.staging.velya.health
 - [ ] Ingresses usando Secret correto
 - [ ] Cross-namespace sharing configurado (se necessario)
 - [ ] RBAC restritivo no Secret do wildcard
@@ -447,10 +449,10 @@ CORRETO: Emitir *.staging.velya.health separadamente
 
 ## 11. Changelog
 
-| Data | Versao | Descricao |
-|---|---|---|
-| 2026-04-09 | 1.0 | Versao inicial da politica wildcard e apex |
+| Data       | Versao | Descricao                                  |
+| ---------- | ------ | ------------------------------------------ |
+| 2026-04-09 | 1.0    | Versao inicial da politica wildcard e apex |
 
 ---
 
-*Documento mantido pelo Platform Team. Revisao trimestral obrigatoria.*
+_Documento mantido pelo Platform Team. Revisao trimestral obrigatoria._

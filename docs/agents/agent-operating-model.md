@@ -88,6 +88,7 @@ The Council reviews the enterprise operating model quarterly and receives the mo
 Executive agents hold enterprise-wide authority. They receive cross-office reports, arbitrate inter-office disputes, authorize non-routine escalations, and maintain the enterprise operating state. Executive agents report directly to the Governance Council.
 
 Current executive agents:
+
 - `executive/chief-agent-officer-agent` — enterprise governance and policy
 - `executive/chief-operations-agent` — cross-office operational coordination
 - `executive/chief-risk-agent` — enterprise risk posture and escalation authority
@@ -151,31 +152,31 @@ A singleton agent in the Agent Runtime Supervision Office. The Meta-Watchdog mon
 
 ## 4. The 23 Offices and Their Charters
 
-| # | Office Name | Charter Summary | Risk Profile |
-|---|---|---|---|
-| 1 | Executive | Enterprise governance, cross-office arbitration, policy authority | Critical |
-| 2 | Platform & Infrastructure | Kubernetes, networking, storage, compute provisioning and operations | High |
-| 3 | DevOps/GitOps/Release | CI/CD pipeline operations, ArgoCD management, release coordination | High |
-| 4 | Security | Vulnerability management, access control, threat detection, incident response | Critical |
-| 5 | Compliance & Audit | HIPAA, SOC2, regulatory adherence, evidence collection, audit readiness | Critical |
-| 6 | Reliability & Observability | SLO/SLA management, alerting, chaos response, incident coordination | High |
-| 7 | Quality Assurance | Testing strategy, regression validation, quality gates, defect tracking | Medium |
-| 8 | Product & Workflow Engineering | Clinical workflow design, product feature development coordination | High |
-| 9 | Frontend Experience | UI/UX quality, accessibility, performance, clinical interface validation | Medium |
-| 10 | Knowledge & Memory | Institutional memory, documentation standards, knowledge retrieval | Low |
-| 11 | Market Intelligence | External benchmarks, regulatory changes, technology landscape monitoring | Low |
-| 12 | Naming Governance | Agent and service naming standards, taxonomy enforcement | Low |
-| 13 | Agent Factory | Agent design, creation, lifecycle staging, naming validation | Medium |
-| 14 | Learning & Capability Development | Learning capture, validation, propagation, trainer coordination | Medium |
-| 15 | PMO/Portfolio Governance | Initiative tracking, dependency management, portfolio health | Medium |
-| 16 | Business Continuity & DR | DR planning, failover testing, RTO/RPO assurance | High |
-| 17 | Simulation & Chaos Engineering | Chaos experiments, resilience testing, game days | High |
-| 18 | Data Governance | Data quality, lineage, access policy, PHI protection | Critical |
-| 19 | Architecture Review Board | Design standards, ADR review, technology choices, debt tracking | High |
-| 20 | Service Management | ITSM, change management, incident/problem/change lifecycle | High |
-| 21 | Cost Governance/FinOps | Cloud cost optimization, budget tracking, waste detection | Medium |
-| 22 | AI Platform & Runtime | Claude/Anthropic integration, model lifecycle, prompt governance | Critical |
-| 23 | Agent Runtime Supervision | Watchdog operations, meta-watchdog, enterprise behavioral health | Critical |
+| #   | Office Name                       | Charter Summary                                                               | Risk Profile |
+| --- | --------------------------------- | ----------------------------------------------------------------------------- | ------------ |
+| 1   | Executive                         | Enterprise governance, cross-office arbitration, policy authority             | Critical     |
+| 2   | Platform & Infrastructure         | Kubernetes, networking, storage, compute provisioning and operations          | High         |
+| 3   | DevOps/GitOps/Release             | CI/CD pipeline operations, ArgoCD management, release coordination            | High         |
+| 4   | Security                          | Vulnerability management, access control, threat detection, incident response | Critical     |
+| 5   | Compliance & Audit                | HIPAA, SOC2, regulatory adherence, evidence collection, audit readiness       | Critical     |
+| 6   | Reliability & Observability       | SLO/SLA management, alerting, chaos response, incident coordination           | High         |
+| 7   | Quality Assurance                 | Testing strategy, regression validation, quality gates, defect tracking       | Medium       |
+| 8   | Product & Workflow Engineering    | Clinical workflow design, product feature development coordination            | High         |
+| 9   | Frontend Experience               | UI/UX quality, accessibility, performance, clinical interface validation      | Medium       |
+| 10  | Knowledge & Memory                | Institutional memory, documentation standards, knowledge retrieval            | Low          |
+| 11  | Market Intelligence               | External benchmarks, regulatory changes, technology landscape monitoring      | Low          |
+| 12  | Naming Governance                 | Agent and service naming standards, taxonomy enforcement                      | Low          |
+| 13  | Agent Factory                     | Agent design, creation, lifecycle staging, naming validation                  | Medium       |
+| 14  | Learning & Capability Development | Learning capture, validation, propagation, trainer coordination               | Medium       |
+| 15  | PMO/Portfolio Governance          | Initiative tracking, dependency management, portfolio health                  | Medium       |
+| 16  | Business Continuity & DR          | DR planning, failover testing, RTO/RPO assurance                              | High         |
+| 17  | Simulation & Chaos Engineering    | Chaos experiments, resilience testing, game days                              | High         |
+| 18  | Data Governance                   | Data quality, lineage, access policy, PHI protection                          | Critical     |
+| 19  | Architecture Review Board         | Design standards, ADR review, technology choices, debt tracking               | High         |
+| 20  | Service Management                | ITSM, change management, incident/problem/change lifecycle                    | High         |
+| 21  | Cost Governance/FinOps            | Cloud cost optimization, budget tracking, waste detection                     | Medium       |
+| 22  | AI Platform & Runtime             | Claude/Anthropic integration, model lifecycle, prompt governance              | Critical     |
+| 23  | Agent Runtime Supervision         | Watchdog operations, meta-watchdog, enterprise behavioral health              | Critical     |
 
 ### Office Charter Details
 
@@ -309,15 +310,15 @@ Human intervention is the circuit breaker of last resort. It is not a help desk.
 
 The following conditions automatically escalate to human intervention:
 
-| Trigger | Description |
-|---|---|
-| Catastrophic Risk Action | Any action classified Catastrophic requires human authorization before execution |
-| Patient Safety Threat | Any agent action that could directly harm a patient requires immediate human review |
-| PHI Breach Detection | Any suspected PHI exposure triggers automatic human notification within 15 minutes |
-| Executive Agent Failure | If an Executive Agent is quarantined or fails, human governance is invoked |
-| Regulatory Mandate | Any regulatory body contact or legal notice requires human acknowledgment |
-| Novel Ethical Dilemma | Situations where no agent has authority or playbook to act |
-| Audit Finding — Severity 1 | External auditor finding of critical severity triggers human review |
+| Trigger                    | Description                                                                         |
+| -------------------------- | ----------------------------------------------------------------------------------- |
+| Catastrophic Risk Action   | Any action classified Catastrophic requires human authorization before execution    |
+| Patient Safety Threat      | Any agent action that could directly harm a patient requires immediate human review |
+| PHI Breach Detection       | Any suspected PHI exposure triggers automatic human notification within 15 minutes  |
+| Executive Agent Failure    | If an Executive Agent is quarantined or fails, human governance is invoked          |
+| Regulatory Mandate         | Any regulatory body contact or legal notice requires human acknowledgment           |
+| Novel Ethical Dilemma      | Situations where no agent has authority or playbook to act                          |
+| Audit Finding — Severity 1 | External auditor finding of critical severity triggers human review                 |
 
 ### 6.3 What Humans Do During Intervention
 
@@ -387,12 +388,14 @@ Every agent decision must be evaluable against the question: "Does this improve 
 ## 8. Enterprise Operating Rhythms
 
 ### Daily Rhythm
+
 - Watchdog heartbeat scans every 30 minutes
 - Office Manager daily status reports to Executive at 06:00
 - Cross-office backlog synchronization at 08:00
 - Incident review at 12:00 and 18:00
 
 ### Weekly Rhythm
+
 - Agent scorecard generation and review every Monday
 - Office scorecard aggregation every Tuesday
 - Enterprise health dashboard update every Wednesday
@@ -400,6 +403,7 @@ Every agent decision must be evaluable against the question: "Does this improve 
 - Cross-office retrospective (automated) every Friday
 
 ### Monthly Rhythm
+
 - Enterprise health dashboard to Governance Council on the 1st
 - Architecture Review Board monthly session on the 5th
 - Compliance posture review on the 10th
@@ -407,6 +411,7 @@ Every agent decision must be evaluable against the question: "Does this improve 
 - Agent lifecycle review (promotions, retirements) on the last working day
 
 ### Quarterly Rhythm
+
 - Operating model review by Governance Council
 - DR exercise by Business Continuity Office
 - Full enterprise audit by Compliance & Audit Office

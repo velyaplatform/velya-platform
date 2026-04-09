@@ -4,7 +4,7 @@
 **Versao:** 1.0.0  
 **Data:** 2026-04-08  
 **Classificacao:** Interno - Engenharia e Seguranca  
-**Responsavel:** Time de Plataforma Velya  
+**Responsavel:** Time de Plataforma Velya
 
 ---
 
@@ -22,13 +22,13 @@ Este documento especifica o plano de testes de seguranca para o sistema de contr
 
 ### 1.2 Frequencia de Testes
 
-| Tipo | Frequencia | Gatilho | Responsavel |
-|---|---|---|---|
-| Testes unitarios | Cada PR | CI/CD | Desenvolvedores |
-| Testes de integracao | Diario (03:00) | CronJob | Pipeline CI |
-| Testes de penetracao | Mensal | Agendado | Equipe de Seguranca |
-| Revisao de auditoria | Trimestral | Calendario | Compliance |
-| Exercicio red team | Semestral | Agendado | Equipe externa |
+| Tipo                 | Frequencia     | Gatilho    | Responsavel         |
+| -------------------- | -------------- | ---------- | ------------------- |
+| Testes unitarios     | Cada PR        | CI/CD      | Desenvolvedores     |
+| Testes de integracao | Diario (03:00) | CronJob    | Pipeline CI         |
+| Testes de penetracao | Mensal         | Agendado   | Equipe de Seguranca |
+| Revisao de auditoria | Trimestral     | Calendario | Compliance          |
+| Exercicio red team   | Semestral      | Agendado   | Equipe externa      |
 
 ---
 
@@ -39,16 +39,19 @@ Este documento especifica o plano de testes de seguranca para o sistema de contr
 **Descricao:** Validar que qualquer requisicao sem autorizacao explicita e negada.
 
 **Pre-condicoes:**
+
 - Usuario autenticado com papel `enfermeiro` na unidade `UTI Adulto`.
 - Nenhuma permissao adicional concedida.
 
 **Passos:**
+
 1. Tentar acessar endpoint de administracao (`/api/admin/users`).
 2. Tentar acessar prontuario de paciente em outra unidade sem vinculo.
 3. Tentar executar acao de prescricao (sem papel de prescritor).
 4. Tentar acessar endpoint inexistente (`/api/internal/debug`).
 
 **Resultado Esperado:**
+
 - Todas as requisicoes retornam `403 Forbidden`.
 - Evento `POLICY_DENIAL` registrado na auditoria para cada tentativa.
 - Nenhum dado e retornado no corpo da resposta.
@@ -92,10 +95,9 @@ describe('TC-001: Deny by Default', () => {
   it('deve negar acesso a prontuario de outra unidade sem vinculo', async () => {
     const patientInOtherUnit = 'PAC-99999999';
 
-    const response = await apiClient.get(
-      `/api/patients/${patientInOtherUnit}/chart`,
-      { headers: session.authHeaders() },
-    );
+    const response = await apiClient.get(`/api/patients/${patientInOtherUnit}/chart`, {
+      headers: session.authHeaders(),
+    });
 
     expect(response.status).toBe(403);
     expect(response.data.error).toBe('access_denied');
@@ -164,15 +166,18 @@ describe('TC-001: Deny by Default', () => {
 **Descricao:** Validar que um usuario nao consegue elevar seus privilegios alem do autorizado.
 
 **Pre-condicoes:**
+
 - Usuario autenticado com papel `tecnico_enfermagem`.
 
 **Passos:**
+
 1. Tentar alterar o papel ativo na sessao para `medico_intensivista`.
 2. Tentar manipular o JWT para incluir papel adicional.
 3. Tentar acessar recurso com papel de outro usuario via IDOR.
 4. Tentar criar delegacao para si mesmo.
 
 **Resultado Esperado:**
+
 - Todas as tentativas falham com `403`.
 - Token manipulado e rejeitado (assinatura invalida).
 - Alerta de seguranca gerado para manipulacao de token.
@@ -284,10 +289,9 @@ describe('TC-003: BOLA/IDOR', () => {
   });
 
   it('deve negar acesso a prontuario de paciente sem vinculo', async () => {
-    const response = await apiClient.get(
-      `/api/patients/${otherPatientId}/chart`,
-      { headers: nurseSession.authHeaders() },
-    );
+    const response = await apiClient.get(`/api/patients/${otherPatientId}/chart`, {
+      headers: nurseSession.authHeaders(),
+    });
 
     expect(response.status).toBe(403);
   });
@@ -316,10 +320,9 @@ describe('TC-003: BOLA/IDOR', () => {
   });
 
   it('deve negar acesso a sessao de outro usuario', async () => {
-    const response = await apiClient.get(
-      `/api/sessions/${doctorSession.sessionId}`,
-      { headers: nurseSession.authHeaders() },
-    );
+    const response = await apiClient.get(`/api/sessions/${doctorSession.sessionId}`, {
+      headers: nurseSession.authHeaders(),
+    });
 
     expect(response.status).toBe(403);
   });
@@ -330,10 +333,9 @@ describe('TC-003: BOLA/IDOR', () => {
 
     let accessCount = 0;
     for (const id of ids) {
-      const response = await apiClient.get(
-        `/api/documents/${id}`,
-        { headers: nurseSession.authHeaders() },
-      );
+      const response = await apiClient.get(`/api/documents/${id}`, {
+        headers: nurseSession.authHeaders(),
+      });
       if (response.status === 200) accessCount++;
     }
 
@@ -344,16 +346,14 @@ describe('TC-003: BOLA/IDOR', () => {
 
   it('nao deve vazar informacao no erro (404 vs 403)', async () => {
     // Recurso existente sem acesso
-    const existingResponse = await apiClient.get(
-      `/api/patients/${otherPatientId}/chart`,
-      { headers: nurseSession.authHeaders() },
-    );
+    const existingResponse = await apiClient.get(`/api/patients/${otherPatientId}/chart`, {
+      headers: nurseSession.authHeaders(),
+    });
 
     // Recurso inexistente
-    const nonExistingResponse = await apiClient.get(
-      `/api/patients/PAC-XXXXXXXX/chart`,
-      { headers: nurseSession.authHeaders() },
-    );
+    const nonExistingResponse = await apiClient.get(`/api/patients/PAC-XXXXXXXX/chart`, {
+      headers: nurseSession.authHeaders(),
+    });
 
     // Ambos devem retornar o mesmo status (nao vazar existencia)
     expect(existingResponse.status).toBe(nonExistingResponse.status);
@@ -393,25 +393,22 @@ describe('TC-004: Route Leakage', () => {
     '/api/.env',
     '/api/config.yaml',
     '/api/secrets',
-    '/.well-known/openid-configuration',  // Deve ser publico mas nao vazar dados
+    '/.well-known/openid-configuration', // Deve ser publico mas nao vazar dados
   ];
 
-  it.each(sensitiveRoutes)(
-    'deve negar acesso a rota sensivel: %s',
-    async (route) => {
-      // Sem autenticacao
-      const unauthResponse = await apiClient.get(route);
-      expect(unauthResponse.status).toBeOneOf([401, 403, 404]);
+  it.each(sensitiveRoutes)('deve negar acesso a rota sensivel: %s', async (route) => {
+    // Sem autenticacao
+    const unauthResponse = await apiClient.get(route);
+    expect(unauthResponse.status).toBeOneOf([401, 403, 404]);
 
-      // Com autenticacao de usuario normal
-      const session = await createTestSession({ role: 'enfermeiro', unit: 'UTI' });
-      const authResponse = await apiClient.get(route, {
-        headers: session.authHeaders(),
-      });
-      expect(authResponse.status).toBeOneOf([403, 404]);
-      await session.destroy();
-    },
-  );
+    // Com autenticacao de usuario normal
+    const session = await createTestSession({ role: 'enfermeiro', unit: 'UTI' });
+    const authResponse = await apiClient.get(route, {
+      headers: session.authHeaders(),
+    });
+    expect(authResponse.status).toBeOneOf([403, 404]);
+    await session.destroy();
+  });
 
   it('nao deve expor stack traces em respostas de erro', async () => {
     const response = await apiClient.get('/api/patients/INVALID_ID/chart', {
@@ -471,10 +468,9 @@ describe('TC-005: Context Leakage na Troca de Usuario', () => {
       unit: 'UTI Adulto',
     });
 
-    const chartResponseA = await apiClient.get(
-      '/api/patients/PAC-00000001/chart',
-      { headers: sessionA.authHeaders() },
-    );
+    const chartResponseA = await apiClient.get('/api/patients/PAC-00000001/chart', {
+      headers: sessionA.authHeaders(),
+    });
     expect(chartResponseA.status).toBe(200);
 
     // Troca para usuario B (enfermeiro em outra unidade)
@@ -485,10 +481,9 @@ describe('TC-005: Context Leakage na Troca de Usuario', () => {
     });
 
     // Usuario B tenta acessar mesmo prontuario (nao deve ter acesso)
-    const chartResponseB = await apiClient.get(
-      '/api/patients/PAC-00000001/chart',
-      { headers: sessionB.authHeaders() },
-    );
+    const chartResponseB = await apiClient.get('/api/patients/PAC-00000001/chart', {
+      headers: sessionB.authHeaders(),
+    });
     expect(chartResponseB.status).toBe(403);
   });
 
@@ -532,10 +527,9 @@ describe('TC-005: Context Leakage na Troca de Usuario', () => {
     });
 
     // Verificar que sessao A foi invalidada no server
-    const sessionStatus = await apiClient.get(
-      `/api/internal/sessions/${sessionIdA}/status`,
-      { headers: { 'X-Internal-Key': process.env.INTERNAL_KEY! } },
-    );
+    const sessionStatus = await apiClient.get(`/api/internal/sessions/${sessionIdA}/status`, {
+      headers: { 'X-Internal-Key': process.env.INTERNAL_KEY! },
+    });
 
     expect(sessionStatus.data.status).toBe('TERMINATED');
   });
@@ -579,10 +573,7 @@ describe('TC-005: Context Leakage na Troca de Usuario', () => {
 // tests/access-control/auto-logoff.test.ts
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SessionManager } from '../../src/session/session-manager';
-import {
-  TimeoutProfile,
-  SessionStatus,
-} from '../../src/session/types';
+import { TimeoutProfile, SessionStatus } from '../../src/session/types';
 import {
   createMockAuthGateway,
   createMockSessionStore,
@@ -714,7 +705,8 @@ describe('TC-007: Break-Glass Audit', () => {
       '/api/break-glass/activate',
       {
         patient_id: 'PAC-00000099',
-        justification: 'Paciente em parada cardiorrespiratoria, necessidade de acesso imediato ao historico de alergias e medicacoes em uso para manejo adequado da reanimacao.',
+        justification:
+          'Paciente em parada cardiorrespiratoria, necessidade de acesso imediato ao historico de alergias e medicacoes em uso para manejo adequado da reanimacao.',
         reason: 'emergencia_clinica',
       },
       { headers: session.authHeaders() },
@@ -767,17 +759,12 @@ describe('TC-007: Break-Glass Audit', () => {
     );
 
     // Verificar que notificacoes foram enviadas
-    const notifications = await apiClient.get(
-      '/api/internal/notifications/recent',
-      {
-        headers: { 'X-Internal-Key': process.env.INTERNAL_KEY! },
-        params: { type: 'break_glass_alert', limit: 5 },
-      },
-    );
+    const notifications = await apiClient.get('/api/internal/notifications/recent', {
+      headers: { 'X-Internal-Key': process.env.INTERNAL_KEY! },
+      params: { type: 'break_glass_alert', limit: 5 },
+    });
 
-    const recipients = notifications.data.map(
-      (n: { recipient_role: string }) => n.recipient_role,
-    );
+    const recipients = notifications.data.map((n: { recipient_role: string }) => n.recipient_role);
     expect(recipients).toContain('security_team');
     expect(recipients).toContain('gestor_unidade');
   });
@@ -904,46 +891,42 @@ describe('TC-009: Combinacoes Toxicas de Papeis', () => {
     ['faturista', 'gestor_financeiro'],
   ];
 
-  it.each(toxicPairs)(
-    'deve impedir atribuicao simultanea de %s e %s',
-    async (roleA, roleB) => {
-      // Criar usuario de teste
-      const createUser = await apiClient.post(
-        '/api/admin/users',
-        {
-          name: 'Teste Toxico',
-          profession: 'medico',
-          council_number: 'CRM-SP 999999',
-        },
-        { headers: adminSession.authHeaders() },
-      );
-      const testUserId = createUser.data.id;
+  it.each(toxicPairs)('deve impedir atribuicao simultanea de %s e %s', async (roleA, roleB) => {
+    // Criar usuario de teste
+    const createUser = await apiClient.post(
+      '/api/admin/users',
+      {
+        name: 'Teste Toxico',
+        profession: 'medico',
+        council_number: 'CRM-SP 999999',
+      },
+      { headers: adminSession.authHeaders() },
+    );
+    const testUserId = createUser.data.id;
 
-      // Atribuir primeiro papel
-      await apiClient.post(
-        `/api/admin/users/${testUserId}/roles`,
-        { role: roleA },
-        { headers: adminSession.authHeaders() },
-      );
+    // Atribuir primeiro papel
+    await apiClient.post(
+      `/api/admin/users/${testUserId}/roles`,
+      { role: roleA },
+      { headers: adminSession.authHeaders() },
+    );
 
-      // Tentar atribuir segundo papel (toxico)
-      const response = await apiClient.post(
-        `/api/admin/users/${testUserId}/roles`,
-        { role: roleB },
-        { headers: adminSession.authHeaders() },
-      );
+    // Tentar atribuir segundo papel (toxico)
+    const response = await apiClient.post(
+      `/api/admin/users/${testUserId}/roles`,
+      { role: roleB },
+      { headers: adminSession.authHeaders() },
+    );
 
-      expect(response.status).toBe(409);
-      expect(response.data.error).toBe('toxic_combination');
-      expect(response.data.conflicting_role).toBe(roleA);
+    expect(response.status).toBe(409);
+    expect(response.data.error).toBe('toxic_combination');
+    expect(response.data.conflicting_role).toBe(roleA);
 
-      // Cleanup
-      await apiClient.delete(
-        `/api/admin/users/${testUserId}`,
-        { headers: adminSession.authHeaders() },
-      );
-    },
-  );
+    // Cleanup
+    await apiClient.delete(`/api/admin/users/${testUserId}`, {
+      headers: adminSession.authHeaders(),
+    });
+  });
 });
 ```
 
@@ -1080,9 +1063,7 @@ describe('TC-012: Restricoes de Exportacao', () => {
     const response = await apiClient.post(
       '/api/patients/export-batch',
       {
-        patient_ids: Array.from({ length: 100 }, (_, i) =>
-          `PAC-${String(i).padStart(8, '0')}`
-        ),
+        patient_ids: Array.from({ length: 100 }, (_, i) => `PAC-${String(i).padStart(8, '0')}`),
         format: 'csv',
         step_up_token: stepUpToken,
         justification: 'Tentativa de exportacao em massa',
@@ -1261,13 +1242,10 @@ describe('TC-014: Completude de Auditoria', () => {
 
   it('nao deve permitir gap na cadeia de auditoria', async () => {
     // Verificar integridade geral (API de verificacao)
-    const response = await apiClient.get(
-      '/api/internal/audit/verify-chain',
-      {
-        headers: { 'X-Internal-Key': process.env.INTERNAL_KEY! },
-        params: { period: '1h' },
-      },
-    );
+    const response = await apiClient.get('/api/internal/audit/verify-chain', {
+      headers: { 'X-Internal-Key': process.env.INTERNAL_KEY! },
+      params: { period: '1h' },
+    });
 
     expect(response.data.chain_valid).toBe(true);
     expect(response.data.gaps).toHaveLength(0);
@@ -1288,24 +1266,18 @@ import { apiClient } from '../helpers/api-client';
 describe('TC-015: Resistencia a Adulteracao', () => {
   it('deve detectar modificacao de evento de auditoria', async () => {
     // Verificar integridade (deve passar antes da adulteracao simulada)
-    const beforeResponse = await apiClient.get(
-      '/api/internal/audit/verify-chain',
-      {
-        headers: { 'X-Internal-Key': process.env.INTERNAL_KEY! },
-        params: { period: '1h' },
-      },
-    );
+    const beforeResponse = await apiClient.get('/api/internal/audit/verify-chain', {
+      headers: { 'X-Internal-Key': process.env.INTERNAL_KEY! },
+      params: { period: '1h' },
+    });
 
     expect(beforeResponse.data.chain_valid).toBe(true);
   });
 
   it('nao deve permitir delecao de evento via API', async () => {
-    const response = await apiClient.delete(
-      '/api/internal/audit/events/any-event-id',
-      {
-        headers: { 'X-Internal-Key': process.env.INTERNAL_KEY! },
-      },
-    );
+    const response = await apiClient.delete('/api/internal/audit/events/any-event-id', {
+      headers: { 'X-Internal-Key': process.env.INTERNAL_KEY! },
+    });
 
     expect(response.status).toBeOneOf([403, 404, 405]);
   });
@@ -1361,10 +1333,9 @@ describe('Tentativas de Bypass de Contexto via API', () => {
   });
 
   it('deve ignorar query param role_override', async () => {
-    const response = await apiClient.get(
-      '/api/patients?role_override=admin_sistema',
-      { headers: nurseSession.authHeaders() },
-    );
+    const response = await apiClient.get('/api/patients?role_override=admin_sistema', {
+      headers: nurseSession.authHeaders(),
+    });
 
     // Nao deve ter acesso administrativo
     expect(response.status).not.toBe(200);
@@ -1395,16 +1366,12 @@ describe('Tentativas de Bypass de Contexto via API', () => {
   });
 
   it('deve validar Content-Type para prevenir type confusion', async () => {
-    const response = await apiClient.post(
-      '/api/clinical-notes',
-      '<xml><role>admin</role></xml>',
-      {
-        headers: {
-          ...nurseSession.authHeaders(),
-          'Content-Type': 'application/xml',
-        },
+    const response = await apiClient.post('/api/clinical-notes', '<xml><role>admin</role></xml>', {
+      headers: {
+        ...nurseSession.authHeaders(),
+        'Content-Type': 'application/xml',
       },
-    );
+    });
 
     expect(response.status).toBeOneOf([400, 415]); // Bad Request ou Unsupported Media Type
   });
@@ -1426,14 +1393,14 @@ metadata:
     app: velya-security-testing
     component: periodic-validation
 spec:
-  schedule: "0 4 * * *"  # Todo dia as 4h da manha
+  schedule: '0 4 * * *' # Todo dia as 4h da manha
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 30
   failedJobsHistoryLimit: 10
   jobTemplate:
     spec:
       backoffLimit: 1
-      activeDeadlineSeconds: 3600  # Maximo 1 hora
+      activeDeadlineSeconds: 3600 # Maximo 1 hora
       template:
         metadata:
           labels:
@@ -1534,9 +1501,9 @@ spec:
                   echo "Todas as validacoes passaram!"
               env:
                 - name: VELYA_API_URL
-                  value: "http://velya-gateway.velya-platform:8080"
+                  value: 'http://velya-gateway.velya-platform:8080'
                 - name: PUSHGATEWAY_URL
-                  value: "http://pushgateway.observability:9091"
+                  value: 'http://pushgateway.observability:9091'
                 - name: INTERNAL_KEY
                   valueFrom:
                     secretKeyRef:
@@ -1548,11 +1515,11 @@ spec:
                   readOnly: true
               resources:
                 requests:
-                  memory: "256Mi"
-                  cpu: "200m"
+                  memory: '256Mi'
+                  cpu: '200m'
                 limits:
-                  memory: "512Mi"
-                  cpu: "500m"
+                  memory: '512Mi'
+                  cpu: '500m'
           volumes:
             - name: config
               configMap:
@@ -1566,52 +1533,52 @@ spec:
 
 ### 5.1 Testes por PR (CI)
 
-| Teste | Tempo Maximo | Obrigatorio para Merge |
-|---|---|---|
-| TC-001: Deny by Default | 30s | Sim |
-| TC-002: Escalacao de Privilegios | 30s | Sim |
-| TC-003: BOLA/IDOR | 45s | Sim |
-| TC-004: Route Leakage | 20s | Sim |
-| TC-005: Context Leakage | 45s | Sim |
-| TC-009: Combinacoes Toxicas | 20s | Sim |
-| TC-010: Stale Session | 30s | Sim |
-| TC-014: Completude de Auditoria | 30s | Sim |
+| Teste                            | Tempo Maximo | Obrigatorio para Merge |
+| -------------------------------- | ------------ | ---------------------- |
+| TC-001: Deny by Default          | 30s          | Sim                    |
+| TC-002: Escalacao de Privilegios | 30s          | Sim                    |
+| TC-003: BOLA/IDOR                | 45s          | Sim                    |
+| TC-004: Route Leakage            | 20s          | Sim                    |
+| TC-005: Context Leakage          | 45s          | Sim                    |
+| TC-009: Combinacoes Toxicas      | 20s          | Sim                    |
+| TC-010: Stale Session            | 30s          | Sim                    |
+| TC-014: Completude de Auditoria  | 30s          | Sim                    |
 
 ### 5.2 Testes Diarios (CronJob)
 
-| Teste | Horario | Notificacao |
-|---|---|---|
-| Todos os testes de PR | 03:00 | Apenas em falha |
-| TC-006: Auto-Logoff (E2E) | 03:30 | Apenas em falha |
-| TC-007: Break-Glass Audit | 03:30 | Apenas em falha |
-| TC-008: Assinatura Digital | 03:30 | Apenas em falha |
-| TC-011: Forced Browsing | 04:00 | Apenas em falha |
-| TC-012: Restricoes de Exportacao | 04:00 | Apenas em falha |
-| TC-013: Mascaramento | 04:00 | Apenas em falha |
-| TC-015: Tamper Resistance | 04:00 | Apenas em falha |
-| Validacao Periodica (CronJob) | 04:00 | Sempre |
+| Teste                            | Horario | Notificacao     |
+| -------------------------------- | ------- | --------------- |
+| Todos os testes de PR            | 03:00   | Apenas em falha |
+| TC-006: Auto-Logoff (E2E)        | 03:30   | Apenas em falha |
+| TC-007: Break-Glass Audit        | 03:30   | Apenas em falha |
+| TC-008: Assinatura Digital       | 03:30   | Apenas em falha |
+| TC-011: Forced Browsing          | 04:00   | Apenas em falha |
+| TC-012: Restricoes de Exportacao | 04:00   | Apenas em falha |
+| TC-013: Mascaramento             | 04:00   | Apenas em falha |
+| TC-015: Tamper Resistance        | 04:00   | Apenas em falha |
+| Validacao Periodica (CronJob)    | 04:00   | Sempre          |
 
 ### 5.3 Testes Mensais (Penetracao)
 
-| Area | Escopo | Responsavel |
-|---|---|---|
-| Autenticacao/MFA | Bypass de MFA, session hijacking, replay | Red Team |
-| Autorizacao | Escalacao horizontal/vertical, IDOR, parameter tampering | Red Team |
-| Auditoria | Tentativa de adulteracao, bypass de logging | Red Team |
-| API | Injection, mass assignment, rate limiting | Red Team |
-| Infraestrutura | Network segmentation, container escape | Red Team |
+| Area             | Escopo                                                   | Responsavel |
+| ---------------- | -------------------------------------------------------- | ----------- |
+| Autenticacao/MFA | Bypass de MFA, session hijacking, replay                 | Red Team    |
+| Autorizacao      | Escalacao horizontal/vertical, IDOR, parameter tampering | Red Team    |
+| Auditoria        | Tentativa de adulteracao, bypass de logging              | Red Team    |
+| API              | Injection, mass assignment, rate limiting                | Red Team    |
+| Infraestrutura   | Network segmentation, container escape                   | Red Team    |
 
 ### 5.4 Revisao Trimestral (Auditoria)
 
-| Item | Verificacao | Evidencia |
-|---|---|---|
-| Politicas de acesso | Revisao de todas as OPA policies | Relatorio de revisao |
-| Combinacoes toxicas | Zero combinacoes ativas | Saida do CronJob |
-| Contas inativas | Todas tratadas (< 90 dias) | Relatorio de contas |
-| Recertificacao | 100% concluida no prazo | Relatorio de recertificacao |
-| Incidentes | Todos os incidentes geraram testes | Lista de testes novos |
-| Cobertura de auditoria | > 99% de acoes auditadas | Metricas de cobertura |
-| Integridade de cadeia | Zero quebras | Saida do verificador |
+| Item                   | Verificacao                        | Evidencia                   |
+| ---------------------- | ---------------------------------- | --------------------------- |
+| Politicas de acesso    | Revisao de todas as OPA policies   | Relatorio de revisao        |
+| Combinacoes toxicas    | Zero combinacoes ativas            | Saida do CronJob            |
+| Contas inativas        | Todas tratadas (< 90 dias)         | Relatorio de contas         |
+| Recertificacao         | 100% concluida no prazo            | Relatorio de recertificacao |
+| Incidentes             | Todos os incidentes geraram testes | Lista de testes novos       |
+| Cobertura de auditoria | > 99% de acoes auditadas           | Metricas de cobertura       |
+| Integridade de cadeia  | Zero quebras                       | Saida do verificador        |
 
 ---
 
@@ -1623,23 +1590,23 @@ metrics:
   - name: velya_security_test_runs_total
     type: counter
     labels: [test_suite, result]
-    help: "Total de execucoes de teste de seguranca"
+    help: 'Total de execucoes de teste de seguranca'
 
   - name: velya_security_test_failures_total
     type: counter
     labels: [test_suite, test_case, severity]
-    help: "Total de falhas em testes de seguranca"
+    help: 'Total de falhas em testes de seguranca'
 
   - name: velya_security_test_duration_seconds
     type: histogram
     labels: [test_suite]
     buckets: [1, 5, 10, 30, 60, 120, 300, 600]
-    help: "Duracao dos testes de seguranca"
+    help: 'Duracao dos testes de seguranca'
 
   - name: velya_security_coverage_percent
     type: gauge
     labels: [area]
-    help: "Cobertura de testes por area de seguranca"
+    help: 'Cobertura de testes por area de seguranca'
 
 alerts:
   - alert: SecurityTestFailure
@@ -1648,7 +1615,7 @@ alerts:
     labels:
       severity: critical
     annotations:
-      summary: "Falha em teste de seguranca: {{ $labels.test_case }}"
+      summary: 'Falha em teste de seguranca: {{ $labels.test_case }}'
 
   - alert: SecurityTestNotRunning
     expr: time() - velya_security_test_last_run_timestamp > 86400
@@ -1656,7 +1623,7 @@ alerts:
     labels:
       severity: warning
     annotations:
-      summary: "Testes de seguranca nao executaram nas ultimas 24h"
+      summary: 'Testes de seguranca nao executaram nas ultimas 24h'
 ```
 
 ---
@@ -1665,11 +1632,11 @@ alerts:
 
 Cada incidente de seguranca gera obrigatoriamente um novo caso de teste:
 
-| Incidente | Data | Teste Gerado | Arquivo |
-|---|---|---|---|
-| INC-2026-001 | 2026-01-15 | Bypass de step-up via header | `tests/regression/inc-2026-001.test.ts` |
+| Incidente    | Data       | Teste Gerado                            | Arquivo                                 |
+| ------------ | ---------- | --------------------------------------- | --------------------------------------- |
+| INC-2026-001 | 2026-01-15 | Bypass de step-up via header            | `tests/regression/inc-2026-001.test.ts` |
 | INC-2026-002 | 2026-02-20 | Sessao nao invalidada apos desligamento | `tests/regression/inc-2026-002.test.ts` |
-| INC-2026-003 | 2026-03-10 | Dados do usuario anterior no cache | `tests/regression/inc-2026-003.test.ts` |
+| INC-2026-003 | 2026-03-10 | Dados do usuario anterior no cache      | `tests/regression/inc-2026-003.test.ts` |
 
 Todo novo incidente passa pelo processo:
 
@@ -1681,4 +1648,4 @@ Todo novo incidente passa pelo processo:
 
 ---
 
-*Documento gerado para a plataforma Velya. Uso interno - Engenharia e Seguranca.*
+_Documento gerado para a plataforma Velya. Uso interno - Engenharia e Seguranca._

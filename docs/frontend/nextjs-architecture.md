@@ -204,11 +204,11 @@ Route groups `(auth)` e `(platform)` não afetam a URL mas permitem layouts dife
 
 ```tsx
 // app/(platform)/patients/page.tsx — Server Component
-import { getPatients } from '@/services/patients'
-import { PatientTable } from '@/features/patients/components/patient-table'
+import { getPatients } from '@/services/patients';
+import { PatientTable } from '@/features/patients/components/patient-table';
 
 export default async function PatientsPage() {
-  const patients = await getPatients()
+  const patients = await getPatients();
 
   return (
     <div className="space-y-6">
@@ -216,20 +216,20 @@ export default async function PatientsPage() {
       {/* Client Component recebe dados do Server Component */}
       <PatientTable initialData={patients} />
     </div>
-  )
+  );
 }
 ```
 
 ```tsx
 // features/patients/components/patient-table.tsx — Client Component
-'use client'
+'use client';
 
-import { useQuery } from '@tanstack/react-query'
-import { DataTable } from '@/components/ui/data-table'
-import { columns } from './columns'
+import { useQuery } from '@tanstack/react-query';
+import { DataTable } from '@/components/ui/data-table';
+import { columns } from './columns';
 
 interface Props {
-  initialData: Patient[]
+  initialData: Patient[];
 }
 
 export function PatientTable({ initialData }: Props) {
@@ -237,9 +237,9 @@ export function PatientTable({ initialData }: Props) {
     queryKey: ['patients'],
     queryFn: fetchPatients,
     initialData,
-  })
+  });
 
-  return <DataTable columns={columns} data={data} />
+  return <DataTable columns={columns} data={data} />;
 }
 ```
 
@@ -251,30 +251,28 @@ export function PatientTable({ initialData }: Props) {
 
 ```tsx
 // app/layout.tsx
-import { Inter } from 'next/font/google'
-import { ThemeProvider } from '@/providers/theme-provider'
-import { QueryProvider } from '@/providers/query-provider'
-import '@/styles/globals.css'
+import { Inter } from 'next/font/google';
+import { ThemeProvider } from '@/providers/theme-provider';
+import { QueryProvider } from '@/providers/query-provider';
+import '@/styles/globals.css';
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'Velya Platform',
   description: 'Plataforma hospitalar de jornada do paciente',
-}
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider>
-          <QueryProvider>
-            {children}
-          </QueryProvider>
+          <QueryProvider>{children}</QueryProvider>
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
 ```
 
@@ -282,15 +280,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ```tsx
 // app/(platform)/layout.tsx
-import { auth } from '@/lib/auth'
-import { redirect } from 'next/navigation'
-import { Sidebar } from '@/components/layout/sidebar'
-import { Topbar } from '@/components/layout/topbar'
-import { SessionProvider } from '@/providers/session-provider'
+import { auth } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import { Sidebar } from '@/components/layout/sidebar';
+import { Topbar } from '@/components/layout/topbar';
+import { SessionProvider } from '@/providers/session-provider';
 
 export default async function PlatformLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth()
-  if (!session) redirect('/login')
+  const session = await auth();
+  if (!session) redirect('/login');
 
   return (
     <SessionProvider session={session}>
@@ -298,13 +296,11 @@ export default async function PlatformLayout({ children }: { children: React.Rea
         <Sidebar />
         <div className="flex flex-1 flex-col overflow-hidden">
           <Topbar />
-          <main className="flex-1 overflow-auto p-6">
-            {children}
-          </main>
+          <main className="flex-1 overflow-auto p-6">{children}</main>
         </div>
       </div>
     </SessionProvider>
-  )
+  );
 }
 ```
 
@@ -312,18 +308,18 @@ export default async function PlatformLayout({ children }: { children: React.Rea
 
 ```tsx
 // app/(platform)/patients/[patientId]/layout.tsx
-import { getPatient } from '@/services/patients'
-import { PatientHeader } from '@/features/patients/components/patient-header'
-import { PatientTabs } from '@/features/patients/components/patient-tabs'
+import { getPatient } from '@/services/patients';
+import { PatientHeader } from '@/features/patients/components/patient-header';
+import { PatientTabs } from '@/features/patients/components/patient-tabs';
 
 export default async function PatientLayout({
   children,
   params,
 }: {
-  children: React.ReactNode
-  params: { patientId: string }
+  children: React.ReactNode;
+  params: { patientId: string };
 }) {
-  const patient = await getPatient(params.patientId)
+  const patient = await getPatient(params.patientId);
 
   return (
     <div className="space-y-6">
@@ -331,7 +327,7 @@ export default async function PatientLayout({
       <PatientTabs patientId={params.patientId} />
       {children}
     </div>
-  )
+  );
 }
 ```
 
@@ -345,7 +341,7 @@ Cada rota pode ter seu `loading.tsx` que exibe um skeleton enquanto o Server Com
 
 ```tsx
 // app/(platform)/patients/loading.tsx
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PatientsLoading() {
   return (
@@ -357,7 +353,7 @@ export default function PatientsLoading() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -367,11 +363,11 @@ Para carregamento granular dentro de uma página:
 
 ```tsx
 // app/(platform)/dashboard/page.tsx
-import { Suspense } from 'react'
-import { DashboardMetrics } from '@/features/dashboard/components/metrics'
-import { RecentCalls } from '@/features/dashboard/components/recent-calls'
-import { PatientAlerts } from '@/features/dashboard/components/patient-alerts'
-import { MetricsSkeleton, CallsSkeleton, AlertsSkeleton } from './skeletons'
+import { Suspense } from 'react';
+import { DashboardMetrics } from '@/features/dashboard/components/metrics';
+import { RecentCalls } from '@/features/dashboard/components/recent-calls';
+import { PatientAlerts } from '@/features/dashboard/components/patient-alerts';
+import { MetricsSkeleton, CallsSkeleton, AlertsSkeleton } from './skeletons';
 
 export default function DashboardPage() {
   return (
@@ -386,7 +382,7 @@ export default function DashboardPage() {
         <PatientAlerts />
       </Suspense>
     </div>
-  )
+  );
 }
 ```
 
@@ -398,34 +394,32 @@ export default function DashboardPage() {
 
 ```tsx
 // app/(platform)/patients/error.tsx
-'use client'
+'use client';
 
-import { useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { AlertTriangle } from 'lucide-react'
+import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle } from 'lucide-react';
 
 export default function PatientsError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   useEffect(() => {
     // Log para observabilidade
-    console.error('Patients page error:', error)
-  }, [error])
+    console.error('Patients page error:', error);
+  }, [error]);
 
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-16">
       <AlertTriangle className="h-12 w-12 text-destructive" />
       <h2 className="text-xl font-semibold">Erro ao carregar pacientes</h2>
-      <p className="text-muted-foreground">
-        Ocorreu um erro inesperado. Tente novamente.
-      </p>
+      <p className="text-muted-foreground">Ocorreu um erro inesperado. Tente novamente.</p>
       <Button onClick={reset}>Tentar novamente</Button>
     </div>
-  )
+  );
 }
 ```
 
@@ -433,14 +427,14 @@ export default function PatientsError({
 
 ```tsx
 // app/global-error.tsx
-'use client'
+'use client';
 
 export default function GlobalError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   return (
     <html lang="pt-BR">
@@ -454,7 +448,7 @@ export default function GlobalError({
         </div>
       </body>
     </html>
-  )
+  );
 }
 ```
 
@@ -479,60 +473,60 @@ Cada nível captura erros do seu escopo. Erros não capturados propagam para o n
 
 ```tsx
 // src/middleware.ts
-import { auth } from '@/lib/auth'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { auth } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-const PUBLIC_ROUTES = ['/login', '/forgot-password', '/reset-password']
-const API_AUTH_PREFIX = '/api/auth'
+const PUBLIC_ROUTES = ['/login', '/forgot-password', '/reset-password'];
+const API_AUTH_PREFIX = '/api/auth';
 
 export default auth((req) => {
-  const { nextUrl } = req
-  const isLoggedIn = !!req.auth
+  const { nextUrl } = req;
+  const isLoggedIn = !!req.auth;
 
   // API auth routes — sempre permitidas
   if (nextUrl.pathname.startsWith(API_AUTH_PREFIX)) {
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
   // Rotas públicas
   if (PUBLIC_ROUTES.includes(nextUrl.pathname)) {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL('/dashboard', nextUrl))
+      return NextResponse.redirect(new URL('/dashboard', nextUrl));
     }
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
   // Rotas protegidas
   if (!isLoggedIn) {
-    const callbackUrl = encodeURIComponent(nextUrl.pathname + nextUrl.search)
-    return NextResponse.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl))
+    const callbackUrl = encodeURIComponent(nextUrl.pathname + nextUrl.search);
+    return NextResponse.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl));
   }
 
   // Headers de segurança
-  const response = NextResponse.next()
-  response.headers.set('X-Frame-Options', 'DENY')
-  response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  const response = NextResponse.next();
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-  return response
-})
+  return response;
+});
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|public/).*)'],
-}
+};
 ```
 
 ### 7.2 Responsabilidades do Middleware
 
-| Responsabilidade | Implementação |
-|---|---|
-| Autenticação | Verifica sessão Auth.js |
-| Redirecionamento | Login se não autenticado, dashboard se já autenticado |
-| Headers de segurança | X-Frame-Options, CSP, etc. |
-| Locale detection | Detecta idioma do browser (futuro) |
-| Rate limiting headers | Passa informações para API routes |
-| Request ID | Gera ID único para tracing |
+| Responsabilidade      | Implementação                                         |
+| --------------------- | ----------------------------------------------------- |
+| Autenticação          | Verifica sessão Auth.js                               |
+| Redirecionamento      | Login se não autenticado, dashboard se já autenticado |
+| Headers de segurança  | X-Frame-Options, CSP, etc.                            |
+| Locale detection      | Detecta idioma do browser (futuro)                    |
+| Rate limiting headers | Passa informações para API routes                     |
+| Request ID            | Gera ID único para tracing                            |
 
 ---
 
@@ -544,42 +538,42 @@ API routes servem como camada de agregação entre o frontend e os microserviço
 
 ```tsx
 // app/api/bff/dashboard/route.ts
-import { auth } from '@/lib/auth'
-import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const session = await auth()
+  const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   // Agrega dados de múltiplos serviços
   const [metrics, alerts, recentCalls] = await Promise.all([
     fetch(`${process.env.API_URL}/metrics`, {
       headers: { Authorization: `Bearer ${session.accessToken}` },
-    }).then(r => r.json()),
+    }).then((r) => r.json()),
     fetch(`${process.env.API_URL}/alerts/active`, {
       headers: { Authorization: `Bearer ${session.accessToken}` },
-    }).then(r => r.json()),
+    }).then((r) => r.json()),
     fetch(`${process.env.API_URL}/calls/recent`, {
       headers: { Authorization: `Bearer ${session.accessToken}` },
-    }).then(r => r.json()),
-  ])
+    }).then((r) => r.json()),
+  ]);
 
-  return NextResponse.json({ metrics, alerts, recentCalls })
+  return NextResponse.json({ metrics, alerts, recentCalls });
 }
 ```
 
 ### 8.2 Quando Usar API Routes vs Server Components
 
-| Cenário | Usar |
-|---|---|
-| Dados para renderização inicial | Server Component com fetch direto |
-| Dados para Client Component com cache | TanStack Query → API Route (BFF) |
-| Mutations (POST/PUT/DELETE) | API Route ou Server Action |
-| Agregação de múltiplos serviços | API Route (BFF) |
-| WebSocket/SSE proxy | API Route |
-| Health check | API Route |
+| Cenário                               | Usar                              |
+| ------------------------------------- | --------------------------------- |
+| Dados para renderização inicial       | Server Component com fetch direto |
+| Dados para Client Component com cache | TanStack Query → API Route (BFF)  |
+| Mutations (POST/PUT/DELETE)           | API Route ou Server Action        |
+| Agregação de múltiplos serviços       | API Route (BFF)                   |
+| WebSocket/SSE proxy                   | API Route                         |
+| Health check                          | API Route                         |
 
 ---
 
@@ -589,22 +583,22 @@ export async function GET() {
 
 ```tsx
 // features/patients/actions/update-patient.ts
-'use server'
+'use server';
 
-import { auth } from '@/lib/auth'
-import { revalidatePath } from 'next/cache'
-import { patientUpdateSchema } from '@/schemas/patient'
-import { auditLog } from '@/lib/audit'
+import { auth } from '@/lib/auth';
+import { revalidatePath } from 'next/cache';
+import { patientUpdateSchema } from '@/schemas/patient';
+import { auditLog } from '@/lib/audit';
 
 export async function updatePatient(formData: FormData) {
-  const session = await auth()
-  if (!session) throw new Error('Não autenticado')
+  const session = await auth();
+  if (!session) throw new Error('Não autenticado');
 
-  const raw = Object.fromEntries(formData)
-  const validated = patientUpdateSchema.safeParse(raw)
+  const raw = Object.fromEntries(formData);
+  const validated = patientUpdateSchema.safeParse(raw);
 
   if (!validated.success) {
-    return { error: validated.error.flatten() }
+    return { error: validated.error.flatten() };
   }
 
   try {
@@ -615,10 +609,10 @@ export async function updatePatient(formData: FormData) {
         Authorization: `Bearer ${session.accessToken}`,
       },
       body: JSON.stringify(validated.data),
-    })
+    });
 
     if (!result.ok) {
-      return { error: 'Falha ao atualizar paciente' }
+      return { error: 'Falha ao atualizar paciente' };
     }
 
     await auditLog({
@@ -626,12 +620,12 @@ export async function updatePatient(formData: FormData) {
       userId: session.user.id,
       resourceId: validated.data.id,
       details: validated.data,
-    })
+    });
 
-    revalidatePath(`/patients/${validated.data.id}`)
-    return { success: true }
+    revalidatePath(`/patients/${validated.data.id}`);
+    return { success: true };
   } catch (error) {
-    return { error: 'Erro de comunicação com o servidor' }
+    return { error: 'Erro de comunicação com o servidor' };
   }
 }
 ```
@@ -643,7 +637,7 @@ export async function updatePatient(formData: FormData) {
 ### 10.1 next.config.ts
 
 ```ts
-import type { NextConfig } from 'next'
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // Output standalone para Docker
@@ -651,9 +645,7 @@ const nextConfig: NextConfig = {
 
   // Domínios de imagem permitidos
   images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: '*.velya.health' },
-    ],
+    remotePatterns: [{ protocol: 'https', hostname: '*.velya.health' }],
   },
 
   // Headers de segurança
@@ -669,18 +661,16 @@ const nextConfig: NextConfig = {
   ],
 
   // Redirects
-  redirects: async () => [
-    { source: '/', destination: '/dashboard', permanent: false },
-  ],
+  redirects: async () => [{ source: '/', destination: '/dashboard', permanent: false }],
 
   // Experimental features
   experimental: {
     typedRoutes: true,
     serverActions: { bodySizeLimit: '2mb' },
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;
 ```
 
 ---
@@ -735,17 +725,17 @@ import Link from 'next/link'
 
 ## 12. Convenções de Arquivo
 
-| Arquivo | Propósito |
-|---|---|
-| `page.tsx` | Componente da rota (UI) |
-| `layout.tsx` | Layout compartilhado (persiste entre navegações) |
-| `loading.tsx` | Skeleton/spinner enquanto carrega |
-| `error.tsx` | Error boundary da rota |
-| `not-found.tsx` | 404 da rota |
-| `template.tsx` | Layout que re-renderiza (raro) |
-| `default.tsx` | Fallback para parallel routes |
-| `route.ts` | API route handler |
-| `opengraph-image.tsx` | OG image generation |
+| Arquivo               | Propósito                                        |
+| --------------------- | ------------------------------------------------ |
+| `page.tsx`            | Componente da rota (UI)                          |
+| `layout.tsx`          | Layout compartilhado (persiste entre navegações) |
+| `loading.tsx`         | Skeleton/spinner enquanto carrega                |
+| `error.tsx`           | Error boundary da rota                           |
+| `not-found.tsx`       | 404 da rota                                      |
+| `template.tsx`        | Layout que re-renderiza (raro)                   |
+| `default.tsx`         | Fallback para parallel routes                    |
+| `route.ts`            | API route handler                                |
+| `opengraph-image.tsx` | OG image generation                              |
 
 ---
 

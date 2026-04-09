@@ -31,100 +31,100 @@ Policy Enforcement Point (PEP).
 **Definicao:** Dados operacionais que nao identificam o paciente e sao
 necessarios para a logistica hospitalar basica.
 
-| Aspecto                | Valor                                                        |
-|------------------------|--------------------------------------------------------------|
-| **Risco**              | Baixo - nao identifica paciente                              |
-| **Fundamento Legal**   | Nao constitui dado pessoal isoladamente (LGPD Art. 5o, I)    |
-| **Nivel Minimo**       | 1 (Operacional Minimo)                                       |
-| **Autenticacao**       | Login basico (sem MFA obrigatorio)                           |
-| **Auditoria**          | Padrao (retencao 5 anos)                                     |
-| **Criptografia**       | Em transito (TLS 1.3) + em repouso (AES-256 disco)          |
-| **Mascaramento**       | Nenhum                                                       |
-| **Retencao**           | 5 anos                                                       |
+| Aspecto              | Valor                                                     |
+| -------------------- | --------------------------------------------------------- |
+| **Risco**            | Baixo - nao identifica paciente                           |
+| **Fundamento Legal** | Nao constitui dado pessoal isoladamente (LGPD Art. 5o, I) |
+| **Nivel Minimo**     | 1 (Operacional Minimo)                                    |
+| **Autenticacao**     | Login basico (sem MFA obrigatorio)                        |
+| **Auditoria**        | Padrao (retencao 5 anos)                                  |
+| **Criptografia**     | Em transito (TLS 1.3) + em repouso (AES-256 disco)        |
+| **Mascaramento**     | Nenhum                                                    |
+| **Retencao**         | 5 anos                                                    |
 
 **Exemplos de Dados Classe A:**
 
-| Dado                         | Descricao                                    | Roles com Acesso                      |
-|------------------------------|----------------------------------------------|---------------------------------------|
-| Numero do leito              | Ex: "301-A"                                  | Todos com nivel >= 1                  |
-| Status do leito              | Livre, ocupado, em limpeza, bloqueado        | cleaning_hygiene, bed_management, nurse |
-| Status de limpeza            | Pendente, em andamento, concluida            | cleaning_hygiene, bed_management      |
-| Ordem de transporte          | Origem, destino, horario (sem nome paciente) | patient_transporter, ambulance_driver |
-| Tipo de precaucao            | Contato, respiratorio, goticulaa (sem diagnostico) | cleaning_hygiene, patient_transporter |
-| Status de equipamento        | Funcional, em manutencao, com defeito        | maintenance                           |
-| Numero da sala               | Identificacao do espaco fisico               | Todos                                 |
-| Tipo de dieta padrao         | Branda, liquida, livre (sem nome)            | nutrition service                     |
+| Dado                  | Descricao                                          | Roles com Acesso                        |
+| --------------------- | -------------------------------------------------- | --------------------------------------- |
+| Numero do leito       | Ex: "301-A"                                        | Todos com nivel >= 1                    |
+| Status do leito       | Livre, ocupado, em limpeza, bloqueado              | cleaning_hygiene, bed_management, nurse |
+| Status de limpeza     | Pendente, em andamento, concluida                  | cleaning_hygiene, bed_management        |
+| Ordem de transporte   | Origem, destino, horario (sem nome paciente)       | patient_transporter, ambulance_driver   |
+| Tipo de precaucao     | Contato, respiratorio, goticulaa (sem diagnostico) | cleaning_hygiene, patient_transporter   |
+| Status de equipamento | Funcional, em manutencao, com defeito              | maintenance                             |
+| Numero da sala        | Identificacao do espaco fisico                     | Todos                                   |
+| Tipo de dieta padrao  | Branda, liquida, livre (sem nome)                  | nutrition service                       |
 
 ### 2.2 Classe B - Administrativo
 
 **Definicao:** Dados pessoais de identificacao e administrativos. Constituem
 dado pessoal conforme LGPD mas nao sao dados sensiveis de saude.
 
-| Aspecto                | Valor                                                        |
-|------------------------|--------------------------------------------------------------|
-| **Risco**              | Medio - identifica o paciente                                |
-| **Fundamento Legal**   | LGPD Art. 5o, I (dado pessoal) + Art. 7o (bases legais)     |
-| **Nivel Minimo**       | 2 (Identificacao Basica) ou 3 (Administrativo Completo)      |
-| **Autenticacao**       | Login + contexto de trabalho validado                        |
-| **Auditoria**          | Padrao a Elevada (retencao 10 anos)                          |
-| **Criptografia**       | Em transito + em repouso + campos sensiveis (CPF, RG)        |
-| **Mascaramento**       | CPF: `***.***.***-XX`, telefone: `(**) *****-XXXX`           |
-| **Retencao**           | 10 anos (ou 20 anos se vinculado a prontuario)               |
+| Aspecto              | Valor                                                   |
+| -------------------- | ------------------------------------------------------- |
+| **Risco**            | Medio - identifica o paciente                           |
+| **Fundamento Legal** | LGPD Art. 5o, I (dado pessoal) + Art. 7o (bases legais) |
+| **Nivel Minimo**     | 2 (Identificacao Basica) ou 3 (Administrativo Completo) |
+| **Autenticacao**     | Login + contexto de trabalho validado                   |
+| **Auditoria**        | Padrao a Elevada (retencao 10 anos)                     |
+| **Criptografia**     | Em transito + em repouso + campos sensiveis (CPF, RG)   |
+| **Mascaramento**     | CPF: `***.***.***-XX`, telefone: `(**) *****-XXXX`      |
+| **Retencao**         | 10 anos (ou 20 anos se vinculado a prontuario)          |
 
 **Exemplos de Dados Classe B:**
 
-| Dado                         | Descricao                                    | Roles com Acesso                          | Mascaramento                |
-|------------------------------|----------------------------------------------|-------------------------------------------|-----------------------------|
-| Nome completo                | Nome civil do paciente                       | Nivel >= 2                                | Nenhum                      |
-| Nome social                  | Nome social (se registrado)                  | Nivel >= 2                                | Nenhum                      |
-| CPF                          | Cadastro de Pessoa Fisica                    | receptionist, billing (completo); outros (mascarado) | `***.***.***-XX`   |
-| RG                           | Registro Geral                               | receptionist (completo)                   | `**.***.***-X`              |
-| Data de nascimento           | Data de nascimento                           | receptionist, nurse, medical              | Nenhum para clinicos        |
-| Endereco                     | Endereco residencial                         | receptionist, social_worker               | Nenhum                      |
-| Telefone                     | Telefones de contato                         | receptionist, social_worker, nurse        | `(**) *****-XXXX` para outros |
-| Email                        | Email do paciente                            | receptionist                              | `***@***.com`               |
-| Numero do prontuario         | Identificador unico no hospital              | Nivel >= 2                                | Nenhum                      |
-| Convenio/Plano de saude      | Operadora e numero da carteirinha            | receptionist, billing                     | Carteirinha mascarada       |
-| Responsavel legal            | Nome e contato (para menores/incapazes)      | receptionist, social_worker               | Nenhum                      |
-| Contato de emergencia        | Nome e telefone                              | receptionist, nurse                       | Nenhum                      |
-| Profissao                    | Ocupacao do paciente                         | receptionist, social_worker               | Nenhum                      |
-| Estado civil                 | Solteiro, casado, etc.                       | receptionist                              | Nenhum                      |
-| Nacionalidade                | Pais de origem                               | receptionist                              | Nenhum                      |
-| Dados de faturamento         | Valores, guias, autorizacoes                 | billing_authorization                     | Nenhum (restrito ao setor)  |
+| Dado                    | Descricao                               | Roles com Acesso                                     | Mascaramento                  |
+| ----------------------- | --------------------------------------- | ---------------------------------------------------- | ----------------------------- |
+| Nome completo           | Nome civil do paciente                  | Nivel >= 2                                           | Nenhum                        |
+| Nome social             | Nome social (se registrado)             | Nivel >= 2                                           | Nenhum                        |
+| CPF                     | Cadastro de Pessoa Fisica               | receptionist, billing (completo); outros (mascarado) | `***.***.***-XX`              |
+| RG                      | Registro Geral                          | receptionist (completo)                              | `**.***.***-X`                |
+| Data de nascimento      | Data de nascimento                      | receptionist, nurse, medical                         | Nenhum para clinicos          |
+| Endereco                | Endereco residencial                    | receptionist, social_worker                          | Nenhum                        |
+| Telefone                | Telefones de contato                    | receptionist, social_worker, nurse                   | `(**) *****-XXXX` para outros |
+| Email                   | Email do paciente                       | receptionist                                         | `***@***.com`                 |
+| Numero do prontuario    | Identificador unico no hospital         | Nivel >= 2                                           | Nenhum                        |
+| Convenio/Plano de saude | Operadora e numero da carteirinha       | receptionist, billing                                | Carteirinha mascarada         |
+| Responsavel legal       | Nome e contato (para menores/incapazes) | receptionist, social_worker                          | Nenhum                        |
+| Contato de emergencia   | Nome e telefone                         | receptionist, nurse                                  | Nenhum                        |
+| Profissao               | Ocupacao do paciente                    | receptionist, social_worker                          | Nenhum                        |
+| Estado civil            | Solteiro, casado, etc.                  | receptionist                                         | Nenhum                        |
+| Nacionalidade           | Pais de origem                          | receptionist                                         | Nenhum                        |
+| Dados de faturamento    | Valores, guias, autorizacoes            | billing_authorization                                | Nenhum (restrito ao setor)    |
 
 ### 2.3 Classe C - Clinico Contextual
 
 **Definicao:** Dados clinicos de rotina necessarios para o cuidado direto ao
 paciente. Constituem dado pessoal sensivel de saude conforme LGPD Art. 5o, II.
 
-| Aspecto                | Valor                                                        |
-|------------------------|--------------------------------------------------------------|
-| **Risco**              | Alto - dados de saude (LGPD dado sensivel)                   |
-| **Fundamento Legal**   | LGPD Art. 11 (dados sensiveis) + Art. 7o, VIII (tutela)      |
-| **Nivel Minimo**       | 4 (Clinico Contextual)                                       |
-| **Autenticacao**       | Login + MFA + relacao com paciente (ReBAC)                   |
-| **Auditoria**          | Elevada (retencao 20 anos)                                   |
-| **Criptografia**       | Em transito + em repouso + campo-nivel                       |
-| **Mascaramento**       | Por campo, conforme role                                     |
-| **Retencao**           | 20 anos (conforme CFM 1.821/2007)                            |
+| Aspecto              | Valor                                                   |
+| -------------------- | ------------------------------------------------------- |
+| **Risco**            | Alto - dados de saude (LGPD dado sensivel)              |
+| **Fundamento Legal** | LGPD Art. 11 (dados sensiveis) + Art. 7o, VIII (tutela) |
+| **Nivel Minimo**     | 4 (Clinico Contextual)                                  |
+| **Autenticacao**     | Login + MFA + relacao com paciente (ReBAC)              |
+| **Auditoria**        | Elevada (retencao 20 anos)                              |
+| **Criptografia**     | Em transito + em repouso + campo-nivel                  |
+| **Mascaramento**     | Por campo, conforme role                                |
+| **Retencao**         | 20 anos (conforme CFM 1.821/2007)                       |
 
 **Exemplos de Dados Classe C:**
 
-| Dado                         | Descricao                                    | Roles com Acesso                          |
-|------------------------------|----------------------------------------------|-------------------------------------------|
-| Sinais vitais                | PA, FC, FR, Temp, SpO2, dor                  | nurse, nursing_tech, medical, physio      |
-| Anotacoes de enfermagem      | Registros do cuidado de enfermagem            | nurse, nursing_tech, medical              |
-| Balanco hidrico              | Ingestao e eliminacao de liquidos             | nurse, nursing_tech, medical, nutritionist|
-| Medicamentos prescritos      | Lista de medicamentos ativos                  | nurse, medical, pharmacist                |
-| Registro de administracao    | Medicamento administrado, horario, via        | nurse, nursing_tech, medical, pharmacist  |
-| Alergias                     | Alergias declaradas e confirmadas             | nurse, medical, pharmacist, nutritionist  |
-| Resultados de exames         | Resultados laboratoriais e de imagem          | medical, nurse, lab_staff, imaging_staff  |
-| Plano de cuidados            | Plano terapeutico ativo                       | nurse, medical, equipe_multi              |
-| Evolucao de enfermagem       | Evolucao diaria do enfermeiro                 | nurse, medical                            |
-| Fisioterapia - evolucao      | Evolucao da fisioterapia                      | physiotherapist, medical, nurse           |
-| Nutricao - evolucao          | Avaliacao e prescricao dietética              | nutritionist, medical, nurse              |
-| Fonoaudiologia - evolucao    | Avaliacao e evolucao fono                     | speech_therapist, medical, nurse          |
-| Sinais de alerta             | Alertas clinicos (queda, alergia, isolamento) | Nivel >= 4 com relacao                    |
+| Dado                      | Descricao                                     | Roles com Acesso                           |
+| ------------------------- | --------------------------------------------- | ------------------------------------------ |
+| Sinais vitais             | PA, FC, FR, Temp, SpO2, dor                   | nurse, nursing_tech, medical, physio       |
+| Anotacoes de enfermagem   | Registros do cuidado de enfermagem            | nurse, nursing_tech, medical               |
+| Balanco hidrico           | Ingestao e eliminacao de liquidos             | nurse, nursing_tech, medical, nutritionist |
+| Medicamentos prescritos   | Lista de medicamentos ativos                  | nurse, medical, pharmacist                 |
+| Registro de administracao | Medicamento administrado, horario, via        | nurse, nursing_tech, medical, pharmacist   |
+| Alergias                  | Alergias declaradas e confirmadas             | nurse, medical, pharmacist, nutritionist   |
+| Resultados de exames      | Resultados laboratoriais e de imagem          | medical, nurse, lab_staff, imaging_staff   |
+| Plano de cuidados         | Plano terapeutico ativo                       | nurse, medical, equipe_multi               |
+| Evolucao de enfermagem    | Evolucao diaria do enfermeiro                 | nurse, medical                             |
+| Fisioterapia - evolucao   | Evolucao da fisioterapia                      | physiotherapist, medical, nurse            |
+| Nutricao - evolucao       | Avaliacao e prescricao dietética              | nutritionist, medical, nurse               |
+| Fonoaudiologia - evolucao | Avaliacao e evolucao fono                     | speech_therapist, medical, nurse           |
+| Sinais de alerta          | Alertas clinicos (queda, alergia, isolamento) | Nivel >= 4 com relacao                     |
 
 ### 2.4 Classe D - Clinico Sensivel
 
@@ -132,33 +132,33 @@ paciente. Constituem dado pessoal sensivel de saude conforme LGPD Art. 5o, II.
 por envolver diagnosticos, historico completo, ou informacoes que podem causar
 discriminacao ou estigma.
 
-| Aspecto                | Valor                                                        |
-|------------------------|--------------------------------------------------------------|
-| **Risco**              | Muito alto - potencial de discriminacao e dano significativo  |
-| **Fundamento Legal**   | LGPD Art. 11 + Art. 6o, IX (nao discriminacao) + CFM sigilo  |
-| **Nivel Minimo**       | 5 (Clinico Completo)                                         |
-| **Autenticacao**       | Login + MFA + relacao com paciente + justificativa para alguns campos |
-| **Auditoria**          | Elevada a Maxima (retencao 20 anos)                          |
-| **Criptografia**       | Em transito + em repouso + campo-nivel + envelope encryption |
-| **Mascaramento**       | Extensivo - CID mascarado para faturamento, diagnosticos por necessidade |
-| **Retencao**           | 20 anos                                                      |
+| Aspecto              | Valor                                                                    |
+| -------------------- | ------------------------------------------------------------------------ |
+| **Risco**            | Muito alto - potencial de discriminacao e dano significativo             |
+| **Fundamento Legal** | LGPD Art. 11 + Art. 6o, IX (nao discriminacao) + CFM sigilo              |
+| **Nivel Minimo**     | 5 (Clinico Completo)                                                     |
+| **Autenticacao**     | Login + MFA + relacao com paciente + justificativa para alguns campos    |
+| **Auditoria**        | Elevada a Maxima (retencao 20 anos)                                      |
+| **Criptografia**     | Em transito + em repouso + campo-nivel + envelope encryption             |
+| **Mascaramento**     | Extensivo - CID mascarado para faturamento, diagnosticos por necessidade |
+| **Retencao**         | 20 anos                                                                  |
 
 **Exemplos de Dados Classe D:**
 
-| Dado                         | Descricao                                    | Roles com Acesso                          | Condicao Especial           |
-|------------------------------|----------------------------------------------|-------------------------------------------|-----------------------------|
-| Diagnosticos (CID)           | Lista de diagnosticos ativos e inativos      | medical (attending/on_call), clinical_director | Faturamento: CID mascarado |
-| Historico clinico completo   | Anamnese, historico patologico               | medical (attending), nurse (resumo)       | Resumo para enfermagem      |
-| Laudos medicos               | Laudos de exames com interpretacao            | medical, lab_staff (autor), imaging_staff (autor) | Autor + solicitante   |
-| Prescricoes medicas          | Prescricoes completas com justificativa       | medical, nurse, pharmacist                | -                           |
-| Relatorios cirurgicos        | Descricao de procedimentos cirurgicos         | medical (cirurgiao + assistente)          | -                           |
-| Evolucao medica              | Evolucoes diarias do medico                   | medical (attending/on_call)               | -                           |
-| Resumo de alta               | Documento de alta hospitalar                  | medical (attending), nurse                | -                           |
-| Antecedentes familiares      | Historico de doencas na familia               | medical (attending)                       | -                           |
-| Uso de substancias           | Tabagismo, etilismo, drogas                   | medical, nurse (quando relevante)         | Consentimento preferivel    |
-| Doencas cronicas             | Lista de comorbidades                         | medical, nurse, pharmacist                | -                           |
-| Saude mental (geral)         | Diagnosticos psiquiatricos                    | medical, psychologist                     | Step-up para acesso         |
-| Doencas infecciosas          | Diagnostico de doencas transmissiveis          | medical, nurse, compliance (notif. compulsoria) | Notificacao obrigatoria |
+| Dado                       | Descricao                               | Roles com Acesso                                  | Condicao Especial          |
+| -------------------------- | --------------------------------------- | ------------------------------------------------- | -------------------------- |
+| Diagnosticos (CID)         | Lista de diagnosticos ativos e inativos | medical (attending/on_call), clinical_director    | Faturamento: CID mascarado |
+| Historico clinico completo | Anamnese, historico patologico          | medical (attending), nurse (resumo)               | Resumo para enfermagem     |
+| Laudos medicos             | Laudos de exames com interpretacao      | medical, lab_staff (autor), imaging_staff (autor) | Autor + solicitante        |
+| Prescricoes medicas        | Prescricoes completas com justificativa | medical, nurse, pharmacist                        | -                          |
+| Relatorios cirurgicos      | Descricao de procedimentos cirurgicos   | medical (cirurgiao + assistente)                  | -                          |
+| Evolucao medica            | Evolucoes diarias do medico             | medical (attending/on_call)                       | -                          |
+| Resumo de alta             | Documento de alta hospitalar            | medical (attending), nurse                        | -                          |
+| Antecedentes familiares    | Historico de doencas na familia         | medical (attending)                               | -                          |
+| Uso de substancias         | Tabagismo, etilismo, drogas             | medical, nurse (quando relevante)                 | Consentimento preferivel   |
+| Doencas cronicas           | Lista de comorbidades                   | medical, nurse, pharmacist                        | -                          |
+| Saude mental (geral)       | Diagnosticos psiquiatricos              | medical, psychologist                             | Step-up para acesso        |
+| Doencas infecciosas        | Diagnostico de doencas transmissiveis   | medical, nurse, compliance (notif. compulsoria)   | Notificacao obrigatoria    |
 
 ### 2.5 Classe E - Altamente Restrito
 
@@ -166,55 +166,55 @@ discriminacao ou estigma.
 restrito, com controles individuais por registro. Inclui dados cujo vazamento
 pode causar dano grave e irreversivel ao paciente.
 
-| Aspecto                | Valor                                                        |
-|------------------------|--------------------------------------------------------------|
-| **Risco**              | Critico - dano grave, irreversivel, potencialmente fatal      |
-| **Fundamento Legal**   | LGPD Art. 11 + CFM sigilo absoluto + legislacao especifica    |
-| **Nivel Minimo**       | 6 (Dados Sensiveis) ou 7 (Break-Glass)                       |
-| **Autenticacao**       | Login + MFA + step-up + justificativa obrigatoria + log imediato |
-| **Auditoria**          | Maxima (retencao 20+ anos, alerta em tempo real)             |
-| **Criptografia**       | Todas as camadas + criptografia individual por registro + HSM |
-| **Mascaramento**       | Totalmente oculto para roles nao autorizados                  |
-| **Retencao**           | 20+ anos (ou conforme legislacao especifica)                  |
+| Aspecto              | Valor                                                            |
+| -------------------- | ---------------------------------------------------------------- |
+| **Risco**            | Critico - dano grave, irreversivel, potencialmente fatal         |
+| **Fundamento Legal** | LGPD Art. 11 + CFM sigilo absoluto + legislacao especifica       |
+| **Nivel Minimo**     | 6 (Dados Sensiveis) ou 7 (Break-Glass)                           |
+| **Autenticacao**     | Login + MFA + step-up + justificativa obrigatoria + log imediato |
+| **Auditoria**        | Maxima (retencao 20+ anos, alerta em tempo real)                 |
+| **Criptografia**     | Todas as camadas + criptografia individual por registro + HSM    |
+| **Mascaramento**     | Totalmente oculto para roles nao autorizados                     |
+| **Retencao**         | 20+ anos (ou conforme legislacao especifica)                     |
 
 **Exemplos de Dados Classe E:**
 
-| Dado                         | Descricao                                    | Roles com Acesso                          | Legislacao Especifica       |
-|------------------------------|----------------------------------------------|-------------------------------------------|-----------------------------|
-| Anotacoes de psicoterapia    | Notas de sessoes de psicoterapia             | Apenas o psicologo/psiquiatra autor       | CFP Res. 001/2009           |
-| Status de HIV/AIDS           | Diagnostico, carga viral, CD4                | medical (attending) + infectologista      | Lei 12.984/2014 (anti-discriminacao) |
-| Violencia sexual             | Registros de atendimento a violencia sexual  | medical (attending), social_worker, compliance | Lei 12.845/2013 + notif. obrigatoria |
-| Violencia domestica          | Registros de violencia domestica             | medical (attending), social_worker        | Lei 11.340/2006 (Maria da Penha) |
-| Abuso de menores             | Registros de suspeita ou confirmacao         | medical, social_worker, compliance        | ECA (Lei 8.069/1990) + notif. Conselho Tutelar |
-| Registros judiciais          | Informacoes sob segredo de justica           | Somente conforme ordem judicial           | CPC + legislacao processual |
-| Prontuario sequestrado       | Registro lacrado por determinacao judicial   | Somente via ordem judicial                | CPC + CFM                   |
-| Identidade protegida         | Paciente em programa de protecao             | Somente clinical_director com step-up     | Lei 9.807/1999              |
-| Dependencia quimica          | Diagnostico e tratamento de dependencia      | medical (attending), psychologist         | Lei 11.343/2006             |
-| Aborto legal                 | Registros de aborto previsto em lei          | medical (attending), social_worker        | CP Art. 128 + norma tecnica MS |
-| Transicao de genero          | Registros de processo transexualizador       | medical (attending), psychologist         | Res. CFM 2.265/2019        |
-| Dados geneticos              | Resultados de testes geneticos               | medical (geneticista), geneticista        | LGPD Art. 5o, II           |
+| Dado                      | Descricao                                   | Roles com Acesso                               | Legislacao Especifica                          |
+| ------------------------- | ------------------------------------------- | ---------------------------------------------- | ---------------------------------------------- |
+| Anotacoes de psicoterapia | Notas de sessoes de psicoterapia            | Apenas o psicologo/psiquiatra autor            | CFP Res. 001/2009                              |
+| Status de HIV/AIDS        | Diagnostico, carga viral, CD4               | medical (attending) + infectologista           | Lei 12.984/2014 (anti-discriminacao)           |
+| Violencia sexual          | Registros de atendimento a violencia sexual | medical (attending), social_worker, compliance | Lei 12.845/2013 + notif. obrigatoria           |
+| Violencia domestica       | Registros de violencia domestica            | medical (attending), social_worker             | Lei 11.340/2006 (Maria da Penha)               |
+| Abuso de menores          | Registros de suspeita ou confirmacao        | medical, social_worker, compliance             | ECA (Lei 8.069/1990) + notif. Conselho Tutelar |
+| Registros judiciais       | Informacoes sob segredo de justica          | Somente conforme ordem judicial                | CPC + legislacao processual                    |
+| Prontuario sequestrado    | Registro lacrado por determinacao judicial  | Somente via ordem judicial                     | CPC + CFM                                      |
+| Identidade protegida      | Paciente em programa de protecao            | Somente clinical_director com step-up          | Lei 9.807/1999                                 |
+| Dependencia quimica       | Diagnostico e tratamento de dependencia     | medical (attending), psychologist              | Lei 11.343/2006                                |
+| Aborto legal              | Registros de aborto previsto em lei         | medical (attending), social_worker             | CP Art. 128 + norma tecnica MS                 |
+| Transicao de genero       | Registros de processo transexualizador      | medical (attending), psychologist              | Res. CFM 2.265/2019                            |
+| Dados geneticos           | Resultados de testes geneticos              | medical (geneticista), geneticista             | LGPD Art. 5o, II                               |
 
 ---
 
 ## 3. Tabela Consolidada: Classe vs Controles
 
-| Controle                       | Classe A      | Classe B       | Classe C       | Classe D          | Classe E            |
-|--------------------------------|---------------|----------------|----------------|-------------------|---------------------|
-| Nivel minimo de acesso         | 1             | 2-3            | 4              | 5                 | 6-7                 |
-| MFA obrigatorio                | Nao           | Contextual     | Sim            | Sim               | Sim + Step-up       |
-| Relacao com paciente (ReBAC)   | Nao           | Nao            | Sim            | Sim               | Sim + justificativa |
-| Criptografia em repouso       | Disco         | Disco + campo  | Disco + campo  | Campo + envelope  | Individual + HSM    |
-| Criptografia em transito       | TLS 1.3       | TLS 1.3        | TLS 1.3 + mTLS| TLS 1.3 + mTLS   | TLS 1.3 + mTLS     |
-| Mascaramento                   | Nenhum        | Parcial        | Por role        | Extensivo         | Total (oculto)      |
-| Nivel de auditoria             | Padrao        | Padrao/Elevada | Elevada        | Elevada/Maxima    | Maxima + Alerta     |
-| Retencao de log                | 5 anos        | 10 anos        | 20 anos        | 20 anos           | 20+ anos            |
-| Alerta em tempo real           | Nao           | Anomalias      | Anomalias      | Padroes suspeitos | Todo acesso         |
-| Break-glass disponivel         | N/A           | N/A            | Sim (4h)       | Sim (2h)          | Sim (1h)            |
-| Revisao pos-break-glass        | N/A           | N/A            | 48h            | 24h               | Imediata (< 4h)     |
-| Exportacao permitida           | Sim           | Com aprovacao  | Com aprovacao  | Restrita          | Proibida*           |
-| Impressao permitida            | Sim           | Sim            | Com registro   | Com aprovacao     | Proibida*           |
-| Acesso remoto                  | Sim           | Sim (VPN)      | Sim (VPN + MFA)| Hospital only**   | Hospital only**     |
-| Notificacao ao paciente        | Nao           | Nao            | Nao            | Configuravel      | Automatica          |
+| Controle                     | Classe A | Classe B       | Classe C        | Classe D          | Classe E            |
+| ---------------------------- | -------- | -------------- | --------------- | ----------------- | ------------------- |
+| Nivel minimo de acesso       | 1        | 2-3            | 4               | 5                 | 6-7                 |
+| MFA obrigatorio              | Nao      | Contextual     | Sim             | Sim               | Sim + Step-up       |
+| Relacao com paciente (ReBAC) | Nao      | Nao            | Sim             | Sim               | Sim + justificativa |
+| Criptografia em repouso      | Disco    | Disco + campo  | Disco + campo   | Campo + envelope  | Individual + HSM    |
+| Criptografia em transito     | TLS 1.3  | TLS 1.3        | TLS 1.3 + mTLS  | TLS 1.3 + mTLS    | TLS 1.3 + mTLS      |
+| Mascaramento                 | Nenhum   | Parcial        | Por role        | Extensivo         | Total (oculto)      |
+| Nivel de auditoria           | Padrao   | Padrao/Elevada | Elevada         | Elevada/Maxima    | Maxima + Alerta     |
+| Retencao de log              | 5 anos   | 10 anos        | 20 anos         | 20 anos           | 20+ anos            |
+| Alerta em tempo real         | Nao      | Anomalias      | Anomalias       | Padroes suspeitos | Todo acesso         |
+| Break-glass disponivel       | N/A      | N/A            | Sim (4h)        | Sim (2h)          | Sim (1h)            |
+| Revisao pos-break-glass      | N/A      | N/A            | 48h             | 24h               | Imediata (< 4h)     |
+| Exportacao permitida         | Sim      | Com aprovacao  | Com aprovacao   | Restrita          | Proibida\*          |
+| Impressao permitida          | Sim      | Sim            | Com registro    | Com aprovacao     | Proibida\*          |
+| Acesso remoto                | Sim      | Sim (VPN)      | Sim (VPN + MFA) | Hospital only\*\* | Hospital only\*\*   |
+| Notificacao ao paciente      | Nao      | Nao            | Nao             | Configuravel      | Automatica          |
 
 > `*` Exceto por determinacao judicial ou autorizacao expressa do DPO + clinical_director.
 > `**` Exceto para medico plantonista remoto com VPN + MFA + step-up.
@@ -267,41 +267,41 @@ CLASSE A   v         v
 ```yaml
 auto_classification_rules:
   # Regras baseadas no tipo de campo/recurso
-  - pattern: "bed_status|room_status|cleaning_*|transport_order"
+  - pattern: 'bed_status|room_status|cleaning_*|transport_order'
     class: A
     confidence: high
 
-  - pattern: "patient.name|patient.cpf|patient.rg|patient.address|patient.phone|insurance.*|billing.*"
+  - pattern: 'patient.name|patient.cpf|patient.rg|patient.address|patient.phone|insurance.*|billing.*'
     class: B
     confidence: high
 
-  - pattern: "vitals.*|nursing_note|medication_schedule|allergy|lab_result|imaging_result"
+  - pattern: 'vitals.*|nursing_note|medication_schedule|allergy|lab_result|imaging_result'
     class: C
     confidence: high
 
-  - pattern: "diagnosis|icd_code|medical_evolution|prescription|surgical_report|discharge_summary|family_history"
+  - pattern: 'diagnosis|icd_code|medical_evolution|prescription|surgical_report|discharge_summary|family_history'
     class: D
     confidence: high
 
-  - pattern: "psychotherapy_note|hiv_*|sexual_violence|domestic_violence|child_abuse|judicial_*|sealed_*|protected_identity|substance_dependence|genetic_*"
+  - pattern: 'psychotherapy_note|hiv_*|sexual_violence|domestic_violence|child_abuse|judicial_*|sealed_*|protected_identity|substance_dependence|genetic_*'
     class: E
     confidence: high
 
   # Regras contextuais (podem promover a classe)
-  - context: "infectious_disease_notification"
+  - context: 'infectious_disease_notification'
     promotes_to: D
     from: C
-    reason: "Doenca de notificacao compulsoria tem impacto social"
+    reason: 'Doenca de notificacao compulsoria tem impacto social'
 
-  - context: "mental_health_diagnosis"
+  - context: 'mental_health_diagnosis'
     promotes_to: D
     from: C
-    reason: "Diagnosticos de saude mental podem causar discriminacao"
+    reason: 'Diagnosticos de saude mental podem causar discriminacao'
 
-  - context: "under_judicial_seal"
+  - context: 'under_judicial_seal'
     promotes_to: E
     from: any
-    reason: "Determinacao judicial prevalece"
+    reason: 'Determinacao judicial prevalece'
 ```
 
 ---
@@ -312,7 +312,7 @@ auto_classification_rules:
 
 ```typescript
 interface FieldClassification {
-  fieldPath: string;           // Ex: 'patient.cpf', 'chart.diagnosis.icd_code'
+  fieldPath: string; // Ex: 'patient.cpf', 'chart.diagnosis.icd_code'
   dataClass: DataClass;
   defaultMasking: MaskingStrategy;
   overrides: FieldOverride[];
@@ -383,9 +383,7 @@ const patientFieldClassifications: FieldClassification[] = [
       {
         role: 'psychologist',
         masking: { type: 'none' },
-        conditions: [
-          { attribute: 'user.id', operator: 'equals', value: '{{record.author_id}}' },
-        ],
+        conditions: [{ attribute: 'user.id', operator: 'equals', value: '{{record.author_id}}' }],
       },
     ],
   },
@@ -402,7 +400,7 @@ async function filterResponse(
     activeRole: string;
     purpose: string;
     accessLevel: number;
-  }
+  },
 ): Promise<{
   filteredData: Record<string, unknown>;
   accessedFields: string[];
@@ -428,7 +426,7 @@ async function filterResponse(
     }
 
     // Aplicar mascaramento conforme role
-    const override = fieldClassification.overrides.find(o => o.role === userContext.activeRole);
+    const override = fieldClassification.overrides.find((o) => o.role === userContext.activeRole);
     const maskingStrategy = override?.masking || fieldClassification.defaultMasking;
 
     if (maskingStrategy.type === 'redact') {
@@ -516,15 +514,15 @@ Dados gerados e suas classes:
 
 Eventos que promovem dados a uma classe superior:
 
-| Evento                                  | Classe Original | Nova Classe | Trigger                                |
-|-----------------------------------------|-----------------|-------------|----------------------------------------|
-| Diagnostico de doenca de notificacao    | C               | D           | CID na lista de notificacao compulsoria|
-| Diagnostico de HIV/AIDS                 | D               | E           | CID B20-B24                            |
-| Registro de violencia                   | C               | E           | CID T74.*, Y07.*                       |
-| Ordem judicial de sequestro             | Qualquer        | E           | Cadastro de ordem judicial             |
-| Paciente em protecao de identidade      | B               | E           | Flag de identidade protegida           |
-| Registro de dependencia quimica         | D               | E           | CID F10-F19 em contexto de tratamento  |
-| Dados geneticos recebidos               | C               | E           | Tipo de exame = genetico               |
+| Evento                               | Classe Original | Nova Classe | Trigger                                 |
+| ------------------------------------ | --------------- | ----------- | --------------------------------------- |
+| Diagnostico de doenca de notificacao | C               | D           | CID na lista de notificacao compulsoria |
+| Diagnostico de HIV/AIDS              | D               | E           | CID B20-B24                             |
+| Registro de violencia                | C               | E           | CID T74._, Y07._                        |
+| Ordem judicial de sequestro          | Qualquer        | E           | Cadastro de ordem judicial              |
+| Paciente em protecao de identidade   | B               | E           | Flag de identidade protegida            |
+| Registro de dependencia quimica      | D               | E           | CID F10-F19 em contexto de tratamento   |
+| Dados geneticos recebidos            | C               | E           | Tipo de exame = genetico                |
 
 ### 7.2 Reclassificacao Manual
 
@@ -533,7 +531,7 @@ reclassification:
   who_can_request:
     - clinical_director
     - compliance_auditor
-    - dpo  # Data Protection Officer
+    - dpo # Data Protection Officer
 
   workflow:
     - step: request
@@ -542,12 +540,12 @@ reclassification:
 
     - step: clinical_review
       actor: clinical_director
-      condition: "proposed_class involves clinical data"
+      condition: 'proposed_class involves clinical data'
       sla: 48h
 
     - step: legal_review
       actor: dpo
-      condition: "reclassification to E or from E"
+      condition: 'reclassification to E or from E'
       sla: 72h
 
     - step: approval
@@ -572,13 +570,13 @@ reclassification:
 
 ## 8. Retencao e Descarte
 
-| Classe | Retencao Minima | Base Legal                          | Descarte                        |
-|--------|-----------------|-------------------------------------|---------------------------------|
-| A      | 5 anos          | Prazo prescricional geral           | Anonimizacao ou exclusao        |
-| B      | 10 anos         | LGPD + prazos tributarios           | Exclusao segura (crypto-erase)  |
-| C      | 20 anos         | CFM 1.821/2007 (prontuario medico)  | Exclusao segura + certificacao  |
-| D      | 20 anos         | CFM 1.821/2007                      | Exclusao segura + certificacao  |
-| E      | 20+ anos        | Legislacao especifica (pode ser permanente) | Conforme determinacao legal |
+| Classe | Retencao Minima | Base Legal                                  | Descarte                       |
+| ------ | --------------- | ------------------------------------------- | ------------------------------ |
+| A      | 5 anos          | Prazo prescricional geral                   | Anonimizacao ou exclusao       |
+| B      | 10 anos         | LGPD + prazos tributarios                   | Exclusao segura (crypto-erase) |
+| C      | 20 anos         | CFM 1.821/2007 (prontuario medico)          | Exclusao segura + certificacao |
+| D      | 20 anos         | CFM 1.821/2007                              | Exclusao segura + certificacao |
+| E      | 20+ anos        | Legislacao especifica (pode ser permanente) | Conforme determinacao legal    |
 
 ### 8.1 Processo de Descarte Seguro
 
@@ -618,7 +616,7 @@ MANTER    Classe E?
 ```yaml
 monitoring:
   class_a:
-    access_monitoring: aggregate_only  # Sem monitoramento individual
+    access_monitoring: aggregate_only # Sem monitoramento individual
     anomaly_detection: false
     reporting: monthly_summary
 
@@ -626,17 +624,17 @@ monitoring:
     access_monitoring: per_session
     anomaly_detection: true
     anomaly_rules:
-      - "Mais de 50 registros acessados por sessao"
-      - "Acesso fora do horario comercial (sem turno ativo)"
+      - 'Mais de 50 registros acessados por sessao'
+      - 'Acesso fora do horario comercial (sem turno ativo)'
     reporting: weekly_summary
 
   class_c:
     access_monitoring: per_access
     anomaly_detection: true
     anomaly_rules:
-      - "Acesso a paciente sem relacao ativa"
-      - "Mais de 20 prontuarios acessados em 1h"
-      - "Acesso a paciente de outro setor"
+      - 'Acesso a paciente sem relacao ativa'
+      - 'Mais de 20 prontuarios acessados em 1h'
+      - 'Acesso a paciente de outro setor'
     reporting: daily_summary
     real_time_alerts: anomalies_only
 
@@ -644,10 +642,10 @@ monitoring:
     access_monitoring: per_field
     anomaly_detection: true
     anomaly_rules:
-      - "Qualquer acesso sem relacao ativa"
-      - "Mais de 10 prontuarios acessados em 1h"
-      - "Acesso a diagnosticos por role nao clinico"
-      - "Download ou export de dados Classe D"
+      - 'Qualquer acesso sem relacao ativa'
+      - 'Mais de 10 prontuarios acessados em 1h'
+      - 'Acesso a diagnosticos por role nao clinico'
+      - 'Download ou export de dados Classe D'
     reporting: daily_detail
     real_time_alerts: suspicious_patterns
 
@@ -655,8 +653,8 @@ monitoring:
     access_monitoring: per_field_with_alert
     anomaly_detection: true
     anomaly_rules:
-      - "Todo acesso gera alerta"
-      - "Verificacao de justificativa obrigatoria"
+      - 'Todo acesso gera alerta'
+      - 'Verificacao de justificativa obrigatoria'
     reporting: per_access_report
     real_time_alerts: every_access
     notification_targets:
@@ -668,5 +666,5 @@ monitoring:
 
 ---
 
-*Documento mantido pela equipe de Arquitetura de Seguranca - Velya Platform.*
-*Proxima revisao programada: 2026-07-08.*
+_Documento mantido pela equipe de Arquitetura de Seguranca - Velya Platform._
+_Proxima revisao programada: 2026-07-08._

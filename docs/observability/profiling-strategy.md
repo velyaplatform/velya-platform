@@ -10,13 +10,13 @@
 
 **Grafana Pyroscope** é a solução de profiling contínuo escolhida para a Velya. É OSS, integra nativamente com Grafana, e suporta múltiplos tipos de profiling:
 
-| Tipo de profiling | O que mede | Formato |
-|-----------------|------------|---------|
-| CPU profiling | Onde o processo passa tempo de CPU | Flame graph de call stacks |
-| Heap profiling | Quais objetos estão sendo alocados e quanto | Flame graph de alocações |
-| Goroutine profiling | Goroutines/threads em execução | Lista de goroutines (para Go) |
-| Mutex profiling | Tempo esperando em locks | Flame graph de contention |
-| Block profiling | Tempo bloqueado em I/O | Flame graph de blocking |
+| Tipo de profiling   | O que mede                                  | Formato                       |
+| ------------------- | ------------------------------------------- | ----------------------------- |
+| CPU profiling       | Onde o processo passa tempo de CPU          | Flame graph de call stacks    |
+| Heap profiling      | Quais objetos estão sendo alocados e quanto | Flame graph de alocações      |
+| Goroutine profiling | Goroutines/threads em execução              | Lista de goroutines (para Go) |
+| Mutex profiling     | Tempo esperando em locks                    | Flame graph de contention     |
+| Block profiling     | Tempo bloqueado em I/O                      | Flame graph de blocking       |
 
 **Estado atual**: Pyroscope não está instalado. Profiling não está disponível.
 
@@ -28,20 +28,20 @@ O profiling tem overhead (< 2% CPU, mas não zero). Use de forma direcionada:
 
 ### 2.1 Investigações Reativas (acionar manualmente)
 
-| Situação | Tipo de profiling | Como acionar |
-|----------|-----------------|-------------|
-| P99 de latência elevado sem causa aparente em traces | CPU profiling | Ativar para o pod específico por 10 minutos |
-| Memória crescendo continuamente sem estabilizar | Heap profiling | Ativar por 30 minutos e comparar snapshots |
-| Event loop lag > 50ms no Node.js (velya-web ou NestJS) | CPU profiling | Ativar para o pod por 5 minutos |
-| CPU throttling detectado em container | CPU profiling | Ativar para o pod por 15 minutos |
+| Situação                                               | Tipo de profiling | Como acionar                                |
+| ------------------------------------------------------ | ----------------- | ------------------------------------------- |
+| P99 de latência elevado sem causa aparente em traces   | CPU profiling     | Ativar para o pod específico por 10 minutos |
+| Memória crescendo continuamente sem estabilizar        | Heap profiling    | Ativar por 30 minutos e comparar snapshots  |
+| Event loop lag > 50ms no Node.js (velya-web ou NestJS) | CPU profiling     | Ativar para o pod por 5 minutos             |
+| CPU throttling detectado em container                  | CPU profiling     | Ativar para o pod por 15 minutos            |
 
 ### 2.2 Profiling Contínuo (habilitado permanentemente para serviços prioritários)
 
-| Serviço | Justificativa | Tipo de profiling | Sampling rate |
-|---------|-------------|------------------|---------------|
-| api-gateway | Alto volume de tráfego, hotspot de CPU impacta todos os usuários | CPU | 100 samples/s |
-| ai-gateway | Construção de contexto para prompts pode ter custo de CPU alto | CPU + Heap | 100 samples/s |
-| patient-flow-service | Lógica de negócio complexa, queries potencialmente lentas | CPU | 50 samples/s |
+| Serviço              | Justificativa                                                    | Tipo de profiling | Sampling rate |
+| -------------------- | ---------------------------------------------------------------- | ----------------- | ------------- |
+| api-gateway          | Alto volume de tráfego, hotspot de CPU impacta todos os usuários | CPU               | 100 samples/s |
+| ai-gateway           | Construção de contexto para prompts pode ter custo de CPU alto   | CPU + Heap        | 100 samples/s |
+| patient-flow-service | Lógica de negócio complexa, queries potencialmente lentas        | CPU               | 50 samples/s  |
 
 ### 2.3 Quando NÃO usar profiling
 
@@ -84,6 +84,7 @@ Com Pyroscope, comparar heap snapshot do início da manhã com heap snapshot da 
 ### 3.4 Error de latência em trace → Flame graph no span lento
 
 Quando Tempo (tracing) e Pyroscope estão ambos disponíveis:
+
 1. Abrir trace com span lento (ex.: `buildAIContext` levou 8 segundos)
 2. Clicar no span → Grafana mostra botão "Profile"
 3. Abre flame graph do Pyroscope para o período exato do span
@@ -104,7 +105,8 @@ npm install @pyroscope/nodejs
 import Pyroscope from '@pyroscope/nodejs';
 
 Pyroscope.init({
-  serverAddress: process.env.PYROSCOPE_SERVER_ADDRESS || 'http://pyroscope.velya-dev-observability:4040',
+  serverAddress:
+    process.env.PYROSCOPE_SERVER_ADDRESS || 'http://pyroscope.velya-dev-observability:4040',
   appName: process.env.SERVICE_NAME || 'velya-service',
   tags: {
     environment: process.env.NODE_ENV || 'dev',
@@ -123,7 +125,7 @@ process.on('SIGTERM', () => {
 
 ```typescript
 // src/main.ts
-import './profiling';   // PRIMEIRA importação, antes de instrumentation
+import './profiling'; // PRIMEIRA importação, antes de instrumentation
 import './instrumentation';
 
 import { NestFactory } from '@nestjs/core';
@@ -151,22 +153,22 @@ spec:
       labels:
         app: beyla
     spec:
-      hostPID: true  # Necessário para eBPF
+      hostPID: true # Necessário para eBPF
       serviceAccountName: beyla
       containers:
         - name: beyla
           image: grafana/beyla:1.4.0
           env:
             - name: BEYLA_OPEN_PORT
-              value: "3000"  # Porta dos serviços NestJS
+              value: '3000' # Porta dos serviços NestJS
             - name: BEYLA_OTEL_TRACES_ENDPOINT
-              value: "http://otel-collector.velya-dev-observability:4317"
+              value: 'http://otel-collector.velya-dev-observability:4317'
             - name: BEYLA_PROMETHEUS_PORT
-              value: "9090"
+              value: '9090'
             - name: PYROSCOPE_SERVER_ADDRESS
-              value: "http://pyroscope.velya-dev-observability:4040"
+              value: 'http://pyroscope.velya-dev-observability:4040'
           securityContext:
-            privileged: true  # Necessário para eBPF
+            privileged: true # Necessário para eBPF
           volumeMounts:
             - name: kernel
               mountPath: /sys/kernel
@@ -199,7 +201,7 @@ helm install pyroscope grafana/pyroscope \
 # infra/observability/pyroscope/pyroscope-values.yaml
 pyroscope:
   replication:
-    factor: 1  # Dev: sem replicação
+    factor: 1 # Dev: sem replicação
 
   storage:
     backend: filesystem
@@ -225,7 +227,7 @@ service:
 
 # Retenção de profiling data
 compactor:
-  retentionPeriod: 168h  # 7 dias em dev
+  retentionPeriod: 168h # 7 dias em dev
 
 resources:
   requests:
@@ -239,14 +241,14 @@ resources:
 
 ```yaml
 # Adicionar ao infra/observability/grafana/provisioning/datasources/velya-datasources.yaml
-  - name: Pyroscope
-    type: grafana-pyroscope-datasource
-    uid: pyroscope-velya
-    url: http://pyroscope.velya-dev-observability:4040
-    jsonData:
-      keepCookies: []
-    version: 1
-    editable: false
+- name: Pyroscope
+  type: grafana-pyroscope-datasource
+  uid: pyroscope-velya
+  url: http://pyroscope.velya-dev-observability:4040
+  jsonData:
+    keepCookies: []
+  version: 1
+  editable: false
 ```
 
 ---
@@ -255,13 +257,14 @@ resources:
 
 ### 6.1 Overhead de CPU
 
-| Método | Overhead de CPU | Overhead de memória |
-|--------|---------------|---------------------|
-| `@pyroscope/nodejs` (sampling) | < 2% | < 50 MB |
-| Beyla (eBPF) | < 1% | < 100 MB (no DaemonSet) |
-| Profiling desabilitado | 0% | 0% |
+| Método                         | Overhead de CPU | Overhead de memória     |
+| ------------------------------ | --------------- | ----------------------- |
+| `@pyroscope/nodejs` (sampling) | < 2%            | < 50 MB                 |
+| Beyla (eBPF)                   | < 1%            | < 100 MB (no DaemonSet) |
+| Profiling desabilitado         | 0%              | 0%                      |
 
 **Monitorar o overhead**:
+
 ```promql
 # Verificar que Pyroscope e Beyla não estão consumindo CPU demais
 sum(rate(container_cpu_usage_seconds_total{container=~"pyroscope|beyla"}[5m])) /
@@ -271,20 +274,20 @@ sum(rate(container_cpu_usage_seconds_total[5m]))
 
 ### 6.2 Sampling Rate Recomendado
 
-| Ambiente | Sampling rate | Justificativa |
-|---------|--------------|--------------|
-| dev | 100 samples/s | Investigação ativa |
-| staging | 50 samples/s | Balance entre dados e overhead |
-| prod | 100 samples/s para serviços prioritários | Dados de qualidade para análise |
-| prod (outros serviços) | 0 (desabilitado) | Sem justificativa de custo |
+| Ambiente               | Sampling rate                            | Justificativa                   |
+| ---------------------- | ---------------------------------------- | ------------------------------- |
+| dev                    | 100 samples/s                            | Investigação ativa              |
+| staging                | 50 samples/s                             | Balance entre dados e overhead  |
+| prod                   | 100 samples/s para serviços prioritários | Dados de qualidade para análise |
+| prod (outros serviços) | 0 (desabilitado)                         | Sem justificativa de custo      |
 
 ### 6.3 Retenção de Dados de Profiling
 
 | Ambiente | Retenção | Storage estimado |
-|---------|---------|-----------------|
-| dev | 7 dias | 2-5 GB |
-| staging | 14 dias | 5-10 GB |
-| prod | 30 dias | 20-50 GB |
+| -------- | -------- | ---------------- |
+| dev      | 7 dias   | 2-5 GB           |
+| staging  | 14 dias  | 5-10 GB          |
+| prod     | 30 dias  | 20-50 GB         |
 
 ### 6.4 Alertas de Overhead
 
@@ -298,8 +301,8 @@ labels:
   severity: medium
   domain: cost
 annotations:
-  summary: "Pyroscope consumindo > 3% do CPU total dos serviços Velya"
-  initial_action: "Reduzir sampling rate ou desabilitar profiling em serviços não prioritários"
+  summary: 'Pyroscope consumindo > 3% do CPU total dos serviços Velya'
+  initial_action: 'Reduzir sampling rate ou desabilitar profiling em serviços não prioritários'
 ```
 
 ---
@@ -309,6 +312,7 @@ annotations:
 ### Fase 1 — Semana 1 (instalação)
 
 1. Verificar que kernel do nó kind suporta eBPF:
+
    ```bash
    kubectl get nodes -o json | jq '.items[].status.nodeInfo.kernelVersion'
    # Precisa ser >= 5.8
@@ -361,6 +365,7 @@ annotations:
 **Hipótese**: A construção do contexto para prompts (busca em memory-service + montagem do prompt) está consumindo CPU excessivo.
 
 **Como investigar com Pyroscope**:
+
 1. Identificar horário do pico no Time Series de latência do ai-gateway
 2. Abrir Pyroscope → selecionar `ai-gateway` → período do pico
 3. Analisar flame graph: procurar funções de serialização/deserialização ou busca em grafos
@@ -370,6 +375,7 @@ annotations:
 **Hipótese**: Um cache in-memory não está sendo invalidado corretamente.
 
 **Como investigar com Pyroscope**:
+
 1. Abrir Explore no Grafana → Pyroscope datasource
 2. Selecionar `patient-flow-service` → tipo: `memory`
 3. Usar diff view: comparar snapshot das 8h com snapshot das 18h do mesmo dia
@@ -385,6 +391,7 @@ nodejs_eventloop_lag_seconds{service="api-gateway"} > 0.05
 ```
 
 **Como investigar**:
+
 1. Ativar profiling temporariamente: `kubectl exec -n velya-dev-platform deploy/api-gateway -- kill -USR1 1`
    (acionar dump de CPU profiling via signal, se implementado)
 2. Abrir flame graph → procurar operações síncronas longas no event loop

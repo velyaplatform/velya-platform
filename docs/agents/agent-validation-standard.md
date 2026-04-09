@@ -22,13 +22,13 @@ Validation is not review. A validator is not providing feedback or suggestions. 
 
 ### 2.1 Validation Thresholds by Risk Class
 
-| Risk Class | Validators Required | Validator Offices | Shadow Mode First? |
-|---|---|---|---|
-| Low | 0 | — | No |
-| Medium | 1 | Same or different office | No |
-| High | 2 | At least 1 from different office | Recommended |
-| Critical | 2 | Both from different offices | Required |
-| Catastrophic | 3 | All from different offices | Required (min 4 weeks) |
+| Risk Class   | Validators Required | Validator Offices                | Shadow Mode First?     |
+| ------------ | ------------------- | -------------------------------- | ---------------------- |
+| Low          | 0                   | —                                | No                     |
+| Medium       | 1                   | Same or different office         | No                     |
+| High         | 2                   | At least 1 from different office | Recommended            |
+| Critical     | 2                   | Both from different offices      | Required               |
+| Catastrophic | 3                   | All from different offices       | Required (min 4 weeks) |
 
 ### 2.2 Action Types Requiring Validation Regardless of Risk Class
 
@@ -54,6 +54,7 @@ No permanent exemptions exist. Expedited validation (reduced SLA, single validat
 ### 3.1 Independence Requirements
 
 A validator MUST NOT be:
+
 - The same agent that produced the work being validated
 - An agent in a direct reporting relationship with the producing agent for the same piece of work
 - An agent from the same team that has a shared incentive to approve the work
@@ -61,6 +62,7 @@ A validator MUST NOT be:
 ### 3.2 Validator Qualification Requirements
 
 A validator must:
+
 - Hold the `validator` role type in its contract
 - Have domain competence in the domain being validated (technical, clinical, security, compliance, etc.)
 - Have a current scorecard validation accuracy metric above the warning threshold
@@ -278,18 +280,19 @@ If redesign: Factory RFC may be required
 
 Every Validation Report must include:
 
-| Evidence Item | Required | Retention |
-|---|---|---|
-| Completed validation checklist (every item dispositioned) | Yes | 365 days |
-| References to evidence items reviewed | Yes | 365 days |
-| Specific quotes or references from evidence supporting each finding | Yes | 365 days |
-| Validator's risk class assessment | Yes | 365 days |
-| Time log (when validation started, completed) | Yes | 365 days |
-| Independence declaration | Yes | 365 days |
-| Certification or rejection decision with rationale | Yes | 365 days |
-| Evidence package completeness assessment | Yes | 365 days |
+| Evidence Item                                                       | Required | Retention |
+| ------------------------------------------------------------------- | -------- | --------- |
+| Completed validation checklist (every item dispositioned)           | Yes      | 365 days  |
+| References to evidence items reviewed                               | Yes      | 365 days  |
+| Specific quotes or references from evidence supporting each finding | Yes      | 365 days  |
+| Validator's risk class assessment                                   | Yes      | 365 days  |
+| Time log (when validation started, completed)                       | Yes      | 365 days  |
+| Independence declaration                                            | Yes      | 365 days  |
+| Certification or rejection decision with rationale                  | Yes      | 365 days  |
+| Evidence package completeness assessment                            | Yes      | 365 days  |
 
 For Critical and Catastrophic work, additionally:
+
 - Hash verification of all evidence items reviewed
 - Formal independence confirmation from Office Manager
 - Secondary validator cross-reference
@@ -298,14 +301,14 @@ For Critical and Catastrophic work, additionally:
 
 ## 8. Validator Scorecard Metrics
 
-| Metric | Definition | Target | Warning | Critical |
-|---|---|---|---|---|
-| Validation accuracy | % of certifications with no post-deployment defect | >98% | 92-98% | <92% |
-| False rejection rate | % of rejections later overturned | <2% | 2-8% | >8% |
-| Checklist completion rate | % of validations with all checklist items dispositioned | 100% | 97-100% | <97% |
-| SLA adherence | % of reports delivered within SLA | >95% | 85-95% | <85% |
-| Evidence gap detection rate | % of validations that correctly identify evidence gaps | >95% | 85-95% | <85% |
-| Independence violation rate | % of validations where independence was violated | 0% | >0 = immediate action | N/A |
+| Metric                      | Definition                                              | Target | Warning               | Critical |
+| --------------------------- | ------------------------------------------------------- | ------ | --------------------- | -------- |
+| Validation accuracy         | % of certifications with no post-deployment defect      | >98%   | 92-98%                | <92%     |
+| False rejection rate        | % of rejections later overturned                        | <2%    | 2-8%                  | >8%      |
+| Checklist completion rate   | % of validations with all checklist items dispositioned | 100%   | 97-100%               | <97%     |
+| SLA adherence               | % of reports delivered within SLA                       | >95%   | 85-95%                | <85%     |
+| Evidence gap detection rate | % of validations that correctly identify evidence gaps  | >95%   | 85-95%                | <85%     |
+| Independence violation rate | % of validations where independence was violated        | 0%     | >0 = immediate action | N/A      |
 
 ---
 
@@ -313,16 +316,16 @@ For Critical and Catastrophic work, additionally:
 
 The following behaviors by a Validator Agent are grounds for immediate quarantine and audit:
 
-| Prohibited Behavior | Definition |
-|---|---|
-| Self-validation | Validating work the agent itself produced |
-| Rubber-stamp certification | Certifying work without completing the validation checklist |
-| Conditional certification | Issuing a pass with conditions that must be resolved later |
-| Incomplete checklist | Marking checklist items N/A without documented justification |
-| Evidence fabrication | Citing evidence items that do not exist or were not reviewed |
-| Independence violation | Validating when in a reporting relationship with the producing agent |
+| Prohibited Behavior           | Definition                                                                                     |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| Self-validation               | Validating work the agent itself produced                                                      |
+| Rubber-stamp certification    | Certifying work without completing the validation checklist                                    |
+| Conditional certification     | Issuing a pass with conditions that must be resolved later                                     |
+| Incomplete checklist          | Marking checklist items N/A without documented justification                                   |
+| Evidence fabrication          | Citing evidence items that do not exist or were not reviewed                                   |
+| Independence violation        | Validating when in a reporting relationship with the producing agent                           |
 | Pressure-driven certification | Changing a rejection to a pass due to manager or deadline pressure (must be escalated instead) |
-| Retroactive validation | Back-dating a validation report to cover work already deployed |
-| Scope concession | Reducing the scope of validation without documented authorization |
+| Retroactive validation        | Back-dating a validation report to cover work already deployed                                 |
+| Scope concession              | Reducing the scope of validation without documented authorization                              |
 
 Any validator agent that exhibits a prohibited behavior has its validation certification retroactively suspended for the affected work. The work must be re-validated by a different validator.

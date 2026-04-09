@@ -139,12 +139,14 @@ export function audit(params: {
   appendFileSync(logFile, JSON.stringify(fullEntry) + '\n');
 
   // Also write to console for container log aggregation (Loki/Fluentd)
-  console.log(JSON.stringify({
-    level: params.result === 'error' ? 'error' : params.result === 'failure' ? 'warn' : 'info',
-    service: 'velya-web',
-    audit: true,
-    ...fullEntry,
-  }));
+  console.log(
+    JSON.stringify({
+      level: params.result === 'error' ? 'error' : params.result === 'failure' ? 'warn' : 'info',
+      service: 'velya-web',
+      audit: true,
+      ...fullEntry,
+    }),
+  );
 
   return fullEntry;
 }
@@ -174,9 +176,16 @@ export function queryAudit(params?: {
   const content = readFileSync(logFile, 'utf-8').trim();
   if (!content) return { entries: [], total: 0, integrity: true };
 
-  let entries: AuditEntry[] = content.split('\n').map(line => {
-    try { return JSON.parse(line); } catch { return null; }
-  }).filter(Boolean);
+  let entries: AuditEntry[] = content
+    .split('\n')
+    .map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
 
   // Verify hash chain integrity
   let integrity = true;
@@ -188,13 +197,13 @@ export function queryAudit(params?: {
   }
 
   // Apply filters
-  if (params?.category) entries = entries.filter(e => e.category === params.category);
-  if (params?.action) entries = entries.filter(e => e.action.includes(params.action!));
-  if (params?.actor) entries = entries.filter(e => e.actor.includes(params.actor!));
-  if (params?.resource) entries = entries.filter(e => e.resource.includes(params.resource!));
-  if (params?.result) entries = entries.filter(e => e.result === params.result);
-  if (params?.since) entries = entries.filter(e => e.timestamp >= params.since!);
-  if (params?.until) entries = entries.filter(e => e.timestamp <= params.until!);
+  if (params?.category) entries = entries.filter((e) => e.category === params.category);
+  if (params?.action) entries = entries.filter((e) => e.action.includes(params.action!));
+  if (params?.actor) entries = entries.filter((e) => e.actor.includes(params.actor!));
+  if (params?.resource) entries = entries.filter((e) => e.resource.includes(params.resource!));
+  if (params?.result) entries = entries.filter((e) => e.result === params.result);
+  if (params?.since) entries = entries.filter((e) => e.timestamp >= params.since!);
+  if (params?.until) entries = entries.filter((e) => e.timestamp <= params.until!);
 
   const total = entries.length;
 
@@ -238,7 +247,7 @@ export function verifyIntegrity(date: string): {
   if (!content) return { valid: true, totalEntries: 0, message: 'Arquivo vazio' };
 
   const lines = content.split('\n');
-  const entries: AuditEntry[] = lines.map(l => JSON.parse(l));
+  const entries: AuditEntry[] = lines.map((l) => JSON.parse(l));
 
   for (let i = 0; i < entries.length; i++) {
     // Recompute hash

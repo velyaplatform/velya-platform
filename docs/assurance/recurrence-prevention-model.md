@@ -11,11 +11,11 @@ Um erro que se repete e uma falha no sistema de aprendizado. A Velya Platform tr
 
 ### Definicao de Recorrencia
 
-| Tipo | Criterio | Exemplo |
-|---|---|---|
-| **Recorrencia exata** | Mesmo erro (mesma root cause, mesmo servico) em < 90 dias | OOM kill no patient-service por memory leak no mesmo endpoint |
-| **Recorrencia similar** | Mesma classe de erro (mesma root cause, servico diferente) em < 90 dias | OOM kill em qualquer servico por memory leak |
-| **Recorrencia de padrao** | Mesmo padrao de falha (causa raiz similar) em < 180 dias | Qualquer leak de recursos (memory, connections, goroutines) |
+| Tipo                      | Criterio                                                                | Exemplo                                                       |
+| ------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Recorrencia exata**     | Mesmo erro (mesma root cause, mesmo servico) em < 90 dias               | OOM kill no patient-service por memory leak no mesmo endpoint |
+| **Recorrencia similar**   | Mesma classe de erro (mesma root cause, servico diferente) em < 90 dias | OOM kill em qualquer servico por memory leak                  |
+| **Recorrencia de padrao** | Mesmo padrao de falha (causa raiz similar) em < 180 dias                | Qualquer leak de recursos (memory, connections, goroutines)   |
 
 ---
 
@@ -142,107 +142,107 @@ rootCauseClassification:
   categories:
     code:
       - id: RC-CODE-001
-        label: "Memory Leak"
-        pattern: "OOMKill recorrente + crescimento linear de memoria"
+        label: 'Memory Leak'
+        pattern: 'OOMKill recorrente + crescimento linear de memoria'
         preventionLayers:
-          - "Teste de carga com duracao >= 30min (detecta leaks)"
-          - "Alerta de deriv(memory) > threshold"
-          - "Resource limits com margem adequada"
-          - "Go pprof/heap profiling em staging"
+          - 'Teste de carga com duracao >= 30min (detecta leaks)'
+          - 'Alerta de deriv(memory) > threshold'
+          - 'Resource limits com margem adequada'
+          - 'Go pprof/heap profiling em staging'
       - id: RC-CODE-002
-        label: "Connection Leak"
-        pattern: "Connection pool esgotado + connections nao retornadas"
+        label: 'Connection Leak'
+        pattern: 'Connection pool esgotado + connections nao retornadas'
         preventionLayers:
-          - "Connection pool monitoring com alerta em 70%"
-          - "Timeout em todas as connections"
-          - "Teste de integracao com connection lifecycle"
-          - "Linter para defer conn.Close()"
+          - 'Connection pool monitoring com alerta em 70%'
+          - 'Timeout em todas as connections'
+          - 'Teste de integracao com connection lifecycle'
+          - 'Linter para defer conn.Close()'
       - id: RC-CODE-003
-        label: "Goroutine Leak"
-        pattern: "Goroutine count crescente sem plateau"
+        label: 'Goroutine Leak'
+        pattern: 'Goroutine count crescente sem plateau'
         preventionLayers:
-          - "Alerta de runtime_goroutines > threshold"
-          - "Context cancelation em todos os goroutines"
-          - "goleak test em CI"
+          - 'Alerta de runtime_goroutines > threshold'
+          - 'Context cancelation em todos os goroutines'
+          - 'goleak test em CI'
       - id: RC-CODE-004
-        label: "Race Condition"
-        pattern: "Erros intermitentes sob carga, data corruption"
+        label: 'Race Condition'
+        pattern: 'Erros intermitentes sob carga, data corruption'
         preventionLayers:
-          - "go test -race em CI"
-          - "Stress test concorrente"
-          - "Mutex/channel review em PR"
+          - 'go test -race em CI'
+          - 'Stress test concorrente'
+          - 'Mutex/channel review em PR'
       - id: RC-CODE-005
-        label: "Nil Pointer / Panic"
-        pattern: "Pod restart com panic no log"
+        label: 'Nil Pointer / Panic'
+        pattern: 'Pod restart com panic no log'
         preventionLayers:
-          - "Recover middleware em todos os handlers"
-          - "nilaway linter em CI"
-          - "Teste de input invalido"
+          - 'Recover middleware em todos os handlers'
+          - 'nilaway linter em CI'
+          - 'Teste de input invalido'
 
     config:
       - id: RC-CFG-001
-        label: "Configuracao Incorreta"
-        pattern: "CrashLoopBackOff apos config change"
+        label: 'Configuracao Incorreta'
+        pattern: 'CrashLoopBackOff apos config change'
         preventionLayers:
-          - "JSON Schema validation no CI"
-          - "Config dry-run antes de apply"
-          - "Config diff review obrigatorio"
+          - 'JSON Schema validation no CI'
+          - 'Config dry-run antes de apply'
+          - 'Config diff review obrigatorio'
       - id: RC-CFG-002
-        label: "Secret Expirado"
-        pattern: "Auth failures apos periodo sem rotacao"
+        label: 'Secret Expirado'
+        pattern: 'Auth failures apos periodo sem rotacao'
         preventionLayers:
-          - "Alerta de expiracao de secret 7d antes"
-          - "External Secrets com rotacao automatica"
-          - "Teste de rotacao trimestral"
+          - 'Alerta de expiracao de secret 7d antes'
+          - 'External Secrets com rotacao automatica'
+          - 'Teste de rotacao trimestral'
 
     infra:
       - id: RC-INFRA-001
-        label: "Capacidade Insuficiente"
-        pattern: "Pods Pending + node full + autoscaler lento"
+        label: 'Capacidade Insuficiente'
+        pattern: 'Pods Pending + node full + autoscaler lento'
         preventionLayers:
-          - "Headroom de 20% no cluster"
-          - "Alerta de utilizacao > 70%"
-          - "Capacity planning mensal"
+          - 'Headroom de 20% no cluster'
+          - 'Alerta de utilizacao > 70%'
+          - 'Capacity planning mensal'
       - id: RC-INFRA-002
-        label: "Scaling Incorreto"
-        pattern: "KEDA/HPA com thresholds que causam flapping ou under-scaling"
+        label: 'Scaling Incorreto'
+        pattern: 'KEDA/HPA com thresholds que causam flapping ou under-scaling'
         preventionLayers:
-          - "Load test com KEDA ativo"
-          - "StabilizationWindow configurado"
-          - "Alerta de replica count anomalo"
+          - 'Load test com KEDA ativo'
+          - 'StabilizationWindow configurado'
+          - 'Alerta de replica count anomalo'
 
     dependency:
       - id: RC-DEP-001
-        label: "Dependencia Indisponivel"
-        pattern: "5xx spike quando dependencia externa cai"
+        label: 'Dependencia Indisponivel'
+        pattern: '5xx spike quando dependencia externa cai'
         preventionLayers:
-          - "Circuit breaker em todos os clientes externos"
-          - "Fallback/cache para dados non-critical"
-          - "Health check de dependencias"
-          - "Chaos test de falha de dependencia"
+          - 'Circuit breaker em todos os clientes externos'
+          - 'Fallback/cache para dados non-critical'
+          - 'Health check de dependencias'
+          - 'Chaos test de falha de dependencia'
       - id: RC-DEP-002
-        label: "Dependencia Lenta"
-        pattern: "Timeout cascade quando dependencia degrada"
+        label: 'Dependencia Lenta'
+        pattern: 'Timeout cascade quando dependencia degrada'
         preventionLayers:
-          - "Timeout curto em clientes (< 5s)"
-          - "Bulkhead pattern (isolamento de connection pools)"
-          - "Retry com backoff exponencial + jitter"
+          - 'Timeout curto em clientes (< 5s)'
+          - 'Bulkhead pattern (isolamento de connection pools)'
+          - 'Retry com backoff exponencial + jitter'
 
     process:
       - id: RC-PROC-001
-        label: "Deploy em Horario de Risco"
-        pattern: "Incidente durante sexta a tarde ou fora do horario"
+        label: 'Deploy em Horario de Risco'
+        pattern: 'Incidente durante sexta a tarde ou fora do horario'
         preventionLayers:
-          - "Policy: sem deploys sexta pos 14h"
-          - "Gate de horario no CI/CD"
-          - "Revisao da janela de deploy"
+          - 'Policy: sem deploys sexta pos 14h'
+          - 'Gate de horario no CI/CD'
+          - 'Revisao da janela de deploy'
       - id: RC-PROC-002
-        label: "Mudanca sem Observacao"
-        pattern: "Problema detectado horas apos deploy sem observacao"
+        label: 'Mudanca sem Observacao'
+        pattern: 'Problema detectado horas apos deploy sem observacao'
         preventionLayers:
-          - "Watchdog pos-mudanca obrigatorio"
-          - "Checklist de deploy com campo de observacao"
-          - "Alerta se deploy sem observacao ativa"
+          - 'Watchdog pos-mudanca obrigatorio'
+          - 'Checklist de deploy com campo de observacao'
+          - 'Alerta se deploy sem observacao ativa'
 ```
 
 ---
@@ -263,8 +263,8 @@ recurrenceScore:
           sum(increase(velya_incident_recurrence_total[90d]))
           / sum(increase(velya_incident_total[90d]))
         )
-      description: "% de incidentes que NAO recorrem em 90 dias"
-      target: ">= 0.95"
+      description: '% de incidentes que NAO recorrem em 90 dias'
+      target: '>= 0.95'
 
     - name: error_pattern_reduction
       weight: 0.20
@@ -273,41 +273,41 @@ recurrenceScore:
           sum(velya_recurring_error_patterns_current)
           / sum(velya_recurring_error_patterns_total)
         )
-      description: "% de padroes de erro que foram eliminados"
-      target: ">= 0.90"
+      description: '% de padroes de erro que foram eliminados'
+      target: '>= 0.90'
 
     - name: prevention_coverage
       weight: 0.20
       query: |
         sum(velya_pir_prevention_layers_implemented)
         / sum(velya_pir_prevention_layers_planned)
-      description: "% de camadas de prevencao implementadas vs planejadas"
-      target: ">= 0.85"
+      description: '% de camadas de prevencao implementadas vs planejadas'
+      target: '>= 0.85'
 
     - name: action_item_sla_compliance
       weight: 0.15
       query: |
         sum(velya_pir_action_items{status="done",on_time="true"})
         / sum(velya_pir_action_items{status=~"done|overdue"})
-      description: "% de action items concluidos no SLA"
-      target: ">= 0.90"
+      description: '% de action items concluidos no SLA'
+      target: '>= 0.90'
 
     - name: alert_effectiveness
       weight: 0.15
       query: |
         sum(velya_incidents_detected_by_alert)
         / sum(velya_incident_total)
-      description: "% de incidentes detectados por alertas (nao por humanos/usuarios)"
-      target: ">= 0.80"
+      description: '% de incidentes detectados por alertas (nao por humanos/usuarios)'
+      target: '>= 0.80'
 
   calculation: |
     recurrence_score = sum(component.value * component.weight) for each component
 
   thresholds:
-    excellent: ">= 0.90"
-    good: ">= 0.80"
-    needs_improvement: ">= 0.60"
-    critical: "< 0.60"
+    excellent: '>= 0.90'
+    good: '>= 0.80'
+    needs_improvement: '>= 0.60'
+    critical: '< 0.60'
 ```
 
 ### PromQL Agregado
@@ -352,7 +352,7 @@ metadata:
   name: recurrence-detector
   namespace: velya-ops
 spec:
-  schedule: "0 6 * * *"  # diariamente as 6h
+  schedule: '0 6 * * *' # diariamente as 6h
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -365,16 +365,16 @@ spec:
               image: velya/recurrence-detector:latest
               env:
                 - name: PROMETHEUS_URL
-                  value: "http://prometheus.monitoring:9090"
+                  value: 'http://prometheus.monitoring:9090'
                 - name: LOKI_URL
-                  value: "http://loki.monitoring:3100"
+                  value: 'http://loki.monitoring:3100'
                 - name: SLACK_WEBHOOK
                   valueFrom:
                     secretKeyRef:
                       name: slack-webhooks
                       key: recurrence-channel
                 - name: LOOKBACK_DAYS
-                  value: "30"
+                  value: '30'
               command:
                 - python3
                 - /scripts/recurrence_detector.py
@@ -739,16 +739,16 @@ Camada 7: Aprendizado
 
 ### Mapeamento: Root Cause -> Camadas de Prevencao
 
-| Root Cause | Camada 1 | Camada 2 | Camada 3 | Camada 4 | Camada 5 |
-|---|---|---|---|---|---|
-| Memory leak | pprof test | load test 30min | canary memory watch | deriv(memory) alert | OOMKill restart + alerta |
-| Connection leak | defer close linter | integration test | canary connection pool | pool usage alert | circuit breaker |
-| Race condition | -race flag | stress test | - | error rate alert | restart pod |
-| Config error | schema validation | config dry-run | staging apply | CrashLoop alert | rollback |
-| Capacity | - | capacity plan review | - | usage > 70% alert | cluster autoscaler |
-| Dependency down | circuit breaker code | chaos test | - | dependency health alert | fallback response |
-| Secret expired | - | rotation test | - | expiry alert 7d | ESO auto-rotation |
-| Deploy em horario ruim | - | gate de horario | policy bloqueio | - | - |
+| Root Cause             | Camada 1             | Camada 2             | Camada 3               | Camada 4                | Camada 5                 |
+| ---------------------- | -------------------- | -------------------- | ---------------------- | ----------------------- | ------------------------ |
+| Memory leak            | pprof test           | load test 30min      | canary memory watch    | deriv(memory) alert     | OOMKill restart + alerta |
+| Connection leak        | defer close linter   | integration test     | canary connection pool | pool usage alert        | circuit breaker          |
+| Race condition         | -race flag           | stress test          | -                      | error rate alert        | restart pod              |
+| Config error           | schema validation    | config dry-run       | staging apply          | CrashLoop alert         | rollback                 |
+| Capacity               | -                    | capacity plan review | -                      | usage > 70% alert       | cluster autoscaler       |
+| Dependency down        | circuit breaker code | chaos test           | -                      | dependency health alert | fallback response        |
+| Secret expired         | -                    | rotation test        | -                      | expiry alert 7d         | ESO auto-rotation        |
+| Deploy em horario ruim | -                    | gate de horario      | policy bloqueio        | -                       | -                        |
 
 ---
 
@@ -757,68 +757,68 @@ Camada 7: Aprendizado
 ```yaml
 recurrencePreventionPlan:
   metadata:
-    errorPattern: ""         # descricao do padrao
-    recurrenceCount: 0       # quantas vezes ocorreu
-    lastOccurrence: ""       # data da ultima ocorrencia
-    affectedServices: []     # servicos afetados
-    relatedPIRs: []          # PIRs relacionados
+    errorPattern: '' # descricao do padrao
+    recurrenceCount: 0 # quantas vezes ocorreu
+    lastOccurrence: '' # data da ultima ocorrencia
+    affectedServices: [] # servicos afetados
+    relatedPIRs: [] # PIRs relacionados
 
   rootCause:
-    category: ""             # code|config|infra|dependency|process
-    subcategory: ""          # ex: memory-leak, config-error
-    description: ""
+    category: '' # code|config|infra|dependency|process
+    subcategory: '' # ex: memory-leak, config-error
+    description: ''
 
   preventionLayers:
     layer1_code:
-      action: ""
-      owner: ""
-      deadline: ""
-      status: ""             # planned|implemented|validated
-      prLink: ""
-      validationMethod: ""
+      action: ''
+      owner: ''
+      deadline: ''
+      status: '' # planned|implemented|validated
+      prLink: ''
+      validationMethod: ''
 
     layer2_ci:
-      action: ""
-      owner: ""
-      deadline: ""
-      status: ""
-      prLink: ""
-      validationMethod: ""
+      action: ''
+      owner: ''
+      deadline: ''
+      status: ''
+      prLink: ''
+      validationMethod: ''
 
     layer3_deploy:
-      action: ""
-      owner: ""
-      deadline: ""
-      status: ""
-      prLink: ""
-      validationMethod: ""
+      action: ''
+      owner: ''
+      deadline: ''
+      status: ''
+      prLink: ''
+      validationMethod: ''
 
     layer4_runtime:
-      action: ""
-      owner: ""
-      deadline: ""
-      status: ""
-      prLink: ""
-      validationMethod: ""
+      action: ''
+      owner: ''
+      deadline: ''
+      status: ''
+      prLink: ''
+      validationMethod: ''
 
     layer5_response:
-      action: ""
-      owner: ""
-      deadline: ""
-      status: ""
-      prLink: ""
-      validationMethod: ""
+      action: ''
+      owner: ''
+      deadline: ''
+      status: ''
+      prLink: ''
+      validationMethod: ''
 
   validation:
-    scenarioTest: ""         # como testar que a prevencao funciona
-    testDate: ""
-    testResult: ""           # pass|fail
-    nextTestDate: ""
+    scenarioTest: '' # como testar que a prevencao funciona
+    testDate: ''
+    testResult: '' # pass|fail
+    nextTestDate: ''
 
   monitoring:
-    recurrenceQuery: ""      # query que detecta recorrencia deste padrao
-    dashboardPanel: ""       # link para painel no Grafana
-    alertName: ""            # nome do alerta criado
+    recurrenceQuery: '' # query que detecta recorrencia deste padrao
+    dashboardPanel: '' # link para painel no Grafana
+    alertName: '' # nome do alerta criado
 ```
 
 ---
@@ -827,16 +827,16 @@ recurrencePreventionPlan:
 
 ### Dashboard de Prevencao de Recorrencia
 
-| Painel | Query | Proposito |
-|---|---|---|
-| Recurrence Score (gauge) | `velya_recurrence_score` | Score agregado atual |
-| Recurrence Score (trend) | `velya_recurrence_score` 30d | Tendencia do score |
-| Padroes Recorrentes por Severidade | `velya_recurrence_patterns_total` by severity | Distribuicao de recorrencias |
-| Top 5 Servicos com Recorrencia | `topk(5, sum by (app) (velya_incident_recurrence_total))` | Servicos que mais recorrem |
-| Camadas de Prevencao Implementadas | `velya_prevention_layers_total` by status | Progresso de implementacao |
-| Action Items por SLA | `velya_pir_action_items` by status, on_time | Compliance de SLA |
-| Rollbacks por Servico (30d) | `sum by (app) (increase(argocd_app_rollback_total[30d]))` | Estabilidade de deploy |
-| Alertas Repetitivos (7d) | `topk(10, sum by (alertname) (increase(ALERTS_FOR_STATE[7d])))` | Alert fatigue |
+| Painel                             | Query                                                           | Proposito                    |
+| ---------------------------------- | --------------------------------------------------------------- | ---------------------------- |
+| Recurrence Score (gauge)           | `velya_recurrence_score`                                        | Score agregado atual         |
+| Recurrence Score (trend)           | `velya_recurrence_score` 30d                                    | Tendencia do score           |
+| Padroes Recorrentes por Severidade | `velya_recurrence_patterns_total` by severity                   | Distribuicao de recorrencias |
+| Top 5 Servicos com Recorrencia     | `topk(5, sum by (app) (velya_incident_recurrence_total))`       | Servicos que mais recorrem   |
+| Camadas de Prevencao Implementadas | `velya_prevention_layers_total` by status                       | Progresso de implementacao   |
+| Action Items por SLA               | `velya_pir_action_items` by status, on_time                     | Compliance de SLA            |
+| Rollbacks por Servico (30d)        | `sum by (app) (increase(argocd_app_rollback_total[30d]))`       | Estabilidade de deploy       |
+| Alertas Repetitivos (7d)           | `topk(10, sum by (alertname) (increase(ALERTS_FOR_STATE[7d])))` | Alert fatigue                |
 
 ---
 
@@ -847,12 +847,12 @@ recurrencePreventionPlan:
 ```yaml
 weeklyReview:
   agenda:
-    - "Novos padroes recorrentes detectados (relatorio do CronJob)"
-    - "Action items em atraso"
-    - "Recurrence score atual vs meta"
+    - 'Novos padroes recorrentes detectados (relatorio do CronJob)'
+    - 'Action items em atraso'
+    - 'Recurrence score atual vs meta'
   output:
-    - "Priorizacao de prevencoes pendentes"
-    - "Escalacao de items criticos"
+    - 'Priorizacao de prevencoes pendentes'
+    - 'Escalacao de items criticos'
 ```
 
 ### Revisao Mensal (30 min, tech leads + SRE)
@@ -860,14 +860,14 @@ weeklyReview:
 ```yaml
 monthlyReview:
   agenda:
-    - "Trend do recurrence score"
-    - "Root causes mais frequentes"
-    - "Eficacia das prevencoes implementadas"
-    - "Gap analysis: onde ainda faltam camadas"
+    - 'Trend do recurrence score'
+    - 'Root causes mais frequentes'
+    - 'Eficacia das prevencoes implementadas'
+    - 'Gap analysis: onde ainda faltam camadas'
   output:
-    - "Plano de prevencao para proximo mes"
-    - "Investimento em automacao/tooling"
-    - "Atualizacao de metas"
+    - 'Plano de prevencao para proximo mes'
+    - 'Investimento em automacao/tooling'
+    - 'Atualizacao de metas'
 ```
 
 ### Revisao Trimestral (1h, engineering leadership)
@@ -875,24 +875,24 @@ monthlyReview:
 ```yaml
 quarterlyReview:
   agenda:
-    - "Evolucao do recurrence score"
-    - "ROI de prevencoes implementadas"
-    - "Comparacao com trimestres anteriores"
-    - "Gaps arquiteturais identificados"
+    - 'Evolucao do recurrence score'
+    - 'ROI de prevencoes implementadas'
+    - 'Comparacao com trimestres anteriores'
+    - 'Gaps arquiteturais identificados'
   output:
-    - "OKRs de prevencao para proximo trimestre"
-    - "Budget para tooling/automacao"
-    - "Decisoes arquiteturais"
+    - 'OKRs de prevencao para proximo trimestre'
+    - 'Budget para tooling/automacao'
+    - 'Decisoes arquiteturais'
 ```
 
 ---
 
 ## 10. Integração com Outros Documentos
 
-| Documento | Relacao |
-|---|---|
-| `assertive-delivery-criteria.md` (#14) | Criterios de deploy que previnem erros |
-| `failure-scenarios-catalog.md` (#15) | Catalogo alimentado por prevencoes |
-| `post-change-watch-model.md` (#16) | Observacao que detecta recorrencia cedo |
-| `learning-from-errors-model.md` (#17) | Pipeline que gera prevencoes |
-| `autonomous-agent-improvement-policy.md` (#19) | Agentes que automatizam deteccao |
+| Documento                                      | Relacao                                 |
+| ---------------------------------------------- | --------------------------------------- |
+| `assertive-delivery-criteria.md` (#14)         | Criterios de deploy que previnem erros  |
+| `failure-scenarios-catalog.md` (#15)           | Catalogo alimentado por prevencoes      |
+| `post-change-watch-model.md` (#16)             | Observacao que detecta recorrencia cedo |
+| `learning-from-errors-model.md` (#17)          | Pipeline que gera prevencoes            |
+| `autonomous-agent-improvement-policy.md` (#19) | Agentes que automatizam deteccao        |

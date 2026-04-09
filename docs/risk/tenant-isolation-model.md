@@ -5,7 +5,7 @@
 **Classification**: Internal — Restricted  
 **Scope**: Multi-tenancy strategy covering single-hospital and eventual multi-hospital deployments  
 **Owner**: Architecture Team + Security Team + Compliance Team  
-**Review Cadence**: Quarterly; before any new hospital onboarding; before any architecture change affecting data isolation  
+**Review Cadence**: Quarterly; before any new hospital onboarding; before any architecture change affecting data isolation
 
 ---
 
@@ -14,6 +14,7 @@
 As of 2026-04-08, Velya is deployed for a **single hospital** (single tenant). The kind dev cluster and the planned EKS production cluster are provisioned exclusively for one hospital organization.
 
 This document defines:
+
 1. The current single-tenant isolation model and its requirements
 2. The target multi-tenant architecture for future expansion
 3. The isolation boundaries that must hold regardless of tenancy model
@@ -22,13 +23,13 @@ This document defines:
 
 ## Tenancy Definitions
 
-| Term | Definition |
-|---|---|
-| **Tenant** | A hospital organization that is a covered entity under HIPAA, with its own patient population, clinical staff, and data |
-| **Tenant isolation** | The technical and organizational guarantees that one tenant's data, workloads, and credentials cannot be accessed by another tenant's users, agents, or services |
-| **Shared-nothing** | The architectural principle that no persistent state (database rows, NATS streams, file storage, secrets) is shared between tenants. Tenant A's data cannot be reached via any path by Tenant B |
-| **Control plane** | Infrastructure and management components that may be shared across tenants (Kubernetes API server, Prometheus, ArgoCD) |
-| **Data plane** | Components that contain or process tenant PHI — these must be isolated per-tenant |
+| Term                 | Definition                                                                                                                                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tenant**           | A hospital organization that is a covered entity under HIPAA, with its own patient population, clinical staff, and data                                                                         |
+| **Tenant isolation** | The technical and organizational guarantees that one tenant's data, workloads, and credentials cannot be accessed by another tenant's users, agents, or services                                |
+| **Shared-nothing**   | The architectural principle that no persistent state (database rows, NATS streams, file storage, secrets) is shared between tenants. Tenant A's data cannot be reached via any path by Tenant B |
+| **Control plane**    | Infrastructure and management components that may be shared across tenants (Kubernetes API server, Prometheus, ArgoCD)                                                                          |
+| **Data plane**       | Components that contain or process tenant PHI — these must be isolated per-tenant                                                                                                               |
 
 ---
 
@@ -57,6 +58,7 @@ Hospital: St. Velya Medical Center
 ```
 
 In a single-tenant deployment:
+
 - All infrastructure is dedicated (no shared compute)
 - All data stores are dedicated (no shared database)
 - All credentials are scoped to the single hospital
@@ -72,14 +74,14 @@ Velya will support multi-hospital deployments using the **Dedicated-Instance-Per
 
 **Rationale for Silo Architecture**:
 
-| Factor | Shared Database | Silo (Dedicated Instance) | Velya Decision |
-|---|---|---|---|
-| PHI isolation | Row-level security — possible but complex; one bug exposes all tenants | Complete physical separation; bug affects only one tenant | SILO |
-| Regulatory | HIPAA BAA must cover all tenants in shared infrastructure | BAA scoped per hospital; simpler compliance posture | SILO |
-| Incident containment | One tenant's incident affects all | One tenant's incident is contained | SILO |
-| Customization | Shared schema limits per-tenant customization | Per-tenant schema can be customized | SILO |
-| Cost | Shared infrastructure is cheaper | Higher infrastructure cost per tenant | Trade-off accepted for regulatory compliance |
-| Operational complexity | Single deployment | Many deployments to manage | Mitigated by GitOps + ArgoCD App-of-Apps |
+| Factor                 | Shared Database                                                        | Silo (Dedicated Instance)                                 | Velya Decision                               |
+| ---------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------- | -------------------------------------------- |
+| PHI isolation          | Row-level security — possible but complex; one bug exposes all tenants | Complete physical separation; bug affects only one tenant | SILO                                         |
+| Regulatory             | HIPAA BAA must cover all tenants in shared infrastructure              | BAA scoped per hospital; simpler compliance posture       | SILO                                         |
+| Incident containment   | One tenant's incident affects all                                      | One tenant's incident is contained                        | SILO                                         |
+| Customization          | Shared schema limits per-tenant customization                          | Per-tenant schema can be customized                       | SILO                                         |
+| Cost                   | Shared infrastructure is cheaper                                       | Higher infrastructure cost per tenant                     | Trade-off accepted for regulatory compliance |
+| Operational complexity | Single deployment                                                      | Many deployments to manage                                | Mitigated by GitOps + ArgoCD App-of-Apps     |
 
 ### Multi-Hospital Deployment Architecture
 
@@ -117,29 +119,29 @@ Hospital B — Regional General Hospital
 
 ### Shared-Nothing Matrix
 
-| Data Type | Hospital A | Hospital B | Shared? | Enforcement |
-|---|---|---|---|---|
-| Patient records (FHIR) | Medplum instance A | Medplum instance B | NEVER | Separate AWS RDS instances; no cross-account peering |
-| Clinical events (NATS) | NATS cluster A | NATS cluster B | NEVER | Separate NATS deployments; no cross-cluster replication for PHI subjects |
-| Workflow state (Temporal) | Temporal A | Temporal B | NEVER | Separate Temporal namespaces/clusters |
-| Application state (PostgreSQL) | RDS A | RDS B | NEVER | Separate RDS instances; separate AWS accounts |
-| Agent memory (Redis) | Redis A | Redis B | NEVER | Separate Redis instances |
-| Audit logs | audit-service A | audit-service B | NEVER | Separate databases; separate S3 buckets |
-| Kubernetes secrets | Secrets Manager A | Secrets Manager B | NEVER | Separate AWS accounts = separate secret namespaces |
-| AI decision logs | decision-log-service A | decision-log-service B | NEVER | Separate databases |
-| Prometheus metrics | Shared Prometheus (no PHI labels) | Same Prometheus | ALLOWED | Metrics are PHI-free (enforced by metric labeling policy) |
-| Application code | Same container images | Same container images | ALLOWED | Code is not tenant data |
-| Grafana dashboards | Shared Grafana (tenant-scoped queries) | Same Grafana | ALLOWED with controls | Per-tenant datasource scoping |
+| Data Type                      | Hospital A                             | Hospital B             | Shared?               | Enforcement                                                              |
+| ------------------------------ | -------------------------------------- | ---------------------- | --------------------- | ------------------------------------------------------------------------ |
+| Patient records (FHIR)         | Medplum instance A                     | Medplum instance B     | NEVER                 | Separate AWS RDS instances; no cross-account peering                     |
+| Clinical events (NATS)         | NATS cluster A                         | NATS cluster B         | NEVER                 | Separate NATS deployments; no cross-cluster replication for PHI subjects |
+| Workflow state (Temporal)      | Temporal A                             | Temporal B             | NEVER                 | Separate Temporal namespaces/clusters                                    |
+| Application state (PostgreSQL) | RDS A                                  | RDS B                  | NEVER                 | Separate RDS instances; separate AWS accounts                            |
+| Agent memory (Redis)           | Redis A                                | Redis B                | NEVER                 | Separate Redis instances                                                 |
+| Audit logs                     | audit-service A                        | audit-service B        | NEVER                 | Separate databases; separate S3 buckets                                  |
+| Kubernetes secrets             | Secrets Manager A                      | Secrets Manager B      | NEVER                 | Separate AWS accounts = separate secret namespaces                       |
+| AI decision logs               | decision-log-service A                 | decision-log-service B | NEVER                 | Separate databases                                                       |
+| Prometheus metrics             | Shared Prometheus (no PHI labels)      | Same Prometheus        | ALLOWED               | Metrics are PHI-free (enforced by metric labeling policy)                |
+| Application code               | Same container images                  | Same container images  | ALLOWED               | Code is not tenant data                                                  |
+| Grafana dashboards             | Shared Grafana (tenant-scoped queries) | Same Grafana           | ALLOWED with controls | Per-tenant datasource scoping                                            |
 
 ### What IS Shared (Safely)
 
-| Component | Sharing Model | Safety Mechanism |
-|---|---|---|
-| Anthropic API account | Shared API account; per-hospital API key rotation | PHI minimization before API call; per-key usage tracking |
-| Container images in ECR | Shared image registry; same image for all tenants | Images contain no tenant data |
-| Helm charts and manifests | Shared git repository; per-tenant values files | Values files contain no PHI |
-| ArgoCD control plane | Single ArgoCD managing multiple clusters | AppProject per hospital restricts sync targets |
-| Grafana (observability) | Single Grafana instance; per-tenant datasources | No PHI in metrics; tenant cannot query other tenant's datasource |
+| Component                 | Sharing Model                                     | Safety Mechanism                                                 |
+| ------------------------- | ------------------------------------------------- | ---------------------------------------------------------------- |
+| Anthropic API account     | Shared API account; per-hospital API key rotation | PHI minimization before API call; per-key usage tracking         |
+| Container images in ECR   | Shared image registry; same image for all tenants | Images contain no tenant data                                    |
+| Helm charts and manifests | Shared git repository; per-tenant values files    | Values files contain no PHI                                      |
+| ArgoCD control plane      | Single ArgoCD managing multiple clusters          | AppProject per hospital restricts sync targets                   |
+| Grafana (observability)   | Single Grafana instance; per-tenant datasources   | No PHI in metrics; tenant cannot query other tenant's datasource |
 
 ---
 
@@ -158,9 +160,9 @@ If a shared API gateway serves multiple hospitals (not the preferred architectur
 // If pursued, mandatory controls:
 
 interface HospitalContext {
-  hospitalId: string;           // Verified from JWT claim
+  hospitalId: string; // Verified from JWT claim
   hospitalName: string;
-  tenantIsolationKey: string;   // Used to scope all database queries
+  tenantIsolationKey: string; // Used to scope all database queries
 }
 
 // Every NestJS controller must extract and validate hospital context
@@ -169,13 +171,13 @@ export class HospitalContextGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const hospitalId = request.auth?.claims?.hospital_id;
-    
+
     if (!hospitalId || !this.isValidHospital(hospitalId)) {
       throw new ForbiddenException('Invalid or missing hospital context');
     }
-    
+
     // Bind hospital context to request for downstream use
-    request.hospitalContext = { hospitalId, /* ... */ };
+    request.hospitalContext = { hospitalId /* ... */ };
     return true;
   }
 }
@@ -229,17 +231,17 @@ rgh.clinical.patient.discharged
       {
         "user": "st-velya-patient-flow",
         "permissions": {
-          "publish": {"allow": ["st-velya.>"]},
-          "subscribe": {"allow": ["st-velya.>"], "deny": ["rgh.>", "*.clinical.>"]},
-          "deny": {"publish": ["rgh.>"], "subscribe": ["rgh.>"]}
+          "publish": { "allow": ["st-velya.>"] },
+          "subscribe": { "allow": ["st-velya.>"], "deny": ["rgh.>", "*.clinical.>"] },
+          "deny": { "publish": ["rgh.>"], "subscribe": ["rgh.>"] }
         }
       },
       {
         "user": "rgh-patient-flow",
         "permissions": {
-          "publish": {"allow": ["rgh.>"]},
-          "subscribe": {"allow": ["rgh.>"]},
-          "deny": {"publish": ["st-velya.>"], "subscribe": ["st-velya.>"]}
+          "publish": { "allow": ["rgh.>"] },
+          "subscribe": { "allow": ["rgh.>"] },
+          "deny": { "publish": ["st-velya.>"], "subscribe": ["st-velya.>"] }
         }
       }
     ]
@@ -305,6 +307,7 @@ SELECT COUNT(*) FROM patient_flow_state;
 ### Single-Tenant Namespace Strategy (Current)
 
 All Velya namespaces follow the pattern `velya-{env}-{domain}`:
+
 ```
 velya-dev-clinical, velya-dev-core, velya-dev-platform, velya-dev-agents, velya-dev-web, velya-dev-observability
 ```
@@ -318,10 +321,10 @@ Each hospital gets its own EKS cluster. Namespaces within each cluster follow th
 ```
 Cluster: velya-prod-st-velya-eks
   Namespaces: velya-prod-clinical, velya-prod-core, velya-prod-agents, ...
-  
+
 Cluster: velya-prod-rgh-eks
   Namespaces: velya-prod-clinical, velya-prod-core, velya-prod-agents, ...
-  
+
 # These are different physical clusters with no cross-cluster connectivity
 ```
 
@@ -361,14 +364,14 @@ spec:
       match:
         any:
           - resources:
-              kinds: ["Pod", "Deployment", "Service"]
-              namespaces: ["velya-prod-*"]
+              kinds: ['Pod', 'Deployment', 'Service']
+              namespaces: ['velya-prod-*']
       validate:
-        message: "All Velya resources must have velya.io/hospital-id label"
+        message: 'All Velya resources must have velya.io/hospital-id label'
         pattern:
           metadata:
             labels:
-              velya.io/hospital-id: "?*"
+              velya.io/hospital-id: '?*'
 ```
 
 ---
@@ -425,18 +428,18 @@ Before a new hospital goes live, the following isolation tests must pass:
 
 ## Tenant Isolation Compliance Summary
 
-| Isolation Type | Single-Tenant Status | Multi-Tenant Status (Target) | Priority |
-|---|---|---|---|
-| Physical compute isolation | Implemented (dedicated cluster) | Dedicated cluster per hospital | Maintained |
-| Database isolation | Implemented (dedicated RDS) | Dedicated RDS per hospital | Maintained |
-| Network isolation | Gap — kindnet doesn't enforce NetworkPolicy | Calico + inter-cluster firewall | Must fix before PHI |
-| NATS subject isolation | N/A (single tenant) | Per-hospital subject prefix + NATS authorization | Required at multi-tenant |
-| Secret isolation | Implemented (per-service ESO) | Per-hospital Secrets Manager prefix | Extended for multi-tenant |
-| FHIR access isolation | Implemented via Medplum project | Per-hospital Medplum instance | Maintained |
-| Audit trail isolation | Not implemented (scaffold) | Per-hospital audit-service database | Must implement |
-| Agent scope isolation | Not implemented (agents are scaffolds) | Policy-engine enforces per-hospital scope | Must implement |
-| Kubernetes RBAC isolation | Partial (per-service SA) | Per-hospital namespace RBAC + AppProject | Must complete |
+| Isolation Type             | Single-Tenant Status                        | Multi-Tenant Status (Target)                     | Priority                  |
+| -------------------------- | ------------------------------------------- | ------------------------------------------------ | ------------------------- |
+| Physical compute isolation | Implemented (dedicated cluster)             | Dedicated cluster per hospital                   | Maintained                |
+| Database isolation         | Implemented (dedicated RDS)                 | Dedicated RDS per hospital                       | Maintained                |
+| Network isolation          | Gap — kindnet doesn't enforce NetworkPolicy | Calico + inter-cluster firewall                  | Must fix before PHI       |
+| NATS subject isolation     | N/A (single tenant)                         | Per-hospital subject prefix + NATS authorization | Required at multi-tenant  |
+| Secret isolation           | Implemented (per-service ESO)               | Per-hospital Secrets Manager prefix              | Extended for multi-tenant |
+| FHIR access isolation      | Implemented via Medplum project             | Per-hospital Medplum instance                    | Maintained                |
+| Audit trail isolation      | Not implemented (scaffold)                  | Per-hospital audit-service database              | Must implement            |
+| Agent scope isolation      | Not implemented (agents are scaffolds)      | Policy-engine enforces per-hospital scope        | Must implement            |
+| Kubernetes RBAC isolation  | Partial (per-service SA)                    | Per-hospital namespace RBAC + AppProject         | Must complete             |
 
 ---
 
-*This document governs both the current single-hospital deployment and the future multi-hospital architecture. Any architectural change that creates a shared data path between hospitals is prohibited without explicit sign-off from the CTO, CISO, and all affected hospitals' Privacy Officers.*
+_This document governs both the current single-hospital deployment and the future multi-hospital architecture. Any architectural change that creates a shared data path between hospitals is prohibited without explicit sign-off from the CTO, CISO, and all affected hospitals' Privacy Officers._

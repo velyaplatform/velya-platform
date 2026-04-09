@@ -798,7 +798,7 @@ export default function PatientJourneyPage() {
   const params = useParams();
   const patientId = params.id as string;
   const [selectedCategories, setSelectedCategories] = useState<Set<EventCategory>>(
-    new Set(ALL_CATEGORIES)
+    new Set(ALL_CATEGORIES),
   );
 
   const journey = JOURNEYS[patientId];
@@ -833,9 +833,12 @@ export default function PatientJourneyPage() {
       <AppShell pageTitle="Jornada do Paciente">
         <div className="max-w-3xl mx-auto py-12 text-center">
           <div className="text-5xl mb-4">🔍</div>
-          <h2 className="text-xl font-semibold text-slate-700 mb-2">Paciente n\u00e3o encontrado</h2>
+          <h2 className="text-xl font-semibold text-slate-700 mb-2">
+            Paciente n\u00e3o encontrado
+          </h2>
           <p className="text-slate-500 mb-6">
-            N\u00e3o h\u00e1 jornada detalhada dispon\u00edvel para o paciente <strong>{patientId}</strong>.
+            N\u00e3o h\u00e1 jornada detalhada dispon\u00edvel para o paciente{' '}
+            <strong>{patientId}</strong>.
             <br />
             Jornadas dispon\u00edveis: MRN-001, MRN-004, MRN-013.
           </p>
@@ -875,7 +878,8 @@ export default function PatientJourneyPage() {
             </p>
             <p className="text-base text-slate-700 font-medium">{journey.diagnosis}</p>
             <p className="text-sm text-slate-500 mt-1">
-              M\u00e9dico respons\u00e1vel: {journey.consultant} &middot; Admiss\u00e3o: {journey.admissionDate}
+              M\u00e9dico respons\u00e1vel: {journey.consultant} &middot; Admiss\u00e3o:{' '}
+              {journey.admissionDate}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

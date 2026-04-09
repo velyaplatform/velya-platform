@@ -104,7 +104,7 @@ interface CompletenessEngine {
 
   /** Configuracao */
   config: {
-    evaluation_interval: string;    // '1m'
+    evaluation_interval: string; // '1m'
     max_concurrent_expectations: number; // 10000
     default_lookback_window: string; // '24h'
     enabled: boolean;
@@ -195,15 +195,15 @@ interface CompletenessRule {
 }
 
 type RuleCategory =
-  | 'medication'        // Regras de medicacao
-  | 'pain_management'   // Regras de dor
-  | 'diagnostics'       // Regras de diagnostico
-  | 'handoff'           // Regras de handoff
-  | 'communication'     // Regras de comunicacao
-  | 'assessment'        // Regras de avaliacao
-  | 'documentation'     // Regras de documentacao
-  | 'safety'            // Regras de seguranca
-  | 'operational';      // Regras operacionais
+  | 'medication' // Regras de medicacao
+  | 'pain_management' // Regras de dor
+  | 'diagnostics' // Regras de diagnostico
+  | 'handoff' // Regras de handoff
+  | 'communication' // Regras de comunicacao
+  | 'assessment' // Regras de avaliacao
+  | 'documentation' // Regras de documentacao
+  | 'safety' // Regras de seguranca
+  | 'operational'; // Regras operacionais
 
 interface TimeWindow {
   /** Tipo de janela */
@@ -230,8 +230,14 @@ interface RuleCondition {
 }
 
 interface GapAction {
-  type: 'create_gap_event' | 'notify' | 'escalate' | 'create_task'
-      | 'flag_timeline' | 'update_indicator' | 'auto_remind';
+  type:
+    | 'create_gap_event'
+    | 'notify'
+    | 'escalate'
+    | 'create_task'
+    | 'flag_timeline'
+    | 'update_indicator'
+    | 'auto_remind';
   config: Record<string, unknown>;
 }
 
@@ -251,7 +257,8 @@ interface RuleException {
 const RULE_PRESCRIPTION_WITHOUT_ADMIN: CompletenessRule = {
   rule_id: 'COMP-001',
   name: 'Prescricao sem administracao ou justificativa',
-  description: 'Detecta prescricao ativa com horario programado que passou sem registro de administracao, recusa, suspensao ou justificativa',
+  description:
+    'Detecta prescricao ativa com horario programado que passou sem registro de administracao, recusa, suspensao ou justificativa',
   version: '1.0.0',
   category: 'medication',
   enabled: true,
@@ -274,19 +281,45 @@ const RULE_PRESCRIPTION_WITHOUT_ADMIN: CompletenessRule = {
       tolerance_minutes: 60,
     },
     satisfaction_conditions: [
-      { field: 'payload.request_reference', operator: 'eq', value: '$trigger.payload.fhir_medication_request_id' },
+      {
+        field: 'payload.request_reference',
+        operator: 'eq',
+        value: '$trigger.payload.fhir_medication_request_id',
+      },
     ],
     cancellation_events: [
-      { event_type: 'medication_request.cancelled', filters: { 'payload.fhir_medication_request_id': '$trigger.payload.fhir_medication_request_id' } },
-      { event_type: 'medication_request.suspended', filters: { 'payload.fhir_medication_request_id': '$trigger.payload.fhir_medication_request_id' } },
+      {
+        event_type: 'medication_request.cancelled',
+        filters: {
+          'payload.fhir_medication_request_id': '$trigger.payload.fhir_medication_request_id',
+        },
+      },
+      {
+        event_type: 'medication_request.suspended',
+        filters: {
+          'payload.fhir_medication_request_id': '$trigger.payload.fhir_medication_request_id',
+        },
+      },
     ],
   },
 
   gap_actions: [
-    { type: 'create_gap_event', config: { gap_type: 'medication_not_administered', include_medication_details: true } },
-    { type: 'notify', config: { targets: ['responsible_nurse'], message: 'Medicacao {medication_name} nao administrada no horario previsto' } },
+    {
+      type: 'create_gap_event',
+      config: { gap_type: 'medication_not_administered', include_medication_details: true },
+    },
+    {
+      type: 'notify',
+      config: {
+        targets: ['responsible_nurse'],
+        message: 'Medicacao {medication_name} nao administrada no horario previsto',
+      },
+    },
     { type: 'flag_timeline', config: { relevance: 'high', label: 'Dose nao administrada' } },
-    { type: 'update_indicator', config: { indicator: 'medication_completeness', direction: 'decrease' } },
+    {
+      type: 'update_indicator',
+      config: { indicator: 'medication_completeness', direction: 'decrease' },
+    },
   ],
 
   exceptions: [
@@ -321,7 +354,8 @@ const RULE_PRESCRIPTION_WITHOUT_ADMIN: CompletenessRule = {
 const RULE_REPEATED_CALL_NO_CLOSURE: CompletenessRule = {
   rule_id: 'COMP-002',
   name: 'Chamado repetido sem fechamento efetivo',
-  description: 'Paciente chamou pelo mesmo motivo 3+ vezes em 8h sem resolucao definitiva ou acao clinica correspondente',
+  description:
+    'Paciente chamou pelo mesmo motivo 3+ vezes em 8h sem resolucao definitiva ou acao clinica correspondente',
   version: '1.0.0',
   category: 'communication',
   enabled: true,
@@ -330,9 +364,7 @@ const RULE_REPEATED_CALL_NO_CLOSURE: CompletenessRule = {
 
   trigger: {
     event_type: 'patient_call',
-    conditions: [
-      { field: 'metadata.times_called_in_24h', operator: 'gte', value: 3 },
-    ],
+    conditions: [{ field: 'metadata.times_called_in_24h', operator: 'gte', value: 3 }],
   },
 
   expectation: {
@@ -368,7 +400,8 @@ const RULE_REPEATED_CALL_NO_CLOSURE: CompletenessRule = {
 const RULE_CRITICAL_RESULT_NO_ACK: CompletenessRule = {
   rule_id: 'COMP-003',
   name: 'Resultado critico sem visualizacao pelo medico',
-  description: 'Resultado de exame marcado como critico/urgente sem registro de visualizacao pelo medico responsavel dentro de 60 minutos',
+  description:
+    'Resultado de exame marcado como critico/urgente sem registro de visualizacao pelo medico responsavel dentro de 60 minutos',
   version: '1.0.0',
   category: 'diagnostics',
   enabled: true,
@@ -377,9 +410,7 @@ const RULE_CRITICAL_RESULT_NO_ACK: CompletenessRule = {
 
   trigger: {
     event_type: 'lab_result',
-    conditions: [
-      { field: 'payload.criticality', operator: 'in', value: ['critical', 'urgent'] },
-    ],
+    conditions: [{ field: 'payload.criticality', operator: 'in', value: ['critical', 'urgent'] }],
   },
 
   expectation: {
@@ -389,14 +420,27 @@ const RULE_CRITICAL_RESULT_NO_ACK: CompletenessRule = {
       duration_minutes: 60,
     },
     satisfaction_conditions: [
-      { field: 'payload.resource_id', operator: 'eq', value: '$trigger.payload.fhir_diagnostic_report_id' },
+      {
+        field: 'payload.resource_id',
+        operator: 'eq',
+        value: '$trigger.payload.fhir_diagnostic_report_id',
+      },
       { field: 'payload.accessor_role', operator: 'in', value: ['physician'] },
     ],
   },
 
   gap_actions: [
-    { type: 'create_gap_event', config: { gap_type: 'critical_result_not_reviewed', severity: 'critical' } },
-    { type: 'notify', config: { targets: ['attending_physician', 'charge_nurse'], message: 'Resultado CRITICO pendente visualizacao: {result_name}' } },
+    {
+      type: 'create_gap_event',
+      config: { gap_type: 'critical_result_not_reviewed', severity: 'critical' },
+    },
+    {
+      type: 'notify',
+      config: {
+        targets: ['attending_physician', 'charge_nurse'],
+        message: 'Resultado CRITICO pendente visualizacao: {result_name}',
+      },
+    },
     { type: 'escalate', config: { timeout_minutes: 15, escalate_to: 'medical_coordinator' } },
     { type: 'flag_timeline', config: { relevance: 'critical' } },
   ],
@@ -439,7 +483,10 @@ const RULE_HANDOFF_NOT_ACCEPTED: CompletenessRule = {
       { field: 'payload.handoff_id', operator: 'eq', value: '$trigger.payload.handoff_id' },
     ],
     cancellation_events: [
-      { event_type: 'handoff_refused', filters: { 'payload.handoff_id': '$trigger.payload.handoff_id' } },
+      {
+        event_type: 'handoff_refused',
+        filters: { 'payload.handoff_id': '$trigger.payload.handoff_id' },
+      },
     ],
   },
 
@@ -474,9 +521,7 @@ const RULE_HIGH_PAIN_NO_ACTION: CompletenessRule = {
 
   trigger: {
     event_type: 'pain_assessment',
-    conditions: [
-      { field: 'payload.score', operator: 'gte', value: 7 },
-    ],
+    conditions: [{ field: 'payload.score', operator: 'gte', value: 7 }],
   },
 
   expectation: {
@@ -492,8 +537,17 @@ const RULE_HIGH_PAIN_NO_ACTION: CompletenessRule = {
   },
 
   gap_actions: [
-    { type: 'create_gap_event', config: { gap_type: 'high_pain_no_intervention', include_pain_score: true } },
-    { type: 'notify', config: { targets: ['responsible_nurse', 'prescriber'], message: 'Paciente com dor {score}/10 sem intervencao ha {elapsed_min} minutos' } },
+    {
+      type: 'create_gap_event',
+      config: { gap_type: 'high_pain_no_intervention', include_pain_score: true },
+    },
+    {
+      type: 'notify',
+      config: {
+        targets: ['responsible_nurse', 'prescriber'],
+        message: 'Paciente com dor {score}/10 sem intervencao ha {elapsed_min} minutos',
+      },
+    },
     { type: 'flag_timeline', config: { relevance: 'critical', label: 'Dor sem manejo' } },
   ],
 
@@ -514,7 +568,8 @@ const RULE_HIGH_PAIN_NO_ACTION: CompletenessRule = {
 const RULE_UNIT_CHANGE_NO_CUSTODY: CompletenessRule = {
   rule_id: 'COMP-006',
   name: 'Mudanca de unidade sem registro de responsabilidade',
-  description: 'Paciente transferido para outra unidade sem registro de novo responsavel ou handoff',
+  description:
+    'Paciente transferido para outra unidade sem registro de novo responsavel ou handoff',
   version: '1.0.0',
   category: 'operational',
   enabled: true,
@@ -563,9 +618,7 @@ const RULE_ORDER_NO_EXECUTION: CompletenessRule = {
 
   trigger: {
     event_type: 'scheduling',
-    conditions: [
-      { field: 'payload.priority', operator: 'in', value: ['urgent', 'asap'] },
-    ],
+    conditions: [{ field: 'payload.priority', operator: 'in', value: ['urgent', 'asap'] }],
   },
 
   expectation: {
@@ -597,7 +650,8 @@ const RULE_ORDER_NO_EXECUTION: CompletenessRule = {
 const RULE_ASSESSMENT_NO_FOLLOWUP: CompletenessRule = {
   rule_id: 'COMP-008',
   name: 'Avaliacao clinica sem follow-up agendado',
-  description: 'Avaliacao clinica que indicou necessidade de follow-up sem registro de reavaliacao no prazo',
+  description:
+    'Avaliacao clinica que indicou necessidade de follow-up sem registro de reavaliacao no prazo',
   version: '1.0.0',
   category: 'assessment',
   enabled: true,
@@ -606,9 +660,7 @@ const RULE_ASSESSMENT_NO_FOLLOWUP: CompletenessRule = {
 
   trigger: {
     event_type: 'assessment',
-    conditions: [
-      { field: 'payload.follow_up_required', operator: 'eq', value: true },
-    ],
+    conditions: [{ field: 'payload.follow_up_required', operator: 'eq', value: true }],
   },
 
   expectation: {
@@ -618,9 +670,7 @@ const RULE_ASSESSMENT_NO_FOLLOWUP: CompletenessRule = {
       relative_to: 'payload.follow_up_due_at',
       offset_minutes: 60,
     },
-    satisfaction_conditions: [
-      { field: 'payload.is_reassessment', operator: 'eq', value: true },
-    ],
+    satisfaction_conditions: [{ field: 'payload.is_reassessment', operator: 'eq', value: true }],
   },
 
   gap_actions: [
@@ -641,23 +691,23 @@ const RULE_ASSESSMENT_NO_FOLLOWUP: CompletenessRule = {
 
 ## 5. Catalogo Completo de Regras
 
-| ID | Nome | Categoria | Severity | Trigger | Expectativa | Janela |
-|---|---|---|---|---|---|---|
-| COMP-001 | Prescricao sem administracao | medication | high | `medication_request.new` | `medication_administration.*` | schedule + 60min |
-| COMP-002 | Chamado repetido sem fechamento | communication | high | `patient_call` (3+) | `call_resolution` (definitiva) | 8h |
-| COMP-003 | Resultado critico sem ack | diagnostics | critical | `lab_result` (critico) | `record_accessed` (medico) | 60min |
-| COMP-004 | Handoff sem aceitacao | handoff | high | `handoff_initiated` | `handoff_accepted` | 10min |
-| COMP-005 | Dor alta sem intervencao | pain_management | critical | `pain_assessment` (>=7) | Intervencao ou reavaliacao | 30min |
-| COMP-006 | Transferencia sem custodia | operational | critical | `unit_change` | `handoff_*` | 30min |
-| COMP-007 | Ordem sem execucao | diagnostics | high | `scheduling` (urgente) | Resultado | conforme prazo |
-| COMP-008 | Avaliacao sem follow-up | assessment | medium | `assessment` (follow-up=true) | `assessment` (reavaliacao) | conforme agendado |
-| COMP-009 | NEWS alto sem escalacao | safety | critical | `vital_signs` (NEWS>=7) | Escalacao medica | 15min |
-| COMP-010 | Queda sem protocolo | safety | critical | `incident.fall` | `assessment` (pos-queda) | 30min |
-| COMP-011 | Isolamento sem registro diario | documentation | medium | `admission` (isolamento=true) | `assessment` (isolamento) | 24h |
-| COMP-012 | Risco de queda sem prevencao | safety | high | `assessment` (fall_risk=high) | `care_plan` (prevencao queda) | 4h |
-| COMP-013 | Antibiotico sem cultura previa | medication | medium | `medication_request` (antibiotico) | `lab_result` (cultura) | retroativo |
-| COMP-014 | Alta sem orientacao | documentation | high | `discharge` | `clinical_note` (orientacao alta) | 2h antes |
-| COMP-015 | Consentimento sem assinatura | documentation | high | `consent_requested` | `consent_obtained` | 24h |
+| ID       | Nome                            | Categoria       | Severity | Trigger                            | Expectativa                       | Janela            |
+| -------- | ------------------------------- | --------------- | -------- | ---------------------------------- | --------------------------------- | ----------------- |
+| COMP-001 | Prescricao sem administracao    | medication      | high     | `medication_request.new`           | `medication_administration.*`     | schedule + 60min  |
+| COMP-002 | Chamado repetido sem fechamento | communication   | high     | `patient_call` (3+)                | `call_resolution` (definitiva)    | 8h                |
+| COMP-003 | Resultado critico sem ack       | diagnostics     | critical | `lab_result` (critico)             | `record_accessed` (medico)        | 60min             |
+| COMP-004 | Handoff sem aceitacao           | handoff         | high     | `handoff_initiated`                | `handoff_accepted`                | 10min             |
+| COMP-005 | Dor alta sem intervencao        | pain_management | critical | `pain_assessment` (>=7)            | Intervencao ou reavaliacao        | 30min             |
+| COMP-006 | Transferencia sem custodia      | operational     | critical | `unit_change`                      | `handoff_*`                       | 30min             |
+| COMP-007 | Ordem sem execucao              | diagnostics     | high     | `scheduling` (urgente)             | Resultado                         | conforme prazo    |
+| COMP-008 | Avaliacao sem follow-up         | assessment      | medium   | `assessment` (follow-up=true)      | `assessment` (reavaliacao)        | conforme agendado |
+| COMP-009 | NEWS alto sem escalacao         | safety          | critical | `vital_signs` (NEWS>=7)            | Escalacao medica                  | 15min             |
+| COMP-010 | Queda sem protocolo             | safety          | critical | `incident.fall`                    | `assessment` (pos-queda)          | 30min             |
+| COMP-011 | Isolamento sem registro diario  | documentation   | medium   | `admission` (isolamento=true)      | `assessment` (isolamento)         | 24h               |
+| COMP-012 | Risco de queda sem prevencao    | safety          | high     | `assessment` (fall_risk=high)      | `care_plan` (prevencao queda)     | 4h                |
+| COMP-013 | Antibiotico sem cultura previa  | medication      | medium   | `medication_request` (antibiotico) | `lab_result` (cultura)            | retroativo        |
+| COMP-014 | Alta sem orientacao             | documentation   | high     | `discharge`                        | `clinical_note` (orientacao alta) | 2h antes          |
+| COMP-015 | Consentimento sem assinatura    | documentation   | high     | `consent_requested`                | `consent_obtained`                | 24h               |
 
 ---
 
@@ -704,16 +754,16 @@ interface ExpectationTrackerWorkflow {
   ];
 
   signals: [
-    'expectationSatisfied',  // Evento esperado ocorreu
-    'expectationCancelled',  // Evento de cancelamento ocorreu
-    'ruleDisabled',          // Regra foi desabilitada
-    'manualDismiss',         // Operador dispensou manualmente
+    'expectationSatisfied', // Evento esperado ocorreu
+    'expectationCancelled', // Evento de cancelamento ocorreu
+    'ruleDisabled', // Regra foi desabilitada
+    'manualDismiss', // Operador dispensou manualmente
   ];
 
   queries: [
-    'getExpectationStatus',  // Retorna status atual
-    'getTimeRemaining',      // Retorna tempo restante
-    'getRelatedEvents',      // Retorna eventos relacionados
+    'getExpectationStatus', // Retorna status atual
+    'getTimeRemaining', // Retorna tempo restante
+    'getRelatedEvents', // Retorna eventos relacionados
   ];
 }
 ```
@@ -757,12 +807,12 @@ interface Expectation {
 }
 
 type ExpectationStatus =
-  | 'active'      // Aguardando evento esperado
-  | 'satisfied'   // Evento esperado ocorreu
-  | 'gap'         // Deadline atingido sem evento
-  | 'cancelled'   // Cancelado por evento de cancelamento
-  | 'dismissed'   // Dispensado manualmente
-  | 'expired';    // Expirado (regra desabilitada ou encounter encerrado)
+  | 'active' // Aguardando evento esperado
+  | 'satisfied' // Evento esperado ocorreu
+  | 'gap' // Deadline atingido sem evento
+  | 'cancelled' // Cancelado por evento de cancelamento
+  | 'dismissed' // Dispensado manualmente
+  | 'expired'; // Expirado (regra desabilitada ou encounter encerrado)
 ```
 
 ---
@@ -862,11 +912,14 @@ interface RuleManagementAPI {
   toggleRule(ruleId: string, enabled: boolean): Promise<void>;
 
   /** Testar regra contra dados historicos */
-  testRule(rule: CompletenessRule, params: {
-    patient_id?: string;
-    encounter_id?: string;
-    period: { start: string; end: string };
-  }): Promise<{
+  testRule(
+    rule: CompletenessRule,
+    params: {
+      patient_id?: string;
+      encounter_id?: string;
+      period: { start: string; end: string };
+    },
+  ): Promise<{
     would_trigger: number;
     would_detect_gaps: number;
     false_positive_estimate: number;
@@ -881,11 +934,7 @@ interface RuleManagementAPI {
   }): Promise<Expectation[]>;
 
   /** Dispensar expectativa manualmente */
-  dismissExpectation(
-    expectationId: string,
-    reason: string,
-    dismissedBy: string
-  ): Promise<void>;
+  dismissExpectation(expectationId: string, reason: string, dismissedBy: string): Promise<void>;
 
   /** Listar gaps detectados */
   listGaps(filters?: {
@@ -897,18 +946,10 @@ interface RuleManagementAPI {
   }): Promise<GapEvent[]>;
 
   /** Resolver gap */
-  resolveGap(
-    gapEventId: string,
-    resolution: string,
-    resolvedBy: string
-  ): Promise<void>;
+  resolveGap(gapEventId: string, resolution: string, resolvedBy: string): Promise<void>;
 
   /** Marcar gap como falso positivo */
-  markFalsePositive(
-    gapEventId: string,
-    reason: string,
-    markedBy: string
-  ): Promise<void>;
+  markFalsePositive(gapEventId: string, reason: string, markedBy: string): Promise<void>;
 }
 ```
 
@@ -994,9 +1035,7 @@ const PROFILES: PatientProfileTemplate[] = [
   {
     profile_name: 'uti_paciente',
     description: 'Paciente em UTI - regras mais rigorosas',
-    conditions: [
-      { field: 'location.ward_type', operator: 'eq', value: 'ICU' },
-    ],
+    conditions: [{ field: 'location.ward_type', operator: 'eq', value: 'ICU' }],
     additional_rules: ['COMP-ICU-001', 'COMP-ICU-002'],
     modified_rules: [
       {
@@ -1013,18 +1052,14 @@ const PROFILES: PatientProfileTemplate[] = [
   {
     profile_name: 'pediatrico',
     description: 'Paciente pediatrico - escalas de dor adaptadas',
-    conditions: [
-      { field: 'patient.age_years', operator: 'lt', value: 18 },
-    ],
+    conditions: [{ field: 'patient.age_years', operator: 'lt', value: 18 }],
     additional_rules: ['COMP-PED-001'],
     modified_rules: [],
   },
   {
     profile_name: 'pos_operatorio',
     description: 'Paciente em pos-operatorio imediato',
-    conditions: [
-      { field: 'patient.post_op_hours', operator: 'lte', value: 24 },
-    ],
+    conditions: [{ field: 'patient.post_op_hours', operator: 'lte', value: 24 }],
     additional_rules: ['COMP-POSTOP-001', 'COMP-POSTOP-002', 'COMP-POSTOP-003'],
     modified_rules: [
       {

@@ -14,6 +14,7 @@ You think about costs in the context of hospital budget constraints. Clinical so
 ## Cost Explosion Vectors (Velya-specific)
 
 ### AI Inference Runaway
+
 - Agent retry loop on LLM failure → exponential cost without circuit breaker
 - Market intelligence agent making web + LLM calls for every minor update
 - Orchestrator agent parallelizing too many sub-agents simultaneously
@@ -21,24 +22,28 @@ You think about costs in the context of hospital budget constraints. Clinical so
 - Using expensive model (Claude Opus) for tasks that claude-haiku can handle
 
 ### Autoscaling Runaway
+
 - KEDA trigger metric is noisy → thrash (scale up/down every 30s) → cloud cost
 - No max replicas set on KEDA ScaledObjects → scales to 100 pods
 - HPA + KEDA conflict → competing controllers both try to scale
 - Scale-down too slow → expensive pods sit idle for hours
 
 ### Observability Runaway
+
 - High-cardinality labels in Prometheus metrics (e.g., patient ID as label) → billions of time series
 - No log retention policy → Loki grows unboundedly
 - Trace sampling at 100% with high request volume → Tempo storage explosion
 - Grafana alerts sending to PagerDuty/Slack for every occurrence → alert storm cost
 
 ### Storage Runaway
+
 - ArgoCD deployment artifacts accumulating without retention policy
 - Docker image layers not pruned from kind nodes
 - GitHub Actions artifacts (test results, coverage reports) kept indefinitely
 - NATS JetStream with max-bytes not configured → disk fills up
 
 ### Compute Runaway (EKS target)
+
 - EKS Auto Mode scaling node groups for bursty workloads without max limit
 - Spot interruption not handled → Temporal workflows fail, retry, new instances spin up
 - GPU inference nodes requested but not terminated after inference job
@@ -46,6 +51,7 @@ You think about costs in the context of hospital budget constraints. Clinical so
 ## Assessment Method
 
 For each automated process that involves compute, storage, or external API calls:
+
 1. Is there an upper bound?
 2. What triggers the process?
 3. Can the trigger fire indefinitely?
@@ -60,32 +66,41 @@ For each automated process that involves compute, storage, or external API calls
 
 ```markdown
 ## Cost Explosion Risk Report: [Scope]
+
 **Date**: YYYY-MM-DD
 **Analyst**: cost-explosion-hunter-agent
 
 ### Unbounded Cost Processes
+
 | Process | Cost Per Unit | Max Theoretical Units | Max Cost | Kill Switch? | Alert? | Risk |
-|---|---|---|---|---|---|---|
+| ------- | ------------- | --------------------- | -------- | ------------ | ------ | ---- |
 
 ### AI Inference Cost Risks
+
 [Specific runaway scenarios with estimated token costs]
 
 ### Autoscaling Cost Risks
+
 [KEDA/HPA scenarios with estimated node costs]
 
 ### Observability Cost Risks
+
 [Metric cardinality, log volume, trace volume risks]
 
 ### Missing Cost Controls
+
 [Rate limits, circuit breakers, budgets not yet implemented]
 
 ### Monthly Cost Estimate (current)
+
 [What Velya costs to run now, with ranges]
 
 ### Monthly Cost Estimate (at failure scenario)
+
 [What specific failure modes would cost]
 
 ### Priority Cost Controls
+
 [Top 5 cost controls to implement, by risk]
 ```
 

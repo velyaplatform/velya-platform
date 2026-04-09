@@ -19,12 +19,14 @@ Em um sistema hospitalar, a capacidade de reverter mudancas rapidamente e com se
 **Mecanismo:** Argo Rollouts com estrategia canary ou blue-green
 
 **Trigger conditions para rollback automatico:**
+
 - Error rate > 1% durante analise canary
 - P99 latency > 2x baseline durante analysis run
 - Health check failure em 2+ pods consecutivos
 - Prometheus query retorna resultado fora do threshold
 
 **Trigger conditions para rollback manual:**
+
 - Relato de comportamento incorreto por equipe clinica
 - Dados inconsistentes detectados em audit-service
 - Decisao de agente clinico classificada como incorreta
@@ -58,6 +60,7 @@ Rollback de aplicacao
 6. Criacao automatica de issue com label `rollback` e link para traces
 
 **Validacao pos-rollback:**
+
 - Error rate voltou ao baseline (tolerancia 0.1%)
 - P99 latency voltou ao baseline (tolerancia 10%)
 - Health checks passando em todos os pods
@@ -188,12 +191,14 @@ spec:
 **Mecanismo:** OpenTofu state versioning + plan reverso
 
 **Trigger conditions:**
+
 - Recurso AWS criado/modificado causa falha de conectividade
 - Security group alterado bloqueia trafego legitimo
 - IAM role alterada quebra permissoes de servico
 - RDS parameter group causa degradacao de performance
 
 **Decisao automatico vs manual:**
+
 - Infraestrutura SEMPRE requer rollback MANUAL com aprovacao dupla
 - Excecao: security group que bloqueia health checks pode ter rollback semi-automatico
 
@@ -208,6 +213,7 @@ spec:
 7. Documentar no post-mortem
 
 **Validacao pos-rollback:**
+
 - Todos os servicos com health check verde
 - Conectividade entre VPCs/subnets restaurada
 - IAM roles funcionais (testar com `aws sts assume-role`)
@@ -220,6 +226,7 @@ spec:
 **Mecanismo:** ArgoCD sync para commit anterior no Git
 
 **Trigger conditions:**
+
 - ConfigMap/Secret alterado causa falha de aplicacao
 - Resource limit alterado causa OOMKill
 - NetworkPolicy alterada bloqueia comunicacao entre servicos
@@ -235,6 +242,7 @@ spec:
 6. Verificar logs de pods para confirmar configuracao correta
 
 **Validacao pos-rollback:**
+
 - ArgoCD mostra app como `Synced` e `Healthy`
 - Nenhum pod em `CrashLoopBackOff`
 - ConfigMaps/Secrets com valores corretos
@@ -249,12 +257,14 @@ spec:
 **REGRA FUNDAMENTAL:** Toda migracao DEVE ser backward-compatible por pelo menos 2 releases.
 
 **Trigger conditions:**
+
 - Query performance degradada apos migracao
 - Constraint violation em dados existentes
 - Index novo causa lock contention
 - Dados corrompidos por migracao com bug
 
 **Decisao automatico vs manual:**
+
 - SEMPRE manual para banco de dados
 - Requer DBA ou engenheiro senior
 - Backup point-in-time deve existir antes de qualquer migracao
@@ -269,6 +279,7 @@ spec:
 6. Validar que aplicacao anterior funciona com schema revertido
 
 **Validacao pos-rollback:**
+
 - Integrity checks passando (foreign keys, constraints)
 - Query performance voltou ao baseline
 - Nenhum dado perdido (comparar counts de tabelas afetadas)
@@ -304,6 +315,7 @@ Mudanca de schema
 **Mecanismo:** External Secrets Operator + AWS Secrets Manager versioning
 
 **Trigger conditions:**
+
 - Servico falha ao autenticar apos rotacao
 - Certificado novo rejeitado por client
 - API key rotacionada mas consumer nao atualizado
@@ -318,6 +330,7 @@ Mudanca de schema
 6. Pods que usam via volume mount: atualizam automaticamente
 
 **Validacao pos-rollback:**
+
 - Servico autenticando com sucesso
 - Nenhum log de `401 Unauthorized` ou `403 Forbidden`
 - External Secret mostra `SecretSynced` condition
@@ -329,6 +342,7 @@ Mudanca de schema
 **Mecanismo:** Agent Orchestrator lifecycle management + memory-service state
 
 **Trigger conditions:**
+
 - Agente promovido apresenta taxa de erro > threshold
 - Decisoes do agente divergem de policy-engine
 - Agente consome recursos acima do budget
@@ -345,6 +359,7 @@ Mudanca de schema
 7. decision-log-service registra todas as decisoes do periodo
 
 **Validacao pos-rollback:**
+
 - Agent heartbeat ativo
 - Taxa de erro abaixo do threshold
 - Policy compliance verificada
@@ -359,27 +374,27 @@ Mudanca de schema
 
 ### 3.1 Risco x Reversibilidade
 
-|  | Facilmente Reversivel | Parcialmente Reversivel | Dificilmente Reversivel |
-|---|---|---|---|
-| **Risco Baixo** | Monitorar 1h, reverter se necessario | Monitorar 30min, reverter se necessario | Monitorar 15min, reverter proativamente |
-| **Risco Medio** | Rollback automatico se metricas degradam | Rollback manual com aprovacao simples | Rollback manual com aprovacao dupla |
-| **Risco Alto** | Rollback automatico agressivo (threshold baixo) | Rollback manual imediato ao primeiro sinal | Rollback manual com DBA/SRE senior + backup verificado |
-| **Risco Critico** | Deploy em canary minimo (1%), rollback auto | Nao permitir sem rollback plan validado | PROIBIDO sem dry-run em staging + backup + aprovacao tripla |
+|                   | Facilmente Reversivel                           | Parcialmente Reversivel                    | Dificilmente Reversivel                                     |
+| ----------------- | ----------------------------------------------- | ------------------------------------------ | ----------------------------------------------------------- |
+| **Risco Baixo**   | Monitorar 1h, reverter se necessario            | Monitorar 30min, reverter se necessario    | Monitorar 15min, reverter proativamente                     |
+| **Risco Medio**   | Rollback automatico se metricas degradam        | Rollback manual com aprovacao simples      | Rollback manual com aprovacao dupla                         |
+| **Risco Alto**    | Rollback automatico agressivo (threshold baixo) | Rollback manual imediato ao primeiro sinal | Rollback manual com DBA/SRE senior + backup verificado      |
+| **Risco Critico** | Deploy em canary minimo (1%), rollback auto     | Nao permitir sem rollback plan validado    | PROIBIDO sem dry-run em staging + backup + aprovacao tripla |
 
 ### 3.2 Classificacao de Reversibilidade por Tipo
 
-| Tipo de Mudanca | Reversibilidade | Justificativa |
-|---|---|---|
-| Deploy de aplicacao | Facilmente Reversivel | Argo Rollouts mantem revision anterior ativa |
-| ConfigMap/Secret | Facilmente Reversivel | Git history + External Secrets versioning |
-| Network Policy | Facilmente Reversivel | Git revert + ArgoCD sync |
-| Scaling config (HPA/VPA/KEDA) | Facilmente Reversivel | Git revert, efeito imediato |
-| Infraestrutura (OpenTofu) | Parcialmente Reversivel | Alguns recursos nao revertem limpo (ex: KMS key deletion) |
-| Database migration (additive) | Parcialmente Reversivel | Adicoes sao reversiveis, mas dados criados podem depender |
-| Database migration (destructive) | Dificilmente Reversivel | Dados podem ser perdidos irreversivelmente |
-| Secret rotation | Parcialmente Reversivel | Versao anterior disponivel, mas consumers podem ter cacheado |
-| Agent promotion | Parcialmente Reversivel | Estado e memoria do agente podem ter divergido |
-| Policy update | Facilmente Reversivel | Git revert no policy-engine |
+| Tipo de Mudanca                  | Reversibilidade         | Justificativa                                                |
+| -------------------------------- | ----------------------- | ------------------------------------------------------------ |
+| Deploy de aplicacao              | Facilmente Reversivel   | Argo Rollouts mantem revision anterior ativa                 |
+| ConfigMap/Secret                 | Facilmente Reversivel   | Git history + External Secrets versioning                    |
+| Network Policy                   | Facilmente Reversivel   | Git revert + ArgoCD sync                                     |
+| Scaling config (HPA/VPA/KEDA)    | Facilmente Reversivel   | Git revert, efeito imediato                                  |
+| Infraestrutura (OpenTofu)        | Parcialmente Reversivel | Alguns recursos nao revertem limpo (ex: KMS key deletion)    |
+| Database migration (additive)    | Parcialmente Reversivel | Adicoes sao reversiveis, mas dados criados podem depender    |
+| Database migration (destructive) | Dificilmente Reversivel | Dados podem ser perdidos irreversivelmente                   |
+| Secret rotation                  | Parcialmente Reversivel | Versao anterior disponivel, mas consumers podem ter cacheado |
+| Agent promotion                  | Parcialmente Reversivel | Estado e memoria do agente podem ter divergido               |
+| Policy update                    | Facilmente Reversivel   | Git revert no policy-engine                                  |
 
 ---
 
@@ -387,14 +402,14 @@ Mudanca de schema
 
 ### 4.1 Calendario
 
-| Drill | Frequencia | Escopo | Participantes |
-|---|---|---|---|
-| Application rollback | Mensal | 1 servico por vez, rotativo | SRE + dev team do servico |
-| Database rollback | Trimestral | Staging first, depois producao com dados sinteticos | SRE + DBA |
-| Infrastructure rollback | Trimestral | Componente nao-critico em producao | SRE + infra team |
-| Agent rollback | Mensal | Agente em modo shadow | AI-ops + clinical-eng |
-| Full stack rollback | Semestral | Todos os tipos combinados | Todos os times |
-| Secret rotation rollback | Trimestral | Um secret por vez | SRE + security |
+| Drill                    | Frequencia | Escopo                                              | Participantes             |
+| ------------------------ | ---------- | --------------------------------------------------- | ------------------------- |
+| Application rollback     | Mensal     | 1 servico por vez, rotativo                         | SRE + dev team do servico |
+| Database rollback        | Trimestral | Staging first, depois producao com dados sinteticos | SRE + DBA                 |
+| Infrastructure rollback  | Trimestral | Componente nao-critico em producao                  | SRE + infra team          |
+| Agent rollback           | Mensal     | Agente em modo shadow                               | AI-ops + clinical-eng     |
+| Full stack rollback      | Semestral  | Todos os tipos combinados                           | Todos os times            |
+| Secret rotation rollback | Trimestral | Um secret por vez                                   | SRE + security            |
 
 ### 4.2 Procedimento do Drill
 
@@ -436,35 +451,35 @@ Mudanca de schema
 ```yaml
 # drill-results/2026-04-patient-flow-rollback.yaml
 drill:
-  date: "2026-04-15"
+  date: '2026-04-15'
   type: application-rollback
   target: patient-flow
   participants:
-    - name: "Eng. Silva"
+    - name: 'Eng. Silva'
       role: executor
-    - name: "Eng. Costa"
+    - name: 'Eng. Costa'
       role: observer
-  
+
   metrics:
     detection_time_seconds: 45
     decision_time_seconds: 30
     rollback_execution_seconds: 90
     validation_time_seconds: 180
     total_recovery_seconds: 345
-  
+
   sla_compliance:
-    detection: true    # SLA: 60s
-    execution: true    # SLA: 120s
-    total: true        # SLA: 600s
-  
+    detection: true # SLA: 60s
+    execution: true # SLA: 120s
+    total: true # SLA: 600s
+
   issues_found:
-    - description: "Runbook referenciava dashboard antigo"
+    - description: 'Runbook referenciava dashboard antigo'
       severity: low
-      action: "Atualizar link no runbook"
-      owner: "platform-sre"
-    
+      action: 'Atualizar link no runbook'
+      owner: 'platform-sre'
+
   result: PASS
-  notes: "Rollback executado dentro do SLA. Dashboard precisa atualizacao."
+  notes: 'Rollback executado dentro do SLA. Dashboard precisa atualizacao.'
 ```
 
 ---
@@ -475,18 +490,18 @@ drill:
 
 Para cada servico da Velya, os seguintes pre-requisitos DEVEM estar atendidos:
 
-| Pre-requisito | patient-flow | task-inbox | discharge-orch | audit-service | ai-gateway | memory-service | policy-engine | decision-log | velya-web | agent-orch |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Argo Rollout configurado | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim |
-| Revision anterior preservada | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim |
-| Canary analysis definido | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Nao* | Sim | Sim |
-| DB migration reversivel | Sim | Sim | Sim | Sim | N/A | Sim | N/A | Sim | N/A | N/A |
-| Secret versioning ativo | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim |
-| Runbook de rollback | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim |
-| Drill executado (< 90d) | Sim | Sim | Sim | Sim | Sim | Nao** | Sim | Nao** | Sim | Sim |
+| Pre-requisito                | patient-flow | task-inbox | discharge-orch | audit-service | ai-gateway | memory-service | policy-engine | decision-log | velya-web | agent-orch |
+| ---------------------------- | ------------ | ---------- | -------------- | ------------- | ---------- | -------------- | ------------- | ------------ | --------- | ---------- |
+| Argo Rollout configurado     | Sim          | Sim        | Sim            | Sim           | Sim        | Sim            | Sim           | Sim          | Sim       | Sim        |
+| Revision anterior preservada | Sim          | Sim        | Sim            | Sim           | Sim        | Sim            | Sim           | Sim          | Sim       | Sim        |
+| Canary analysis definido     | Sim          | Sim        | Sim            | Sim           | Sim        | Sim            | Sim           | Nao\*        | Sim       | Sim        |
+| DB migration reversivel      | Sim          | Sim        | Sim            | Sim           | N/A        | Sim            | N/A           | Sim          | N/A       | N/A        |
+| Secret versioning ativo      | Sim          | Sim        | Sim            | Sim           | Sim        | Sim            | Sim           | Sim          | Sim       | Sim        |
+| Runbook de rollback          | Sim          | Sim        | Sim            | Sim           | Sim        | Sim            | Sim           | Sim          | Sim       | Sim        |
+| Drill executado (< 90d)      | Sim          | Sim        | Sim            | Sim           | Sim        | Nao\*\*        | Sim           | Nao\*\*      | Sim       | Sim        |
 
-> *decision-log-service usa deploy simples (append-only, sem breaking changes)  
-> **Pendente agendamento
+> \*decision-log-service usa deploy simples (append-only, sem breaking changes)  
+> \*\*Pendente agendamento
 
 ---
 
@@ -554,15 +569,15 @@ aws secretsmanager get-secret-value \
 
 ## 7. Anti-patterns de Rollback
 
-| Anti-pattern | Por que e perigoso | O que fazer em vez disso |
-|---|---|---|
-| Rollback sem verificar estado do banco | Aplicacao antiga pode nao funcionar com schema novo | Sempre verificar compatibilidade schema x aplicacao |
-| Rollback de infra sem plan | Pode destruir recursos nao relacionados | Sempre executar `tofu plan` antes |
-| Rollback manual via kubectl edit | Drift com Git, ArgoCD vai sobrescrever | Sempre reverter via Git + ArgoCD sync |
-| Rollback de todos os servicos simultaneamente | Pode causar inconsistencia entre servicos | Reverter um por vez, validando dependencias |
-| Rollback sem notificar equipe clinica | Equipe pode estar no meio de processo critico | Sempre notificar antes, exceto emergencia P0 |
-| Rollback e esquecimento | Causa raiz nao e investigada | Sempre criar issue de follow-up pos-rollback |
-| Rollback durante horario de pico clinico | Risco de impacto em atendimento | Preferir janelas de menor movimento, exceto emergencia |
+| Anti-pattern                                  | Por que e perigoso                                  | O que fazer em vez disso                               |
+| --------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------ |
+| Rollback sem verificar estado do banco        | Aplicacao antiga pode nao funcionar com schema novo | Sempre verificar compatibilidade schema x aplicacao    |
+| Rollback de infra sem plan                    | Pode destruir recursos nao relacionados             | Sempre executar `tofu plan` antes                      |
+| Rollback manual via kubectl edit              | Drift com Git, ArgoCD vai sobrescrever              | Sempre reverter via Git + ArgoCD sync                  |
+| Rollback de todos os servicos simultaneamente | Pode causar inconsistencia entre servicos           | Reverter um por vez, validando dependencias            |
+| Rollback sem notificar equipe clinica         | Equipe pode estar no meio de processo critico       | Sempre notificar antes, exceto emergencia P0           |
+| Rollback e esquecimento                       | Causa raiz nao e investigada                        | Sempre criar issue de follow-up pos-rollback           |
+| Rollback durante horario de pico clinico      | Risco de impacto em atendimento                     | Preferir janelas de menor movimento, exceto emergencia |
 
 ---
 
@@ -600,13 +615,13 @@ Incidente detectado
 
 ### 9.1 KPIs de Prontidao
 
-| Metrica | Target | Medicao |
-|---|---|---|
-| MTTR (Mean Time to Rollback) | < 5min (app), < 30min (infra) | Tempo medio real de rollbacks |
-| Rollback success rate | > 99% | Rollbacks que restauraram servico |
-| Drill compliance | 100% dos servicos com drill < 90d | Calendario de drills |
-| Rollback plan coverage | 100% dos servicos | Auditoria trimestral |
-| Time to detect need for rollback | < 2min (auto), < 10min (manual) | Tempo entre deploy e decisao |
+| Metrica                          | Target                            | Medicao                           |
+| -------------------------------- | --------------------------------- | --------------------------------- |
+| MTTR (Mean Time to Rollback)     | < 5min (app), < 30min (infra)     | Tempo medio real de rollbacks     |
+| Rollback success rate            | > 99%                             | Rollbacks que restauraram servico |
+| Drill compliance                 | 100% dos servicos com drill < 90d | Calendario de drills              |
+| Rollback plan coverage           | 100% dos servicos                 | Auditoria trimestral              |
+| Time to detect need for rollback | < 2min (auto), < 10min (manual)   | Tempo entre deploy e decisao      |
 
 ### 9.2 Prometheus Metrics
 

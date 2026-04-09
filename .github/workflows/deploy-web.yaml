@@ -11,13 +11,13 @@ on:
   workflow_dispatch:
     inputs:
       skip_validation:
-        description: "Pular validação pós-deploy"
+        description: 'Pular validação pós-deploy'
         required: false
-        default: "false"
+        default: 'false'
 
 concurrency:
   group: deploy-web-${{ github.ref }}
-  cancel-in-progress: false  # Nunca cancelar um deploy em andamento
+  cancel-in-progress: false # Nunca cancelar um deploy em andamento
 
 permissions:
   contents: read
@@ -27,11 +27,11 @@ env:
   IMAGE_NAME: velya-web
   # Imagem versionada pelo SHA do commit — nunca :latest em automação
   IMAGE_TAG: ${{ github.sha }}
-  SHORT_SHA: ""
+  SHORT_SHA: ''
 
 jobs:
   build-image:
-    name: "Build Docker Image"
+    name: 'Build Docker Image'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
@@ -81,7 +81,7 @@ jobs:
           retention-days: 3
 
   scan-image:
-    name: "Scan Image (Security)"
+    name: 'Scan Image (Security)'
     runs-on: ubuntu-latest
     needs: build-image
     timeout-minutes: 10
@@ -106,7 +106,7 @@ jobs:
           echo "✅ Scan concluído"
 
   deploy-to-cluster:
-    name: "Deploy to Cluster"
+    name: 'Deploy to Cluster'
     runs-on: ubuntu-latest
     needs: [build-image, scan-image]
     timeout-minutes: 10
@@ -152,7 +152,7 @@ jobs:
           echo "✅ Deploy concluído: ${IMAGE_NAME}:${TAG}"
 
   validate-post-deploy:
-    name: "Validar Pós-Deploy"
+    name: 'Validar Pós-Deploy'
     runs-on: ubuntu-latest
     needs: deploy-to-cluster
     if: ${{ inputs.skip_validation != 'true' }}
@@ -222,7 +222,7 @@ jobs:
           echo "✅ Todas as verificações pós-deploy passaram"
 
   summary:
-    name: "Resumo do Deploy"
+    name: 'Resumo do Deploy'
     runs-on: ubuntu-latest
     needs: [build-image, scan-image, deploy-to-cluster, validate-post-deploy]
     if: always()

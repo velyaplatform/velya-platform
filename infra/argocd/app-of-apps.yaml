@@ -59,7 +59,7 @@ spec:
     namespace: velya-dev-platform
   syncPolicy:
     automated:
-      prune: false  # Platform services — não prune automaticamente custom resources
+      prune: false # Platform services — não prune automaticamente custom resources
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
@@ -122,12 +122,12 @@ spec:
     namespace: velya-dev-observability
   syncPolicy:
     automated:
-      prune: false  # Bootstrap não prune automaticamente
+      prune: false # Bootstrap não prune automaticamente
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-      - SkipDryRunOnMissingResource=true  # CRDs de cert-manager/Argo Rollouts podem não existir ainda
+      - SkipDryRunOnMissingResource=true # CRDs de cert-manager/Argo Rollouts podem não existir ainda
       - RespectIgnoreDifferences=true
     retry:
       limit: 5
@@ -136,23 +136,23 @@ spec:
         factor: 2
         maxDuration: 5m
   ignoreDifferences:
-    - group: "keda.sh"
+    - group: 'keda.sh'
       kind: ScaledObject
       jsonPointers:
         - /spec/triggers/0/metadata/query
-    - group: "argoproj.io"
+    - group: 'argoproj.io'
       kind: AnalysisTemplate
       jsonPointers:
         - /spec
-    - group: "argoproj.io"
+    - group: 'argoproj.io'
       kind: Rollout
       jsonPointers:
         - /spec
-    - group: "cert-manager.io"
+    - group: 'cert-manager.io'
       kind: Certificate
       jsonPointers:
         - /spec
-    - group: "cert-manager.io"
+    - group: 'cert-manager.io'
       kind: ClusterIssuer
       jsonPointers:
         - /spec

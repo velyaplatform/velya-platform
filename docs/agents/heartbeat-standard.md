@@ -3,7 +3,7 @@
 **Versão:** 1.0  
 **Cluster:** kind-velya-local (simulando AWS EKS)  
 **Namespace:** velya-dev-agents  
-**Última revisão:** 2026-04-08  
+**Última revisão:** 2026-04-08
 
 ---
 
@@ -12,6 +12,7 @@
 O heartbeat é o mecanismo pelo qual cada agent na Velya reporta continuamente seu estado de saúde, progresso e contexto operacional. Um agent que não envia heartbeat é considerado potencialmente comprometido ou morto.
 
 O sistema de heartbeat serve a três propósitos:
+
 1. **Detecção de falha:** Identificar agents silenciosos, travados ou em comportamento anômalo
 2. **Visibilidade operacional:** Manter o dashboard 24/7 atualizado com o estado real de cada agent
 3. **Coordenação:** Informar outros agents e o Meta-Watchdog sobre o estado de processamento
@@ -25,49 +26,52 @@ Todo heartbeat enviado por qualquer agent Velya deve seguir este schema exato. C
 ```json
 {
   "$schema": "https://schemas.velya.io/heartbeat/v1.0",
-  
+
   // ── IDENTIDADE DO AGENT ───────────────────────────────────────────
-  "agent_name": "task-inbox-worker",                    // required: nome canônico
-  "agent_id": "task-inbox-worker-7f8d9c-abc12",         // required: pod name único
-  "agent_class": "Worker",                              // required: Sentinel|Worker|Batch|Watchdog|Governance|Learning|Market
-  "agent_version": "1.2.3",                             // required: semver
-  "office": "clinical-operations",                      // required: office do agent
-  "namespace": "velya-dev-agents",                      // required: K8s namespace
-  "node": "velya-local-worker",                         // required: K8s node name
-  
+  "agent_name": "task-inbox-worker", // required: nome canônico
+  "agent_id": "task-inbox-worker-7f8d9c-abc12", // required: pod name único
+  "agent_class": "Worker", // required: Sentinel|Worker|Batch|Watchdog|Governance|Learning|Market
+  "agent_version": "1.2.3", // required: semver
+  "office": "clinical-operations", // required: office do agent
+  "namespace": "velya-dev-agents", // required: K8s namespace
+  "node": "velya-local-worker", // required: K8s node name
+
   // ── TIMESTAMPS ───────────────────────────────────────────────────
-  "heartbeat_at": "2026-04-08T14:23:01.123Z",           // required: UTC ISO-8601
-  "started_at": "2026-04-08T10:00:00.000Z",             // required: quando o agent iniciou
-  "heartbeat_sequence": 12345,                          // required: contador incremental
-  
+  "heartbeat_at": "2026-04-08T14:23:01.123Z", // required: UTC ISO-8601
+  "started_at": "2026-04-08T10:00:00.000Z", // required: quando o agent iniciou
+  "heartbeat_sequence": 12345, // required: contador incremental
+
   // ── ESTADO ATUAL ─────────────────────────────────────────────────
-  "current_state": "processing",                        // required: enum abaixo
-  "mode": "active",                                     // required: modo operacional do sistema
-  "task_id": "task-uuid-v4-here",                       // optional: task atual (null se idle)
-  "task_type": "task-classification",                   // optional: tipo da task atual
-  "task_started_at": "2026-04-08T14:22:45.000Z",        // optional: quando a task atual começou
-  "task_progress_percent": 45,                          // optional: 0-100, null se não aplicável
-  
+  "current_state": "processing", // required: enum abaixo
+  "mode": "active", // required: modo operacional do sistema
+  "task_id": "task-uuid-v4-here", // optional: task atual (null se idle)
+  "task_type": "task-classification", // optional: tipo da task atual
+  "task_started_at": "2026-04-08T14:22:45.000Z", // optional: quando a task atual começou
+  "task_progress_percent": 45, // optional: 0-100, null se não aplicável
+
   // ── FILA E BACKLOG ────────────────────────────────────────────────
-  "queue_name": "velya.agents.clinical-ops.task-classification",  // required
-  "queue_lag": 12,                                      // required: mensagens pendentes na fila
-  "queue_lag_trend": "increasing",                      // required: increasing|stable|decreasing
-  "backlog_view": {                                     // required: snapshot do estado da fila
+  "queue_name": "velya.agents.clinical-ops.task-classification", // required
+  "queue_lag": 12, // required: mensagens pendentes na fila
+  "queue_lag_trend": "increasing", // required: increasing|stable|decreasing
+  "backlog_view": {
+    // required: snapshot do estado da fila
     "pending_count": 12,
     "oldest_message_age_seconds": 47,
     "in_progress_count": 3,
     "dlq_count": 0,
     "estimated_clear_time_minutes": 4
   },
-  
+
   // ── HISTÓRICO DE EXECUÇÃO ─────────────────────────────────────────
-  "last_success": {                                     // required: null se nunca executou com sucesso
+  "last_success": {
+    // required: null se nunca executou com sucesso
     "task_id": "task-uuid-previous",
     "completed_at": "2026-04-08T14:22:30.000Z",
     "duration_ms": 1345,
     "confidence": 0.89
   },
-  "last_error": {                                       // required: null se sem erros recentes
+  "last_error": {
+    // required: null se sem erros recentes
     "task_id": "task-uuid-errored",
     "occurred_at": "2026-04-08T14:10:00.000Z",
     "error_type": "ToolTimeoutError",
@@ -75,22 +79,24 @@ Todo heartbeat enviado por qualquer agent Velya deve seguir este schema exato. C
     "sent_to_dlq": false,
     "retry_scheduled": true
   },
-  "retry_count": 2,                                     // required: retries nas últimas 1 hora
-  "retry_rate_percent": 15,                             // required: % de tasks com retry na última hora
-  
+  "retry_count": 2, // required: retries nas últimas 1 hora
+  "retry_rate_percent": 15, // required: % de tasks com retry na última hora
+
   // ── QUALIDADE E CONFIANÇA ─────────────────────────────────────────
-  "confidence": {                                       // required
-    "last_task": 0.89,                                  // confiança do output da última task
-    "rolling_1h_avg": 0.85,                             // média das últimas 1 hora
-    "rolling_24h_avg": 0.88,                            // média das últimas 24 horas
-    "below_threshold_count_1h": 2                       // tasks com confidence < 0.70 na última hora
+  "confidence": {
+    // required
+    "last_task": 0.89, // confiança do output da última task
+    "rolling_1h_avg": 0.85, // média das últimas 1 hora
+    "rolling_24h_avg": 0.88, // média das últimas 24 horas
+    "below_threshold_count_1h": 2 // tasks com confidence < 0.70 na última hora
   },
-  "validation_pass_rate_percent": 96.5,                 // required: % de outputs que passaram no validator
-  "output_quality_score": 0.87,                         // required: score composto de qualidade 0.0-1.0
-  
+  "validation_pass_rate_percent": 96.5, // required: % de outputs que passaram no validator
+  "output_quality_score": 0.87, // required: score composto de qualidade 0.0-1.0
+
   // ── ESTADO DE SAÚDE ───────────────────────────────────────────────
-  "health": {                                           // required
-    "status": "healthy",                               // required: healthy|degraded|unhealthy
+  "health": {
+    // required
+    "status": "healthy", // required: healthy|degraded|unhealthy
     "checks": {
       "nats_connectivity": "ok",
       "temporal_connectivity": "ok",
@@ -99,9 +105,9 @@ Todo heartbeat enviado por qualquer agent Velya deve seguir este schema exato. C
       "dependencies_healthy": "ok"
     }
   },
-  
+
   // ── BLOQUEADORES E ESCALAÇÃO ──────────────────────────────────────
-  "blockers": [],                                       // required: lista de bloqueadores ativos
+  "blockers": [], // required: lista de bloqueadores ativos
   // Exemplo quando há bloqueador:
   // "blockers": [
   //   {
@@ -111,21 +117,22 @@ Todo heartbeat enviado por qualquer agent Velya deve seguir este schema exato. C
   //     "impact": "tasks de transfer são atrasadas"
   //   }
   // ],
-  "escalation_needed": false,                           // required: true se requer ação humana
-  "escalation_reason": null,                            // required se escalation_needed=true
-  "escalation_urgency": null,                           // required se escalation_needed=true: low|medium|high|critical
-  
+  "escalation_needed": false, // required: true se requer ação humana
+  "escalation_reason": null, // required se escalation_needed=true
+  "escalation_urgency": null, // required se escalation_needed=true: low|medium|high|critical
+
   // ── RECURSOS ──────────────────────────────────────────────────────
-  "resource_usage_hint": {                              // required
-    "cpu_request_millicores": 50,                       // configurado no deployment
-    "cpu_usage_millicores": 78,                         // uso atual medido
-    "memory_request_mib": 64,                           // configurado no deployment
-    "memory_usage_mib": 89,                             // uso atual medido
+  "resource_usage_hint": {
+    // required
+    "cpu_request_millicores": 50, // configurado no deployment
+    "cpu_usage_millicores": 78, // uso atual medido
+    "memory_request_mib": 64, // configurado no deployment
+    "memory_usage_mib": 89, // uso atual medido
     "llm_tokens_used_last_hour": 8432,
     "llm_cost_usd_last_hour": 0.0169,
     "llm_budget_remaining_usd": 1.983
   },
-  
+
   // ── METADADOS ─────────────────────────────────────────────────────
   "schema_version": "1.0",
   "cluster": "kind-velya-local",
@@ -135,33 +142,33 @@ Todo heartbeat enviado por qualquer agent Velya deve seguir este schema exato. C
 
 ### 2.1 Enum: current_state
 
-| Valor | Descrição |
-|---|---|
-| `idle` | Sem task em processamento, aguardando mensagens na fila |
-| `processing` | Processando uma task ativa |
-| `waiting_lease` | Aguardando aquisição de lease |
-| `waiting_human` | Task aguardando aprovação/input humano |
-| `retrying` | Re-tentando após falha transiente |
-| `paused` | Suspensão de processamento (modo paused do sistema) |
-| `draining` | Concluindo tasks em andamento antes de shutdown |
-| `quarantine` | Isolado por comportamento anômalo |
-| `degraded` | Funcionando com capacidade reduzida |
-| `shadow` | Executando em modo shadow (outputs não aplicados) |
-| `maintenance` | Em janela de manutenção |
+| Valor           | Descrição                                               |
+| --------------- | ------------------------------------------------------- |
+| `idle`          | Sem task em processamento, aguardando mensagens na fila |
+| `processing`    | Processando uma task ativa                              |
+| `waiting_lease` | Aguardando aquisição de lease                           |
+| `waiting_human` | Task aguardando aprovação/input humano                  |
+| `retrying`      | Re-tentando após falha transiente                       |
+| `paused`        | Suspensão de processamento (modo paused do sistema)     |
+| `draining`      | Concluindo tasks em andamento antes de shutdown         |
+| `quarantine`    | Isolado por comportamento anômalo                       |
+| `degraded`      | Funcionando com capacidade reduzida                     |
+| `shadow`        | Executando em modo shadow (outputs não aplicados)       |
+| `maintenance`   | Em janela de manutenção                                 |
 
 ---
 
 ## 3. Frequência de Heartbeat por Classe de Agent
 
-| Classe | Frequência Normal | Frequência em Processamento | Frequência em Degraded |
-|---|---|---|---|
-| Sentinel | 30 segundos | 60 segundos | 15 segundos |
-| Worker | 60 segundos (idle) | 30 segundos (processing) | 15 segundos |
-| Batch | 5 minutos (running) | 2 minutos (active chunk) | 1 minuto |
-| Watchdog | 30 segundos | 30 segundos | 15 segundos |
-| Governance | 60 segundos | 30 segundos | 30 segundos |
-| Learning | 5 minutos | 2 minutos | 2 minutos |
-| Market | 10 minutos (idle) | 5 minutos (running) | 5 minutos |
+| Classe     | Frequência Normal   | Frequência em Processamento | Frequência em Degraded |
+| ---------- | ------------------- | --------------------------- | ---------------------- |
+| Sentinel   | 30 segundos         | 60 segundos                 | 15 segundos            |
+| Worker     | 60 segundos (idle)  | 30 segundos (processing)    | 15 segundos            |
+| Batch      | 5 minutos (running) | 2 minutos (active chunk)    | 1 minuto               |
+| Watchdog   | 30 segundos         | 30 segundos                 | 15 segundos            |
+| Governance | 60 segundos         | 30 segundos                 | 30 segundos            |
+| Learning   | 5 minutos           | 2 minutos                   | 2 minutos              |
+| Market     | 10 minutos (idle)   | 5 minutos (running)         | 5 minutos              |
 
 **Nota:** A frequência de heartbeat nunca deve ultrapassar a largura de banda alocada ao NATS. No ambiente kind-velya-local, o limite prático é de ~100 heartbeats/segundo no total de todos os agents.
 
@@ -176,6 +183,7 @@ velya.agents.heartbeats.{agent_class}.{agent_name}
 ```
 
 Exemplos:
+
 ```
 velya.agents.heartbeats.Worker.task-inbox-worker
 velya.agents.heartbeats.Sentinel.queue-sentinel
@@ -206,7 +214,7 @@ class AgentHeartbeat:
         self.started_at = datetime.now(timezone.utc).isoformat()
         self.sequence = 0
         self.nc: NATS = None
-        
+
         # State tracking
         self.current_task_id = None
         self.current_task_type = None
@@ -215,22 +223,22 @@ class AgentHeartbeat:
         self.last_error = None
         self.retry_count_1h = 0
         self.confidence_history = []
-    
+
     async def connect(self, nats_url: str):
         self.nc = NATS()
         await self.nc.connect(nats_url)
-    
+
     def build_heartbeat(self) -> dict:
         now = datetime.now(timezone.utc)
         process = psutil.Process()
-        
+
         # Calcular confidence médias
         conf_last = self.last_success["confidence"] if self.last_success else None
         conf_1h = (sum(self.confidence_history[-60:]) / len(self.confidence_history[-60:])
                    if self.confidence_history else None)
-        
+
         self.sequence += 1
-        
+
         return {
             "agent_name": self.agent_name,
             "agent_id": self.agent_id,
@@ -283,10 +291,10 @@ class AgentHeartbeat:
             "cluster": os.environ.get("CLUSTER_NAME", "kind-velya-local"),
             "environment": os.environ.get("ENVIRONMENT", "dev")
         }
-    
+
     async def start_heartbeat_loop(self, interval_seconds: int = 60):
         subject = f"velya.agents.heartbeats.{self.agent_class}.{self.agent_name}"
-        
+
         while True:
             try:
                 heartbeat = self.build_heartbeat()
@@ -297,7 +305,7 @@ class AgentHeartbeat:
             except Exception as e:
                 # Heartbeat falhou — logar mas não parar o agent
                 print(f"ERRO ao publicar heartbeat: {e}", flush=True)
-            
+
             await asyncio.sleep(interval_seconds)
 ```
 
@@ -334,15 +342,15 @@ async def publish_heartbeat():
 
 Definição: O agent não enviou nenhum heartbeat em 3x o intervalo configurado.
 
-| Classe | Intervalo normal | Threshold de alerta | Threshold de incidente |
-|---|---|---|---|
-| Sentinel | 30s | 90s (3x) | 180s (6x) |
-| Worker | 60s (idle) | 180s | 360s |
-| Batch | 5min | 15min | 30min |
-| Watchdog | 30s | 90s | 180s |
-| Governance | 60s | 180s | 360s |
-| Learning | 5min | 15min | 30min |
-| Market | 10min | 30min | 60min |
+| Classe     | Intervalo normal | Threshold de alerta | Threshold de incidente |
+| ---------- | ---------------- | ------------------- | ---------------------- |
+| Sentinel   | 30s              | 90s (3x)            | 180s (6x)              |
+| Worker     | 60s (idle)       | 180s                | 360s                   |
+| Batch      | 5min             | 15min               | 30min                  |
+| Watchdog   | 30s              | 90s                 | 180s                   |
+| Governance | 60s              | 180s                | 360s                   |
+| Learning   | 5min             | 15min               | 30min                  |
+| Market     | 10min            | 30min               | 60min                  |
 
 **Tipo 2: Heartbeat Stale (Dados Desatualizados)**
 
@@ -367,6 +375,7 @@ Threshold: Taxa de heartbeats > 3x a frequência configurada por mais de 2 minut
 Definição: Agent envia heartbeat com `health.status: healthy` mas métricas externas (Prometheus, NATS lag) indicam problema real.
 
 Detecção: Correlação entre heartbeat status e métricas externas:
+
 ```
 healthy=true AND queue_lag > 100 AND no_processing_for > 10min → False Healthy suspeito
 ```
@@ -395,7 +404,6 @@ spec:
     - name: velya.heartbeat.critical
       interval: 30s
       rules:
-        
         # Agent completamente silencioso — Severity: Critical
         - alert: AgentHeartbeatMissing
           expr: |
@@ -405,14 +413,14 @@ spec:
             severity: critical
             team: watchdog
           annotations:
-            summary: "Agent {{ $labels.agent_name }} silencioso há mais de 3 minutos"
+            summary: 'Agent {{ $labels.agent_name }} silencioso há mais de 3 minutos'
             description: |
               Agent: {{ $labels.agent_name }}
               Office: {{ $labels.office }}
               Último heartbeat: {{ $value | humanizeDuration }} atrás
               Ação: verificar pod no namespace velya-dev-agents, checar logs via Loki
-            runbook: "https://velya-docs/runbooks/agent-heartbeat-missing"
-        
+            runbook: 'https://velya-docs/runbooks/agent-heartbeat-missing'
+
         # Watchdog silencioso — escalada mais agressiva
         - alert: WatchdogHeartbeatMissing
           expr: |
@@ -420,15 +428,14 @@ spec:
           for: 0m
           labels:
             severity: critical
-            page: "true"
+            page: 'true'
           annotations:
-            summary: "CRÍTICO: Watchdog {{ $labels.agent_name }} silencioso"
-            description: "O sistema de supervisão está inativo. Intervenção humana imediata necessária."
-    
+            summary: 'CRÍTICO: Watchdog {{ $labels.agent_name }} silencioso'
+            description: 'O sistema de supervisão está inativo. Intervenção humana imediata necessária.'
+
     - name: velya.heartbeat.warning
       interval: 1m
       rules:
-        
         # Agent com heartbeat atrasado — Severity: Warning
         - alert: AgentHeartbeatStale
           expr: |
@@ -439,9 +446,9 @@ spec:
             severity: warning
             team: watchdog
           annotations:
-            summary: "Agent {{ $labels.agent_name }} com heartbeat atrasado"
-            description: "Heartbeat atrasado em {{ $value | humanizeDuration }}. Monitorar para possível silêncio."
-        
+            summary: 'Agent {{ $labels.agent_name }} com heartbeat atrasado'
+            description: 'Heartbeat atrasado em {{ $value | humanizeDuration }}. Monitorar para possível silêncio.'
+
         # Agent travado em processamento
         - alert: AgentStuckInProcessing
           expr: |
@@ -452,8 +459,8 @@ spec:
             severity: warning
             team: watchdog
           annotations:
-            summary: "Agent {{ $labels.agent_name }} travado em processamento há {{ $value | humanizeDuration }}"
-        
+            summary: 'Agent {{ $labels.agent_name }} travado em processamento há {{ $value | humanizeDuration }}'
+
         # Alta taxa de retries
         - alert: AgentHighRetryRate
           expr: |
@@ -462,8 +469,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Agent {{ $labels.agent_name }} com taxa de retry > 25%"
-        
+            summary: 'Agent {{ $labels.agent_name }} com taxa de retry > 25%'
+
         # Baixa confiança recorrente
         - alert: AgentLowConfidencePersistent
           expr: |
@@ -473,9 +480,9 @@ spec:
             severity: warning
             team: governance
           annotations:
-            summary: "Agent {{ $labels.agent_name }} com confiança média < 0.70 por 30 minutos"
-            description: "Confidence médio 1h: {{ $value }}. Revisar qualidade de outputs e prompts."
-        
+            summary: 'Agent {{ $labels.agent_name }} com confiança média < 0.70 por 30 minutos'
+            description: 'Confidence médio 1h: {{ $value }}. Revisar qualidade de outputs e prompts.'
+
         # Escalação sem resposta
         - alert: AgentEscalationUnacknowledged
           expr: |
@@ -484,8 +491,8 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "Agent {{ $labels.agent_name }} requer escalação há mais de 30 minutos sem resposta"
-        
+            summary: 'Agent {{ $labels.agent_name }} requer escalação há mais de 30 minutos sem resposta'
+
         # Budget de LLM quase esgotado
         - alert: AgentLLMBudgetLow
           expr: |
@@ -495,7 +502,7 @@ spec:
             severity: warning
             team: finops
           annotations:
-            summary: "Agent {{ $labels.agent_name }} com budget LLM restante: ${{ $value }}"
+            summary: 'Agent {{ $labels.agent_name }} com budget LLM restante: ${{ $value }}'
 ```
 
 ---
@@ -509,9 +516,9 @@ spec:
 consumer:
   stream: VELYA_AGENTS
   name: heartbeat-monitor-consumer
-  filter_subject: "velya.agents.heartbeats.>"
-  deliver_policy: last_per_subject  # Apenas o heartbeat mais recente por agent
-  ack_policy: none                  # Monitor não precisa dar ack
+  filter_subject: 'velya.agents.heartbeats.>'
+  deliver_policy: last_per_subject # Apenas o heartbeat mais recente por agent
+  ack_policy: none # Monitor não precisa dar ack
   replay_policy: instant
 ```
 
@@ -523,36 +530,36 @@ class HeartbeatMonitor:
     Monitora todos os heartbeats de agents e detecta anomalias.
     Executa como Deployment sempre ativo no namespace velya-dev-agents.
     """
-    
+
     def __init__(self):
         self.known_agents: dict[str, AgentRegistration] = {}
         self.last_heartbeats: dict[str, dict] = {}
         self.anomalies: list[Anomaly] = []
-    
+
     async def process_heartbeat(self, subject: str, data: bytes):
         heartbeat = json.loads(data)
         agent_name = heartbeat["agent_name"]
-        
+
         # Atualizar registro de último heartbeat
         self.last_heartbeats[agent_name] = heartbeat
-        
+
         # Atualizar gauge Prometheus
         heartbeat_gauge.labels(
             agent_name=agent_name,
             agent_class=heartbeat["agent_class"],
             office=heartbeat["office"]
         ).set(time.time())
-        
+
         # Verificar anomalias no conteúdo do heartbeat
         await self.check_heartbeat_content(heartbeat)
-    
+
     async def check_heartbeat_content(self, hb: dict):
         agent = hb["agent_name"]
-        
+
         # Verificar escalação
         if hb.get("escalation_needed"):
             await self.trigger_escalation(hb)
-        
+
         # Verificar false healthy
         queue_lag = hb["backlog_view"]["pending_count"]
         if hb["health"]["status"] == "healthy" and queue_lag > 100:
@@ -561,15 +568,15 @@ class HeartbeatMonitor:
                 age = (datetime.now(timezone.utc) - datetime.fromisoformat(last_processing)).seconds
                 if age > 600:  # 10 minutos sem processar com fila cheia
                     await self.flag_false_healthy(hb)
-        
+
         # Verificar stuck
         if hb.get("current_state") == "processing" and hb.get("task_started_at"):
-            task_age = (datetime.now(timezone.utc) - 
+            task_age = (datetime.now(timezone.utc) -
                        datetime.fromisoformat(hb["task_started_at"])).seconds
             max_duration = self.get_max_task_duration(hb["agent_class"])
             if task_age > max_duration * 2:
                 await self.flag_agent_stuck(hb, task_age)
-    
+
     async def sweep_for_silent_agents(self):
         """Executado a cada 30 segundos para detectar agents silenciosos."""
         now = time.time()
@@ -579,11 +586,11 @@ class HeartbeatMonitor:
                 # Agent nunca enviou heartbeat
                 await self.alert_never_heartbeat(agent_name, registration)
                 continue
-            
+
             last_hb_time = datetime.fromisoformat(last_hb["heartbeat_at"]).timestamp()
             silence_seconds = now - last_hb_time
             threshold = self.get_silence_threshold(registration.agent_class)
-            
+
             if silence_seconds > threshold * 3:  # Incidente
                 await self.trigger_agent_silent_incident(agent_name, silence_seconds)
             elif silence_seconds > threshold:    # Alerta

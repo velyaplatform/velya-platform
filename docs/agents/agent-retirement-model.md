@@ -21,6 +21,7 @@ Retirement is never instantaneous except in emergencies. The standard path prese
 ### 2.1 Voluntary Deprecation (Planned)
 
 The most common and preferred retirement path. Triggered when:
+
 - A replacement agent has been developed and is in Shadow or Probation phase
 - The office's strategic direction changes and the agent's charter is superseded
 - The agent's domain has been absorbed by a different office
@@ -29,6 +30,7 @@ The most common and preferred retirement path. Triggered when:
 ### 2.2 Capability Drift
 
 When an agent's capability no longer meets institutional requirements:
+
 - Scorecard in critical threshold for 8 consecutive weeks despite multiple correction attempts
 - Agent has been through 3 or more full quarantine/requalification cycles without sustained improvement
 - The domain has evolved beyond the agent's training such that correction is not cost-effective
@@ -37,6 +39,7 @@ When an agent's capability no longer meets institutional requirements:
 ### 2.3 Replacement by Newer Agent
 
 When the Agent Factory produces a replacement:
+
 - Shadow comparison shows the new agent outperforms the incumbent on all scorecard dimensions
 - The new agent passes all required lifecycle stages and is ready for activation
 - The incumbent's charter is fully covered by the new agent's scope
@@ -44,6 +47,7 @@ When the Agent Factory produces a replacement:
 ### 2.4 Security Failure
 
 When the agent has been involved in or caused a security event:
+
 - Agent was confirmed exploited or compromised
 - Agent committed a PHI breach attributable to a contract deficiency (not a one-time error)
 - Agent's trust foundation is irrecoverably compromised by audit findings
@@ -73,10 +77,10 @@ retirement_proposal:
   retirement_trigger:
     enum: [voluntary_deprecation, capability_drift, replacement, security_failure]
   trigger_description: string
-  replacement_agent_id: string        # if trigger = replacement
+  replacement_agent_id: string # if trigger = replacement
   replacement_readiness_status: string
   knowledge_transfer_requirements: list<string>
-  dependent_agents: list<string>       # agents that need notification
+  dependent_agents: list<string> # agents that need notification
   proposed_timeline:
     announcement_date: date
     shadow_start_date: date
@@ -135,19 +139,19 @@ retirement_proposal:
 
 Every retiring agent must have the following preserved before deactivation:
 
-| Item | Preservation Format | Retention |
-|---|---|---|
-| All contract versions | Versioned YAML in institutional archive | Permanent |
-| Complete execution history | Indexed log store | 7 years |
-| All validation reports | Indexed, with links to task evidence | 7 years |
-| All audit reports | Indexed, with links to evidence | 7 years |
-| Decision log (all entries) | Immutable decision log archive | Permanent |
-| Scorecard history | Time-series metrics archive | 7 years |
-| Learning reports authored | Learning Office archive | Permanent |
-| Learning reports received | Agent's acknowledgment records | 7 years |
-| Handoff records | Handoff archive | 7 years |
-| PHI access log | HIPAA-compliant archive | 7 years (minimum) |
-| Institutional memory entries | Knowledge & Memory Office archive | Permanent |
+| Item                         | Preservation Format                     | Retention         |
+| ---------------------------- | --------------------------------------- | ----------------- |
+| All contract versions        | Versioned YAML in institutional archive | Permanent         |
+| Complete execution history   | Indexed log store                       | 7 years           |
+| All validation reports       | Indexed, with links to task evidence    | 7 years           |
+| All audit reports            | Indexed, with links to evidence         | 7 years           |
+| Decision log (all entries)   | Immutable decision log archive          | Permanent         |
+| Scorecard history            | Time-series metrics archive             | 7 years           |
+| Learning reports authored    | Learning Office archive                 | Permanent         |
+| Learning reports received    | Agent's acknowledgment records          | 7 years           |
+| Handoff records              | Handoff archive                         | 7 years           |
+| PHI access log               | HIPAA-compliant archive                 | 7 years (minimum) |
+| Institutional memory entries | Knowledge & Memory Office archive       | Permanent         |
 
 ### 4.2 Knowledge Transfer to Replacement Agent
 
@@ -159,7 +163,7 @@ knowledge_transfer_record:
   retiring_agent: string
   receiving_agent: string
   conducted_at: datetime
-  facilitated_by: string         # trainer agent or office manager
+  facilitated_by: string # trainer agent or office manager
   knowledge_items_transferred:
     - item_type: enum [process_insight, edge_case, institutional_relationship, domain_knowledge, failure_pattern, preference]
       description: string
@@ -214,28 +218,33 @@ Emergency retirement is immediate deactivation used only when an agent poses a c
 **Time 0:** Executive Agent (or Security Manager for security events) issues emergency retirement order
 
 **Within 5 minutes:**
+
 - All agent permissions revoked at infrastructure level
 - NATS credentials invalidated
 - Agent process terminated
 - Forensic snapshot taken before any evidence is disturbed
 
 **Within 15 minutes:**
+
 - All in-flight tasks assessed for impact
 - Clinical tasks: immediate escalation to clinical staff
 - Other tasks: coordinator assumes accountability pending redistribution
 
 **Within 30 minutes:**
+
 - Governance Council notified (if clinical or security event)
 - Human notification if patient safety involved
 - Security incident opened (if applicable)
 - Evidence preservation confirmed
 
 **Within 2 hours:**
+
 - Emergency PAR initiated
 - Investigation opened
 - All dependent agents notified
 
 **Within 24 hours:**
+
 - Full forensic evidence package assembled
 - Impact assessment filed
 - Regulatory notifications initiated if required (HIPAA breach, etc.)
@@ -243,6 +252,7 @@ Emergency retirement is immediate deactivation used only when an agent poses a c
 ### 6.3 Post-Emergency Review
 
 Every emergency retirement triggers a mandatory PAR within 72 hours. The PAR asks:
+
 - Was emergency retirement justified, or could an alternative have been used?
 - What was the root cause?
 - Are other agents at risk from the same cause?
@@ -274,19 +284,19 @@ retirement_registry_entry:
   agent_name: string
   office: string
   role_type: string
-  lifecycle_start: date               # when agent entered Draft stage
-  lifecycle_end: date                 # deactivation date
+  lifecycle_start: date # when agent entered Draft stage
+  lifecycle_end: date # deactivation date
   total_active_days: int
   retirement_type: enum [standard, emergency]
   retirement_trigger: string
   replacement_agent_id: string
-  final_scorecard_snapshot: object    # all metrics at retirement
+  final_scorecard_snapshot: object # all metrics at retirement
   knowledge_transfer_record_id: string
   retirement_audit_id: string
   archive_location: string
   compliance_clearance: bool
-  notable_contributions: list<string>  # institutional memory
-  notable_failures: list<string>       # institutional lessons
+  notable_contributions: list<string> # institutional memory
+  notable_failures: list<string> # institutional lessons
   archived_by: string
   archived_at: datetime
 ```

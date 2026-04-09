@@ -4,13 +4,14 @@
 **Cluster:** kind-velya-local (simulando AWS EKS)  
 **Namespace:** velya-dev-observability  
 **Stack:** Prometheus + Grafana + Loki + Tempo  
-**Última revisão:** 2026-04-08  
+**Última revisão:** 2026-04-08
 
 ---
 
 ## 1. Princípios de Observabilidade
 
 A observabilidade da Velya é organizada em três camadas:
+
 1. **Por Agent:** Métricas específicas de comportamento e qualidade de cada agent
 2. **Por Office:** Métricas agregadas de saúde e desempenho de cada office
 3. **Por Cluster:** Métricas de infraestrutura, recursos e custo
@@ -37,6 +38,7 @@ time() - velya_agent_heartbeat_timestamp{job="velya-agents"}
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: AgentHeartbeatMissing
   expr: (time() - velya_agent_heartbeat_timestamp) > 180
@@ -44,7 +46,7 @@ time() - velya_agent_heartbeat_timestamp{job="velya-agents"}
   labels:
     severity: critical
   annotations:
-    summary: "Agent {{ $labels.agent_name }} silencioso há {{ $value | humanizeDuration }}"
+    summary: 'Agent {{ $labels.agent_name }} silencioso há {{ $value | humanizeDuration }}'
 
 - alert: AgentHeartbeatStale
   expr: |
@@ -54,7 +56,7 @@ time() - velya_agent_heartbeat_timestamp{job="velya-agents"}
   labels:
     severity: warning
   annotations:
-    summary: "Heartbeat atrasado: {{ $labels.agent_name }}"
+    summary: 'Heartbeat atrasado: {{ $labels.agent_name }}'
 ```
 
 ---
@@ -80,6 +82,7 @@ histogram_quantile(0.95, rate(velya_agent_task_duration_seconds_bucket[10m]))
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: AgentThroughputDrop
   expr: |
@@ -89,7 +92,7 @@ histogram_quantile(0.95, rate(velya_agent_task_duration_seconds_bucket[10m]))
   labels:
     severity: warning
   annotations:
-    summary: "Throughput de {{ $labels.agent_name }} caiu > 50% vs hora anterior"
+    summary: 'Throughput de {{ $labels.agent_name }} caiu > 50% vs hora anterior'
 
 - alert: AgentSuccessRateLow
   expr: |
@@ -99,7 +102,7 @@ histogram_quantile(0.95, rate(velya_agent_task_duration_seconds_bucket[10m]))
   labels:
     severity: warning
   annotations:
-    summary: "Taxa de sucesso de {{ $labels.agent_name }} abaixo de 80%"
+    summary: 'Taxa de sucesso de {{ $labels.agent_name }} abaixo de 80%'
 ```
 
 ---
@@ -116,11 +119,12 @@ velya_agent_queue_lag{agent="task-inbox-worker"}
 rate(velya_agent_queue_lag[5m]) * 60
 
 # Tempo estimado para limpar a fila (minutos)
-velya_agent_queue_lag / 
+velya_agent_queue_lag /
   clamp_min(rate(velya_agent_tasks_processed_total{status="success"}[10m]) * 60, 0.001)
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: AgentQueueDepthHigh
   expr: velya_agent_queue_lag > 50
@@ -128,7 +132,7 @@ velya_agent_queue_lag /
   labels:
     severity: warning
   annotations:
-    summary: "Fila de {{ $labels.agent_name }} com {{ $value }} mensagens pendentes"
+    summary: 'Fila de {{ $labels.agent_name }} com {{ $value }} mensagens pendentes'
 
 - alert: AgentQueueDepthCritical
   expr: velya_agent_queue_lag > 200
@@ -136,7 +140,7 @@ velya_agent_queue_lag /
   labels:
     severity: critical
   annotations:
-    summary: "Fila crítica: {{ $labels.agent_name }} com {{ $value }} mensagens"
+    summary: 'Fila crítica: {{ $labels.agent_name }} com {{ $value }} mensagens'
 
 - alert: AgentQueueGrowingWithNoProcessing
   expr: |
@@ -146,7 +150,7 @@ velya_agent_queue_lag /
   labels:
     severity: critical
   annotations:
-    summary: "Fila crescendo mas sem processamento para {{ $labels.agent_name }}"
+    summary: 'Fila crescendo mas sem processamento para {{ $labels.agent_name }}'
 ```
 
 ---
@@ -166,7 +170,7 @@ rate(velya_agent_validations_failed_total[1h]) by (agent, failure_reason)
 # Tendência de validation pass rate (comparação 24h)
 rate(velya_agent_validations_passed_total[1h]) /
 rate(velya_agent_validations_total[1h])
-/ 
+/
 (
   rate(velya_agent_validations_passed_total[1h] offset 24h) /
   rate(velya_agent_validations_total[1h] offset 24h)
@@ -174,6 +178,7 @@ rate(velya_agent_validations_total[1h])
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: AgentValidationPassRateLow
   expr: |
@@ -184,7 +189,7 @@ rate(velya_agent_validations_total[1h])
     severity: warning
     team: validation
   annotations:
-    summary: "Validation pass rate de {{ $labels.agent_name }} abaixo de 85%"
+    summary: 'Validation pass rate de {{ $labels.agent_name }} abaixo de 85%'
 
 - alert: AgentValidationPassRateCritical
   expr: |
@@ -195,7 +200,7 @@ rate(velya_agent_validations_total[1h])
     severity: critical
     team: governance
   annotations:
-    summary: "CRÍTICO: Validation pass rate de {{ $labels.agent_name }} abaixo de 70%"
+    summary: 'CRÍTICO: Validation pass rate de {{ $labels.agent_name }} abaixo de 70%'
 ```
 
 ---
@@ -212,6 +217,7 @@ topk(10, rate(velya_agent_audits_failed_total[6h]) by (agent, failure_category))
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: AgentAuditPassRateLow
   expr: |
@@ -222,7 +228,7 @@ topk(10, rate(velya_agent_audits_failed_total[6h]) by (agent, failure_category))
     severity: warning
     team: audit
   annotations:
-    summary: "Audit pass rate de {{ $labels.agent_name }} abaixo de 90%"
+    summary: 'Audit pass rate de {{ $labels.agent_name }} abaixo de 90%'
 ```
 
 ---
@@ -240,6 +246,7 @@ increase(velya_agent_corrections_total{correction_type!=""}[14d]) > 3
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: CorrectionRecurrenceDetected
   expr: |
@@ -260,7 +267,7 @@ Mede o tempo entre um agent finalizar uma task e o próximo agent começar a pro
 
 ```promql
 # Latência de handoff por par de agents (P95)
-histogram_quantile(0.95, 
+histogram_quantile(0.95,
   rate(velya_agent_handoff_latency_seconds_bucket[30m])
 ) by (source_agent, target_agent)
 
@@ -277,18 +284,19 @@ velya_agent_handoff_latency_seconds_sum / velya_agent_handoff_latency_seconds_co
 rate(velya_agent_retry_count_total[1h]) * 3600
 
 # Tendência de retry (crescendo vs semana anterior)
-rate(velya_agent_retry_count_total[1h]) / 
+rate(velya_agent_retry_count_total[1h]) /
 rate(velya_agent_retry_count_total[1h] offset 7d)
 
 # Score de qualidade por agent (rolling 24h)
 velya_agent_output_quality_score_rolling_24h
 
 # Tendência de score (comparação 7 dias)
-velya_agent_output_quality_score_rolling_24h - 
+velya_agent_output_quality_score_rolling_24h -
 velya_agent_output_quality_score_rolling_24h offset 7d
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: AgentQualityScoreDecline
   expr: |
@@ -299,7 +307,7 @@ velya_agent_output_quality_score_rolling_24h offset 7d
     severity: warning
     team: governance
   annotations:
-    summary: "Score de qualidade de {{ $labels.agent_name }} caiu >10% vs semana anterior"
+    summary: 'Score de qualidade de {{ $labels.agent_name }} caiu >10% vs semana anterior'
 ```
 
 ---
@@ -318,6 +326,7 @@ rate(velya_office_messages_received_total[1h] offset 7d) - 1
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: OfficeWorkloadSpike
   expr: |
@@ -327,7 +336,7 @@ rate(velya_office_messages_received_total[1h] offset 7d) - 1
   labels:
     severity: warning
   annotations:
-    summary: "Office {{ $labels.office }} com volume 3x acima do normal"
+    summary: 'Office {{ $labels.office }} com volume 3x acima do normal'
 ```
 
 ---
@@ -344,14 +353,15 @@ velya_office_messages_total * 100
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: OfficeBacklogAgeExceeded
-  expr: velya_office_oldest_message_age_seconds > 1800  # 30 minutos
+  expr: velya_office_oldest_message_age_seconds > 1800 # 30 minutos
   for: 5m
   labels:
     severity: warning
   annotations:
-    summary: "Mensagem com {{ $value | humanizeDuration }} aguardando no office {{ $labels.office }}"
+    summary: 'Mensagem com {{ $value | humanizeDuration }} aguardando no office {{ $labels.office }}'
 ```
 
 ---
@@ -369,6 +379,7 @@ rate(velya_office_tasks_total[1h]) * 100 by (office, task_type)
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: OfficeSLAAdherenceLow
   expr: |
@@ -378,7 +389,7 @@ rate(velya_office_tasks_total[1h]) * 100 by (office, task_type)
   labels:
     severity: warning
   annotations:
-    summary: "Office {{ $labels.office }} com SLA aderência abaixo de 85%"
+    summary: 'Office {{ $labels.office }} com SLA aderência abaixo de 85%'
 ```
 
 ---
@@ -387,7 +398,7 @@ rate(velya_office_tasks_total[1h]) * 100 by (office, task_type)
 
 ```promql
 # Índice de congestionamento (queue_lag / throughput)
-velya_office_queue_depth / 
+velya_office_queue_depth /
   clamp_min(rate(velya_office_tasks_processed_total[10m]) * 60, 0.001)
 
 # Congestionamento > 30 minutos estimados para limpar
@@ -414,6 +425,7 @@ kube_resourcequota{namespace=~"velya-.*"} by (namespace, resource, type)
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: NamespaceCPUPressureHigh
   expr: |
@@ -423,7 +435,7 @@ kube_resourcequota{namespace=~"velya-.*"} by (namespace, resource, type)
   labels:
     severity: warning
   annotations:
-    summary: "Namespace velya-dev-agents usando >85% de CPU solicitado"
+    summary: 'Namespace velya-dev-agents usando >85% de CPU solicitado'
 
 - alert: NamespaceMemoryPressureHigh
   expr: |
@@ -433,7 +445,7 @@ kube_resourcequota{namespace=~"velya-.*"} by (namespace, resource, type)
   labels:
     severity: critical
   annotations:
-    summary: "Namespace {{ $labels.namespace }} usando >90% do limite de memória"
+    summary: 'Namespace {{ $labels.namespace }} usando >90% do limite de memória'
 ```
 
 ---
@@ -452,6 +464,7 @@ rate(kube_pod_created{namespace=~"velya-.*"}[10m]) * 60
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: PodCrashLoopBackOff
   expr: |
@@ -463,7 +476,7 @@ rate(kube_pod_created{namespace=~"velya-.*"}[10m]) * 60
   labels:
     severity: critical
   annotations:
-    summary: "Pod {{ $labels.pod }} em CrashLoopBackOff no namespace {{ $labels.namespace }}"
+    summary: 'Pod {{ $labels.pod }} em CrashLoopBackOff no namespace {{ $labels.namespace }}'
 
 - alert: HighPodRestartRate
   expr: |
@@ -472,7 +485,7 @@ rate(kube_pod_created{namespace=~"velya-.*"}[10m]) * 60
   labels:
     severity: warning
   annotations:
-    summary: "Pod {{ $labels.pod }} reiniciando mais de 6 vezes/hora"
+    summary: 'Pod {{ $labels.pod }} reiniciando mais de 6 vezes/hora'
 ```
 
 ---
@@ -491,6 +504,7 @@ keda_nats_jetstream_consumer_num_pending by (stream, consumer)
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: KEDAScalerError
   expr: rate(keda_scaler_errors_total[5m]) > 0
@@ -499,7 +513,7 @@ keda_nats_jetstream_consumer_num_pending by (stream, consumer)
     severity: warning
     team: platform-health
   annotations:
-    summary: "KEDA scaler com erros para {{ $labels.scaledObject }}"
+    summary: 'KEDA scaler com erros para {{ $labels.scaledObject }}'
 
 - alert: KEDAMaxReplicasReached
   expr: |
@@ -509,7 +523,7 @@ keda_nats_jetstream_consumer_num_pending by (stream, consumer)
   labels:
     severity: warning
   annotations:
-    summary: "{{ $labels.deployment }} atingiu máximo de réplicas — considerar aumentar maxReplicaCount"
+    summary: '{{ $labels.deployment }} atingiu máximo de réplicas — considerar aumentar maxReplicaCount'
 ```
 
 ---
@@ -528,6 +542,7 @@ velya_dlq_oldest_message_age_seconds > velya_dlq_sla_seconds
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: DLQGrowthRateHigh
   expr: rate(velya_dlq_messages_total[30m]) > 0.5
@@ -535,7 +550,7 @@ velya_dlq_oldest_message_age_seconds > velya_dlq_sla_seconds
   labels:
     severity: warning
   annotations:
-    summary: "DLQ {{ $labels.dlq_type }} crescendo: {{ $value | humanize }}/min"
+    summary: 'DLQ {{ $labels.dlq_type }} crescendo: {{ $value | humanize }}/min'
 
 - alert: DLQSLABreached
   expr: velya_dlq_oldest_message_age_seconds > velya_dlq_sla_seconds
@@ -543,7 +558,7 @@ velya_dlq_oldest_message_age_seconds > velya_dlq_sla_seconds
   labels:
     severity: warning
   annotations:
-    summary: "SLA de investigação de DLQ {{ $labels.dlq_type }} violado"
+    summary: 'SLA de investigação de DLQ {{ $labels.dlq_type }} violado'
 ```
 
 ---
@@ -564,6 +579,7 @@ sum(velya_agent_llm_cost_usd_total[1h]) by (office) /
 ```
 
 **Alertas:**
+
 ```yaml
 - alert: CostAnomalyDetected
   expr: |
@@ -574,7 +590,7 @@ sum(velya_agent_llm_cost_usd_total[1h]) by (office) /
     severity: warning
     team: finops
   annotations:
-    summary: "Custo de LLM 2x acima da semana anterior — possível anomalia"
+    summary: 'Custo de LLM 2x acima da semana anterior — possível anomalia'
 
 - alert: OfficeBudgetNearExhaustion
   expr: |
@@ -585,7 +601,7 @@ sum(velya_agent_llm_cost_usd_total[1h]) by (office) /
     severity: warning
     team: finops
   annotations:
-    summary: "Office {{ $labels.office }} com 80% do budget de inferência utilizado"
+    summary: 'Office {{ $labels.office }} com 80% do budget de inferência utilizado'
 ```
 
 ---
@@ -641,7 +657,7 @@ spec:
       - velya-dev-agents
   selector:
     matchLabels:
-      velya.io/metrics: "true"
+      velya.io/metrics: 'true'
   endpoints:
     - port: metrics
       path: /metrics
@@ -672,9 +688,9 @@ count_over_time({namespace="velya-dev-agents"} |= "heartbeat_published" [5m]) ==
 ```yaml
 # Configuração de tracing para agents Velya
 # Cada agent envia traces via OTLP para Tempo
-OTEL_EXPORTER_OTLP_ENDPOINT: "http://tempo.velya-dev-observability.svc:4317"
-OTEL_SERVICE_NAME: "task-inbox-worker"
-OTEL_RESOURCE_ATTRIBUTES: "velya.office=clinical-operations,velya.agent-class=Worker"
+OTEL_EXPORTER_OTLP_ENDPOINT: 'http://tempo.velya-dev-observability.svc:4317'
+OTEL_SERVICE_NAME: 'task-inbox-worker'
+OTEL_RESOURCE_ATTRIBUTES: 'velya.office=clinical-operations,velya.agent-class=Worker'
 ```
 
 ---

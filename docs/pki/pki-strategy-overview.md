@@ -170,13 +170,13 @@ com o Let's Encrypt nao impacta a comunicacao interna entre servicos.
 
 ### 4.1 Componentes
 
-| Componente | Funcao |
-|---|---|
-| cert-manager | Controller Kubernetes que gerencia ciclo de vida de certificados |
-| Let's Encrypt | CA publica gratuita, automatizada via protocolo ACME |
-| DNS-01 Challenge | Metodo de validacao via registro TXT no DNS |
-| Route53 | Provedor DNS para resolucao e challenges ACME |
-| ExternalDNS | Sincronizacao automatica de registros DNS |
+| Componente       | Funcao                                                           |
+| ---------------- | ---------------------------------------------------------------- |
+| cert-manager     | Controller Kubernetes que gerencia ciclo de vida de certificados |
+| Let's Encrypt    | CA publica gratuita, automatizada via protocolo ACME             |
+| DNS-01 Challenge | Metodo de validacao via registro TXT no DNS                      |
+| Route53          | Provedor DNS para resolucao e challenges ACME                    |
+| ExternalDNS      | Sincronizacao automatica de registros DNS                        |
 
 ### 4.2 Fluxo de Emissao
 
@@ -203,12 +203,12 @@ e repetido automaticamente sem intervencao humana.
 
 ### 5.1 Componentes
 
-| Componente | Funcao |
-|---|---|
-| step-ca | CA privada executando como pod no cluster |
-| step certificates | CLI para interacao com step-ca |
-| cert-manager StepIssuer | Integracao cert-manager com step-ca |
-| Trust bundle | ConfigMap distribuido a todos os namespaces |
+| Componente              | Funcao                                      |
+| ----------------------- | ------------------------------------------- |
+| step-ca                 | CA privada executando como pod no cluster   |
+| step certificates       | CLI para interacao com step-ca              |
+| cert-manager StepIssuer | Integracao cert-manager com step-ca         |
+| Trust bundle            | ConfigMap distribuido a todos os namespaces |
 
 ### 5.2 Hierarquia de CAs
 
@@ -237,16 +237,16 @@ Root CA (offline, validade 10 anos)
 O dominio principal da Velya Platform e `velya.health`. Todos os servicos
 sao expostos como subdominios deste dominio.
 
-| Host | Servico | Tipo de Certificado |
-|---|---|---|
-| velya.health | Landing page / Portal | Publico (apex) |
-| app.velya.health | Aplicacao principal | Publico (wildcard) |
-| api.velya.health | API Gateway | Publico (wildcard) |
-| auth.velya.health | Autenticacao (Keycloak) | Publico (wildcard) |
-| grafana.velya.health | Observabilidade | Publico (wildcard) |
-| ops.velya.health | Operacoes internas | Publico (wildcard) |
-| status.velya.health | Status page | Publico (wildcard) |
-| docs.velya.health | Documentacao | Publico (wildcard) |
+| Host                 | Servico                 | Tipo de Certificado |
+| -------------------- | ----------------------- | ------------------- |
+| velya.health         | Landing page / Portal   | Publico (apex)      |
+| app.velya.health     | Aplicacao principal     | Publico (wildcard)  |
+| api.velya.health     | API Gateway             | Publico (wildcard)  |
+| auth.velya.health    | Autenticacao (Keycloak) | Publico (wildcard)  |
+| grafana.velya.health | Observabilidade         | Publico (wildcard)  |
+| ops.velya.health     | Operacoes internas      | Publico (wildcard)  |
+| status.velya.health  | Status page             | Publico (wildcard)  |
+| docs.velya.health    | Documentacao            | Publico (wildcard)  |
 
 ---
 
@@ -269,13 +269,13 @@ sao expostos como subdominios deste dominio.
 
 ### 7.3 Rotacao
 
-| Ativo | Frequencia de Rotacao |
-|---|---|
-| Certificado publico | 90 dias (renovacao automatica) |
-| Certificado interno | 24 horas (renovacao automatica) |
-| CA intermediaria | 2 anos |
-| CA raiz | 10 anos (rotacao manual planejada) |
-| Credenciais DNS (IAM) | 90 dias |
+| Ativo                 | Frequencia de Rotacao              |
+| --------------------- | ---------------------------------- |
+| Certificado publico   | 90 dias (renovacao automatica)     |
+| Certificado interno   | 24 horas (renovacao automatica)    |
+| CA intermediaria      | 2 anos                             |
+| CA raiz               | 10 anos (rotacao manual planejada) |
+| Credenciais DNS (IAM) | 90 dias                            |
 
 ---
 
@@ -291,14 +291,14 @@ sao expostos como subdominios deste dominio.
 
 ### 8.2 Alertas
 
-| Alerta | Condicao | Severidade |
-|---|---|---|
-| CertExpiringSoon | < 30 dias | warning |
-| CertExpiringCritical | < 14 dias | critical |
-| CertExpiringEmergency | < 7 dias | critical |
-| CertRenewalFailed | renewal falhou | critical |
-| ACMEChallengeFailed | challenge DNS falhou | warning |
-| CertManagerDown | pods unhealthy | critical |
+| Alerta                | Condicao             | Severidade |
+| --------------------- | -------------------- | ---------- |
+| CertExpiringSoon      | < 30 dias            | warning    |
+| CertExpiringCritical  | < 14 dias            | critical   |
+| CertExpiringEmergency | < 7 dias             | critical   |
+| CertRenewalFailed     | renewal falhou       | critical   |
+| ACMEChallengeFailed   | challenge DNS falhou | warning    |
+| CertManagerDown       | pods unhealthy       | critical   |
 
 ---
 
@@ -318,13 +318,13 @@ sao expostos como subdominios deste dominio.
 
 ### 9.2 RTO/RPO
 
-| Cenario | RTO | RPO |
-|---|---|---|
-| cert-manager restart | 5 minutos | 0 |
-| Novo certificado publico | 10 minutos | N/A |
-| Novo certificado interno | 1 minuto | N/A |
-| Reconstrucao cluster | 30 minutos | 0 |
-| Rotacao CA raiz | 4 horas (planejado) | N/A |
+| Cenario                  | RTO                 | RPO |
+| ------------------------ | ------------------- | --- |
+| cert-manager restart     | 5 minutos           | 0   |
+| Novo certificado publico | 10 minutos          | N/A |
+| Novo certificado interno | 1 minuto            | N/A |
+| Reconstrucao cluster     | 30 minutos          | 0   |
+| Rotacao CA raiz          | 4 horas (planejado) | N/A |
 
 ---
 
@@ -354,40 +354,40 @@ sao expostos como subdominios deste dominio.
 
 ## 11. Responsabilidades
 
-| Papel | Responsabilidade |
-|---|---|
+| Papel         | Responsabilidade                                      |
+| ------------- | ----------------------------------------------------- |
 | Platform Team | Configuracao de cert-manager, step-ca, ClusterIssuers |
-| Dev Team | Anotacao correta de Ingress resources |
-| Security Team | Auditoria de certificados, rotacao de CA raiz |
-| SRE | Monitoramento de alertas, resposta a incidentes |
+| Dev Team      | Anotacao correta de Ingress resources                 |
+| Security Team | Auditoria de certificados, rotacao de CA raiz         |
+| SRE           | Monitoramento de alertas, resposta a incidentes       |
 
 ---
 
 ## 12. Documentos Relacionados
 
-| Documento | Descricao |
-|---|---|
-| public-tls-strategy.md | Estrategia detalhada de TLS publico |
-| internal-pki-strategy.md | PKI interna com step-ca |
-| domain-and-url-governance.md | Governanca de dominios e URLs |
-| cert-manager-architecture.md | Arquitetura do cert-manager |
-| external-dns-architecture.md | Arquitetura do ExternalDNS |
-| certificate-lifecycle-runbooks.md | Runbooks operacionais |
-| certificate-observability-model.md | Observabilidade de certificados |
-| dns-challenge-credentials-policy.md | Politica de credenciais DNS |
-| caa-and-domain-hardening.md | CAA e hardening de dominio |
-| disaster-recovery-for-certificates.md | Disaster recovery |
-| letsencrypt-staging-vs-production.md | Staging vs Production |
-| wildcard-and-apex-policy.md | Politica wildcard e apex |
+| Documento                             | Descricao                           |
+| ------------------------------------- | ----------------------------------- |
+| public-tls-strategy.md                | Estrategia detalhada de TLS publico |
+| internal-pki-strategy.md              | PKI interna com step-ca             |
+| domain-and-url-governance.md          | Governanca de dominios e URLs       |
+| cert-manager-architecture.md          | Arquitetura do cert-manager         |
+| external-dns-architecture.md          | Arquitetura do ExternalDNS          |
+| certificate-lifecycle-runbooks.md     | Runbooks operacionais               |
+| certificate-observability-model.md    | Observabilidade de certificados     |
+| dns-challenge-credentials-policy.md   | Politica de credenciais DNS         |
+| caa-and-domain-hardening.md           | CAA e hardening de dominio          |
+| disaster-recovery-for-certificates.md | Disaster recovery                   |
+| letsencrypt-staging-vs-production.md  | Staging vs Production               |
+| wildcard-and-apex-policy.md           | Politica wildcard e apex            |
 
 ---
 
 ## 13. Changelog
 
-| Data | Versao | Descricao |
-|---|---|---|
-| 2026-04-09 | 1.0 | Versao inicial da estrategia PKI |
+| Data       | Versao | Descricao                        |
+| ---------- | ------ | -------------------------------- |
+| 2026-04-09 | 1.0    | Versao inicial da estrategia PKI |
 
 ---
 
-*Documento mantido pelo Platform Team. Revisao trimestral obrigatoria.*
+_Documento mantido pelo Platform Team. Revisao trimestral obrigatoria._

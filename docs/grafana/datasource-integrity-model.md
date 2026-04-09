@@ -8,13 +8,13 @@ Este documento define o modelo de validacao continua de integridade para todos o
 
 ## Datasources da Stack Velya
 
-| Datasource   | Tipo       | URL Interna                                        | Criticidade | Cadencia de Teste |
-|-------------|------------|----------------------------------------------------|-----------  |-------------------|
-| Prometheus  | prometheus | http://prometheus.velya-observability.svc:9090      | Critical    | 1 min             |
-| Loki        | loki       | http://loki.velya-observability.svc:3100            | Critical    | 1 min             |
-| Tempo       | tempo      | http://tempo.velya-observability.svc:3200           | High        | 2 min             |
-| Pyroscope   | grafana-pyroscope | http://pyroscope.velya-observability.svc:4040 | Medium      | 5 min             |
-| Alertmanager| alertmanager| http://alertmanager.velya-observability.svc:9093    | Critical    | 2 min             |
+| Datasource   | Tipo              | URL Interna                                      | Criticidade | Cadencia de Teste |
+| ------------ | ----------------- | ------------------------------------------------ | ----------- | ----------------- |
+| Prometheus   | prometheus        | http://prometheus.velya-observability.svc:9090   | Critical    | 1 min             |
+| Loki         | loki              | http://loki.velya-observability.svc:3100         | Critical    | 1 min             |
+| Tempo        | tempo             | http://tempo.velya-observability.svc:3200        | High        | 2 min             |
+| Pyroscope    | grafana-pyroscope | http://pyroscope.velya-observability.svc:4040    | Medium      | 5 min             |
+| Alertmanager | alertmanager      | http://alertmanager.velya-observability.svc:9093 | Critical    | 2 min             |
 
 ---
 
@@ -24,13 +24,13 @@ Este documento define o modelo de validacao continua de integridade para todos o
 
 Verifica se o endpoint do datasource responde a requests HTTP basicos.
 
-| Datasource   | Endpoint de Health      | Metodo | Response Esperada      |
-|-------------|------------------------|--------|------------------------|
-| Prometheus  | `/-/ready`             | GET    | 200 OK                 |
-| Loki        | `/ready`               | GET    | 200 "ready"            |
-| Tempo       | `/ready`               | GET    | 200 "ready"            |
-| Pyroscope   | `/ready`               | GET    | 200 OK                 |
-| Alertmanager| `/-/ready`             | GET    | 200 OK                 |
+| Datasource   | Endpoint de Health | Metodo | Response Esperada |
+| ------------ | ------------------ | ------ | ----------------- |
+| Prometheus   | `/-/ready`         | GET    | 200 OK            |
+| Loki         | `/ready`           | GET    | 200 "ready"       |
+| Tempo        | `/ready`           | GET    | 200 "ready"       |
+| Pyroscope    | `/ready`           | GET    | 200 OK            |
+| Alertmanager | `/-/ready`         | GET    | 200 OK            |
 
 ```promql
 # Metrica de disponibilidade
@@ -49,46 +49,46 @@ Verifica se o token/credencial configurado no Grafana e aceito pelo datasource.
 credential_tests:
   prometheus:
     method: GET
-    url: "/api/v1/status/config"
+    url: '/api/v1/status/config'
     headers:
-      Authorization: "Bearer ${GRAFANA_DATASOURCE_TOKEN}"
+      Authorization: 'Bearer ${GRAFANA_DATASOURCE_TOKEN}'
     expected_status: 200
-    failure_indicates: "Token expirado ou revogado"
+    failure_indicates: 'Token expirado ou revogado'
 
   loki:
     method: GET
-    url: "/loki/api/v1/labels"
+    url: '/loki/api/v1/labels'
     headers:
-      X-Scope-OrgID: "velya"
+      X-Scope-OrgID: 'velya'
     expected_status: 200
-    failure_indicates: "OrgID invalido ou token expirado"
+    failure_indicates: 'OrgID invalido ou token expirado'
 
   tempo:
     method: GET
-    url: "/api/search"
+    url: '/api/search'
     headers:
-      Authorization: "Bearer ${GRAFANA_DATASOURCE_TOKEN}"
+      Authorization: 'Bearer ${GRAFANA_DATASOURCE_TOKEN}'
     expected_status: 200
-    failure_indicates: "Token invalido"
+    failure_indicates: 'Token invalido'
 
   pyroscope:
     method: GET
-    url: "/pyroscope/api/v1/labels"
+    url: '/pyroscope/api/v1/labels'
     expected_status: 200
-    failure_indicates: "Credencial invalida"
+    failure_indicates: 'Credencial invalida'
 ```
 
 ### 3. Deteccao de Timeout
 
 Verifica se o datasource responde dentro do tempo aceitavel.
 
-| Datasource   | Timeout Aceitavel | Timeout Critico | Acao se Critico              |
-|-------------|-------------------|-----------------|------------------------------|
-| Prometheus  | < 2s              | > 5s            | Alerta + investigar carga    |
-| Loki        | < 3s              | > 10s           | Alerta + verificar ingestao  |
-| Tempo       | < 5s              | > 15s           | Alerta + verificar compactacao|
-| Pyroscope   | < 3s              | > 10s           | Alerta + verificar storage   |
-| Alertmanager| < 1s              | > 3s            | Alerta critico imediato      |
+| Datasource   | Timeout Aceitavel | Timeout Critico | Acao se Critico                |
+| ------------ | ----------------- | --------------- | ------------------------------ |
+| Prometheus   | < 2s              | > 5s            | Alerta + investigar carga      |
+| Loki         | < 3s              | > 10s           | Alerta + verificar ingestao    |
+| Tempo        | < 5s              | > 15s           | Alerta + verificar compactacao |
+| Pyroscope    | < 3s              | > 10s           | Alerta + verificar storage     |
+| Alertmanager | < 1s              | > 3s            | Alerta critico imediato        |
 
 ```promql
 # Detectar timeouts
@@ -107,45 +107,45 @@ Testa se o service account do Grafana tem permissoes suficientes para as operaco
 ```yaml
 permission_tests:
   prometheus:
-    - operation: "query"
-      test_query: "up"
-      description: "Capacidade de executar queries PromQL"
-    - operation: "metadata"
-      test_endpoint: "/api/v1/metadata"
-      description: "Acesso a metadados de metricas"
-    - operation: "targets"
-      test_endpoint: "/api/v1/targets"
-      description: "Visualizar targets de scrape"
-    - operation: "rules"
-      test_endpoint: "/api/v1/rules"
-      description: "Visualizar regras de alerting"
+    - operation: 'query'
+      test_query: 'up'
+      description: 'Capacidade de executar queries PromQL'
+    - operation: 'metadata'
+      test_endpoint: '/api/v1/metadata'
+      description: 'Acesso a metadados de metricas'
+    - operation: 'targets'
+      test_endpoint: '/api/v1/targets'
+      description: 'Visualizar targets de scrape'
+    - operation: 'rules'
+      test_endpoint: '/api/v1/rules'
+      description: 'Visualizar regras de alerting'
 
   loki:
-    - operation: "query"
+    - operation: 'query'
       test_query: '{namespace="velya"} | limit 1'
-      description: "Capacidade de executar queries LogQL"
-    - operation: "labels"
-      test_endpoint: "/loki/api/v1/labels"
-      description: "Listar labels disponiveis"
-    - operation: "tail"
-      test_endpoint: "/loki/api/v1/tail"
-      description: "Capacidade de tail de logs"
+      description: 'Capacidade de executar queries LogQL'
+    - operation: 'labels'
+      test_endpoint: '/loki/api/v1/labels'
+      description: 'Listar labels disponiveis'
+    - operation: 'tail'
+      test_endpoint: '/loki/api/v1/tail'
+      description: 'Capacidade de tail de logs'
 
   tempo:
-    - operation: "search"
-      test_endpoint: "/api/search"
-      description: "Buscar traces"
-    - operation: "trace_by_id"
-      test_endpoint: "/api/traces/{traceID}"
-      description: "Buscar trace por ID"
+    - operation: 'search'
+      test_endpoint: '/api/search'
+      description: 'Buscar traces'
+    - operation: 'trace_by_id'
+      test_endpoint: '/api/traces/{traceID}'
+      description: 'Buscar trace por ID'
 
   pyroscope:
-    - operation: "query"
-      test_query: "process_cpu:cpu:nanoseconds:cpu:nanoseconds"
-      description: "Consultar profiles"
-    - operation: "labels"
-      test_endpoint: "/pyroscope/api/v1/labels"
-      description: "Listar labels de profiling"
+    - operation: 'query'
+      test_query: 'process_cpu:cpu:nanoseconds:cpu:nanoseconds'
+      description: 'Consultar profiles'
+    - operation: 'labels'
+      test_endpoint: '/pyroscope/api/v1/labels'
+      description: 'Listar labels de profiling'
 ```
 
 ### 5. Verificacao de Endpoint
@@ -155,22 +155,22 @@ Valida que a URL configurada no datasource do Grafana aponta para o servico corr
 ```yaml
 endpoint_verification:
   prometheus:
-    expected_build_info_metric: "prometheus_build_info"
-    expected_version_prefix: "2."
+    expected_build_info_metric: 'prometheus_build_info'
+    expected_version_prefix: '2.'
     verify_query: 'prometheus_build_info{}'
 
   loki:
-    expected_endpoint: "/loki/api/v1/labels"
-    expected_response_contains: "values"
+    expected_endpoint: '/loki/api/v1/labels'
+    expected_response_contains: 'values'
     verify_query: '{namespace="velya"} | limit 1'
 
   tempo:
-    expected_endpoint: "/api/echo"
-    expected_response: "echo"
+    expected_endpoint: '/api/echo'
+    expected_response: 'echo'
 
   pyroscope:
-    expected_endpoint: "/pyroscope/api/v1/labels"
-    expected_response_contains: "names"
+    expected_endpoint: '/pyroscope/api/v1/labels'
+    expected_response_contains: 'names'
 ```
 
 ### 6. Compatibilidade de Schema
@@ -180,34 +180,34 @@ Verifica se o datasource suporta as features e versoes esperadas pelo Grafana.
 ```yaml
 schema_compatibility:
   prometheus:
-    minimum_version: "2.45.0"
+    minimum_version: '2.45.0'
     required_features:
-      - "exemplars"
-      - "native_histograms"
-      - "remote_write_receiver"
-    check_api_version: "/api/v1/status/buildinfo"
+      - 'exemplars'
+      - 'native_histograms'
+      - 'remote_write_receiver'
+    check_api_version: '/api/v1/status/buildinfo'
 
   loki:
-    minimum_version: "2.9.0"
+    minimum_version: '2.9.0'
     required_features:
-      - "structured_metadata"
-      - "pattern_parser"
-      - "detected_fields"
-    check_api_version: "/loki/api/v1/status/buildinfo"
+      - 'structured_metadata'
+      - 'pattern_parser'
+      - 'detected_fields'
+    check_api_version: '/loki/api/v1/status/buildinfo'
 
   tempo:
-    minimum_version: "2.3.0"
+    minimum_version: '2.3.0'
     required_features:
-      - "search"
-      - "service_graph"
-      - "span_metrics"
-    check_api_version: "/api/status/buildinfo"
+      - 'search'
+      - 'service_graph'
+      - 'span_metrics'
+    check_api_version: '/api/status/buildinfo'
 
   pyroscope:
-    minimum_version: "1.2.0"
+    minimum_version: '1.2.0'
     required_features:
-      - "query_api"
-      - "label_values"
+      - 'query_api'
+      - 'label_values'
 ```
 
 ---
@@ -224,7 +224,7 @@ metadata:
     app: dashboard-assurance-engine
     component: datasource-validator
 spec:
-  schedule: "*/5 * * * *"
+  schedule: '*/5 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 5
@@ -237,52 +237,52 @@ spec:
           labels:
             app: dae-datasource-validator
           annotations:
-            prometheus.io/scrape: "true"
-            prometheus.io/port: "8080"
-            prometheus.io/path: "/metrics"
+            prometheus.io/scrape: 'true'
+            prometheus.io/port: '8080'
+            prometheus.io/path: '/metrics'
         spec:
           serviceAccountName: dae-validator
           containers:
-          - name: datasource-validator
-            image: velya/dae-datasource-validator:1.4.0
-            ports:
-            - containerPort: 8080
-              name: metrics
-            env:
-            - name: GRAFANA_URL
-              value: "http://grafana.velya-observability.svc:3000"
-            - name: GRAFANA_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: dae-credentials
-                  key: grafana-api-token
-            - name: VALIDATION_CONFIG
-              value: "/config/datasource-validation.yaml"
-            - name: PUSHGATEWAY_URL
-              value: "http://prometheus-pushgateway.velya-observability.svc:9091"
-            command:
-            - python3
-            - /app/datasource_validator.py
-            args:
-            - --config=$(VALIDATION_CONFIG)
-            - --grafana-url=$(GRAFANA_URL)
-            - --grafana-token=$(GRAFANA_TOKEN)
-            - --push-metrics
-            - --pushgateway-url=$(PUSHGATEWAY_URL)
-            volumeMounts:
-            - name: config
-              mountPath: /config
-            resources:
-              requests:
-                cpu: 50m
-                memory: 64Mi
-              limits:
-                cpu: 200m
-                memory: 128Mi
+            - name: datasource-validator
+              image: velya/dae-datasource-validator:1.4.0
+              ports:
+                - containerPort: 8080
+                  name: metrics
+              env:
+                - name: GRAFANA_URL
+                  value: 'http://grafana.velya-observability.svc:3000'
+                - name: GRAFANA_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: dae-credentials
+                      key: grafana-api-token
+                - name: VALIDATION_CONFIG
+                  value: '/config/datasource-validation.yaml'
+                - name: PUSHGATEWAY_URL
+                  value: 'http://prometheus-pushgateway.velya-observability.svc:9091'
+              command:
+                - python3
+                - /app/datasource_validator.py
+              args:
+                - --config=$(VALIDATION_CONFIG)
+                - --grafana-url=$(GRAFANA_URL)
+                - --grafana-token=$(GRAFANA_TOKEN)
+                - --push-metrics
+                - --pushgateway-url=$(PUSHGATEWAY_URL)
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 128Mi
           volumes:
-          - name: config
-            configMap:
-              name: dae-datasource-validation-config
+            - name: config
+              configMap:
+                name: dae-datasource-validation-config
           restartPolicy: OnFailure
 ---
 apiVersion: v1
@@ -416,72 +416,72 @@ metadata:
   namespace: velya-observability
 spec:
   groups:
-  - name: datasource-integrity
-    interval: 30s
-    rules:
-    - alert: DatasourceUnreachable
-      expr: dae_datasource_reachable == 0
-      for: 2m
-      labels:
-        severity: critical
-        team: platform
-      annotations:
-        summary: "Datasource {{ $labels.datasource }} inacessivel"
-        description: "O datasource {{ $labels.datasource }} ({{ $labels.type }}) nao responde ao health check ha mais de 2 minutos."
-        runbook_url: "https://docs.velya.health/runbooks/datasource-unreachable"
+    - name: datasource-integrity
+      interval: 30s
+      rules:
+        - alert: DatasourceUnreachable
+          expr: dae_datasource_reachable == 0
+          for: 2m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: 'Datasource {{ $labels.datasource }} inacessivel'
+            description: 'O datasource {{ $labels.datasource }} ({{ $labels.type }}) nao responde ao health check ha mais de 2 minutos.'
+            runbook_url: 'https://docs.velya.health/runbooks/datasource-unreachable'
 
-    - alert: DatasourceCredentialsInvalid
-      expr: dae_datasource_credentials_valid == 0
-      for: 1m
-      labels:
-        severity: critical
-        team: platform
-      annotations:
-        summary: "Credenciais invalidas para datasource {{ $labels.datasource }}"
-        description: "O token ou credencial do datasource {{ $labels.datasource }} foi rejeitado. Verificar rotacao de secrets."
+        - alert: DatasourceCredentialsInvalid
+          expr: dae_datasource_credentials_valid == 0
+          for: 1m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: 'Credenciais invalidas para datasource {{ $labels.datasource }}'
+            description: 'O token ou credencial do datasource {{ $labels.datasource }} foi rejeitado. Verificar rotacao de secrets.'
 
-    - alert: DatasourceHighLatency
-      expr: |
-        histogram_quantile(0.95,
-          rate(dae_datasource_health_check_duration_seconds_bucket[5m])
-        ) > 5
-      for: 5m
-      labels:
-        severity: warning
-        team: platform
-      annotations:
-        summary: "Datasource {{ $labels.datasource }} com latencia alta"
-        description: "P95 de latencia do health check acima de 5 segundos."
+        - alert: DatasourceHighLatency
+          expr: |
+            histogram_quantile(0.95,
+              rate(dae_datasource_health_check_duration_seconds_bucket[5m])
+            ) > 5
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: 'Datasource {{ $labels.datasource }} com latencia alta'
+            description: 'P95 de latencia do health check acima de 5 segundos.'
 
-    - alert: DatasourceConsecutiveFailures
-      expr: dae_datasource_consecutive_failures >= 3
-      for: 1m
-      labels:
-        severity: critical
-        team: platform
-      annotations:
-        summary: "Datasource {{ $labels.datasource }} com {{ $value }} falhas consecutivas"
-        description: "O datasource falhou em 3 ou mais health checks consecutivos."
+        - alert: DatasourceConsecutiveFailures
+          expr: dae_datasource_consecutive_failures >= 3
+          for: 1m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: 'Datasource {{ $labels.datasource }} com {{ $value }} falhas consecutivas'
+            description: 'O datasource falhou em 3 ou mais health checks consecutivos.'
 
-    - alert: DatasourceSchemaIncompatible
-      expr: dae_datasource_schema_compatible == 0
-      for: 10m
-      labels:
-        severity: warning
-        team: platform
-      annotations:
-        summary: "Datasource {{ $labels.datasource }} com feature {{ $labels.feature }} incompativel"
-        description: "A versao ou configuracao do datasource nao suporta a feature requerida."
+        - alert: DatasourceSchemaIncompatible
+          expr: dae_datasource_schema_compatible == 0
+          for: 10m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: 'Datasource {{ $labels.datasource }} com feature {{ $labels.feature }} incompativel'
+            description: 'A versao ou configuracao do datasource nao suporta a feature requerida.'
 
-    - alert: DatasourcePermissionDenied
-      expr: dae_datasource_permission_valid == 0
-      for: 5m
-      labels:
-        severity: warning
-        team: platform
-      annotations:
-        summary: "Permissao {{ $labels.operation }} negada no datasource {{ $labels.datasource }}"
-        description: "O service account do Grafana nao tem permissao para a operacao {{ $labels.operation }}."
+        - alert: DatasourcePermissionDenied
+          expr: dae_datasource_permission_valid == 0
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: 'Permissao {{ $labels.operation }} negada no datasource {{ $labels.datasource }}'
+            description: 'O service account do Grafana nao tem permissao para a operacao {{ $labels.operation }}.'
 ```
 
 ---
@@ -553,7 +553,7 @@ DATASOURCE FALHOU?
       {
         "title": "Status de Disponibilidade",
         "type": "state-timeline",
-        "gridPos": {"h": 6, "w": 24, "x": 0, "y": 0},
+        "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
         "targets": [
           {
             "expr": "dae_datasource_reachable",
@@ -564,7 +564,7 @@ DATASOURCE FALHOU?
       {
         "title": "Latencia de Health Check (P95)",
         "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
         "targets": [
           {
             "expr": "histogram_quantile(0.95, rate(dae_datasource_health_check_duration_seconds_bucket[5m]))",
@@ -575,7 +575,7 @@ DATASOURCE FALHOU?
       {
         "title": "Falhas Consecutivas",
         "type": "stat",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
         "targets": [
           {
             "expr": "dae_datasource_consecutive_failures",
@@ -586,7 +586,7 @@ DATASOURCE FALHOU?
       {
         "title": "Score de Integridade por Datasource",
         "type": "bargauge",
-        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 14},
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
         "targets": [
           {
             "expr": "(dae_datasource_reachable * 30 + dae_datasource_credentials_valid * 25 + dae_datasource_query_success * 25 + (1 - clamp_max(dae_datasource_consecutive_failures / 5, 1)) * 20)",
@@ -599,9 +599,9 @@ DATASOURCE FALHOU?
             "max": 100,
             "thresholds": {
               "steps": [
-                {"color": "red", "value": 0},
-                {"color": "yellow", "value": 60},
-                {"color": "green", "value": 85}
+                { "color": "red", "value": 0 },
+                { "color": "yellow", "value": 60 },
+                { "color": "green", "value": 85 }
               ]
             }
           }
@@ -616,11 +616,11 @@ DATASOURCE FALHOU?
 
 ## Procedimento de Rotacao de Credenciais
 
-| Passo | Acao                                              | Responsavel     | Automacao       |
-|-------|--------------------------------------------------|-----------------|-----------------|
-| 1     | Gerar nova credencial no datasource               | Platform Eng    | Terraform/Vault |
-| 2     | Atualizar Secret no Kubernetes                    | Platform Eng    | External Secrets|
-| 3     | Reiniciar Grafana ou recarregar datasources        | Platform Eng    | Grafana API     |
-| 4     | Executar validacao de integridade                  | DAE automatico  | CronJob         |
-| 5     | Confirmar que health check passa                   | DAE automatico  | Alerta          |
-| 6     | Revogar credencial antiga                          | Platform Eng    | Terraform/Vault |
+| Passo | Acao                                        | Responsavel    | Automacao        |
+| ----- | ------------------------------------------- | -------------- | ---------------- |
+| 1     | Gerar nova credencial no datasource         | Platform Eng   | Terraform/Vault  |
+| 2     | Atualizar Secret no Kubernetes              | Platform Eng   | External Secrets |
+| 3     | Reiniciar Grafana ou recarregar datasources | Platform Eng   | Grafana API      |
+| 4     | Executar validacao de integridade           | DAE automatico | CronJob          |
+| 5     | Confirmar que health check passa            | DAE automatico | Alerta           |
+| 6     | Revogar credencial antiga                   | Platform Eng   | Terraform/Vault  |

@@ -70,72 +70,72 @@ Incidente detectado
 errorClassification:
   categories:
     - id: DEPLOY
-      label: "Erro de Deploy"
+      label: 'Erro de Deploy'
       subcategories:
-        - "config-error"       # configuracao incorreta
-        - "image-error"        # imagem corrompida/ausente
-        - "migration-error"    # migration de banco falha
-        - "canary-failure"     # canary detecta problema
-        - "rollback-failure"   # rollback nao funciona
+        - 'config-error' # configuracao incorreta
+        - 'image-error' # imagem corrompida/ausente
+        - 'migration-error' # migration de banco falha
+        - 'canary-failure' # canary detecta problema
+        - 'rollback-failure' # rollback nao funciona
     - id: INFRA
-      label: "Erro de Infraestrutura"
+      label: 'Erro de Infraestrutura'
       subcategories:
-        - "node-failure"       # node do EKS falha
-        - "network-error"      # conectividade entre servicos
-        - "storage-error"      # volume cheio/inacessivel
-        - "scaling-error"      # KEDA/HPA mal configurado
-        - "secret-sync-error"  # External Secrets falha
+        - 'node-failure' # node do EKS falha
+        - 'network-error' # conectividade entre servicos
+        - 'storage-error' # volume cheio/inacessivel
+        - 'scaling-error' # KEDA/HPA mal configurado
+        - 'secret-sync-error' # External Secrets falha
     - id: APP
-      label: "Erro de Aplicacao"
+      label: 'Erro de Aplicacao'
       subcategories:
-        - "logic-error"        # bug de logica de negocio
-        - "performance-error"  # degradacao de performance
-        - "integration-error"  # falha de integracao com dependencia
-        - "data-error"         # inconsistencia de dados
-        - "concurrency-error"  # race condition, deadlock
+        - 'logic-error' # bug de logica de negocio
+        - 'performance-error' # degradacao de performance
+        - 'integration-error' # falha de integracao com dependencia
+        - 'data-error' # inconsistencia de dados
+        - 'concurrency-error' # race condition, deadlock
     - id: WORKFLOW
-      label: "Erro de Workflow"
+      label: 'Erro de Workflow'
       subcategories:
-        - "timeout-error"      # activity ou workflow timeout
-        - "compensation-error" # saga compensation falha
-        - "version-error"      # incompatibilidade de versao
-        - "dlq-overflow"       # DLQ acumula
+        - 'timeout-error' # activity ou workflow timeout
+        - 'compensation-error' # saga compensation falha
+        - 'version-error' # incompatibilidade de versao
+        - 'dlq-overflow' # DLQ acumula
     - id: AGENT
-      label: "Erro de Agente"
+      label: 'Erro de Agente'
       subcategories:
-        - "false-positive"     # agente detecta problema inexistente
-        - "false-negative"     # agente nao detecta problema real
-        - "wrong-action"       # agente executa acao incorreta
-        - "loop-error"         # agente entra em loop
+        - 'false-positive' # agente detecta problema inexistente
+        - 'false-negative' # agente nao detecta problema real
+        - 'wrong-action' # agente executa acao incorreta
+        - 'loop-error' # agente entra em loop
     - id: SECURITY
-      label: "Erro de Seguranca"
+      label: 'Erro de Seguranca'
       subcategories:
-        - "auth-failure"       # autenticacao/autorizacao
-        - "secret-exposure"    # credenciais expostas
-        - "rbac-error"         # permissao inadequada
-        - "compliance-error"   # violacao de compliance (LGPD, HIPAA)
+        - 'auth-failure' # autenticacao/autorizacao
+        - 'secret-exposure' # credenciais expostas
+        - 'rbac-error' # permissao inadequada
+        - 'compliance-error' # violacao de compliance (LGPD, HIPAA)
 
   severities:
     - id: P1
-      label: "Critico"
-      criteria: "Servico indisponivel OU dados em risco OU seguranca comprometida"
-      sla_response: "5 min"
-      sla_resolution: "4 h"
+      label: 'Critico'
+      criteria: 'Servico indisponivel OU dados em risco OU seguranca comprometida'
+      sla_response: '5 min'
+      sla_resolution: '4 h'
     - id: P2
-      label: "Alto"
-      criteria: "Funcionalidade comprometida OU degradacao significativa"
-      sla_response: "15 min"
-      sla_resolution: "8 h"
+      label: 'Alto'
+      criteria: 'Funcionalidade comprometida OU degradacao significativa'
+      sla_response: '15 min'
+      sla_resolution: '8 h'
     - id: P3
-      label: "Medio"
-      criteria: "Degradacao menor OU workaround disponivel"
-      sla_response: "1 h"
-      sla_resolution: "24 h"
+      label: 'Medio'
+      criteria: 'Degradacao menor OU workaround disponivel'
+      sla_response: '1 h'
+      sla_resolution: '24 h'
     - id: P4
-      label: "Baixo"
-      criteria: "Impacto minimo OU cosmetic"
-      sla_response: "24 h"
-      sla_resolution: "1 sprint"
+      label: 'Baixo'
+      criteria: 'Impacto minimo OU cosmetic'
+      sla_response: '24 h'
+      sla_resolution: '1 sprint'
 ```
 
 ---
@@ -145,80 +145,80 @@ errorClassification:
 ```yaml
 postIncidentReview:
   metadata:
-    id: "PIR-YYYY-NNN"
-    title: ""
-    date: ""
-    severity: ""          # P1|P2|P3|P4
-    category: ""          # DEPLOY|INFRA|APP|WORKFLOW|AGENT|SECURITY
-    subcategory: ""
-    duration: ""          # tempo total do incidente
+    id: 'PIR-YYYY-NNN'
+    title: ''
+    date: ''
+    severity: '' # P1|P2|P3|P4
+    category: '' # DEPLOY|INFRA|APP|WORKFLOW|AGENT|SECURITY
+    subcategory: ''
+    duration: '' # tempo total do incidente
     impactedServices: []
-    impactedUsers: ""     # numero estimado
-    authors: []           # quem participou do PIR
-    reviewers: []         # quem revisou
+    impactedUsers: '' # numero estimado
+    authors: [] # quem participou do PIR
+    reviewers: [] # quem revisou
 
   timeline:
-    - time: ""
-      event: "Primeiro sinal do problema"
-      source: ""          # alerta, usuario, agente, manual
-    - time: ""
-      event: "Incidente detectado"
-      detectedBy: ""      # alerta|agente|humano|usuario
-      detectionDelay: ""  # tempo entre primeiro sinal e deteccao
-    - time: ""
-      event: "Resposta iniciada"
-      responder: ""
-    - time: ""
-      event: "Causa raiz identificada"
-    - time: ""
-      event: "Mitigacao aplicada"
-      action: ""
-    - time: ""
-      event: "Servico restaurado"
-    - time: ""
-      event: "Incidente encerrado"
+    - time: ''
+      event: 'Primeiro sinal do problema'
+      source: '' # alerta, usuario, agente, manual
+    - time: ''
+      event: 'Incidente detectado'
+      detectedBy: '' # alerta|agente|humano|usuario
+      detectionDelay: '' # tempo entre primeiro sinal e deteccao
+    - time: ''
+      event: 'Resposta iniciada'
+      responder: ''
+    - time: ''
+      event: 'Causa raiz identificada'
+    - time: ''
+      event: 'Mitigacao aplicada'
+      action: ''
+    - time: ''
+      event: 'Servico restaurado'
+    - time: ''
+      event: 'Incidente encerrado'
 
   rootCause:
-    description: ""
-    type: ""              # human-error|system-failure|external|design-flaw
+    description: ''
+    type: '' # human-error|system-failure|external|design-flaw
     fiveWhys:
-      - why: "Por que o servico ficou indisponivel?"
-        answer: ""
-      - why: "Por que isso aconteceu?"
-        answer: ""
-      - why: "Por que isso nao foi prevenido?"
-        answer: ""
-      - why: "Por que o sistema de prevencao falhou?"
-        answer: ""
-      - why: "Por que essa lacuna existia?"
-        answer: ""
+      - why: 'Por que o servico ficou indisponivel?'
+        answer: ''
+      - why: 'Por que isso aconteceu?'
+        answer: ''
+      - why: 'Por que isso nao foi prevenido?'
+        answer: ''
+      - why: 'Por que o sistema de prevencao falhou?'
+        answer: ''
+      - why: 'Por que essa lacuna existia?'
+        answer: ''
 
   impact:
-    availability: ""      # % de downtime
-    dataLoss: ""          # sim/nao, descricao
-    financialImpact: ""   # estimativa
-    userImpact: ""        # numero de usuarios, tipo de impacto
-    slaViolation: ""      # quais SLAs foram violados
-    complianceImpact: ""  # LGPD, HIPAA implicacoes
+    availability: '' # % de downtime
+    dataLoss: '' # sim/nao, descricao
+    financialImpact: '' # estimativa
+    userImpact: '' # numero de usuarios, tipo de impacto
+    slaViolation: '' # quais SLAs foram violados
+    complianceImpact: '' # LGPD, HIPAA implicacoes
 
   whatWasMissing:
-    tests: []             # quais testes teriam prevenido
-    alerts: []            # quais alertas teriam detectado mais cedo
-    documentation: []     # qual documentacao teria ajudado
-    policies: []          # quais policies teriam bloqueado
-    monitoring: []        # qual monitoramento teria antecipado
-    automation: []        # qual automacao teria respondido mais rapido
-    training: []          # qual treinamento teria evitado erro humano
+    tests: [] # quais testes teriam prevenido
+    alerts: [] # quais alertas teriam detectado mais cedo
+    documentation: [] # qual documentacao teria ajudado
+    policies: [] # quais policies teriam bloqueado
+    monitoring: [] # qual monitoramento teria antecipado
+    automation: [] # qual automacao teria respondido mais rapido
+    training: [] # qual treinamento teria evitado erro humano
 
   actionItems:
-    - id: "AI-001"
-      type: "playbook"    # playbook|test|alert|dashboard|policy|doc|agent|cronjob
-      description: ""
-      owner: ""
-      deadline: ""        # baseado nos SLAs de aprendizado
-      status: "todo"      # todo|in-progress|done|validated
-      prLink: ""
-      validationMethod: ""
+    - id: 'AI-001'
+      type: 'playbook' # playbook|test|alert|dashboard|policy|doc|agent|cronjob
+      description: ''
+      owner: ''
+      deadline: '' # baseado nos SLAs de aprendizado
+      status: 'todo' # todo|in-progress|done|validated
+      prLink: ''
+      validationMethod: ''
 
   lessonsLearned:
     whatWentWell: []
@@ -226,9 +226,9 @@ postIncidentReview:
     whereWeGotLucky: []
 
   preventionScore:
-    beforeIncident: ""    # quantas camadas de prevencao existiam
-    afterActions: ""      # quantas camadas existirao apos action items
-    improvementDelta: ""  # delta de melhoria
+    beforeIncident: '' # quantas camadas de prevencao existiam
+    afterActions: '' # quantas camadas existirao apos action items
+    improvementDelta: '' # delta de melhoria
 ```
 
 ---
@@ -237,18 +237,18 @@ postIncidentReview:
 
 ### Prazos por Tipo de Action Item
 
-| Tipo de Action | SLA | Responsavel | Validacao |
-|---|---|---|---|
-| Playbook update | 48 horas | Engenheiro de plantao | Review por SRE lead |
-| Alerta novo/atualizado | 48 horas | SRE | Teste em staging |
-| Dashboard atualizado | 72 horas | SRE | Screenshot aprovado |
-| Teste (unit/integration) | 1 sprint | Engenheiro do servico | CI verde + cobertura |
-| Teste (e2e/chaos) | 1 sprint | QA + SRE | Execucao em staging |
-| Policy (OPA/gates) | 1 sprint | Platform team | Teste de bloqueio em staging |
-| Documentacao | 1 sprint | Autor do PIR | Review por tech lead |
-| Instrucoes de agente | 1 sprint | Platform team | Validacao em shadow mode |
-| CronJob de watchdog | 2 sprints | SRE | Execucao em producao por 1 semana |
-| Mudanca arquitetural | 2 sprints | Tech lead + equipe | Design review + implementacao |
+| Tipo de Action           | SLA       | Responsavel           | Validacao                         |
+| ------------------------ | --------- | --------------------- | --------------------------------- |
+| Playbook update          | 48 horas  | Engenheiro de plantao | Review por SRE lead               |
+| Alerta novo/atualizado   | 48 horas  | SRE                   | Teste em staging                  |
+| Dashboard atualizado     | 72 horas  | SRE                   | Screenshot aprovado               |
+| Teste (unit/integration) | 1 sprint  | Engenheiro do servico | CI verde + cobertura              |
+| Teste (e2e/chaos)        | 1 sprint  | QA + SRE              | Execucao em staging               |
+| Policy (OPA/gates)       | 1 sprint  | Platform team         | Teste de bloqueio em staging      |
+| Documentacao             | 1 sprint  | Autor do PIR          | Review por tech lead              |
+| Instrucoes de agente     | 1 sprint  | Platform team         | Validacao em shadow mode          |
+| CronJob de watchdog      | 2 sprints | SRE                   | Execucao em producao por 1 semana |
+| Mudanca arquitetural     | 2 sprints | Tech lead + equipe    | Design review + implementacao     |
 
 ### Monitoramento de SLAs
 
@@ -700,15 +700,15 @@ type FailureScenario struct {
 
 ### Dashboard de Aprendizado Organizacional
 
-| Metrica | Formula | Meta |
-|---|---|---|
-| PIRs concluidos no prazo | pir_completed_on_time / pir_total | >= 95% |
-| Action items concluidos no SLA | items_completed_on_time / items_total | >= 90% |
-| Tempo medio PIR (deteccao -> aprendizado completo) | avg(pir_completion_time) | < 2 sprints |
-| Taxa de recorrencia (mesmo erro em 90 dias) | recurrent_incidents / total_incidents | < 5% |
-| Cobertura de testes pos-incidente | incidents_with_new_tests / incidents_total | >= 80% |
-| Cobertura de alertas pos-incidente | incidents_with_new_alerts / incidents_total | >= 90% |
-| Eficacia de prevencao | prevented_incidents / (prevented + recurrent) | >= 95% |
+| Metrica                                            | Formula                                       | Meta        |
+| -------------------------------------------------- | --------------------------------------------- | ----------- |
+| PIRs concluidos no prazo                           | pir_completed_on_time / pir_total             | >= 95%      |
+| Action items concluidos no SLA                     | items_completed_on_time / items_total         | >= 90%      |
+| Tempo medio PIR (deteccao -> aprendizado completo) | avg(pir_completion_time)                      | < 2 sprints |
+| Taxa de recorrencia (mesmo erro em 90 dias)        | recurrent_incidents / total_incidents         | < 5%        |
+| Cobertura de testes pos-incidente                  | incidents_with_new_tests / incidents_total    | >= 80%      |
+| Cobertura de alertas pos-incidente                 | incidents_with_new_alerts / incidents_total   | >= 90%      |
+| Eficacia de prevencao                              | prevented_incidents / (prevented + recurrent) | >= 95%      |
 
 ### PromQL
 
@@ -739,7 +739,7 @@ metadata:
   name: learning-audit
   namespace: velya-ops
 spec:
-  schedule: "0 9 * * 1"  # toda segunda as 9h
+  schedule: '0 9 * * 1' # toda segunda as 9h
   jobTemplate:
     spec:
       template:
@@ -750,7 +750,7 @@ spec:
               image: velya/learning-auditor:latest
               env:
                 - name: PROMETHEUS_URL
-                  value: "http://prometheus.monitoring:9090"
+                  value: 'http://prometheus.monitoring:9090'
                 - name: GITHUB_TOKEN
                   valueFrom:
                     secretKeyRef:
@@ -886,33 +886,33 @@ Incidente Ocorre
 ```yaml
 pirCompletenessChecklist:
   - id: PIR-CK-01
-    check: "Timeline completa (deteccao, resposta, mitigacao, resolucao)"
+    check: 'Timeline completa (deteccao, resposta, mitigacao, resolucao)'
     required: true
   - id: PIR-CK-02
-    check: "Root cause identificada com 5 Whys"
+    check: 'Root cause identificada com 5 Whys'
     required: true
   - id: PIR-CK-03
-    check: "Impacto quantificado (usuarios, duracao, SLA)"
+    check: 'Impacto quantificado (usuarios, duracao, SLA)'
     required: true
   - id: PIR-CK-04
-    check: "Analise de lacunas preenchida (o que faltou)"
+    check: 'Analise de lacunas preenchida (o que faltou)'
     required: true
   - id: PIR-CK-05
-    check: "Pelo menos 1 action item de prevencao"
+    check: 'Pelo menos 1 action item de prevencao'
     required: true
   - id: PIR-CK-06
-    check: "Todos os action items tem owner e deadline"
+    check: 'Todos os action items tem owner e deadline'
     required: true
   - id: PIR-CK-07
-    check: "Lessons learned preenchido"
+    check: 'Lessons learned preenchido'
     required: true
   - id: PIR-CK-08
-    check: "Revisado por pelo menos 1 pessoa nao envolvida no incidente"
+    check: 'Revisado por pelo menos 1 pessoa nao envolvida no incidente'
     required: true
   - id: PIR-CK-09
-    check: "Workflow de propagacao iniciado"
+    check: 'Workflow de propagacao iniciado'
     required: true
   - id: PIR-CK-10
-    check: "Cenario adicionado ao catalogo de falhas"
+    check: 'Cenario adicionado ao catalogo de falhas'
     required: true
 ```

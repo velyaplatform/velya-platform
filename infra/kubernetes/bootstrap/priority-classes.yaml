@@ -4,7 +4,7 @@ metadata:
   name: velya-system-critical
 value: 1000000
 globalDefault: false
-description: "Velya platform infrastructure components (observability, secrets, networking)"
+description: 'Velya platform infrastructure components (observability, secrets, networking)'
 ---
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
@@ -12,7 +12,7 @@ metadata:
   name: velya-core-high
 value: 100000
 globalDefault: false
-description: "Velya core application services (patient-flow, task-inbox, discharge, audit)"
+description: 'Velya core application services (patient-flow, task-inbox, discharge, audit)'
 ---
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
@@ -20,7 +20,7 @@ metadata:
   name: velya-platform-medium
 value: 50000
 globalDefault: true
-description: "Velya platform services (ai-gateway, policy-engine, memory, etc.) - default"
+description: 'Velya platform services (ai-gateway, policy-engine, memory, etc.) - default'
 ---
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
@@ -28,7 +28,7 @@ metadata:
   name: velya-agent-ai
 value: 30000
 globalDefault: false
-description: "Velya AI agent workloads - lower priority to protect core-app from AI load"
+description: 'Velya AI agent workloads - lower priority to protect core-app from AI load'
 ---
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
@@ -36,4 +36,4 @@ metadata:
   name: velya-batch-low
 value: 10000
 globalDefault: false
-description: "Velya batch/async jobs - lowest priority, yield to all service workloads"
+description: 'Velya batch/async jobs - lowest priority, yield to all service workloads'

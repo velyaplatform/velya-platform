@@ -24,21 +24,21 @@ Every report, regardless of type, must include this header:
 
 ```yaml
 report_header:
-  report_id: string            # UUID — assigned at creation, immutable
-  report_type: string          # one of the 11 canonical types
-  report_version: string       # schema version (e.g., "1.0")
-  generated_at: datetime       # ISO 8601 with timezone
-  generated_by: string         # agent_name (canonical ID)
-  office: string               # agent's office
-  task_id: string              # the task this report relates to (if applicable)
-  workflow_id: string          # the workflow context
-  correlation_id: string       # links related reports in a workflow
+  report_id: string # UUID — assigned at creation, immutable
+  report_type: string # one of the 11 canonical types
+  report_version: string # schema version (e.g., "1.0")
+  generated_at: datetime # ISO 8601 with timezone
+  generated_by: string # agent_name (canonical ID)
+  office: string # agent's office
+  task_id: string # the task this report relates to (if applicable)
+  workflow_id: string # the workflow context
+  correlation_id: string # links related reports in a workflow
   recipients:
-    primary: list<string>      # required recipients (must confirm receipt)
-    cc: list<string>           # informational recipients
-  classification: string       # public | internal | restricted | confidential
-  contains_phi: bool           # true if any PHI is present in body
-  retention_days: int          # mandatory retention period
+    primary: list<string> # required recipients (must confirm receipt)
+    cc: list<string> # informational recipients
+  classification: string # public | internal | restricted | confidential
+  contains_phi: bool # true if any PHI is present in body
+  retention_days: int # mandatory retention period
 ```
 
 ---
@@ -67,7 +67,7 @@ status_report:
     started_at: datetime
     elapsed_minutes: int
     expected_completion_at: datetime
-  queue_depth: int             # number of pending tasks
+  queue_depth: int # number of pending tasks
   recent_completions:
     last_24h: int
     pass_rate_24h: float
@@ -78,28 +78,29 @@ status_report:
     sla_adherence: float
     evidence_completeness: float
   anomalies_detected: list<string>
-  self_assessment: string      # free text — agent's own assessment of its state
+  self_assessment: string # free text — agent's own assessment of its state
 ```
 
 **Example:**
+
 ```yaml
 report_header:
-  report_id: "sr-2026-04-08-001"
+  report_id: 'sr-2026-04-08-001'
   report_type: status_report
-  generated_by: "platform-office/infrastructure-specialist-agent"
-  generated_at: "2026-04-08T06:00:00Z"
+  generated_by: 'platform-office/infrastructure-specialist-agent'
+  generated_at: '2026-04-08T06:00:00Z'
   recipients:
-    primary: ["platform-office/infrastructure-manager-agent"]
-    cc: ["agent-runtime-supervision/watchdog-platform-agent"]
+    primary: ['platform-office/infrastructure-manager-agent']
+    cc: ['agent-runtime-supervision/watchdog-platform-agent']
 
 status_report:
   operational_state: healthy
   current_task:
-    task_id: "task-infra-2026-04-08-034"
+    task_id: 'task-infra-2026-04-08-034'
     task_type: namespace_provisioning
-    started_at: "2026-04-08T05:45:00Z"
+    started_at: '2026-04-08T05:45:00Z'
     elapsed_minutes: 15
-    expected_completion_at: "2026-04-08T06:15:00Z"
+    expected_completion_at: '2026-04-08T06:15:00Z'
   queue_depth: 3
   recent_completions:
     last_24h: 12
@@ -153,45 +154,46 @@ execution_report:
         storage_ref: string
         hash_sha256: string
   validation_requested: bool
-  validation_request_id: string   # if validation_requested = true
+  validation_request_id: string # if validation_requested = true
   risk_events_during_execution: list<string>
-  lessons_noted: list<string>     # preliminary — feeds Learning Report
+  lessons_noted: list<string> # preliminary — feeds Learning Report
 ```
 
 **Example (abbreviated):**
+
 ```yaml
 report_header:
-  report_id: "exec-2026-04-08-infra-034"
+  report_id: 'exec-2026-04-08-infra-034'
   report_type: execution_report
-  generated_by: "platform-office/infrastructure-specialist-agent"
-  generated_at: "2026-04-08T06:22:00Z"
-  task_id: "task-infra-2026-04-08-034"
+  generated_by: 'platform-office/infrastructure-specialist-agent'
+  generated_at: '2026-04-08T06:22:00Z'
+  task_id: 'task-infra-2026-04-08-034'
 
 execution_report:
   task_type: namespace_provisioning
-  task_description: "Provision velya-clinical-v2 namespace per RFC-INFRA-2026-041"
-  assigned_by: "platform-office/infrastructure-coordinator-agent"
-  started_at: "2026-04-08T05:45:00Z"
-  completed_at: "2026-04-08T06:20:00Z"
+  task_description: 'Provision velya-clinical-v2 namespace per RFC-INFRA-2026-041'
+  assigned_by: 'platform-office/infrastructure-coordinator-agent'
+  started_at: '2026-04-08T05:45:00Z'
+  completed_at: '2026-04-08T06:20:00Z'
   duration_minutes: 35
   outcome: success
-  outcome_description: "Namespace created with ResourceQuota and NetworkPolicy per RFC specification"
+  outcome_description: 'Namespace created with ResourceQuota and NetworkPolicy per RFC specification'
   actions_taken:
-    - action: "kubectl apply namespace manifest"
-      timestamp: "2026-04-08T05:48:00Z"
-      result: "namespace/velya-clinical-v2 created"
-      evidence_ref: "evidence/infra/task-034/namespace-apply.yaml"
-    - action: "kubectl apply resource quota"
-      timestamp: "2026-04-08T05:52:00Z"
-      result: "resourcequota/velya-clinical-v2-quota created"
-      evidence_ref: "evidence/infra/task-034/quota-apply.yaml"
-    - action: "kubectl apply network policy"
-      timestamp: "2026-04-08T05:58:00Z"
-      result: "networkpolicy/velya-clinical-v2-default created"
-      evidence_ref: "evidence/infra/task-034/netpol-apply.yaml"
+    - action: 'kubectl apply namespace manifest'
+      timestamp: '2026-04-08T05:48:00Z'
+      result: 'namespace/velya-clinical-v2 created'
+      evidence_ref: 'evidence/infra/task-034/namespace-apply.yaml'
+    - action: 'kubectl apply resource quota'
+      timestamp: '2026-04-08T05:52:00Z'
+      result: 'resourcequota/velya-clinical-v2-quota created'
+      evidence_ref: 'evidence/infra/task-034/quota-apply.yaml'
+    - action: 'kubectl apply network policy'
+      timestamp: '2026-04-08T05:58:00Z'
+      result: 'networkpolicy/velya-clinical-v2-default created'
+      evidence_ref: 'evidence/infra/task-034/netpol-apply.yaml'
   deviations_from_plan: []
   validation_requested: true
-  validation_request_id: "val-req-2026-04-08-infra-034"
+  validation_request_id: 'val-req-2026-04-08-infra-034'
   lessons_noted: []
 ```
 
@@ -226,12 +228,12 @@ validation_report:
       finding: string
   overall_result:
     enum: [certified, rejected, conditional_hold]
-  certification_rationale: string   # required for certified
-  rejection_rationale: string       # required for rejected
-  rejection_items: list<string>     # specific items requiring correction
+  certification_rationale: string # required for certified
+  rejection_rationale: string # required for rejected
+  rejection_items: list<string> # specific items requiring correction
   required_corrections: list<string>
   revalidation_required: bool
-  revalidation_scope: string        # full | targeted
+  revalidation_scope: string # full | targeted
   evidence_package_complete: bool
   evidence_gaps: list<string>
   validator_confidence:
@@ -262,11 +264,11 @@ audit_report:
     scope_description: string
   auditor_agent: string
   auditor_office: string
-  independence_confirmed: bool     # auditor not in reporting chain of subject
+  independence_confirmed: bool # auditor not in reporting chain of subject
   audit_period:
     from: datetime
     to: datetime
-  policy_references: list<string>  # which policies were checked
+  policy_references: list<string> # which policies were checked
   checklist_results:
     - check_id: string
       policy_ref: string
@@ -307,7 +309,16 @@ exception_report:
   exception_id: string
   detected_at: datetime
   exception_type:
-    enum: [unexpected_state, policy_ambiguity, resource_constraint, dependency_failure, scope_boundary, data_quality, authorization_gap]
+    enum:
+      [
+        unexpected_state,
+        policy_ambiguity,
+        resource_constraint,
+        dependency_failure,
+        scope_boundary,
+        data_quality,
+        authorization_gap,
+      ]
   severity:
     enum: [low, medium, high, critical]
   description: string
@@ -345,7 +356,7 @@ risk_report:
   risk_id: string
   identified_at: datetime
   original_task_risk_class: string
-  identified_risk_class: string  # what the agent now believes the risk to be
+  identified_risk_class: string # what the agent now believes the risk to be
   risk_description: string
   risk_dimensions:
     probability: enum [low, medium, high, certain]
@@ -382,7 +393,15 @@ failure_report:
   failure_id: string
   failed_at: datetime
   failure_type:
-    enum: [task_failure, agent_failure, dependency_failure, permission_failure, data_failure, timeout_failure]
+    enum:
+      [
+        task_failure,
+        agent_failure,
+        dependency_failure,
+        permission_failure,
+        data_failure,
+        timeout_failure,
+      ]
   failed_task_id: string
   failure_description: string
   last_successful_state: string
@@ -496,9 +515,9 @@ handoff_report:
   sla_inherited:
     sla_deadline: datetime
     time_remaining_minutes: int
-  cross_office_authorization: string  # required for cross-office handoffs
+  cross_office_authorization: string # required for cross-office handoffs
   confirmation_required_by: datetime
-  if_not_confirmed_by: string         # default action if confirmation not received
+  if_not_confirmed_by: string # default action if confirmation not received
 ```
 
 ---
@@ -516,7 +535,7 @@ handoff_report:
 report_type: correction_report
 correction_report:
   correction_id: string
-  correction_cycle: int              # 1st, 2nd, 3rd correction attempt
+  correction_cycle: int # 1st, 2nd, 3rd correction attempt
   original_task_id: string
   rejected_validation_report_id: string
   rejection_received_at: datetime
@@ -536,7 +555,7 @@ correction_report:
       estimated_completion: datetime
   items_not_corrected:
     - item: string
-      rationale: string             # must be approved by manager before submission
+      rationale: string # must be approved by manager before submission
   revalidation_scope:
     enum: [full, targeted]
   revalidation_scope_rationale: string
@@ -560,13 +579,22 @@ report_type: post_action_review
 post_action_review:
   par_id: string
   event_type:
-    enum: [incident, major_release, dr_exercise, external_audit, human_intervention, chaos_exercise, security_breach]
+    enum:
+      [
+        incident,
+        major_release,
+        dr_exercise,
+        external_audit,
+        human_intervention,
+        chaos_exercise,
+        security_breach,
+      ]
   event_id: string
   event_started_at: datetime
   event_closed_at: datetime
   duration_minutes: int
-  participants: list<string>        # all agents involved
-  facilitator: string               # agent responsible for PAR
+  participants: list<string> # all agents involved
+  facilitator: string # agent responsible for PAR
   timeline:
     - timestamp: datetime
       event: string
@@ -610,19 +638,19 @@ post_action_review:
 
 ## 4. Report Routing Rules
 
-| Report Type | Primary Recipients | Escalation if Unacknowledged |
-|---|---|---|
-| Status | Office Manager + Watchdog | 1 missed cycle → watchdog investigation |
-| Execution | Coordinator + Manager | 60 min for High+ → manager alert |
-| Validation | Requesting agent + Manager | 4 hours → manager escalation |
-| Audit | Office Manager + Compliance | 8 hours → Executive escalation |
-| Exception | Coordinator + Manager | 30 min → Executive escalation |
-| Risk | Manager + Executive | 15 min for High+ → immediate escalation |
-| Failure | Coordinator + Manager + Learning | Immediate for agent failure → quarantine trigger |
-| Learning | Learning Office | 48 hours → Learning Office manager alert |
-| Handoff | Destination agent + both managers | 15 min → work returns to sender |
-| Correction | Validator + Coordinator + Manager | 4 hours for High+ → manager escalation |
-| Post-Action Review | Manager + Executive + Learning | 72 hours → Executive escalation |
+| Report Type        | Primary Recipients                | Escalation if Unacknowledged                     |
+| ------------------ | --------------------------------- | ------------------------------------------------ |
+| Status             | Office Manager + Watchdog         | 1 missed cycle → watchdog investigation          |
+| Execution          | Coordinator + Manager             | 60 min for High+ → manager alert                 |
+| Validation         | Requesting agent + Manager        | 4 hours → manager escalation                     |
+| Audit              | Office Manager + Compliance       | 8 hours → Executive escalation                   |
+| Exception          | Coordinator + Manager             | 30 min → Executive escalation                    |
+| Risk               | Manager + Executive               | 15 min for High+ → immediate escalation          |
+| Failure            | Coordinator + Manager + Learning  | Immediate for agent failure → quarantine trigger |
+| Learning           | Learning Office                   | 48 hours → Learning Office manager alert         |
+| Handoff            | Destination agent + both managers | 15 min → work returns to sender                  |
+| Correction         | Validator + Coordinator + Manager | 4 hours for High+ → manager escalation           |
+| Post-Action Review | Manager + Executive + Learning    | 72 hours → Executive escalation                  |
 
 ---
 
@@ -630,13 +658,13 @@ post_action_review:
 
 The following behaviors in reporting are defects and are tracked on the agent scorecard:
 
-| Anti-Pattern | Definition | Consequence |
-|---|---|---|
-| Missing header fields | Required header fields absent | Report rejected as invalid |
-| Late delivery | Report delivered after SLA | SLA metric degraded |
-| Self-referential validation | Validator reporting on own work | Automatic escalation + watchdog flag |
-| Incomplete evidence references | Evidence cited but not linked | Evidence completeness metric degraded |
-| Retroactive dating | Report backdated to appear on-time | Trust flag; auditor investigation |
-| Boilerplate correction | Correction report not analyzing specific rejection items | Third correction cycle auto-escalation |
-| Silent status | No status report filed for 2+ cycles | Watchdog incident opened |
-| PHI in non-restricted report | PHI present without proper classification | Security incident + Data Governance alert |
+| Anti-Pattern                   | Definition                                               | Consequence                               |
+| ------------------------------ | -------------------------------------------------------- | ----------------------------------------- |
+| Missing header fields          | Required header fields absent                            | Report rejected as invalid                |
+| Late delivery                  | Report delivered after SLA                               | SLA metric degraded                       |
+| Self-referential validation    | Validator reporting on own work                          | Automatic escalation + watchdog flag      |
+| Incomplete evidence references | Evidence cited but not linked                            | Evidence completeness metric degraded     |
+| Retroactive dating             | Report backdated to appear on-time                       | Trust flag; auditor investigation         |
+| Boilerplate correction         | Correction report not analyzing specific rejection items | Third correction cycle auto-escalation    |
+| Silent status                  | No status report filed for 2+ cycles                     | Watchdog incident opened                  |
+| PHI in non-restricted report   | PHI present without proper classification                | Security incident + Data Governance alert |

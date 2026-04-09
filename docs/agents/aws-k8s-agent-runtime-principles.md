@@ -3,7 +3,7 @@
 **Versão:** 1.0  
 **Namespace primário:** velya-dev-agents  
 **Cluster:** kind-velya-local (simulando AWS EKS)  
-**Última revisão:** 2026-04-08  
+**Última revisão:** 2026-04-08
 
 ---
 
@@ -14,6 +14,7 @@ A Velya adota uma postura deliberada e conservadora em relação ao uso de agent
 > **"Use um workflow determinístico sempre que possível. Use um agent somente quando a tarefa exige raciocínio adaptativo que não pode ser codificado como lógica de controle."**
 
 Esse mandato existe porque agents introduzem:
+
 - Latência não determinística
 - Custo de inferência por chamada de LLM
 - Risco de comportamentos inesperados (hallucination, tool misuse)
@@ -21,6 +22,7 @@ Esse mandato existe porque agents introduzem:
 - Complexidade operacional adicional no runtime Kubernetes
 
 Workflows Temporal com lógica determinística, por sua vez, oferecem:
+
 - Durabilidade e replay automático via event sourcing
 - Custo fixo e previsível
 - Auditoria nativa via Temporal Web UI
@@ -31,14 +33,14 @@ Workflows Temporal com lógica determinística, por sua vez, oferecem:
 
 Antes de criar qualquer agent na Velya, o arquiteto responsável deve responder às seguintes perguntas:
 
-| Pergunta | Resposta "Sim" → | Resposta "Não" → |
-|---|---|---|
-| A tarefa tem etapas completamente previsíveis? | Workflow Temporal | Considerar agent |
-| A tarefa requer escolha dinâmica de ferramentas? | Agent | Workflow com switch |
-| O resultado correto pode ser validado por regra? | Workflow + Validator | Agent com validator |
-| A tarefa tolera latência de 1-10s por LLM call? | Agent | Workflow ou cache |
-| O custo de inferência cabe no budget do office? | Verificar budget | Bloquear até justificar |
-| Já existe um workflow que faz 80% disso? | Estender o workflow | Novo component |
+| Pergunta                                         | Resposta "Sim" →     | Resposta "Não" →        |
+| ------------------------------------------------ | -------------------- | ----------------------- |
+| A tarefa tem etapas completamente previsíveis?   | Workflow Temporal    | Considerar agent        |
+| A tarefa requer escolha dinâmica de ferramentas? | Agent                | Workflow com switch     |
+| O resultado correto pode ser validado por regra? | Workflow + Validator | Agent com validator     |
+| A tarefa tolera latência de 1-10s por LLM call?  | Agent                | Workflow ou cache       |
+| O custo de inferência cabe no budget do office?  | Verificar budget     | Bloquear até justificar |
+| Já existe um workflow que faz 80% disso?         | Estender o workflow  | Novo component          |
 
 ---
 
@@ -51,6 +53,7 @@ A Velya define seis classes canônicas de agents. Toda proposta de novo agent de
 **Responsabilidade:** Monitoramento contínuo de estado, detecção de anomalias, alertas precoces.
 
 **Características operacionais:**
+
 - Executa em loop contínuo com intervalo configurável (padrão: 30s)
 - Não executa ações destrutivas diretamente — apenas sinaliza
 - Heartbeat obrigatório a cada 60 segundos
@@ -58,12 +61,14 @@ A Velya define seis classes canônicas de agents. Toda proposta de novo agent de
 - Pode escalar via KEDA com base no tamanho da fila
 
 **Exemplos na Velya:**
+
 - `queue-sentinel`: monitora crescimento de filas NATS JetStream
 - `heartbeat-sentinel`: detecta agents silenciosos por ausência de heartbeat
 - `cost-sentinel`: detecta desvios de custo em relação ao budget por namespace
 - `sla-sentinel`: monitora SLAs de tempo de resposta dos serviços
 
 **Resource envelope padrão:**
+
 ```yaml
 resources:
   requests:
@@ -75,12 +80,13 @@ resources:
 ```
 
 **Tolerations no kind-velya-local (simulando EKS worker nodes):**
+
 ```yaml
 tolerations:
-  - key: "velya.io/agent-runtime"
-    operator: "Equal"
-    value: "sentinel"
-    effect: "NoSchedule"
+  - key: 'velya.io/agent-runtime'
+    operator: 'Equal'
+    value: 'sentinel'
+    effect: 'NoSchedule'
 ```
 
 ---
@@ -90,6 +96,7 @@ tolerations:
 **Responsabilidade:** Processamento de tarefas discretas a partir de filas. Um worker consome uma mensagem, executa a tarefa, entrega o resultado.
 
 **Características operacionais:**
+
 - Consome de fila NATS JetStream com ack explícito
 - Executa exatamente uma tarefa por vez (single-concurrency por padrão)
 - Aplica lease com TTL antes de processar
@@ -98,11 +105,13 @@ tolerations:
 - Escala horizontal via KEDA (`nats-jetstream` trigger)
 
 **Exemplos na Velya:**
+
 - `task-inbox-worker`: processa itens de inbox clínico, classifica urgência
 - `discharge-worker`: executa etapas de checklist de alta hospitalar
 - `validation-worker`: valida saídas de outros agents contra regras clínicas
 
 **KEDA ScaledObject padrão para Worker:**
+
 ```yaml
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -118,10 +127,10 @@ spec:
   triggers:
     - type: nats-jetstream
       metadata:
-        natsServerMonitoringEndpoint: "nats-monitor.velya-dev-platform.svc.cluster.local:8222"
+        natsServerMonitoringEndpoint: 'nats-monitor.velya-dev-platform.svc.cluster.local:8222'
         stream: VELYA_AGENTS
         consumer: task-inbox-worker-consumer
-        lagThreshold: "5"
+        lagThreshold: '5'
 ```
 
 ---
@@ -131,6 +140,7 @@ spec:
 **Responsabilidade:** Processamento em lote de grandes volumes de dados em janelas de tempo definidas. Execução via Kubernetes CronJob ou Argo CronWorkflow.
 
 **Características operacionais:**
+
 - Não fica em execução contínua — acordado por schedule
 - Deve ter idempotência garantida (re-execução segura)
 - Budget de tempo máximo de execução (deadline)
@@ -138,11 +148,13 @@ spec:
 - Não consome recursos de node de workloads realtime
 
 **Exemplos na Velya:**
+
 - `cost-sweep-batch`: varre custos de cloud por tag a cada 6h
 - `audit-batch`: audita logs de decisions de agents nas últimas 24h
 - `report-batch`: gera relatórios diários por office para Knowledge Office
 
 **CronJob Kubernetes:**
+
 ```yaml
 apiVersion: batch/v1
 kind: CronJob
@@ -150,7 +162,7 @@ metadata:
   name: cost-sweep-batch
   namespace: velya-dev-agents
 spec:
-  schedule: "0 */6 * * *"
+  schedule: '0 */6 * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -182,6 +194,7 @@ spec:
 **Detalhes completos no documento `watchdog-model.md`.**
 
 **Resumo de princípios:**
+
 - Nunca compartilha fila com o agent que supervisiona
 - Tem autonomia para pausar agents com base em critérios objetivos
 - Reporta ao Meta-Watchdog e ao Prometheus
@@ -194,6 +207,7 @@ spec:
 **Responsabilidade:** Auditoria, compliance, validação de qualidade de outputs de outros agents. Garante que decisões clínicas e operacionais atendam às políticas Velya.
 
 **Características operacionais:**
+
 - Nunca bloqueia o caminho crítico — executa assincronamente
 - Publica resultados de auditoria em `velya.audit.{agent_name}.{task_id}`
 - Score de qualidade: 0.0 a 1.0 por output auditado
@@ -201,6 +215,7 @@ spec:
 - Integra com Loki para logs estruturados e Tempo para traces
 
 **Exemplos:**
+
 - `clinical-governance-agent`: valida que outputs clínicos seguem protocolos
 - `cost-governance-agent`: valida que decisões de custo respeitam budgets
 
@@ -231,19 +246,20 @@ Todo agent da Velya que usa ferramentas (tools/functions) deve seguir estas regr
 ### 3.1 Princípio da Ferramenta Mínima
 
 Um agent deve ter acesso apenas às ferramentas estritamente necessárias para sua função. Nenhum agent deve ter acesso a:
+
 - Ferramentas de escrita em banco de dados de produção sem revisão humana
 - APIs externas que geram custo sem limite configurado
 - Ferramentas de deleção sem confirmação de reversibilidade
 
 ### 3.2 Classificação de Ferramentas por Risco
 
-| Nível | Tipo | Exemplo | Aprovação necessária |
-|---|---|---|---|
-| L1 - Read-only | Consulta de dados | `get_patient_queue_status` | Automática |
-| L2 - Write local | Escrita em namespace isolado | `update_task_status` | Automática com audit |
-| L3 - Write cross-service | Escrita que afeta outros serviços | `trigger_discharge_workflow` | Governance Agent review |
-| L4 - External | Chamada a API externa | `call_insurance_api` | Human-in-loop obrigatório |
-| L5 - Destructive | Deleção, cancelamento | `cancel_patient_discharge` | Human approval + audit |
+| Nível                    | Tipo                              | Exemplo                      | Aprovação necessária      |
+| ------------------------ | --------------------------------- | ---------------------------- | ------------------------- |
+| L1 - Read-only           | Consulta de dados                 | `get_patient_queue_status`   | Automática                |
+| L2 - Write local         | Escrita em namespace isolado      | `update_task_status`         | Automática com audit      |
+| L3 - Write cross-service | Escrita que afeta outros serviços | `trigger_discharge_workflow` | Governance Agent review   |
+| L4 - External            | Chamada a API externa             | `call_insurance_api`         | Human-in-loop obrigatório |
+| L5 - Destructive         | Deleção, cancelamento             | `cancel_patient_discharge`   | Human approval + audit    |
 
 ### 3.3 Validação de Schema de Tool Output
 
@@ -259,11 +275,11 @@ Todo tool deve retornar um schema validado. O agent não deve processar outputs 
 Toda chamada de tool deve ter timeout configurado. Padrão por nível:
 
 | Nível | Timeout padrão | Timeout máximo |
-|---|---|---|
-| L1 | 2s | 10s |
-| L2 | 5s | 30s |
-| L3 | 10s | 60s |
-| L4 | 15s | 120s |
+| ----- | -------------- | -------------- |
+| L1    | 2s             | 10s            |
+| L2    | 5s             | 30s            |
+| L3    | 10s            | 60s            |
+| L4    | 15s            | 120s           |
 
 ---
 
@@ -272,6 +288,7 @@ Toda chamada de tool deve ter timeout configurado. Padrão por nível:
 ### 4.1 Princípio do Contexto Mínimo Efetivo
 
 O prompt enviado ao LLM deve conter apenas o contexto necessário para a decisão atual. Contexto excessivo:
+
 - Aumenta custo de tokens
 - Degrada qualidade da resposta (context dilution)
 - Aumenta latência
@@ -304,19 +321,20 @@ Para agents que precisam de contexto histórico, a injeção é feita via retrie
 ```python
 def build_context(task: Task, agent_class: str) -> str:
     base_context = load_base_prompt(agent_class)
-    
+
     # Limite rígido: máximo 3 exemplos históricos
     examples = retrieve_relevant_examples(task, top_k=3)
-    
+
     # Limite rígido: máximo 500 tokens de contexto dinâmico
     dynamic_context = truncate_to_tokens(examples, max_tokens=500)
-    
+
     return f"{base_context}\n\nContexto relevante:\n{dynamic_context}"
 ```
 
 ### 4.3 Evitar Context Stuffing
 
 É explicitamente proibido:
+
 - Incluir logs completos de execuções anteriores no prompt
 - Incluir respostas de outros agents sem filtro de relevância
 - Incluir dados de pacientes além do estritamente necessário para a tarefa
@@ -351,14 +369,14 @@ metadata:
   name: agent-guardrails-defaults
   namespace: velya-dev-agents
 data:
-  confidence_threshold: "0.70"
-  max_inference_tokens_per_hour: "100000"
-  human_escalation_clinical_impact: "high"
-  audit_trail_enabled: "true"
-  output_validation_enabled: "true"
-  self_modification_allowed: "false"
-  max_tool_calls_per_task: "10"
-  max_task_duration_seconds: "300"
+  confidence_threshold: '0.70'
+  max_inference_tokens_per_hour: '100000'
+  human_escalation_clinical_impact: 'high'
+  audit_trail_enabled: 'true'
+  output_validation_enabled: 'true'
+  self_modification_allowed: 'false'
+  max_tool_calls_per_task: '10'
+  max_task_duration_seconds: '300'
 ```
 
 ---
@@ -450,15 +468,15 @@ TAREFA NOVA IDENTIFICADA
 
 ### 7.2 Tabela de Classificação por Serviço Velya
 
-| Serviço | Função | Tipo Recomendado | Justificativa |
-|---|---|---|---|
-| discharge-orchestrator | Orquestra etapas de alta | Workflow Temporal | Etapas conhecidas e ordenadas |
-| patient-flow-service | Roteamento de pacientes | Workflow + Rules | Lógica de roteamento codificável |
-| task-inbox-service | Classificação de urgência | Agent (Classifier) | Requer raciocínio sobre contexto clínico |
-| ai-gateway | Roteamento de modelos | Workflow + Config | Regras de roteamento fixas |
-| cost-sweep | Análise de anomalias de custo | Agent (Analyst) | Requer interpretação de padrões |
-| audit-agent | Revisão de compliance | Agent (Governance) | Requer avaliação qualitativa |
-| market-intelligence | Curadoria de fontes externas | Agent + Human review | Requer julgamento e filtragem |
+| Serviço                | Função                        | Tipo Recomendado     | Justificativa                            |
+| ---------------------- | ----------------------------- | -------------------- | ---------------------------------------- |
+| discharge-orchestrator | Orquestra etapas de alta      | Workflow Temporal    | Etapas conhecidas e ordenadas            |
+| patient-flow-service   | Roteamento de pacientes       | Workflow + Rules     | Lógica de roteamento codificável         |
+| task-inbox-service     | Classificação de urgência     | Agent (Classifier)   | Requer raciocínio sobre contexto clínico |
+| ai-gateway             | Roteamento de modelos         | Workflow + Config    | Regras de roteamento fixas               |
+| cost-sweep             | Análise de anomalias de custo | Agent (Analyst)      | Requer interpretação de padrões          |
+| audit-agent            | Revisão de compliance         | Agent (Governance)   | Requer avaliação qualitativa             |
+| market-intelligence    | Curadoria de fontes externas  | Agent + Human review | Requer julgamento e filtragem            |
 
 ### 7.3 Exemplos Concretos de Decisão
 
@@ -490,12 +508,12 @@ metadata:
   namespace: velya-dev-agents
 spec:
   hard:
-    requests.cpu: "4"
+    requests.cpu: '4'
     requests.memory: 8Gi
-    limits.cpu: "16"
+    limits.cpu: '16'
     limits.memory: 16Gi
-    count/pods: "50"
-    count/services: "20"
+    count/pods: '50'
+    count/services: '20'
 ```
 
 ### 8.2 ServiceAccount e RBAC
@@ -515,13 +533,13 @@ metadata:
   name: task-inbox-worker-role
   namespace: velya-dev-agents
 rules:
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["get", "list"]
-  - apiGroups: [""]
-    resources: ["secrets"]
-    resourceNames: ["task-inbox-worker-credentials"]
-    verbs: ["get"]
+  - apiGroups: ['']
+    resources: ['configmaps']
+    verbs: ['get', 'list']
+  - apiGroups: ['']
+    resources: ['secrets']
+    resourceNames: ['task-inbox-worker-credentials']
+    verbs: ['get']
 ```
 
 ### 8.3 Network Policies
@@ -548,7 +566,7 @@ spec:
             matchLabels:
               velya.io/tier: platform
     - ports:
-        - port: 443  # HTTPS para APIs externas controladas
+        - port: 443 # HTTPS para APIs externas controladas
 ```
 
 ---
@@ -564,7 +582,7 @@ labels:
   velya.io/agent-class: worker
   velya.io/office: clinical-operations
   velya.io/criticality: high
-  velya.io/version: "1.2.3"
+  velya.io/version: '1.2.3'
 ```
 
 ### 9.2 Métricas Prometheus Obrigatórias

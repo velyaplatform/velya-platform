@@ -21,28 +21,28 @@ Este documento define o modelo de remediacao automatica do Dashboard Assurance E
 
 ### SA-01: Atualizar Metadata de Ownership
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Preencher campo de owner quando owner e conhecido no registry |
-| Condicao          | Dashboard sem owner atribuido, owner existe no registry   |
-| Risco             | **Baixo**                                                 |
-| Impacto           | Apenas metadata, nao afeta visualizacao ou dados          |
-| Revalidacao       | Verificar que owner foi atribuido corretamente            |
-| Rollback          | Remover owner atribuido                                   |
+| Atributo    | Valor                                                         |
+| ----------- | ------------------------------------------------------------- |
+| Descricao   | Preencher campo de owner quando owner e conhecido no registry |
+| Condicao    | Dashboard sem owner atribuido, owner existe no registry       |
+| Risco       | **Baixo**                                                     |
+| Impacto     | Apenas metadata, nao afeta visualizacao ou dados              |
+| Revalidacao | Verificar que owner foi atribuido corretamente                |
+| Rollback    | Remover owner atribuido                                       |
 
 ```yaml
 remediation:
   id: SA-01
   name: update_ownership_metadata
   trigger:
-    condition: "dashboard.owner == null AND ownership_registry.has(dashboard.uid)"
+    condition: 'dashboard.owner == null AND ownership_registry.has(dashboard.uid)'
   action:
     type: grafana_api
-    endpoint: "PATCH /api/dashboards/uid/{uid}"
+    endpoint: 'PATCH /api/dashboards/uid/{uid}'
     payload:
       dashboard:
-        tags_add: ["owner:{owner_role}"]
-      message: "DAE: Owner atribuido automaticamente do registry"
+        tags_add: ['owner:{owner_role}']
+      message: 'DAE: Owner atribuido automaticamente do registry'
   safety:
     risk_level: low
     reversible: true
@@ -52,29 +52,29 @@ remediation:
 
 ### SA-02: Corrigir Link Quebrado com Contexto Conhecido
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Atualizar URL de link quando destino mudou mas e conhecido|
-| Condicao          | Link aponta para dashboard/URL que mudou, novo destino e conhecido |
-| Risco             | **Baixo**                                                 |
-| Impacto           | Corrige navegacao, nao afeta dados                        |
-| Revalidacao       | HTTP GET no novo link retorna 200                         |
-| Rollback          | Restaurar URL anterior                                    |
+| Atributo    | Valor                                                              |
+| ----------- | ------------------------------------------------------------------ |
+| Descricao   | Atualizar URL de link quando destino mudou mas e conhecido         |
+| Condicao    | Link aponta para dashboard/URL que mudou, novo destino e conhecido |
+| Risco       | **Baixo**                                                          |
+| Impacto     | Corrige navegacao, nao afeta dados                                 |
+| Revalidacao | HTTP GET no novo link retorna 200                                  |
+| Rollback    | Restaurar URL anterior                                             |
 
 ```yaml
 remediation:
   id: SA-02
   name: fix_broken_link
   trigger:
-    condition: "panel.link.target_status == 404 AND link_redirect_map.has(panel.link.url)"
+    condition: 'panel.link.target_status == 404 AND link_redirect_map.has(panel.link.url)'
   action:
     type: grafana_api
-    endpoint: "PUT /api/dashboards/uid/{uid}"
+    endpoint: 'PUT /api/dashboards/uid/{uid}'
     payload:
       update_panel_links:
-        old_url: "{broken_url}"
-        new_url: "{redirect_map[broken_url]}"
-      message: "DAE: Link corrigido automaticamente via redirect map"
+        old_url: '{broken_url}'
+        new_url: '{redirect_map[broken_url]}'
+      message: 'DAE: Link corrigido automaticamente via redirect map'
   safety:
     risk_level: low
     reversible: true
@@ -84,14 +84,14 @@ remediation:
 
 ### SA-03: Ajustar Default de Variavel Quebrado
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Corrigir valor default de variavel quando atual e invalido|
-| Condicao          | Variavel com default que nao resolve, valor correto conhecido |
-| Risco             | **Baixo**                                                 |
-| Impacto           | Melhora experiencia inicial, nao altera dados persistentes|
-| Revalidacao       | Variavel resolve com novo default                         |
-| Rollback          | Restaurar default anterior                                |
+| Atributo    | Valor                                                         |
+| ----------- | ------------------------------------------------------------- |
+| Descricao   | Corrigir valor default de variavel quando atual e invalido    |
+| Condicao    | Variavel com default que nao resolve, valor correto conhecido |
+| Risco       | **Baixo**                                                     |
+| Impacto     | Melhora experiencia inicial, nao altera dados persistentes    |
+| Revalidacao | Variavel resolve com novo default                             |
+| Rollback    | Restaurar default anterior                                    |
 
 ```yaml
 remediation:
@@ -103,12 +103,12 @@ remediation:
       AND variable.available_values.length > 0
   action:
     type: grafana_api
-    endpoint: "PUT /api/dashboards/uid/{uid}"
+    endpoint: 'PUT /api/dashboards/uid/{uid}'
     payload:
       update_variable_default:
-        variable_name: "{variable.name}"
-        new_default: "{variable.available_values[0]}"
-      message: "DAE: Default de variavel ajustado para valor valido"
+        variable_name: '{variable.name}'
+        new_default: '{variable.available_values[0]}'
+      message: 'DAE: Default de variavel ajustado para valor valido'
   safety:
     risk_level: low
     reversible: true
@@ -118,14 +118,14 @@ remediation:
 
 ### SA-04: Restaurar Versao Anterior em Regressao Clara
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Reverter dashboard para versao anterior quando regressao e detectada |
-| Condicao          | Health score caiu > 20 pontos apos mudanca, versao anterior saudavel |
-| Risco             | **Medio**                                                 |
-| Impacto           | Reverte todas as mudancas da ultima versao                |
-| Revalidacao       | Health score volta ao nivel anterior                      |
-| Rollback          | Restaurar para a versao revertida                         |
+| Atributo    | Valor                                                                |
+| ----------- | -------------------------------------------------------------------- |
+| Descricao   | Reverter dashboard para versao anterior quando regressao e detectada |
+| Condicao    | Health score caiu > 20 pontos apos mudanca, versao anterior saudavel |
+| Risco       | **Medio**                                                            |
+| Impacto     | Reverte todas as mudancas da ultima versao                           |
+| Revalidacao | Health score volta ao nivel anterior                                 |
+| Rollback    | Restaurar para a versao revertida                                    |
 
 ```yaml
 remediation:
@@ -138,10 +138,10 @@ remediation:
       AND dashboard.version_age < 24h
   action:
     type: grafana_api
-    endpoint: "POST /api/dashboards/uid/{uid}/restore"
+    endpoint: 'POST /api/dashboards/uid/{uid}/restore'
     payload:
-      version: "{dashboard.previous_version.number}"
-      message: "DAE: Revertido para versao anterior devido a regressao de health score"
+      version: '{dashboard.previous_version.number}'
+      message: 'DAE: Revertido para versao anterior devido a regressao de health score'
   safety:
     risk_level: medium
     reversible: true
@@ -150,20 +150,20 @@ remediation:
     cooldown_after_action: 30m
   validation:
     post_action_wait: 60s
-    check: "health_score >= previous_version.health_score - 5"
-    on_validation_failure: "revert_remediation"
+    check: 'health_score >= previous_version.health_score - 5'
+    on_validation_failure: 'revert_remediation'
 ```
 
 ### SA-05: Reverter Library Panel Problematico
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Reverter library panel para versao anterior quando causou regressao |
-| Condicao          | Library panel atualizado recentemente e multiplos dashboards degradaram |
-| Risco             | **Medio**                                                 |
-| Impacto           | Afeta todos os dashboards que usam o library panel        |
-| Revalidacao       | Todos os dashboards consumidores voltam a score saudavel  |
-| Rollback          | Re-aplicar versao mais recente do library panel           |
+| Atributo    | Valor                                                                   |
+| ----------- | ----------------------------------------------------------------------- |
+| Descricao   | Reverter library panel para versao anterior quando causou regressao     |
+| Condicao    | Library panel atualizado recentemente e multiplos dashboards degradaram |
+| Risco       | **Medio**                                                               |
+| Impacto     | Afeta todos os dashboards que usam o library panel                      |
+| Revalidacao | Todos os dashboards consumidores voltam a score saudavel                |
+| Rollback    | Re-aplicar versao mais recente do library panel                         |
 
 ```yaml
 remediation:
@@ -176,11 +176,11 @@ remediation:
       AND library_panel.previous_version.health_score >= 85
   action:
     type: grafana_api
-    endpoint: "PATCH /api/library-elements/{uid}"
+    endpoint: 'PATCH /api/library-elements/{uid}'
     payload:
-      model: "{library_panel.previous_version.model}"
-      version: "{library_panel.previous_version.number}"
-      message: "DAE: Library panel revertido - regressao detectada em multiplos dashboards"
+      model: '{library_panel.previous_version.model}'
+      version: '{library_panel.previous_version.number}'
+      message: 'DAE: Library panel revertido - regressao detectada em multiplos dashboards'
   safety:
     risk_level: medium
     reversible: true
@@ -189,20 +189,20 @@ remediation:
     cooldown_after_action: 1h
   validation:
     post_action_wait: 120s
-    check: "all(affected_dashboards.health_score >= 80)"
-    on_validation_failure: "revert_remediation AND escalate"
+    check: 'all(affected_dashboards.health_score >= 80)'
+    on_validation_failure: 'revert_remediation AND escalate'
 ```
 
 ### SA-06: Corrigir Time Range Inadequado
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Ajustar time range quando esta fora da retencao do datasource |
-| Condicao          | Time range > retencao do datasource, dados existem em range menor |
-| Risco             | **Baixo**                                                 |
-| Impacto           | Altera visualizacao padrao, nao perde dados               |
-| Revalidacao       | Painel mostra dados com novo time range                   |
-| Rollback          | Restaurar time range anterior                             |
+| Atributo    | Valor                                                             |
+| ----------- | ----------------------------------------------------------------- |
+| Descricao   | Ajustar time range quando esta fora da retencao do datasource     |
+| Condicao    | Time range > retencao do datasource, dados existem em range menor |
+| Risco       | **Baixo**                                                         |
+| Impacto     | Altera visualizacao padrao, nao perde dados                       |
+| Revalidacao | Painel mostra dados com novo time range                           |
+| Rollback    | Restaurar time range anterior                                     |
 
 ```yaml
 remediation:
@@ -214,12 +214,12 @@ remediation:
       AND query_with_adjusted_range.returns_data == true
   action:
     type: grafana_api
-    endpoint: "PUT /api/dashboards/uid/{uid}"
+    endpoint: 'PUT /api/dashboards/uid/{uid}'
     payload:
       time:
-        from: "now-{datasource.retention}"
-        to: "now"
-      message: "DAE: Time range ajustado para cobrir dados disponiveis"
+        from: 'now-{datasource.retention}'
+        to: 'now'
+      message: 'DAE: Time range ajustado para cobrir dados disponiveis'
   safety:
     risk_level: low
     reversible: true
@@ -229,14 +229,14 @@ remediation:
 
 ### SA-07: Remover Painel Orfao
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Remover painel sem query, sem titulo, sem uso             |
-| Condicao          | Painel vazio (sem query configurada, titulo padrao, sem dados) |
-| Risco             | **Baixo**                                                 |
-| Impacto           | Remove ruido visual do dashboard                          |
-| Revalidacao       | Dashboard layout esta coerente apos remocao               |
-| Rollback          | Restaurar painel da versao anterior                       |
+| Atributo    | Valor                                                          |
+| ----------- | -------------------------------------------------------------- |
+| Descricao   | Remover painel sem query, sem titulo, sem uso                  |
+| Condicao    | Painel vazio (sem query configurada, titulo padrao, sem dados) |
+| Risco       | **Baixo**                                                      |
+| Impacto     | Remove ruido visual do dashboard                               |
+| Revalidacao | Dashboard layout esta coerente apos remocao                    |
+| Rollback    | Restaurar painel da versao anterior                            |
 
 ```yaml
 remediation:
@@ -250,10 +250,10 @@ remediation:
       AND panel.type != "row"
   action:
     type: grafana_api
-    endpoint: "PUT /api/dashboards/uid/{uid}"
+    endpoint: 'PUT /api/dashboards/uid/{uid}'
     payload:
-      remove_panel: "{panel.id}"
-      message: "DAE: Painel orfao removido (sem query, sem titulo)"
+      remove_panel: '{panel.id}'
+      message: 'DAE: Painel orfao removido (sem query, sem titulo)'
   safety:
     risk_level: low
     reversible: true
@@ -263,14 +263,14 @@ remediation:
 
 ### SA-08: Sincronizar do Git
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Restaurar dashboard do Git quando divergiu do source of truth |
-| Condicao          | Dashboard no Grafana difere do Git, Git e o source of truth |
-| Risco             | **Medio**                                                 |
-| Impacto           | Sobrescreve mudancas feitas pela UI                       |
-| Revalidacao       | Dashboard no Grafana identico ao Git                      |
-| Rollback          | Restaurar versao anterior do Grafana                      |
+| Atributo    | Valor                                                         |
+| ----------- | ------------------------------------------------------------- |
+| Descricao   | Restaurar dashboard do Git quando divergiu do source of truth |
+| Condicao    | Dashboard no Grafana difere do Git, Git e o source of truth   |
+| Risco       | **Medio**                                                     |
+| Impacto     | Sobrescreve mudancas feitas pela UI                           |
+| Revalidacao | Dashboard no Grafana identico ao Git                          |
+| Rollback    | Restaurar versao anterior do Grafana                          |
 
 ```yaml
 remediation:
@@ -285,9 +285,9 @@ remediation:
   action:
     type: grafana_provisioning
     source: git
-    repo: "{dashboard.git_source.repo}"
-    path: "{dashboard.git_source.path}"
-    message: "DAE: Dashboard sincronizado do Git (source of truth)"
+    repo: '{dashboard.git_source.repo}'
+    path: '{dashboard.git_source.path}'
+    message: 'DAE: Dashboard sincronizado do Git (source of truth)'
   safety:
     risk_level: medium
     reversible: true
@@ -296,7 +296,7 @@ remediation:
     cooldown_after_action: 15m
   validation:
     post_action_wait: 30s
-    check: "dashboard.health_score >= git_version.health_score - 5"
+    check: 'dashboard.health_score >= git_version.health_score - 5'
 ```
 
 ---
@@ -305,12 +305,12 @@ remediation:
 
 ### GA-01: Reescrever Query Critica
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Alterar query PromQL/LogQL de painel critico              |
-| Razao do Gate     | Pode alterar semantica do monitoramento                   |
-| Quem Aprova       | Owner do dashboard + SRE                                  |
-| SLA de Aprovacao  | 4 horas em horario comercial                              |
+| Atributo          | Valor                                                          |
+| ----------------- | -------------------------------------------------------------- |
+| Descricao         | Alterar query PromQL/LogQL de painel critico                   |
+| Razao do Gate     | Pode alterar semantica do monitoramento                        |
+| Quem Aprova       | Owner do dashboard + SRE                                       |
+| SLA de Aprovacao  | 4 horas em horario comercial                                   |
 | Evidencia Exigida | Query atual, query proposta, diff de resultados, justificativa |
 
 ```yaml
@@ -324,8 +324,8 @@ remediation:
       - sre_oncall
     approval_sla: 4h
     notification_channels:
-      - slack: "#velya-observability-approvals"
-      - email: "{dashboard.owner.contact}"
+      - slack: '#velya-observability-approvals'
+      - email: '{dashboard.owner.contact}'
     evidence_required:
       - current_query
       - proposed_query
@@ -336,12 +336,12 @@ remediation:
 
 ### GA-02: Alterar Semantica de Dashboard de Producao
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Modificar estrutura, layout ou significado de dashboard em producao |
-| Razao do Gate     | Impacto em decisoes operacionais e de negocio             |
-| Quem Aprova       | Owner do dashboard + Tech Lead                            |
-| SLA de Aprovacao  | 8 horas em horario comercial                              |
+| Atributo         | Valor                                                               |
+| ---------------- | ------------------------------------------------------------------- |
+| Descricao        | Modificar estrutura, layout ou significado de dashboard em producao |
+| Razao do Gate    | Impacto em decisoes operacionais e de negocio                       |
+| Quem Aprova      | Owner do dashboard + Tech Lead                                      |
+| SLA de Aprovacao | 8 horas em horario comercial                                        |
 
 ```yaml
 remediation:
@@ -363,12 +363,12 @@ remediation:
 
 ### GA-03: Modificar Thresholds Criticos
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Alterar thresholds de alerta ou visualizacao em paineis criticos |
-| Razao do Gate     | Pode gerar falsos positivos/negativos em alertas          |
-| Quem Aprova       | Owner + SRE Lead                                          |
-| SLA de Aprovacao  | 2 horas                                                   |
+| Atributo         | Valor                                                            |
+| ---------------- | ---------------------------------------------------------------- |
+| Descricao        | Alterar thresholds de alerta ou visualizacao em paineis criticos |
+| Razao do Gate    | Pode gerar falsos positivos/negativos em alertas                 |
+| Quem Aprova      | Owner + SRE Lead                                                 |
+| SLA de Aprovacao | 2 horas                                                          |
 
 ```yaml
 remediation:
@@ -389,12 +389,12 @@ remediation:
 
 ### GA-04: Remover Painel Critico
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Remover painel de criticidade alta ou critica             |
-| Razao do Gate     | Pode eliminar visibilidade operacional importante         |
-| Quem Aprova       | Owner + SRE + Tech Lead                                   |
-| SLA de Aprovacao  | 24 horas                                                  |
+| Atributo         | Valor                                             |
+| ---------------- | ------------------------------------------------- |
+| Descricao        | Remover painel de criticidade alta ou critica     |
+| Razao do Gate    | Pode eliminar visibilidade operacional importante |
+| Quem Aprova      | Owner + SRE + Tech Lead                           |
+| SLA de Aprovacao | 24 horas                                          |
 
 ```yaml
 remediation:
@@ -416,12 +416,12 @@ remediation:
 
 ### GA-05: Ajustar Alertas de Alta Severidade
 
-| Atributo          | Valor                                                    |
-|-------------------|----------------------------------------------------------|
-| Descricao         | Modificar regras de alerta com severidade critical/warning |
-| Razao do Gate     | Impacto direto na resposta a incidentes                   |
-| Quem Aprova       | SRE Lead + Oncall atual                                   |
-| SLA de Aprovacao  | 1 hora para critical, 4 horas para warning                |
+| Atributo         | Valor                                                      |
+| ---------------- | ---------------------------------------------------------- |
+| Descricao        | Modificar regras de alerta com severidade critical/warning |
+| Razao do Gate    | Impacto direto na resposta a incidentes                    |
+| Quem Aprova      | SRE Lead + Oncall atual                                    |
+| SLA de Aprovacao | 1 hora para critical, 4 horas para warning                 |
 
 ```yaml
 remediation:
@@ -473,8 +473,8 @@ circuit_breaker:
       max_per_day: 20
 
   escalation_on_breach:
-    notify: ["#velya-observability-alerts", "sre-oncall"]
-    message: "Circuit breaker ativado - limite de remediacoes atingido"
+    notify: ['#velya-observability-alerts', 'sre-oncall']
+    message: 'Circuit breaker ativado - limite de remediacoes atingido'
 ```
 
 ---
@@ -500,11 +500,7 @@ circuit_breaker:
       "diagnosis_step": "library_panel_regression",
       "health_score_before": 38,
       "health_score_threshold": 60,
-      "failing_dimensions": [
-        "query_success",
-        "not_empty",
-        "rendering"
-      ]
+      "failing_dimensions": ["query_success", "not_empty", "rendering"]
     },
     "action": {
       "type": "restore_version",
@@ -628,28 +624,28 @@ DIAGNOSTICO COMPLETO
 # dae-remediation-config.yaml
 remediation:
   enabled: true
-  mode: "safe_auto_gated_manual"  # safe actions auto, gated requerem aprovacao
+  mode: 'safe_auto_gated_manual' # safe actions auto, gated requerem aprovacao
 
   safe_actions:
     enabled: true
     actions:
-      - SA-01  # update_ownership_metadata
-      - SA-02  # fix_broken_link
-      - SA-03  # fix_variable_default
-      - SA-04  # restore_previous_version
-      - SA-05  # revert_library_panel
-      - SA-06  # fix_time_range
-      - SA-07  # remove_orphan_panel
-      - SA-08  # sync_from_git
+      - SA-01 # update_ownership_metadata
+      - SA-02 # fix_broken_link
+      - SA-03 # fix_variable_default
+      - SA-04 # restore_previous_version
+      - SA-05 # revert_library_panel
+      - SA-06 # fix_time_range
+      - SA-07 # remove_orphan_panel
+      - SA-08 # sync_from_git
 
   gated_actions:
     enabled: true
     actions:
-      - GA-01  # rewrite_critical_query
-      - GA-02  # modify_production_dashboard_semantics
-      - GA-03  # modify_critical_thresholds
-      - GA-04  # remove_critical_panel
-      - GA-05  # adjust_high_severity_alerts
+      - GA-01 # rewrite_critical_query
+      - GA-02 # modify_production_dashboard_semantics
+      - GA-03 # modify_critical_thresholds
+      - GA-04 # remove_critical_panel
+      - GA-05 # adjust_high_severity_alerts
 
   validation:
     post_action_wait: 60s
@@ -657,18 +653,18 @@ remediation:
     auto_revert_on_degradation: true
 
   audit:
-    store: "s3://velya-observability-audit/dae-remediation/"
-    retention: "365d"
+    store: 's3://velya-observability-audit/dae-remediation/'
+    retention: '365d'
     push_to_loki: true
     loki_labels:
-      source: "dae-remediation"
-      namespace: "velya-observability"
+      source: 'dae-remediation'
+      namespace: 'velya-observability'
 
   notifications:
     slack:
-      safe_actions: "#velya-observability-auto"
-      gated_actions: "#velya-observability-approvals"
-      failures: "#velya-observability-alerts"
+      safe_actions: '#velya-observability-auto'
+      gated_actions: '#velya-observability-approvals'
+      failures: '#velya-observability-alerts'
     pagerduty:
       on_circuit_breaker: true
       on_revert_failure: true

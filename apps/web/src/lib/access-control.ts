@@ -190,11 +190,7 @@ export const ROLE_DEFINITIONS: Record<ProfessionalRole, RoleDefinition> = {
     professionalCouncil: 'COREN',
     accessLevel: 2,
     allowedDataClasses: ['A', 'C'],
-    allowedActions: [
-      'view_demographics',
-      'view_clinical_summary',
-      'create_nursing_note',
-    ],
+    allowedActions: ['view_demographics', 'view_clinical_summary', 'create_nursing_note'],
     breakGlassEligible: false,
     auditLevel: 'standard',
     allowedNavSections: [NAV_ASSISTENCIAL],
@@ -340,12 +336,7 @@ export const ROLE_DEFINITIONS: Record<ProfessionalRole, RoleDefinition> = {
     professionalCouncil: 'CRBM',
     accessLevel: 3,
     allowedDataClasses: ['A', 'B', 'C'],
-    allowedActions: [
-      'view_demographics',
-      'view_clinical_summary',
-      'sign_document',
-      'print_record',
-    ],
+    allowedActions: ['view_demographics', 'view_clinical_summary', 'sign_document', 'print_record'],
     breakGlassEligible: false,
     auditLevel: 'standard',
     allowedNavSections: [NAV_ASSISTENCIAL],
@@ -357,12 +348,7 @@ export const ROLE_DEFINITIONS: Record<ProfessionalRole, RoleDefinition> = {
     professionalCouncil: 'CRTR',
     accessLevel: 3,
     allowedDataClasses: ['A', 'B', 'C'],
-    allowedActions: [
-      'view_demographics',
-      'view_clinical_summary',
-      'sign_document',
-      'print_record',
-    ],
+    allowedActions: ['view_demographics', 'view_clinical_summary', 'sign_document', 'print_record'],
     breakGlassEligible: false,
     auditLevel: 'standard',
     allowedNavSections: [NAV_ASSISTENCIAL],
@@ -375,10 +361,7 @@ export const ROLE_DEFINITIONS: Record<ProfessionalRole, RoleDefinition> = {
     displayName: 'Recepcionista',
     accessLevel: 2,
     allowedDataClasses: ['A', 'B'],
-    allowedActions: [
-      'view_demographics',
-      'print_record',
-    ],
+    allowedActions: ['view_demographics', 'print_record'],
     breakGlassEligible: false,
     auditLevel: 'standard',
     allowedNavSections: [NAV_ASSISTENCIAL],
@@ -389,11 +372,7 @@ export const ROLE_DEFINITIONS: Record<ProfessionalRole, RoleDefinition> = {
     displayName: 'Faturamento e Autorizacao',
     accessLevel: 3,
     allowedDataClasses: ['A', 'B'],
-    allowedActions: [
-      'view_demographics',
-      'manage_billing',
-      'print_record',
-    ],
+    allowedActions: ['view_demographics', 'manage_billing', 'print_record'],
     breakGlassEligible: false,
     auditLevel: 'elevated',
     allowedNavSections: [NAV_GESTAO],
@@ -406,10 +385,7 @@ export const ROLE_DEFINITIONS: Record<ProfessionalRole, RoleDefinition> = {
     displayName: 'Motorista de Ambulancia',
     accessLevel: 1,
     allowedDataClasses: ['A'],
-    allowedActions: [
-      'view_demographics',
-      'manage_transport',
-    ],
+    allowedActions: ['view_demographics', 'manage_transport'],
     breakGlassEligible: false,
     auditLevel: 'standard',
     allowedNavSections: [NAV_ASSISTENCIAL],
@@ -420,10 +396,7 @@ export const ROLE_DEFINITIONS: Record<ProfessionalRole, RoleDefinition> = {
     displayName: 'Maqueiro(a)',
     accessLevel: 1,
     allowedDataClasses: ['A'],
-    allowedActions: [
-      'view_demographics',
-      'manage_transport',
-    ],
+    allowedActions: ['view_demographics', 'manage_transport'],
     breakGlassEligible: false,
     auditLevel: 'standard',
     allowedNavSections: [NAV_ASSISTENCIAL],
@@ -434,9 +407,7 @@ export const ROLE_DEFINITIONS: Record<ProfessionalRole, RoleDefinition> = {
     displayName: 'Higienizacao',
     accessLevel: 0,
     allowedDataClasses: ['A'],
-    allowedActions: [
-      'manage_cleaning',
-    ],
+    allowedActions: ['manage_cleaning'],
     breakGlassEligible: false,
     auditLevel: 'standard',
     allowedNavSections: [NAV_ASSISTENCIAL],
@@ -458,9 +429,7 @@ export const ROLE_DEFINITIONS: Record<ProfessionalRole, RoleDefinition> = {
     displayName: 'Seguranca Patrimonial',
     accessLevel: 1,
     allowedDataClasses: ['A'],
-    allowedActions: [
-      'view_demographics',
-    ],
+    allowedActions: ['view_demographics'],
     breakGlassEligible: false,
     auditLevel: 'standard',
     allowedNavSections: [NAV_ASSISTENCIAL],
@@ -473,11 +442,7 @@ export const ROLE_DEFINITIONS: Record<ProfessionalRole, RoleDefinition> = {
     displayName: 'Gestao de Leitos',
     accessLevel: 3,
     allowedDataClasses: ['A', 'B'],
-    allowedActions: [
-      'view_demographics',
-      'view_clinical_summary',
-      'print_record',
-    ],
+    allowedActions: ['view_demographics', 'view_clinical_summary', 'print_record'],
     breakGlassEligible: false,
     auditLevel: 'standard',
     allowedNavSections: [NAV_ASSISTENCIAL, NAV_GESTAO],
@@ -572,10 +537,7 @@ export const ROLE_DEFINITIONS: Record<ProfessionalRole, RoleDefinition> = {
     displayName: 'Suporte de TI (JIT)',
     accessLevel: 4,
     allowedDataClasses: ['A'],
-    allowedActions: [
-      'manage_system',
-      'view_observability',
-    ],
+    allowedActions: ['manage_system', 'view_observability'],
     breakGlassEligible: false,
     auditLevel: 'elevated',
     allowedNavSections: [NAV_ADMINISTRACAO, NAV_OBSERVABILIDADE],
@@ -586,12 +548,7 @@ export const ROLE_DEFINITIONS: Record<ProfessionalRole, RoleDefinition> = {
     displayName: 'Administrador de Seguranca (JIT)',
     accessLevel: 6,
     allowedDataClasses: ['A'],
-    allowedActions: [
-      'view_audit_log',
-      'manage_system',
-      'view_observability',
-      'export_data',
-    ],
+    allowedActions: ['view_audit_log', 'manage_system', 'view_observability', 'export_data'],
     breakGlassEligible: false,
     auditLevel: 'maximum',
     allowedNavSections: [NAV_ADMINISTRACAO, NAV_OBSERVABILIDADE],
@@ -689,17 +646,17 @@ export function getAccessLevel(role: ProfessionalRole): AccessLevel {
 
 export const UI_ROLE_MAP: Record<string, ProfessionalRole> = {
   'Coordenador de Ala': 'nurse',
-  'Medico': 'medical_staff_attending',
+  Medico: 'medical_staff_attending',
   'Enfermeiro(a)': 'nurse',
   'Planejador de Alta': 'case_manager',
-  'Administrador': 'admin_system',
+  Administrador: 'admin_system',
   'Tecnico de Enfermagem': 'nursing_technician',
-  'Farmaceutico': 'pharmacist_clinical',
-  'Fisioterapeuta': 'physiotherapist',
-  'Recepcao': 'receptionist_registration',
-  'Motorista': 'ambulance_driver',
-  'Higienizacao': 'cleaning_hygiene',
-  'Faturamento': 'billing_authorization',
+  Farmaceutico: 'pharmacist_clinical',
+  Fisioterapeuta: 'physiotherapist',
+  Recepcao: 'receptionist_registration',
+  Motorista: 'ambulance_driver',
+  Higienizacao: 'cleaning_hygiene',
+  Faturamento: 'billing_authorization',
   'Diretor Clinico': 'clinical_director',
 };
 
@@ -711,7 +668,9 @@ export function resolveUiRole(uiRole: string): ProfessionalRole {
   const resolved = UI_ROLE_MAP[uiRole];
   if (!resolved) {
     // Fallback seguro: papel desconhecido recebe acesso mínimo (nível 0), não admin
-    console.warn(`[access-control] Role desconhecida: "${uiRole}" — usando security_guard (nível 0)`);
+    console.warn(
+      `[access-control] Role desconhecida: "${uiRole}" — usando security_guard (nível 0)`,
+    );
     return 'security_guard';
   }
   return resolved;

@@ -12,13 +12,13 @@ O Health Score e uma pontuacao numerica de 0 a 100 que representa a saude operac
 
 Verifica se o datasource referenciado pelo painel esta acessivel e respondendo.
 
-| Score | Condicao                                              |
-|-------|-------------------------------------------------------|
-| 100   | Datasource responde em < 1s, sem erros                |
-| 75    | Datasource responde em < 3s                           |
-| 50    | Datasource responde em < 5s (lentidao)                |
-| 25    | Datasource responde com intermitencia                 |
-| 0     | Datasource inacessivel ou nao configurado             |
+| Score | Condicao                                  |
+| ----- | ----------------------------------------- |
+| 100   | Datasource responde em < 1s, sem erros    |
+| 75    | Datasource responde em < 3s               |
+| 50    | Datasource responde em < 5s (lentidao)    |
+| 25    | Datasource responde com intermitencia     |
+| 0     | Datasource inacessivel ou nao configurado |
 
 ```promql
 # Metrica base
@@ -38,13 +38,13 @@ dae_datasource_health_check_duration_seconds{datasource="prometheus"} < 1
 
 Verifica se a query do painel executa sem erro no datasource.
 
-| Score | Condicao                                              |
-|-------|-------------------------------------------------------|
-| 100   | Query executa com sucesso, retorna dados               |
-| 75    | Query executa mas com warning (ex: too many results)   |
-| 50    | Query executa mas timeout parcial                     |
-| 25    | Query retorna erro intermitente                        |
-| 0     | Query retorna erro consistente ou sintaxe invalida     |
+| Score | Condicao                                             |
+| ----- | ---------------------------------------------------- |
+| 100   | Query executa com sucesso, retorna dados             |
+| 75    | Query executa mas com warning (ex: too many results) |
+| 50    | Query executa mas timeout parcial                    |
+| 25    | Query retorna erro intermitente                      |
+| 0     | Query retorna erro consistente ou sintaxe invalida   |
 
 ```promql
 # Metrica de sucesso de query por painel
@@ -62,13 +62,13 @@ rate(dae_panel_query_errors_total[5m]) > 0
 
 Verifica se os dados retornados estao dentro da janela temporal esperada.
 
-| Score | Condicao                                              |
-|-------|-------------------------------------------------------|
-| 100   | Dados mais recentes com < 5 min de idade               |
-| 75    | Dados com 5-15 min de idade                            |
-| 50    | Dados com 15-60 min de idade                           |
-| 25    | Dados com 1-6h de idade                                |
-| 0     | Dados com > 6h de idade ou sem timestamp valido        |
+| Score | Condicao                                        |
+| ----- | ----------------------------------------------- |
+| 100   | Dados mais recentes com < 5 min de idade        |
+| 75    | Dados com 5-15 min de idade                     |
+| 50    | Dados com 15-60 min de idade                    |
+| 25    | Dados com 1-6h de idade                         |
+| 0     | Dados com > 6h de idade ou sem timestamp valido |
 
 ```promql
 # Idade do dado mais recente por painel
@@ -85,13 +85,13 @@ time() - dae_panel_data_latest_timestamp{
 
 Verifica se a query retorna dados quando deveria (nao esta vazia sem justificativa).
 
-| Score | Condicao                                              |
-|-------|-------------------------------------------------------|
-| 100   | Retorna dados consistentemente                         |
-| 75    | Retorna dados na maioria das verificacoes              |
-| 50    | Vazio intermitente (pode ser normal para o contexto)   |
-| 25    | Frequentemente vazio (possivel problema)               |
-| 0     | Sempre vazio quando deveria ter dados                  |
+| Score | Condicao                                             |
+| ----- | ---------------------------------------------------- |
+| 100   | Retorna dados consistentemente                       |
+| 75    | Retorna dados na maioria das verificacoes            |
+| 50    | Vazio intermitente (pode ser normal para o contexto) |
+| 25    | Frequentemente vazio (possivel problema)             |
+| 0     | Sempre vazio quando deveria ter dados                |
 
 ```promql
 # Painel retornou dados na ultima verificacao
@@ -111,13 +111,13 @@ avg_over_time(dae_panel_has_data{
 
 Verifica se todas as variaveis referenciadas na query do painel existem e resolvem para valores validos.
 
-| Score | Condicao                                              |
-|-------|-------------------------------------------------------|
-| 100   | Todas as variaveis resolvem corretamente               |
-| 75    | Variaveis resolvem mas com valores sub-otimos          |
-| 50    | Uma variavel nao-critica nao resolve                   |
-| 25    | Multiplas variaveis com problema                       |
-| 0     | Variavel critica nao resolve, painel quebrado          |
+| Score | Condicao                                      |
+| ----- | --------------------------------------------- |
+| 100   | Todas as variaveis resolvem corretamente      |
+| 75    | Variaveis resolvem mas com valores sub-otimos |
+| 50    | Uma variavel nao-critica nao resolve          |
+| 25    | Multiplas variaveis com problema              |
+| 0     | Variavel critica nao resolve, painel quebrado |
 
 ```promql
 # Integridade de variaveis
@@ -137,13 +137,13 @@ dae_variable_resolution_failed{
 
 Verifica se todas as transformacoes aplicadas ao painel funcionam e produzem resultado.
 
-| Score | Condicao                                              |
-|-------|-------------------------------------------------------|
-| 100   | Todas as transformacoes produzem resultado             |
-| 75    | Transformacoes funcionam mas com warnings              |
-| 50    | Uma transformacao nao produz resultado                 |
-| 25    | Multiplas transformacoes com problema                  |
-| 0     | Transformacao critica falha, painel sem dados           |
+| Score | Condicao                                      |
+| ----- | --------------------------------------------- |
+| 100   | Todas as transformacoes produzem resultado    |
+| 75    | Transformacoes funcionam mas com warnings     |
+| 50    | Uma transformacao nao produz resultado        |
+| 25    | Multiplas transformacoes com problema         |
+| 0     | Transformacao critica falha, painel sem dados |
 
 ```promql
 # Integridade de transformacoes
@@ -164,12 +164,12 @@ dae_panel_transformation_errors{
 
 Verifica se todos os data links e dashboard links do painel apontam para destinos validos.
 
-| Score | Condicao                                              |
-|-------|-------------------------------------------------------|
-| 100   | Todos os links resolvem para destinos validos          |
-| 75    | Links funcionam mas com redirect                       |
-| 50    | Um link aponta para destino inexistente                |
-| 25    | Multiplos links quebrados                              |
+| Score | Condicao                                                               |
+| ----- | ---------------------------------------------------------------------- |
+| 100   | Todos os links resolvem para destinos validos                          |
+| 75    | Links funcionam mas com redirect                                       |
+| 50    | Um link aponta para destino inexistente                                |
+| 25    | Multiplos links quebrados                                              |
 | 0     | Todos os links quebrados ou nenhum link configurado quando deveria ter |
 
 ```promql
@@ -190,13 +190,13 @@ dae_panel_links_broken{
 
 Verifica se o painel renderiza visualmente sem erros.
 
-| Score | Condicao                                              |
-|-------|-------------------------------------------------------|
-| 100   | Renderiza perfeitamente                                |
-| 75    | Renderiza com minor warning visual                     |
-| 50    | Renderiza mas com overflow ou truncamento              |
-| 25    | Renderiza parcialmente                                 |
-| 0     | Erro de renderizacao (plugin error, panel error)       |
+| Score | Condicao                                         |
+| ----- | ------------------------------------------------ |
+| 100   | Renderiza perfeitamente                          |
+| 75    | Renderiza com minor warning visual               |
+| 50    | Renderiza mas com overflow ou truncamento        |
+| 25    | Renderiza parcialmente                           |
+| 0     | Erro de renderizacao (plugin error, panel error) |
 
 ```promql
 # Status de renderizacao
@@ -217,13 +217,13 @@ dae_panel_render_errors_total{
 Verifica se o painel segue boas praticas de UX: titulo descritivo, descricao, unidade configurada, thresholds definidos.
 
 | Score | Condicao                                              |
-|-------|-------------------------------------------------------|
-| 100   | Titulo claro, descricao, unidade, thresholds           |
-| 80    | Titulo e unidade OK, sem descricao                     |
-| 60    | Titulo OK, sem unidade ou com unidade generica         |
-| 40    | Titulo generico ("Panel Title"), configuracao parcial  |
-| 20    | Titulo padrao nao editado                              |
-| 0     | Sem titulo, sem unidade, sem thresholds                |
+| ----- | ----------------------------------------------------- |
+| 100   | Titulo claro, descricao, unidade, thresholds          |
+| 80    | Titulo e unidade OK, sem descricao                    |
+| 60    | Titulo OK, sem unidade ou com unidade generica        |
+| 40    | Titulo generico ("Panel Title"), configuracao parcial |
+| 20    | Titulo padrao nao editado                             |
+| 0     | Sem titulo, sem unidade, sem thresholds               |
 
 ```promql
 # Score de utilidade semantica
@@ -240,14 +240,14 @@ dae_panel_default_title{dashboard_uid=~"velya-.*"} == 1
 
 Verifica se paineis criticos tem alertas vinculados.
 
-| Score | Condicao                                              |
-|-------|-------------------------------------------------------|
-| 100   | Painel critico com alerta ativo e funcional            |
-| 75    | Painel critico com alerta mas alerta em warning        |
-| 50    | Painel critico com alerta mas alerta nao avalia        |
-| 25    | Painel de alta prioridade sem alerta                   |
-| 0     | Painel critico sem alerta vinculado                    |
-| N/A   | Painel de baixa criticidade, dimensao nao aplica       |
+| Score | Condicao                                         |
+| ----- | ------------------------------------------------ |
+| 100   | Painel critico com alerta ativo e funcional      |
+| 75    | Painel critico com alerta mas alerta em warning  |
+| 50    | Painel critico com alerta mas alerta nao avalia  |
+| 25    | Painel de alta prioridade sem alerta             |
+| 0     | Painel critico sem alerta vinculado              |
+| N/A   | Painel de baixa criticidade, dimensao nao aplica |
 
 ```promql
 # Paineis criticos com alerta
@@ -265,13 +265,13 @@ dae_panel_has_alert{criticality="critical"} == 0
 
 Verifica se o dashboard tem dono atribuido e se o dono e ativo.
 
-| Score | Condicao                                              |
-|-------|-------------------------------------------------------|
-| 100   | Owner atribuido, ativo, revisou nos ultimos 30 dias    |
-| 75    | Owner atribuido, ativo, sem revisao recente            |
-| 50    | Owner atribuido mas inativo (ex: saiu da empresa)      |
-| 25    | Owner atribuido mas nao reconhece responsabilidade     |
-| 0     | Sem owner atribuido                                    |
+| Score | Condicao                                            |
+| ----- | --------------------------------------------------- |
+| 100   | Owner atribuido, ativo, revisou nos ultimos 30 dias |
+| 75    | Owner atribuido, ativo, sem revisao recente         |
+| 50    | Owner atribuido mas inativo (ex: saiu da empresa)   |
+| 25    | Owner atribuido mas nao reconhece responsabilidade  |
+| 0     | Sem owner atribuido                                 |
 
 ```promql
 # Dashboards com owner
@@ -355,22 +355,22 @@ def calculate_dashboard_health_score(dashboard, panel_scores):
 
 ## Thresholds e Classificacao
 
-| Faixa         | Score     | Cor      | Significado                           | Acao Requerida                |
-|--------------|-----------|----------|---------------------------------------|-------------------------------|
-| Saudavel     | 85 - 100  | Verde    | Painel funcionando corretamente        | Nenhuma                       |
-| Degradado    | 60 - 84   | Amarelo  | Painel com problemas parciais          | Investigar, corrigir em 48h   |
-| Critico      | 0 - 59    | Vermelho | Painel quebrado ou sem utilidade       | Corrigir imediatamente        |
+| Faixa     | Score    | Cor      | Significado                      | Acao Requerida              |
+| --------- | -------- | -------- | -------------------------------- | --------------------------- |
+| Saudavel  | 85 - 100 | Verde    | Painel funcionando corretamente  | Nenhuma                     |
+| Degradado | 60 - 84  | Amarelo  | Painel com problemas parciais    | Investigar, corrigir em 48h |
+| Critico   | 0 - 59   | Vermelho | Painel quebrado ou sem utilidade | Corrigir imediatamente      |
 
 ---
 
 ## Cadencia de Calculo
 
-| Operacao                  | Frequencia | Justificativa                              |
-|--------------------------|------------|---------------------------------------------|
-| Calculo de score         | 5 min      | Detectar degradacao rapidamente              |
-| Tendencia de score       | 1h         | Avaliar direcao da saude                     |
-| Report de health         | Diario     | Resumo para owners e gestao                  |
-| Recalculo completo       | 24h        | Garantir consistencia, limpar cache          |
+| Operacao           | Frequencia | Justificativa                       |
+| ------------------ | ---------- | ----------------------------------- |
+| Calculo de score   | 5 min      | Detectar degradacao rapidamente     |
+| Tendencia de score | 1h         | Avaliar direcao da saude            |
+| Report de health   | Diario     | Resumo para owners e gestao         |
+| Recalculo completo | 24h        | Garantir consistencia, limpar cache |
 
 ---
 
@@ -419,7 +419,7 @@ avg by (folder) (dae_dashboard_health_score)
       {
         "title": "Health Score Global",
         "type": "stat",
-        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
         "targets": [
           {
             "expr": "avg(dae_dashboard_health_score{namespace=\"velya-observability\"})",
@@ -430,9 +430,9 @@ avg by (folder) (dae_dashboard_health_score)
           "defaults": {
             "thresholds": {
               "steps": [
-                {"color": "red", "value": 0},
-                {"color": "yellow", "value": 60},
-                {"color": "green", "value": 85}
+                { "color": "red", "value": 0 },
+                { "color": "yellow", "value": 60 },
+                { "color": "green", "value": 85 }
               ]
             }
           }
@@ -441,17 +441,20 @@ avg by (folder) (dae_dashboard_health_score)
       {
         "title": "Dashboards Saudaveis / Degradados / Criticos",
         "type": "stat",
-        "gridPos": {"h": 4, "w": 18, "x": 6, "y": 0},
+        "gridPos": { "h": 4, "w": 18, "x": 6, "y": 0 },
         "targets": [
-          {"expr": "count(dae_dashboard_health_score >= 85)", "legendFormat": "Saudaveis"},
-          {"expr": "count(dae_dashboard_health_score >= 60 and dae_dashboard_health_score < 85)", "legendFormat": "Degradados"},
-          {"expr": "count(dae_dashboard_health_score < 60)", "legendFormat": "Criticos"}
+          { "expr": "count(dae_dashboard_health_score >= 85)", "legendFormat": "Saudaveis" },
+          {
+            "expr": "count(dae_dashboard_health_score >= 60 and dae_dashboard_health_score < 85)",
+            "legendFormat": "Degradados"
+          },
+          { "expr": "count(dae_dashboard_health_score < 60)", "legendFormat": "Criticos" }
         ]
       },
       {
         "title": "Health Score por Dashboard",
         "type": "bargauge",
-        "gridPos": {"h": 12, "w": 24, "x": 0, "y": 4},
+        "gridPos": { "h": 12, "w": 24, "x": 0, "y": 4 },
         "targets": [
           {
             "expr": "sort_desc(dae_dashboard_health_score)",
@@ -462,7 +465,7 @@ avg by (folder) (dae_dashboard_health_score)
       {
         "title": "Piores Dimensoes (Media Global)",
         "type": "bargauge",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
         "targets": [
           {
             "expr": "sort(avg by (dimension) (dae_panel_dimension_score))",
@@ -473,7 +476,7 @@ avg by (folder) (dae_dashboard_health_score)
       {
         "title": "Tendencia de Health Score (7 dias)",
         "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
         "targets": [
           {
             "expr": "avg(dae_dashboard_health_score)",
@@ -551,41 +554,41 @@ metadata:
   namespace: velya-observability
 spec:
   groups:
-  - name: health-score
-    interval: 60s
-    rules:
-    - alert: DashboardHealthScoreCritical
-      expr: dae_dashboard_health_score < 60
-      for: 10m
-      labels:
-        severity: warning
-        team: "{{ $labels.owner_role }}"
-      annotations:
-        summary: "Dashboard {{ $labels.dashboard_uid }} com score {{ $value }}"
-        description: "Health score abaixo de 60 por mais de 10 minutos."
+    - name: health-score
+      interval: 60s
+      rules:
+        - alert: DashboardHealthScoreCritical
+          expr: dae_dashboard_health_score < 60
+          for: 10m
+          labels:
+            severity: warning
+            team: '{{ $labels.owner_role }}'
+          annotations:
+            summary: 'Dashboard {{ $labels.dashboard_uid }} com score {{ $value }}'
+            description: 'Health score abaixo de 60 por mais de 10 minutos.'
 
-    - alert: DashboardHealthDegrading
-      expr: |
-        (
-          avg_over_time(dae_dashboard_health_score[1h])
-          - avg_over_time(dae_dashboard_health_score[1h] offset 6h)
-        ) < -15
-      for: 30m
-      labels:
-        severity: warning
-        team: "{{ $labels.owner_role }}"
-      annotations:
-        summary: "Dashboard {{ $labels.dashboard_uid }} degradando rapidamente"
-        description: "O health score caiu mais de 15 pontos nas ultimas 6 horas."
+        - alert: DashboardHealthDegrading
+          expr: |
+            (
+              avg_over_time(dae_dashboard_health_score[1h])
+              - avg_over_time(dae_dashboard_health_score[1h] offset 6h)
+            ) < -15
+          for: 30m
+          labels:
+            severity: warning
+            team: '{{ $labels.owner_role }}'
+          annotations:
+            summary: 'Dashboard {{ $labels.dashboard_uid }} degradando rapidamente'
+            description: 'O health score caiu mais de 15 pontos nas ultimas 6 horas.'
 
-    - alert: CriticalDashboardBelowThreshold
-      expr: |
-        dae_dashboard_health_score{criticality="critical"} < 85
-      for: 15m
-      labels:
-        severity: critical
-        team: platform
-      annotations:
-        summary: "Dashboard critico {{ $labels.dashboard_uid }} com score {{ $value }}"
-        description: "Um dashboard de criticidade 'critical' esta abaixo do threshold de 85."
+        - alert: CriticalDashboardBelowThreshold
+          expr: |
+            dae_dashboard_health_score{criticality="critical"} < 85
+          for: 15m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: 'Dashboard critico {{ $labels.dashboard_uid }} com score {{ $value }}'
+            description: "Um dashboard de criticidade 'critical' esta abaixo do threshold de 85."
 ```

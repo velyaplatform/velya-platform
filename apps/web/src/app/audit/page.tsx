@@ -231,12 +231,23 @@ export default function AuditPage() {
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
           {/* Date */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <label
+              style={{
+                fontSize: '0.7rem',
+                color: 'var(--text-tertiary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
               Data
             </label>
             <select
               value={selectedDate}
-              onChange={(e) => { setSelectedDate(e.target.value); setPage(0); setIntegrityResult(null); }}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                setPage(0);
+                setIntegrityResult(null);
+              }}
               style={{
                 background: 'var(--color-surface-subtle)',
                 border: '1px solid var(--color-border)',
@@ -248,20 +259,34 @@ export default function AuditPage() {
               }}
             >
               <option value={new Date().toISOString().split('T')[0]}>Hoje</option>
-              {dates.filter(d => d !== new Date().toISOString().split('T')[0]).map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
+              {dates
+                .filter((d) => d !== new Date().toISOString().split('T')[0])
+                .map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
             </select>
           </div>
 
           {/* Category */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <label
+              style={{
+                fontSize: '0.7rem',
+                color: 'var(--text-tertiary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
               Categoria
             </label>
             <select
               value={filterCategory}
-              onChange={(e) => { setFilterCategory(e.target.value); setPage(0); }}
+              onChange={(e) => {
+                setFilterCategory(e.target.value);
+                setPage(0);
+              }}
               style={{
                 background: 'var(--color-surface-subtle)',
                 border: '1px solid var(--color-border)',
@@ -283,12 +308,22 @@ export default function AuditPage() {
 
           {/* Result */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <label
+              style={{
+                fontSize: '0.7rem',
+                color: 'var(--text-tertiary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
               Resultado
             </label>
             <select
               value={filterResult}
-              onChange={(e) => { setFilterResult(e.target.value); setPage(0); }}
+              onChange={(e) => {
+                setFilterResult(e.target.value);
+                setPage(0);
+              }}
               style={{
                 background: 'var(--color-surface-subtle)',
                 border: '1px solid var(--color-border)',
@@ -309,14 +344,24 @@ export default function AuditPage() {
 
           {/* Actor filter */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <label
+              style={{
+                fontSize: '0.7rem',
+                color: 'var(--text-tertiary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
               Ator
             </label>
             <input
               type="text"
               placeholder="Buscar ator..."
               value={filterActor}
-              onChange={(e) => { setFilterActor(e.target.value); setPage(0); }}
+              onChange={(e) => {
+                setFilterActor(e.target.value);
+                setPage(0);
+              }}
               style={{
                 background: 'var(--color-surface-subtle)',
                 border: '1px solid var(--color-border)',
@@ -331,14 +376,24 @@ export default function AuditPage() {
 
           {/* Resource filter */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <label
+              style={{
+                fontSize: '0.7rem',
+                color: 'var(--text-tertiary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
               Recurso
             </label>
             <input
               type="text"
               placeholder="Buscar recurso..."
               value={filterResource}
-              onChange={(e) => { setFilterResource(e.target.value); setPage(0); }}
+              onChange={(e) => {
+                setFilterResource(e.target.value);
+                setPage(0);
+              }}
               style={{
                 background: 'var(--color-surface-subtle)',
                 border: '1px solid var(--color-border)',
@@ -353,14 +408,24 @@ export default function AuditPage() {
 
           {/* Action filter */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <label
+              style={{
+                fontSize: '0.7rem',
+                color: 'var(--text-tertiary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
               Acao
             </label>
             <input
               type="text"
               placeholder="Buscar acao..."
               value={filterAction}
-              onChange={(e) => { setFilterAction(e.target.value); setPage(0); }}
+              onChange={(e) => {
+                setFilterAction(e.target.value);
+                setPage(0);
+              }}
               style={{
                 background: 'var(--color-surface-subtle)',
                 border: '1px solid var(--color-border)',
@@ -408,16 +473,15 @@ export default function AuditPage() {
             fontSize: '0.8rem',
           }}
         >
-          ATENCAO: Integridade da cadeia de hash comprometida nesta data. Possivel adulteracao detectada.
+          ATENCAO: Integridade da cadeia de hash comprometida nesta data. Possivel adulteracao
+          detectada.
         </div>
       )}
 
       {/* Audit table */}
       <div className="card">
         <div className="card-header">
-          <span className="card-title">
-            Registros de Auditoria
-          </span>
+          <span className="card-title">Registros de Auditoria</span>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
             Mostrando {entries.length} de {total} | Pagina {page + 1} de {Math.max(totalPages, 1)}
           </span>
@@ -450,7 +514,13 @@ export default function AuditPage() {
               <tbody>
                 {entries.map((entry) => (
                   <tr key={entry.id}>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.7rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {formatTimestamp(entry.timestamp)}
                     </td>
                     <td>
@@ -472,25 +542,60 @@ export default function AuditPage() {
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
                       {entry.action}
                     </td>
-                    <td style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        fontSize: '0.75rem',
+                        color: 'var(--text-secondary)',
+                        maxWidth: '300px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {entry.description}
                     </td>
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>
                       {entry.actor}
                     </td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.7rem',
+                        maxWidth: '140px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {entry.resource}
                     </td>
                     <td>
-                      <span className={`badge ${RESULT_BADGE[entry.result] || 'badge-neutral'}`} style={{ fontSize: '0.65rem' }}>
+                      <span
+                        className={`badge ${RESULT_BADGE[entry.result] || 'badge-neutral'}`}
+                        style={{ fontSize: '0.65rem' }}
+                      >
                         {RESULT_LABELS[entry.result] || entry.result}
                       </span>
                     </td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-tertiary)' }}>
+                    <td
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.6rem',
+                        color: 'var(--text-tertiary)',
+                      }}
+                    >
                       {truncateHash(entry.hash)}
                     </td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
-                      {entry.durationMs !== undefined && entry.durationMs !== null ? `${entry.durationMs}ms` : '-'}
+                    <td
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.7rem',
+                        color: 'var(--text-tertiary)',
+                      }}
+                    >
+                      {entry.durationMs !== undefined && entry.durationMs !== null
+                        ? `${entry.durationMs}ms`
+                        : '-'}
                     </td>
                   </tr>
                 ))}
@@ -501,7 +606,15 @@ export default function AuditPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', padding: '1rem', borderTop: '1px solid var(--color-border)' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              padding: '1rem',
+              borderTop: '1px solid var(--color-border)',
+            }}
+          >
             <button
               className="btn btn-ghost btn-sm"
               disabled={page === 0}
@@ -513,18 +626,20 @@ export default function AuditPage() {
             <button
               className="btn btn-ghost btn-sm"
               disabled={page === 0}
-              onClick={() => setPage(p => Math.max(0, p - 1))}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
               style={{ fontSize: '0.75rem' }}
             >
               Anterior
             </button>
-            <span style={{ alignSelf: 'center', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+            <span
+              style={{ alignSelf: 'center', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}
+            >
               {page + 1} / {totalPages}
             </span>
             <button
               className="btn btn-ghost btn-sm"
               disabled={page >= totalPages - 1}
-              onClick={() => setPage(p => p + 1)}
+              onClick={() => setPage((p) => p + 1)}
               style={{ fontSize: '0.75rem' }}
             >
               Proxima

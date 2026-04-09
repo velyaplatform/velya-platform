@@ -3,23 +3,26 @@
 **Versão:** 1.0  
 **Cluster Alvo:** AWS EKS (simulado localmente com kind-velya-local)  
 **Provisionador:** Karpenter  
-**Última revisão:** 2026-04-08  
+**Última revisão:** 2026-04-08
 
 ---
 
 ## 1. Por que Isolar por NodePool
 
 A Velya opera workloads com características radicalmente diferentes:
+
 - Um sentinel agent precisa de resposta em < 100ms mas usa < 50m CPU
 - Um batch de AI analytics pode usar 4 vCPUs por 30 minutos e depois ficar ocioso
 - Um serviço clínico de missão crítica não pode ser co-locado com um batch que pode causar CPU throttling
 
 Sem isolamento por NodePool:
+
 - Workloads de batch competem por CPU com serviços clínicos críticos
 - Spot instances de workloads não-críticos causam evictions de pods críticos
 - Custo de nodes grandes desperdiçado com pods pequenos
 
 Com isolamento por NodePool (Karpenter):
+
 - Cada categoria de workload vai para nodes adequados
 - Spot instances apenas onde tolerável
 - Tamanho de node otimizado por perfil de workload
@@ -50,33 +53,33 @@ spec:
         apiVersion: karpenter.k8s.aws/v1beta1
         kind: EC2NodeClass
         name: system-critical-class
-      
+
       taints:
-        - key: "velya.io/node-class"
-          value: "system-critical"
+        - key: 'velya.io/node-class'
+          value: 'system-critical'
           effect: NoSchedule
-      
+
       requirements:
         - key: kubernetes.io/arch
           operator: In
-          values: ["amd64"]
+          values: ['amd64']
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["on-demand"]   # NUNCA spot para componentes críticos
+          values: ['on-demand'] # NUNCA spot para componentes críticos
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
-            - "m5.large"           # 2 vCPU, 8GB RAM
-            - "m5.xlarge"          # 4 vCPU, 16GB RAM
-      
-      expireAfter: "720h"        # Rotate nodes a cada 30 dias
-  
+            - 'm5.large' # 2 vCPU, 8GB RAM
+            - 'm5.xlarge' # 4 vCPU, 16GB RAM
+
+      expireAfter: '720h' # Rotate nodes a cada 30 dias
+
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: "Never"  # Nunca consolidar nodes críticos automaticamente
+    consolidateAfter: 'Never' # Nunca consolidar nodes críticos automaticamente
     budgets:
-      - nodes: "0"             # Nenhum node do pool pode ser disruptado em condições normais
-  
+      - nodes: '0' # Nenhum node do pool pode ser disruptado em condições normais
+
   limits:
     cpu: 8
     memory: 32Gi
@@ -94,7 +97,7 @@ spec:
   securityGroupSelectorTerms:
     - tags:
         velya.io/node-class: system-critical
-  instanceProfile: "VelyaSystemCriticalNodeProfile"
+  instanceProfile: 'VelyaSystemCriticalNodeProfile'
   blockDeviceMappings:
     - deviceName: /dev/xvda
       ebs:
@@ -126,47 +129,48 @@ spec:
     spec:
       nodeClassRef:
         name: realtime-app-class
-      
+
       taints:
-        - key: "velya.io/node-class"
-          value: "realtime-app"
+        - key: 'velya.io/node-class'
+          value: 'realtime-app'
           effect: NoSchedule
-      
+
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["on-demand"]
+          values: ['on-demand']
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
-            - "m6i.large"          # 2 vCPU, 8GB
-            - "m6i.xlarge"         # 4 vCPU, 16GB
-            - "m6i.2xlarge"        # 8 vCPU, 32GB
-            - "m5.large"           # Fallback
-            - "m5.xlarge"
-      
-      expireAfter: "336h"        # Rotate a cada 14 dias
-  
+            - 'm6i.large' # 2 vCPU, 8GB
+            - 'm6i.xlarge' # 4 vCPU, 16GB
+            - 'm6i.2xlarge' # 8 vCPU, 32GB
+            - 'm5.large' # Fallback
+            - 'm5.xlarge'
+
+      expireAfter: '336h' # Rotate a cada 14 dias
+
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: "30m"
+    consolidateAfter: '30m'
     budgets:
-      - nodes: "10%"           # Max 10% dos nodes podem ser disruptados por vez
-        schedule: "0 2 * * *"  # Apenas às 2h UTC
-        duration: "2h"
-  
+      - nodes: '10%' # Max 10% dos nodes podem ser disruptados por vez
+        schedule: '0 2 * * *' # Apenas às 2h UTC
+        duration: '2h'
+
   limits:
     cpu: 32
     memory: 128Gi
 ```
 
 **Tolerations para pods neste pool:**
+
 ```yaml
 tolerations:
-  - key: "velya.io/node-class"
-    operator: "Equal"
-    value: "realtime-app"
-    effect: "NoSchedule"
+  - key: 'velya.io/node-class'
+    operator: 'Equal'
+    value: 'realtime-app'
+    effect: 'NoSchedule'
 
 nodeSelector:
   velya.io/node-class: realtime-app
@@ -192,32 +196,32 @@ spec:
     spec:
       nodeClassRef:
         name: async-workers-class
-      
+
       taints:
-        - key: "velya.io/node-class"
-          value: "async-workers"
+        - key: 'velya.io/node-class'
+          value: 'async-workers'
           effect: NoSchedule
-      
+
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["spot", "on-demand"]   # Prefere spot, fallback on-demand
+          values: ['spot', 'on-demand'] # Prefere spot, fallback on-demand
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
-            - "m5.large"
-            - "m5.xlarge"
-            - "m5a.large"
-            - "m6i.large"
-            - "m6a.large"
-            - "r5.large"           # Memory-optimized para workers com cache
-  
+            - 'm5.large'
+            - 'm5.xlarge'
+            - 'm5a.large'
+            - 'm6i.large'
+            - 'm6a.large'
+            - 'r5.large' # Memory-optimized para workers com cache
+
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: "5m"    # Consolidar nodes subutilizados rapidamente
+    consolidateAfter: '5m' # Consolidar nodes subutilizados rapidamente
     budgets:
-      - nodes: "30%"          # 30% podem ser disruptados (NATS garante re-delivery)
-  
+      - nodes: '30%' # 30% podem ser disruptados (NATS garante re-delivery)
+
   limits:
     cpu: 64
     memory: 256Gi
@@ -244,32 +248,32 @@ spec:
     spec:
       nodeClassRef:
         name: batch-class
-      
+
       taints:
-        - key: "velya.io/node-class"
-          value: "scheduled-batch"
+        - key: 'velya.io/node-class'
+          value: 'scheduled-batch'
           effect: NoSchedule
-      
+
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["spot"]      # APENAS spot — batch tolera interruption
+          values: ['spot'] # APENAS spot — batch tolera interruption
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
-            - "m5.large"
-            - "m5.xlarge"
-            - "m5.2xlarge"
-            - "m6i.large"
-            - "c5.xlarge"       # Compute-optimized para batch intensivo
-            - "c5.2xlarge"
-  
+            - 'm5.large'
+            - 'm5.xlarge'
+            - 'm5.2xlarge'
+            - 'm6i.large'
+            - 'c5.xlarge' # Compute-optimized para batch intensivo
+            - 'c5.2xlarge'
+
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: "1m"    # Consolidar agressivamente — batch pode reiniciar
+    consolidateAfter: '1m' # Consolidar agressivamente — batch pode reiniciar
     budgets:
-      - nodes: "100%"         # Todos os nodes podem ser disruptados
-  
+      - nodes: '100%' # Todos os nodes podem ser disruptados
+
   limits:
     cpu: 32
     memory: 64Gi
@@ -297,29 +301,29 @@ spec:
   template:
     spec:
       taints:
-        - key: "velya.io/node-class"
-          value: "agent-runtime"
+        - key: 'velya.io/node-class'
+          value: 'agent-runtime'
           effect: NoSchedule
-      
+
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["spot", "on-demand"]
+          values: ['spot', 'on-demand']
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
-            - "t3.medium"     # 2 vCPU, 4GB — agents leves
-            - "t3.large"      # 2 vCPU, 8GB
-            - "t3a.medium"
-            - "t3a.large"
-            - "m5.large"      # Fallback para agents mais pesados
-  
+            - 't3.medium' # 2 vCPU, 4GB — agents leves
+            - 't3.large' # 2 vCPU, 8GB
+            - 't3a.medium'
+            - 't3a.large'
+            - 'm5.large' # Fallback para agents mais pesados
+
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: "10m"
+    consolidateAfter: '10m'
     budgets:
-      - nodes: "20%"
-  
+      - nodes: '20%'
+
   limits:
     cpu: 16
     memory: 64Gi
@@ -344,31 +348,31 @@ spec:
   template:
     spec:
       taints:
-        - key: "velya.io/node-class"
-          value: "heavy-ai-analytics"
+        - key: 'velya.io/node-class'
+          value: 'heavy-ai-analytics'
           effect: NoSchedule
-      
+
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["spot"]
+          values: ['spot']
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
-            - "c5.4xlarge"    # 16 vCPU, 32GB — compute intensivo
-            - "c5.9xlarge"    # 36 vCPU, 72GB
-            - "c5a.4xlarge"
-            - "m5.4xlarge"    # 16 vCPU, 64GB — memory + compute
-            - "r5.4xlarge"    # 16 vCPU, 128GB — memory heavy
-      
-      expireAfter: "24h"    # Jobs de analytics não devem ter vida longa
-  
+            - 'c5.4xlarge' # 16 vCPU, 32GB — compute intensivo
+            - 'c5.9xlarge' # 36 vCPU, 72GB
+            - 'c5a.4xlarge'
+            - 'm5.4xlarge' # 16 vCPU, 64GB — memory + compute
+            - 'r5.4xlarge' # 16 vCPU, 128GB — memory heavy
+
+      expireAfter: '24h' # Jobs de analytics não devem ter vida longa
+
   disruption:
     consolidationPolicy: WhenEmpty
-    consolidateAfter: "1m"
+    consolidateAfter: '1m'
     budgets:
-      - nodes: "100%"
-  
+      - nodes: '100%'
+
   limits:
     cpu: 128
     memory: 512Gi
@@ -393,28 +397,28 @@ spec:
   template:
     spec:
       taints:
-        - key: "velya.io/node-class"
-          value: "observability"
+        - key: 'velya.io/node-class'
+          value: 'observability'
           effect: NoSchedule
-      
+
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["on-demand"]   # On-demand: Prometheus/Loki têm estado
+          values: ['on-demand'] # On-demand: Prometheus/Loki têm estado
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
-            - "m5.xlarge"         # 4 vCPU, 16GB — Prometheus precisa de memória
-            - "m5.2xlarge"        # 8 vCPU, 32GB
-            - "r5.xlarge"         # 4 vCPU, 32GB — memory-optimized para Loki
-            - "r5.2xlarge"        # 8 vCPU, 64GB
-  
+            - 'm5.xlarge' # 4 vCPU, 16GB — Prometheus precisa de memória
+            - 'm5.2xlarge' # 8 vCPU, 32GB
+            - 'r5.xlarge' # 4 vCPU, 32GB — memory-optimized para Loki
+            - 'r5.2xlarge' # 8 vCPU, 64GB
+
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: "Never"  # Não disruptar nodes de observabilidade automaticamente
+    consolidateAfter: 'Never' # Não disruptar nodes de observabilidade automaticamente
     budgets:
-      - nodes: "0"             # Nunca disruptar automaticamente
-  
+      - nodes: '0' # Nunca disruptar automaticamente
+
   limits:
     cpu: 24
     memory: 128Gi
@@ -427,7 +431,7 @@ spec:
 ### 2.8 Categoria: platform-ops
 
 **Propósito:** Ferramentas de plataforma e operações (ArgoCD, KEDA operator, ingress controller).  
-**Workloads:** argocd-server, argocd-application-controller, keda-operator, ingress-nginx, cert-manager  
+**Workloads:** argocd-server, argocd-application-controller, keda-operator, ingress-nginx, cert-manager
 
 ```yaml
 apiVersion: karpenter.sh/v1beta1
@@ -438,30 +442,30 @@ spec:
   template:
     spec:
       taints:
-        - key: "velya.io/node-class"
-          value: "platform-ops"
+        - key: 'velya.io/node-class'
+          value: 'platform-ops'
           effect: NoSchedule
-      
+
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["on-demand"]
+          values: ['on-demand']
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
-            - "t3.large"
-            - "t3.xlarge"
-            - "m5.large"
-            - "m5.xlarge"
-  
+            - 't3.large'
+            - 't3.xlarge'
+            - 'm5.large'
+            - 'm5.xlarge'
+
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: "30m"
+    consolidateAfter: '30m'
     budgets:
-      - nodes: "10%"
-        schedule: "0 2 * * *"
-        duration: "1h"
-  
+      - nodes: '10%'
+        schedule: '0 2 * * *'
+        duration: '1h'
+
   limits:
     cpu: 16
     memory: 64Gi
@@ -473,16 +477,16 @@ spec:
 
 ## 3. Tabela Consolidada de NodePools
 
-| NodePool | Instance Family | Capacity Type | Disruption | Max Scale | Cost Envelope/mês |
-|---|---|---|---|---|---|
-| system-critical | m5/m6i large | on-demand | Never | 8 CPU / 32GB | $100-200 |
-| realtime-app | m6i/m5 large-2xlarge | on-demand | 10% / 2h UTC | 32 CPU / 128GB | $400-800 |
-| async-workers | m5/m6i/r5 large | spot+on-demand | 30% | 64 CPU / 256GB | $200-600 |
-| scheduled-batch | m5/c5 large-2xlarge | spot | 100% | 32 CPU / 64GB | $50-200 |
-| agent-runtime | t3/m5 medium-large | spot+on-demand | 20% | 16 CPU / 64GB | $100-300 |
-| heavy-ai-analytics | c5/r5 4xlarge | spot | 100% | 128 CPU / 512GB | $0-500 |
-| observability | m5/r5 xlarge-2xlarge | on-demand | Never | 24 CPU / 128GB | $200-500 |
-| platform-ops | t3/m5 large | on-demand | 10% | 16 CPU / 64GB | $100-200 |
+| NodePool           | Instance Family      | Capacity Type  | Disruption   | Max Scale       | Cost Envelope/mês |
+| ------------------ | -------------------- | -------------- | ------------ | --------------- | ----------------- |
+| system-critical    | m5/m6i large         | on-demand      | Never        | 8 CPU / 32GB    | $100-200          |
+| realtime-app       | m6i/m5 large-2xlarge | on-demand      | 10% / 2h UTC | 32 CPU / 128GB  | $400-800          |
+| async-workers      | m5/m6i/r5 large      | spot+on-demand | 30%          | 64 CPU / 256GB  | $200-600          |
+| scheduled-batch    | m5/c5 large-2xlarge  | spot           | 100%         | 32 CPU / 64GB   | $50-200           |
+| agent-runtime      | t3/m5 medium-large   | spot+on-demand | 20%          | 16 CPU / 64GB   | $100-300          |
+| heavy-ai-analytics | c5/r5 4xlarge        | spot           | 100%         | 128 CPU / 512GB | $0-500            |
+| observability      | m5/r5 xlarge-2xlarge | on-demand      | Never        | 24 CPU / 128GB  | $200-500          |
+| platform-ops       | t3/m5 large          | on-demand      | 10%          | 16 CPU / 64GB   | $100-200          |
 
 **Total estimado dev:** $1.150-3.300/mês  
 **Total estimado prod (3 AZs):** $3.500-10.000/mês
@@ -521,8 +525,8 @@ affinity:
         - matchExpressions:
             - key: velya.io/node-class
               operator: In
-              values: ["realtime-app"]
-  
+              values: ['realtime-app']
+
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 100
@@ -558,7 +562,7 @@ metadata:
   name: api-gateway-pdb
   namespace: velya-dev-core
 spec:
-  minAvailable: 1   # Pelo menos 1 réplica sempre disponível
+  minAvailable: 1 # Pelo menos 1 réplica sempre disponível
   selector:
     matchLabels:
       app.kubernetes.io/name: api-gateway

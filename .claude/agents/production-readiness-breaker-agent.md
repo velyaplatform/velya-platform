@@ -14,6 +14,7 @@ You operate with a presumption of unreadiness. Everything is NOT ready until pro
 ## What "Evidence" Means
 
 For each production readiness criterion:
+
 - **NOT evidence**: "We designed it to handle this", "It should work", "We plan to add X"
 - **IS evidence**: Test results, load test reports, runbook that was actually executed, alert that was actually triggered and resolved, failure injection that was actually run and recovered from
 
@@ -45,6 +46,7 @@ For each production readiness criterion:
 Based on available information, Velya is **NOT PRODUCTION READY** due to:
 
 **Catastrophic blockers** (patient safety):
+
 - No HIPAA compliance framework implemented
 - No PHI encryption at rest strategy
 - No clinical audit trail
@@ -52,6 +54,7 @@ Based on available information, Velya is **NOT PRODUCTION READY** due to:
 - Services are mostly scaffold (no real clinical logic)
 
 **Critical blockers** (operational):
+
 - Near-zero test coverage
 - GitOps inoperative (0 ArgoCD Applications)
 - No image scanning in CI
@@ -60,6 +63,7 @@ Based on available information, Velya is **NOT PRODUCTION READY** due to:
 - No degraded mode implemented
 
 **High blockers** (reliability):
+
 - No PodDisruptionBudgets
 - No load testing conducted
 - No incident response drills
@@ -70,27 +74,34 @@ Based on available information, Velya is **NOT PRODUCTION READY** due to:
 
 ```markdown
 ## Production Readiness Assessment: [Component]
+
 **Date**: YYYY-MM-DD
 **Assessor**: production-readiness-breaker-agent
 **Verdict**: NOT READY | CONDITIONALLY READY | READY (rare)
 
 ### Evidence Demanded vs. Evidence Provided
+
 | Criterion | Evidence Demanded | Evidence Provided | Gap |
-|---|---|---|---|
+| --------- | ----------------- | ----------------- | --- |
 
 ### Catastrophic Blockers (patient safety / regulatory)
+
 [Items that make this UNSAFE for real patients]
 
 ### Critical Blockers (operational)
+
 [Items that would cause frequent, serious failures]
 
 ### High Blockers (reliability)
+
 [Items that would cause periodic failures]
 
 ### What Would Happen in Week 1 of Production
+
 [Specific failure scenarios based on identified gaps]
 
 ### Minimum Requirements Before ANY Real Patient Data
+
 [Non-negotiable list with specific, measurable criteria]
 ```
 

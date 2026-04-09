@@ -24,15 +24,17 @@
 **Blast radius máximo se der errado**: Custo ilimitado de inferência AI. Rate limit esgotado para todos os agents. PHI enviado em loop a provider externo.
 
 **Mecanismo de kill switch**:
+
 ```typescript
 // ConfigMap kill-switch-config.yaml
 data:
   ai_inference_enabled: "false"   # Mudar para false para parar todas as chamadas
   ai_inference_agent_blocklist: "agent-id-1,agent-id-2"  # Bloquear agents específicos
 ```
+
 ```typescript
 // AI Gateway verifica antes de cada chamada
-const killSwitchEnabled = await config.get('ai_inference_enabled') === 'true';
+const killSwitchEnabled = (await config.get('ai_inference_enabled')) === 'true';
 if (!killSwitchEnabled) {
   throw new KillSwitchActiveError('AI inference está desabilitado por kill switch');
 }
@@ -41,6 +43,7 @@ if (!killSwitchEnabled) {
 **Quem pode ativar**: Qualquer engenheiro com kubectl access ao namespace `velya-dev-platform`.
 
 **Comando de ativação**:
+
 ```bash
 kubectl patch configmap kill-switch-config -n velya-dev-platform \
   --patch '{"data":{"ai_inference_enabled":"false"}}'
@@ -48,7 +51,8 @@ kubectl patch configmap kill-switch-config -n velya-dev-platform \
 
 **Procedimento de recuperação**: Reverter ConfigMap após investigação e resolução da causa.
 
-**Monitoramento que deve disparar recomendação**: 
+**Monitoramento que deve disparar recomendação**:
+
 - Custo AI acima de $X/hora
 - Rate de chamadas > 10x baseline
 - Erro de rate limit (429) em > 50% das chamadas
@@ -64,15 +68,17 @@ kubectl patch configmap kill-switch-config -n velya-dev-platform \
 **Blast radius máximo se der errado**: Repositório inundado de centenas de PRs automáticos. PRs humanos críticos enterrados no ruído. Custo de GitHub Actions elevado.
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Mudar permissão do GitHub App/Token do agent para somente leitura
 # OU: Adicionar agent-bot à lista de pull request restriction no branch protection
 ```
+
 ```typescript
 // Verificar kill switch antes de criar PR
-const prCreationEnabled = await config.get('github_pr_creation_enabled') === 'true';
+const prCreationEnabled = (await config.get('github_pr_creation_enabled')) === 'true';
 const agentDailyPRCount = await metrics.getAgentDailyPRCount(agentId);
-const maxDailyPRs = await config.get('max_daily_prs_per_agent') ?? 5;
+const maxDailyPRs = (await config.get('max_daily_prs_per_agent')) ?? 5;
 
 if (!prCreationEnabled || agentDailyPRCount >= maxDailyPRs) {
   throw new KillSwitchActiveError('Criação de PRs bloqueada');
@@ -82,6 +88,7 @@ if (!prCreationEnabled || agentDailyPRCount >= maxDailyPRs) {
 **Quem pode ativar**: Tech lead ou engenheiro sênior.
 
 **Comando de ativação**:
+
 ```bash
 kubectl patch configmap kill-switch-config -n velya-dev-platform \
   --patch '{"data":{"github_pr_creation_enabled":"false"}}'
@@ -118,6 +125,7 @@ kubectl patch configmap kill-switch-config -n velya-dev-platform \
 **Blast radius máximo se der errado**: Ação de remediação incorreta agrava o problema. Remediação em cascata derruba serviços saudáveis.
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Revogar RBAC do ServiceAccount do agent de remediação
 kubectl delete rolebinding agent-remediation-binding -n velya-dev-core
@@ -155,6 +163,7 @@ kubectl delete rolebinding agent-remediation-binding -n velya-dev-core
 **Blast radius máximo se der errado**: Scale para 100+ pods esgota recursos do cluster. KEDA thrash destrói pods continuamente. Em EKS: custo de $500+/hora.
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Suspender ScaledObject — congela réplicas no valor atual
 kubectl patch scaledobject patient-flow-scaledobject -n velya-dev-core \
@@ -181,6 +190,7 @@ kubectl delete scaledobject patient-flow-scaledobject -n velya-dev-core
 **Blast radius máximo se der errado**: Manifesto incorreto no Git aplicado automaticamente ao cluster. Múltiplos serviços derrubados por sync de configuração errada.
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Desabilitar auto-sync para Application específica
 argocd app set patient-flow-app --sync-policy none
@@ -208,6 +218,7 @@ done
 **Blast radius máximo se der errado**: Breaking change introduzido por bump automático. CI quebrado para todos os PRs. Serviços com regressão após merge automático.
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Desabilitar workflow no GitHub
 gh workflow disable version-bump.yml
@@ -232,6 +243,7 @@ gh pr list --label "version-bump" --json number | jq '.[].number' | \
 **Blast radius máximo se der errado**: Versão defeituosa publicada e deployada automaticamente. Imagem com vulnerability crítica em produção.
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Desabilitar workflow de release
 gh workflow disable release.yml
@@ -256,6 +268,7 @@ aws ecr batch-delete-image --repository-name velya/patient-flow-service \
 **Blast radius máximo se der errado**: Padrão incorreto propagado como boa prática para todos os agents. Comportamento sistêmico incorreto em toda a plataforma.
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Parar propagação de novos aprendizados
 kubectl patch configmap kill-switch-config -n velya-dev-platform \
@@ -280,6 +293,7 @@ memory-service rollback --to-version v123
 **Blast radius máximo se der errado**: Conteúdo de fonte comprometida contamina contexto de análise. Custo elevado de web search + LLM por intake em loop.
 
 **Mecanismo de kill switch**:
+
 ```bash
 kubectl patch configmap kill-switch-config -n velya-dev-agents \
   --patch '{"data":{"market_intelligence_intake_enabled":"false"}}'
@@ -347,6 +361,7 @@ kubectl patch configmap kill-switch-config -n velya-dev-platform \
 **Blast radius máximo se der errado**: ScaledObject mal-configurado causa thrash de scaling ou escala para maxReplicaCount excessivo.
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Revogar permissão de criar ScaledObjects do ServiceAccount do agent
 kubectl delete rolebinding agent-infra-scaledobject-creator -n velya-dev-core
@@ -367,6 +382,7 @@ kubectl delete rolebinding agent-infra-scaledobject-creator -n velya-dev-core
 **Blast radius máximo se der errado**: Rotação em momento inoportuno causa falha de autenticação em todos os serviços que usam o secret. Sem restart dos pods, serviços continuam com secret antigo (revogado).
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Suspender sincronização do External Secrets Operator
 kubectl annotate externalsecret velya-api-keys \
@@ -390,6 +406,7 @@ kubectl annotate externalsecret velya-api-keys \
 **Blast radius máximo se der errado**: Breaking change mergeado automaticamente. CI quebrado para toda a equipe.
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Pausar Renovate
 gh api repos/velya-health/velya-platform/contents/renovate.json \
@@ -415,6 +432,7 @@ gh pr list --label "dependencies" --json number | \
 **Blast radius máximo se der errado**: Imagem com vulnerability crítica ou bug grave publicada e usada em deploy automático.
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Desabilitar workflow de build
 gh workflow disable docker-build.yml
@@ -437,6 +455,7 @@ aws ecr set-repository-policy --repository-name velya/patient-flow-service \
 **Blast radius máximo se der errado**: Flood de notificações para equipe clínica. Alert fatigue. Notificações incorretas sobre status de paciente errado.
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Suspender notificações para equipe clínica
 kubectl patch configmap kill-switch-config -n velya-dev-core \
@@ -458,6 +477,7 @@ kubectl patch configmap kill-switch-config -n velya-dev-core \
 **Blast radius máximo se der errado**: Escalação incorreta durante horário de descanso. Pessoas erradas notificadas. Loop de escalação (A escala para B que escala para A).
 
 **Mecanismo de kill switch**:
+
 ```bash
 # Suspender escalação automática no Alertmanager
 kubectl patch secret alertmanager-config -n velya-dev-observability \
@@ -472,27 +492,27 @@ kubectl patch secret alertmanager-config -n velya-dev-observability \
 
 ## Resumo de Status
 
-| ID | Processo | Blast Radius | Status | Prioridade |
-|---|---|---|---|---|
-| KS-001 | Inferência AI por agent | Custo ilimitado + PHI em loop | Ausente | Crítica |
-| KS-002 | Criação de PRs automáticos | Repositório inundado | Ausente | Alta |
-| KS-003 | Criação de tarefas | Backlog inutilizável | Ausente | Alta |
-| KS-004 | Execução de remediação | Cascata de ações incorretas | Ausente | Crítica |
-| KS-005 | Promoção de agents | Agent sem validação em produção | Ausente | Crítica |
-| KS-006 | KEDA autoscaling | Custo exponencial de pods | Parcial | Alta |
-| KS-007 | ArgoCD auto-sync | Manifesto incorreto aplicado | N/A (sem apps) | Alta |
-| KS-008 | Version-bump workflow | Breaking change em produção | Ausente | Alta |
-| KS-009 | Release workflow | Imagem defeituosa publicada | Ausente | Alta |
-| KS-010 | Propagação de aprendizado | Padrão errado sistêmico | Ausente | Alta |
-| KS-011 | Market intelligence intake | Contaminação de contexto | Ausente | Média |
-| KS-012 | Ações de custo automáticas | Serviço clínico derrubado | Ausente | Alta |
-| KS-013 | Quarantine automática | Parada de serviço crítico | Ausente | Média |
-| KS-014 | Retirement automático | Funcionalidade perdida | Ausente | Média |
-| KS-015 | Criação de ScaledObjects | Thrash ou escala excessiva | Ausente | Alta |
-| KS-016 | Rotação de secrets | Autenticação em cascata | Ausente | Alta |
-| KS-017 | Renovate/Dependabot | Breaking change mergeado | Ausente | Alta |
-| KS-018 | Build e push de imagens | Imagem defeituosa publicada | Ausente | Alta |
-| KS-019 | Notificações clínicas | Alert fatigue / notif. incorreta | Ausente | Alta |
-| KS-020 | Escalonamento de alertas | Loop de escalação / pessoas erradas | Ausente | Média |
+| ID     | Processo                   | Blast Radius                        | Status         | Prioridade |
+| ------ | -------------------------- | ----------------------------------- | -------------- | ---------- |
+| KS-001 | Inferência AI por agent    | Custo ilimitado + PHI em loop       | Ausente        | Crítica    |
+| KS-002 | Criação de PRs automáticos | Repositório inundado                | Ausente        | Alta       |
+| KS-003 | Criação de tarefas         | Backlog inutilizável                | Ausente        | Alta       |
+| KS-004 | Execução de remediação     | Cascata de ações incorretas         | Ausente        | Crítica    |
+| KS-005 | Promoção de agents         | Agent sem validação em produção     | Ausente        | Crítica    |
+| KS-006 | KEDA autoscaling           | Custo exponencial de pods           | Parcial        | Alta       |
+| KS-007 | ArgoCD auto-sync           | Manifesto incorreto aplicado        | N/A (sem apps) | Alta       |
+| KS-008 | Version-bump workflow      | Breaking change em produção         | Ausente        | Alta       |
+| KS-009 | Release workflow           | Imagem defeituosa publicada         | Ausente        | Alta       |
+| KS-010 | Propagação de aprendizado  | Padrão errado sistêmico             | Ausente        | Alta       |
+| KS-011 | Market intelligence intake | Contaminação de contexto            | Ausente        | Média      |
+| KS-012 | Ações de custo automáticas | Serviço clínico derrubado           | Ausente        | Alta       |
+| KS-013 | Quarantine automática      | Parada de serviço crítico           | Ausente        | Média      |
+| KS-014 | Retirement automático      | Funcionalidade perdida              | Ausente        | Média      |
+| KS-015 | Criação de ScaledObjects   | Thrash ou escala excessiva          | Ausente        | Alta       |
+| KS-016 | Rotação de secrets         | Autenticação em cascata             | Ausente        | Alta       |
+| KS-017 | Renovate/Dependabot        | Breaking change mergeado            | Ausente        | Alta       |
+| KS-018 | Build e push de imagens    | Imagem defeituosa publicada         | Ausente        | Alta       |
+| KS-019 | Notificações clínicas      | Alert fatigue / notif. incorreta    | Ausente        | Alta       |
+| KS-020 | Escalonamento de alertas   | Loop de escalação / pessoas erradas | Ausente        | Média      |
 
 > **Situação crítica**: 19 de 20 kill switches estão Ausentes. Apenas KS-006 (KEDA) tem implementação parcial. A plataforma não tem mecanismos de parada de emergência para os processos automatizados mais críticos. Antes de ativar qualquer automação em produção, os kill switches correspondentes devem ser implementados.

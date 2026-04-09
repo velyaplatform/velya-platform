@@ -29,12 +29,12 @@ subdominio do dominio controlado.
 
 ### 2.2 Metodos de Autenticacao (Preferencia)
 
-| Prioridade | Metodo | Descricao |
-|---|---|---|
-| 1 (preferido) | IRSA (IAM Roles for Service Accounts) | Pod assume IAM role via OIDC |
-| 2 | Pod Identity | AWS EKS Pod Identity |
-| 3 | External Secrets | Sync de AWS Secrets Manager para K8s Secret |
-| 4 (evitar) | Static Access Keys | Access Key/Secret Key em K8s Secret |
+| Prioridade    | Metodo                                | Descricao                                   |
+| ------------- | ------------------------------------- | ------------------------------------------- |
+| 1 (preferido) | IRSA (IAM Roles for Service Accounts) | Pod assume IAM role via OIDC                |
+| 2             | Pod Identity                          | AWS EKS Pod Identity                        |
+| 3             | External Secrets                      | Sync de AWS Secrets Manager para K8s Secret |
+| 4 (evitar)    | Static Access Keys                    | Access Key/Secret Key em K8s Secret         |
 
 ---
 
@@ -67,12 +67,8 @@ assuma uma IAM role diretamente, sem necessidade de access keys estaticas.
     {
       "Sid": "CertManagerDNS01Route53ChangeRecords",
       "Effect": "Allow",
-      "Action": [
-        "route53:ChangeResourceRecordSets"
-      ],
-      "Resource": [
-        "arn:aws:route53:::hostedzone/HOSTED_ZONE_ID"
-      ]
+      "Action": ["route53:ChangeResourceRecordSets"],
+      "Resource": ["arn:aws:route53:::hostedzone/HOSTED_ZONE_ID"]
     }
   ]
 }
@@ -110,7 +106,7 @@ metadata:
   name: cert-manager
   namespace: cert-manager
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/cert-manager-route53"
+    eks.amazonaws.com/role-arn: 'arn:aws:iam::ACCOUNT_ID:role/cert-manager-route53'
 ```
 
 **Passo 4: ClusterIssuer sem credenciais explicitas**
@@ -150,7 +146,7 @@ metadata:
 spec:
   namespace: cert-manager
   serviceAccount: cert-manager
-  roleArn: "arn:aws:iam::ACCOUNT_ID:role/cert-manager-route53"
+  roleArn: 'arn:aws:iam::ACCOUNT_ID:role/cert-manager-route53'
 ```
 
 ---
@@ -186,8 +182,8 @@ spec:
     template:
       type: Opaque
       data:
-        access-key-id: "{{ .accessKeyId }}"
-        secret-access-key: "{{ .secretAccessKey }}"
+        access-key-id: '{{ .accessKeyId }}'
+        secret-access-key: '{{ .secretAccessKey }}'
 
   data:
     - secretKey: accessKeyId
@@ -262,25 +258,25 @@ kubectl create secret generic route53-credentials \
 
 ### 7.1 Analise de Permissoes
 
-| Acao | Motivo | Scope |
-|---|---|---|
-| route53:GetChange | Verificar status de mudanca DNS | * |
-| route53:ListHostedZones | Descobrir hosted zone | * |
-| route53:ListHostedZonesByName | Descobrir por nome | * |
-| route53:ListResourceRecordSets | Listar registros existentes | * |
-| route53:ChangeResourceRecordSets | Criar/deletar TXT record | Hosted Zone especifica |
+| Acao                             | Motivo                          | Scope                  |
+| -------------------------------- | ------------------------------- | ---------------------- |
+| route53:GetChange                | Verificar status de mudanca DNS | \*                     |
+| route53:ListHostedZones          | Descobrir hosted zone           | \*                     |
+| route53:ListHostedZonesByName    | Descobrir por nome              | \*                     |
+| route53:ListResourceRecordSets   | Listar registros existentes     | \*                     |
+| route53:ChangeResourceRecordSets | Criar/deletar TXT record        | Hosted Zone especifica |
 
 ### 7.2 O que NAO incluir
 
 As seguintes permissoes NAO devem ser dadas ao cert-manager:
 
-| Acao | Motivo para NAO incluir |
-|---|---|
-| route53:CreateHostedZone | Criar zones e responsabilidade do infra team |
-| route53:DeleteHostedZone | Deletar zones e destrutivo |
-| route53:AssociateVPCWithHostedZone | Nao necessario para DNS-01 |
-| route53domains:* | Gerenciamento de dominio e separado |
-| iam:* | Nunca dar permissoes IAM |
+| Acao                               | Motivo para NAO incluir                      |
+| ---------------------------------- | -------------------------------------------- |
+| route53:CreateHostedZone           | Criar zones e responsabilidade do infra team |
+| route53:DeleteHostedZone           | Deletar zones e destrutivo                   |
+| route53:AssociateVPCWithHostedZone | Nao necessario para DNS-01                   |
+| route53domains:\*                  | Gerenciamento de dominio e separado          |
+| iam:\*                             | Nunca dar permissoes IAM                     |
 
 ### 7.3 Policy com Conditions
 
@@ -302,12 +298,8 @@ As seguintes permissoes NAO devem ser dadas ao cert-manager:
     {
       "Sid": "CertManagerDNS01WriteRestricted",
       "Effect": "Allow",
-      "Action": [
-        "route53:ChangeResourceRecordSets"
-      ],
-      "Resource": [
-        "arn:aws:route53:::hostedzone/HOSTED_ZONE_ID"
-      ],
+      "Action": ["route53:ChangeResourceRecordSets"],
+      "Resource": ["arn:aws:route53:::hostedzone/HOSTED_ZONE_ID"],
       "Condition": {
         "ForAllValues:StringLike": {
           "route53:ChangeResourceRecordSetsNormalizedRecordNames": [
@@ -367,12 +359,12 @@ aws iam delete-access-key \
 
 ### 8.2 Calendario de Rotacao
 
-| Credencial | Frequencia | Metodo | Responsavel |
-|---|---|---|---|
-| IAM Access Keys | 90 dias | Manual ou automacao | Platform Team |
-| IRSA Role | Nao rotaciona (token automatico) | N/A | N/A |
-| ACME Account Key | Raramente | Deletar Secret | Platform Team |
-| External Secrets | Automatico (refreshInterval) | External Secrets Operator | Automatico |
+| Credencial       | Frequencia                       | Metodo                    | Responsavel   |
+| ---------------- | -------------------------------- | ------------------------- | ------------- |
+| IAM Access Keys  | 90 dias                          | Manual ou automacao       | Platform Team |
+| IRSA Role        | Nao rotaciona (token automatico) | N/A                       | N/A           |
+| ACME Account Key | Raramente                        | Deletar Secret            | Platform Team |
+| External Secrets | Automatico (refreshInterval)     | External Secrets Operator | Automatico    |
 
 ---
 
@@ -393,13 +385,15 @@ Todas as chamadas Route53 sao registradas no CloudTrail:
   "requestParameters": {
     "hostedZoneId": "HOSTED_ZONE_ID",
     "changeBatch": {
-      "changes": [{
-        "action": "UPSERT",
-        "resourceRecordSet": {
-          "name": "_acme-challenge.velya.health",
-          "type": "TXT"
+      "changes": [
+        {
+          "action": "UPSERT",
+          "resourceRecordSet": {
+            "name": "_acme-challenge.velya.health",
+            "type": "TXT"
+          }
         }
-      }]
+      ]
     }
   }
 }
@@ -445,7 +439,7 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "Acesso nao autorizado a credenciais DNS"
+            summary: 'Acesso nao autorizado a credenciais DNS'
 ```
 
 ---
@@ -460,10 +454,10 @@ metadata:
   name: cert-manager-dns-credentials-reader
   namespace: cert-manager
 rules:
-  - apiGroups: [""]
-    resources: ["secrets"]
-    resourceNames: ["route53-credentials"]
-    verbs: ["get"]
+  - apiGroups: ['']
+    resources: ['secrets']
+    resourceNames: ['route53-credentials']
+    verbs: ['get']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -486,7 +480,7 @@ subjects:
 
 - [ ] Metodo de autenticacao escolhido (IRSA, Pod Identity, External Secrets)
 - [ ] IAM policy criada com menor privilegio
-- [ ] IAM policy com Conditions (apenas TXT, apenas _acme-challenge)
+- [ ] IAM policy com Conditions (apenas TXT, apenas \_acme-challenge)
 - [ ] IAM role trust policy configurada
 - [ ] Service Account anotada (para IRSA)
 - [ ] ClusterIssuer configurado com credenciais corretas
@@ -502,10 +496,10 @@ subjects:
 
 ## 12. Changelog
 
-| Data | Versao | Descricao |
-|---|---|---|
-| 2026-04-09 | 1.0 | Versao inicial da politica de credenciais DNS |
+| Data       | Versao | Descricao                                     |
+| ---------- | ------ | --------------------------------------------- |
+| 2026-04-09 | 1.0    | Versao inicial da politica de credenciais DNS |
 
 ---
 
-*Documento mantido pelo Platform Team e Security Team. Revisao trimestral obrigatoria.*
+_Documento mantido pelo Platform Team e Security Team. Revisao trimestral obrigatoria._

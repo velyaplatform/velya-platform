@@ -16,25 +16,25 @@
 
 ```typescript
 interface Shift {
-  shift_id: string;                      // UUID v7
-  shift_date: string;                    // Data do turno (YYYY-MM-DD)
-  shift_period: ShiftPeriod;             // Periodo
-  shift_code: string;                    // Codigo legivel (ex: "D-2026-04-08-UTI-A")
+  shift_id: string; // UUID v7
+  shift_date: string; // Data do turno (YYYY-MM-DD)
+  shift_period: ShiftPeriod; // Periodo
+  shift_code: string; // Codigo legivel (ex: "D-2026-04-08-UTI-A")
 
   // --- Temporal ---
-  scheduled_start: string;               // Inicio programado
-  scheduled_end: string;                 // Fim programado
-  actual_start?: string;                 // Inicio real (primeiro check-in)
-  actual_end?: string;                   // Fim real (ultimo check-out)
+  scheduled_start: string; // Inicio programado
+  scheduled_end: string; // Fim programado
+  actual_start?: string; // Inicio real (primeiro check-in)
+  actual_end?: string; // Fim real (ultimo check-out)
 
   // --- Lotacao ---
   department_id: string;
   unit_id: string;
-  location_ids: string[];                // Locais cobertos
+  location_ids: string[]; // Locais cobertos
 
   // --- Equipe ---
-  supervisor_id?: string;                // Responsavel do turno
-  team_members: ShiftTeamMember[];       // Membros da equipe
+  supervisor_id?: string; // Responsavel do turno
+  team_members: ShiftTeamMember[]; // Membros da equipe
   expected_headcount: ExpectedHeadcount; // Quadro esperado
 
   // --- Status ---
@@ -48,14 +48,14 @@ interface Shift {
 }
 
 enum ShiftPeriod {
-  DIURNO = 'diurno',             // 07:00 - 19:00
-  NOTURNO = 'noturno',           // 19:00 - 07:00
-  MANHA = 'manha',               // 07:00 - 13:00
-  TARDE = 'tarde',               // 13:00 - 19:00
+  DIURNO = 'diurno', // 07:00 - 19:00
+  NOTURNO = 'noturno', // 19:00 - 07:00
+  MANHA = 'manha', // 07:00 - 13:00
+  TARDE = 'tarde', // 13:00 - 19:00
   INTERMEDIARIO = 'intermediario', // 10:00 - 22:00
-  PLANTAO_12H = 'plantao_12h',   // 07:00 - 19:00 ou 19:00 - 07:00
-  PLANTAO_24H = 'plantao_24h',   // 07:00 - 07:00
-  SOBREAVISO = 'sobreaviso',     // Disponivel remotamente
+  PLANTAO_12H = 'plantao_12h', // 07:00 - 19:00 ou 19:00 - 07:00
+  PLANTAO_24H = 'plantao_24h', // 07:00 - 07:00
+  SOBREAVISO = 'sobreaviso', // Disponivel remotamente
   ADMINISTRATIVO = 'administrativo', // 08:00 - 17:00
 }
 
@@ -79,11 +79,11 @@ interface ShiftTeamMember {
   professional_id: string;
   role: ProfessionalRole;
   function: string;
-  assignment: string;                    // Area/leitos atribuidos
+  assignment: string; // Area/leitos atribuidos
   check_in_time?: string;
   check_out_time?: string;
   status: MemberStatus;
-  coverage_for?: string;                 // Cobrindo quem (se cobertura)
+  coverage_for?: string; // Cobrindo quem (se cobertura)
   overtime_minutes?: number;
 }
 
@@ -184,11 +184,11 @@ interface CoverageGap {
 }
 
 enum CoverageGapType {
-  AUSENCIA = 'ausencia',                 // Profissional esperado nao apareceu
-  ATRASO = 'atraso',                     // Profissional atrasado
+  AUSENCIA = 'ausencia', // Profissional esperado nao apareceu
+  ATRASO = 'atraso', // Profissional atrasado
   SAIDA_ANTECIPADA = 'saida_antecipada', // Saiu antes do fim
-  ABAIXO_MINIMO = 'abaixo_minimo',       // Quadro abaixo do minimo
-  SEM_SUPERVISOR = 'sem_supervisor',     // Sem responsavel de turno
+  ABAIXO_MINIMO = 'abaixo_minimo', // Quadro abaixo do minimo
+  SEM_SUPERVISOR = 'sem_supervisor', // Sem responsavel de turno
   SEM_COBERTURA_FUNCAO = 'sem_cobertura_funcao', // Funcao sem profissional
   GAP_ENTRE_TURNOS = 'gap_entre_turnos', // Periodo sem cobertura entre turnos
 }
@@ -212,10 +212,10 @@ interface OvertimeRecord {
 }
 
 enum OvertimeType {
-  EXTENSAO_TURNO = 'extensao_turno',     // Ficou alem do horario
-  COBERTURA_FALTA = 'cobertura_falta',   // Cobriu ausencia
-  DEMANDA_EXTRA = 'demanda_extra',       // Demanda acima do normal
-  EMERGENCIA = 'emergencia',             // Situacao emergencial
+  EXTENSAO_TURNO = 'extensao_turno', // Ficou alem do horario
+  COBERTURA_FALTA = 'cobertura_falta', // Cobriu ausencia
+  DEMANDA_EXTRA = 'demanda_extra', // Demanda acima do normal
+  EMERGENCIA = 'emergencia', // Situacao emergencial
 }
 ```
 
@@ -225,7 +225,7 @@ enum OvertimeType {
 interface ShiftSummary {
   shift_id: string;
   generated_at: string;
-  generated_by: string;                  // Sistema ou supervisor
+  generated_by: string; // Sistema ou supervisor
 
   // Indicadores
   total_work_events: number;
@@ -243,14 +243,14 @@ interface ShiftSummary {
   gaps_resolved: number;
 
   // SLA
-  sla_compliance_rate: number;           // 0-100%
+  sla_compliance_rate: number; // 0-100%
   sla_breaches: number;
 
   // Pendencias
-  pending_items_received: number;        // Recebidos do turno anterior
-  pending_items_resolved: number;        // Resolvidos neste turno
-  pending_items_forwarded: number;       // Passados para o proximo
-  new_pending_items: number;             // Novos criados neste turno
+  pending_items_received: number; // Recebidos do turno anterior
+  pending_items_resolved: number; // Resolvidos neste turno
+  pending_items_forwarded: number; // Passados para o proximo
+  new_pending_items: number; // Novos criados neste turno
 
   // Excecoes
   exceptions_count: number;
@@ -258,9 +258,9 @@ interface ShiftSummary {
   corrections_count: number;
 
   // Destaques
-  highlights: string[];                  // Itens relevantes
-  alerts: string[];                      // Alertas ativos
-  cross_shift_items: CrossShiftItem[];   // Itens que cruzam turnos
+  highlights: string[]; // Itens relevantes
+  alerts: string[]; // Alertas ativos
+  cross_shift_items: CrossShiftItem[]; // Itens que cruzam turnos
 }
 
 interface CrossShiftItem {
@@ -278,22 +278,22 @@ interface CrossShiftItem {
 
 ## 3. Tabela de Turnos por Area
 
-| Area | Periodos | Duracao | Quadro Minimo | Supervisor |
-|---|---|---|---|---|
-| UTI Adulto | D/N 12h | 12h | 1 enf : 2 leitos, 1 tec : 1 leito, 1 med plantonista | Enfermeiro lider |
-| UTI Neonatal | D/N 12h | 12h | 1 enf : 2 leitos, 1 tec : 1 leito, 1 neonatologista | Enfermeiro lider |
-| Enfermaria | D/N 12h | 12h | 1 enf : 10 leitos, 1 tec : 5 leitos | Enfermeiro lider |
-| Pronto Atendimento | D/N 12h | 12h | 2 med, 2 enf, 4 tec, 1 recep | Medico plantonista |
-| Centro Cirurgico | M/T 6h | 6h | Conforme agenda + 1 equipe emergencia | Enfermeiro CC |
-| Laboratorio | D/N 12h | 12h | 1 biomedico, 2 tec lab | Biomedico responsavel |
-| Imagem | D (12h) / N (sobreaviso) | 12h/sob | 1 tec radio, 1 radiologista (sob) | Tec radio lider |
-| Farmacia | D (12h) / N (sob) | 12h/sob | 1 farmaceutico, 2 tec farmacia | Farmaceutico |
-| Higienizacao | D/N 12h | 12h | Conforme m2 coberto | Supervisor higienizacao |
-| Transporte | D/N 12h | 12h | 2 maqueiros / andar | Supervisor transporte |
-| Manutencao | D (8h) / N (sob) | 8h/sob | 1 tec manutencao | Supervisor manutencao |
-| Seguranca | D/N 12h | 12h | Conforme portaria | Supervisor seguranca |
-| Recepcao | D/N 12h | 12h | 1 recep / ponto de atendimento | Supervisor recepcao |
-| Nutricao | M/T/N | Variavel | Conforme producao | Nutricionista chefe |
+| Area               | Periodos                 | Duracao  | Quadro Minimo                                        | Supervisor              |
+| ------------------ | ------------------------ | -------- | ---------------------------------------------------- | ----------------------- |
+| UTI Adulto         | D/N 12h                  | 12h      | 1 enf : 2 leitos, 1 tec : 1 leito, 1 med plantonista | Enfermeiro lider        |
+| UTI Neonatal       | D/N 12h                  | 12h      | 1 enf : 2 leitos, 1 tec : 1 leito, 1 neonatologista  | Enfermeiro lider        |
+| Enfermaria         | D/N 12h                  | 12h      | 1 enf : 10 leitos, 1 tec : 5 leitos                  | Enfermeiro lider        |
+| Pronto Atendimento | D/N 12h                  | 12h      | 2 med, 2 enf, 4 tec, 1 recep                         | Medico plantonista      |
+| Centro Cirurgico   | M/T 6h                   | 6h       | Conforme agenda + 1 equipe emergencia                | Enfermeiro CC           |
+| Laboratorio        | D/N 12h                  | 12h      | 1 biomedico, 2 tec lab                               | Biomedico responsavel   |
+| Imagem             | D (12h) / N (sobreaviso) | 12h/sob  | 1 tec radio, 1 radiologista (sob)                    | Tec radio lider         |
+| Farmacia           | D (12h) / N (sob)        | 12h/sob  | 1 farmaceutico, 2 tec farmacia                       | Farmaceutico            |
+| Higienizacao       | D/N 12h                  | 12h      | Conforme m2 coberto                                  | Supervisor higienizacao |
+| Transporte         | D/N 12h                  | 12h      | 2 maqueiros / andar                                  | Supervisor transporte   |
+| Manutencao         | D (8h) / N (sob)         | 8h/sob   | 1 tec manutencao                                     | Supervisor manutencao   |
+| Seguranca          | D/N 12h                  | 12h      | Conforme portaria                                    | Supervisor seguranca    |
+| Recepcao           | D/N 12h                  | 12h      | 1 recep / ponto de atendimento                       | Supervisor recepcao     |
+| Nutricao           | M/T/N                    | Variavel | Conforme producao                                    | Nutricionista chefe     |
 
 ---
 
@@ -312,7 +312,7 @@ metadata:
     component: workforce
     function: gap-detection
 spec:
-  schedule: "*/5 * * * *"  # A cada 5 minutos
+  schedule: '*/5 * * * *' # A cada 5 minutos
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 24
   failedJobsHistoryLimit: 5
@@ -339,16 +339,16 @@ spec:
                       name: velya-db-credentials
                       key: connection-string
                 - name: NATS_URL
-                  value: "nats://nats.velya-infra:4222"
+                  value: 'nats://nats.velya-infra:4222'
                 - name: NATS_CREDS
                   valueFrom:
                     secretKeyRef:
                       name: velya-nats-credentials
                       key: workforce-creds
                 - name: CHECK_INTERVAL_MINUTES
-                  value: "5"
+                  value: '5'
                 - name: GAP_TOLERANCE_MINUTES
-                  value: "15"
+                  value: '15'
                 - name: ALERT_WEBHOOK_URL
                   valueFrom:
                     configMapKeyRef:
@@ -356,11 +356,11 @@ spec:
                       key: alert-webhook-url
               resources:
                 requests:
-                  memory: "128Mi"
-                  cpu: "100m"
+                  memory: '128Mi'
+                  cpu: '100m'
                 limits:
-                  memory: "256Mi"
-                  cpu: "200m"
+                  memory: '256Mi'
+                  cpu: '200m'
 ```
 
 ### 4.2 Logica de Deteccao
@@ -494,23 +494,23 @@ interface GapCheck {
 
 ```yaml
 subjects:
-  - "velya.shift.opened"
-  - "velya.shift.closed"
-  - "velya.shift.member.checkin"
-  - "velya.shift.member.checkout"
-  - "velya.shift.member.late"
-  - "velya.shift.member.noshow"
-  - "velya.shift.gap.detected"
-  - "velya.shift.gap.resolved"
-  - "velya.shift.overtime.started"
-  - "velya.shift.overtime.ended"
-  - "velya.shift.overtime.approved"
-  - "velya.shift.handoff.initiated"
-  - "velya.shift.handoff.completed"
-  - "velya.shift.handoff.incomplete"
-  - "velya.shift.summary.generated"
-  - "velya.shift.minimum_breach"
-  - "velya.shift.emergency_reallocation"
+  - 'velya.shift.opened'
+  - 'velya.shift.closed'
+  - 'velya.shift.member.checkin'
+  - 'velya.shift.member.checkout'
+  - 'velya.shift.member.late'
+  - 'velya.shift.member.noshow'
+  - 'velya.shift.gap.detected'
+  - 'velya.shift.gap.resolved'
+  - 'velya.shift.overtime.started'
+  - 'velya.shift.overtime.ended'
+  - 'velya.shift.overtime.approved'
+  - 'velya.shift.handoff.initiated'
+  - 'velya.shift.handoff.completed'
+  - 'velya.shift.handoff.incomplete'
+  - 'velya.shift.summary.generated'
+  - 'velya.shift.minimum_breach'
+  - 'velya.shift.emergency_reallocation'
 ```
 
 ---
@@ -618,60 +618,60 @@ metrics:
   - name: velya_shift_coverage_ratio
     type: gauge
     labels: [department, unit, shift_period]
-    help: "Razao de cobertura do turno (presente/esperado)"
+    help: 'Razao de cobertura do turno (presente/esperado)'
 
   - name: velya_shift_gaps_active
     type: gauge
     labels: [department, unit, gap_type, severity]
-    help: "Gaps de cobertura ativos"
+    help: 'Gaps de cobertura ativos'
 
   - name: velya_shift_overtime_minutes_total
     type: counter
     labels: [department, unit, overtime_type]
-    help: "Total de minutos de hora extra"
+    help: 'Total de minutos de hora extra'
 
   - name: velya_shift_handoff_completion_ratio
     type: gauge
     labels: [department, unit]
-    help: "Taxa de completude de handoff de turno"
+    help: 'Taxa de completude de handoff de turno'
 
   - name: velya_shift_late_arrivals_total
     type: counter
     labels: [department, unit, role]
-    help: "Total de chegadas atrasadas"
+    help: 'Total de chegadas atrasadas'
 
   - name: velya_shift_no_shows_total
     type: counter
     labels: [department, unit, role]
-    help: "Total de ausencias"
+    help: 'Total de ausencias'
 
   - name: velya_shift_pending_items_cross_shift
     type: gauge
     labels: [department, unit, priority]
-    help: "Itens pendentes que cruzaram turnos"
+    help: 'Itens pendentes que cruzaram turnos'
 
   - name: velya_shift_summary_generated
     type: counter
     labels: [department, unit]
-    help: "Resumos de turno gerados"
+    help: 'Resumos de turno gerados'
 ```
 
 ---
 
 ## 8. Regras de Negocio
 
-| ID | Regra | Descricao |
-|---|---|---|
-| S001 | Turno nao inicia sem supervisor | O status so muda para 'em_andamento' com supervisor presente |
-| S002 | Check-in obrigatorio | Todo membro deve registrar entrada |
-| S003 | Check-out obrigatorio | Todo membro deve registrar saida |
-| S004 | Atraso > 15 min gera alerta | Notificacao ao supervisor e deteccao de gap |
-| S005 | Ausencia sem justificativa gera gap critico | Escalacao automatica |
-| S006 | Hora extra > 2h requer aprovacao | Supervisor deve aprovar |
-| S007 | Handoff deve iniciar 30 min antes do fim | Alerta se nao iniciado |
-| S008 | Resumo de turno e obrigatorio | Gerado automaticamente, revisado pelo supervisor |
-| S009 | Quadro abaixo do minimo gera alerta critico | Escalacao imediata |
-| S010 | Pendencias cross-shift devem ter responsavel | Nenhum item orphan entre turnos |
+| ID   | Regra                                        | Descricao                                                    |
+| ---- | -------------------------------------------- | ------------------------------------------------------------ |
+| S001 | Turno nao inicia sem supervisor              | O status so muda para 'em_andamento' com supervisor presente |
+| S002 | Check-in obrigatorio                         | Todo membro deve registrar entrada                           |
+| S003 | Check-out obrigatorio                        | Todo membro deve registrar saida                             |
+| S004 | Atraso > 15 min gera alerta                  | Notificacao ao supervisor e deteccao de gap                  |
+| S005 | Ausencia sem justificativa gera gap critico  | Escalacao automatica                                         |
+| S006 | Hora extra > 2h requer aprovacao             | Supervisor deve aprovar                                      |
+| S007 | Handoff deve iniciar 30 min antes do fim     | Alerta se nao iniciado                                       |
+| S008 | Resumo de turno e obrigatorio                | Gerado automaticamente, revisado pelo supervisor             |
+| S009 | Quadro abaixo do minimo gera alerta critico  | Escalacao imediata                                           |
+| S010 | Pendencias cross-shift devem ter responsavel | Nenhum item orphan entre turnos                              |
 
 ---
 

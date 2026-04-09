@@ -5,7 +5,7 @@
 **Classification**: Internal — Restricted  
 **Scope**: kind-velya-local (current dev environment) and target AWS EKS (production)  
 **Owner**: Infrastructure Team + Security Team  
-**Review Cadence**: Quarterly; when cluster topology changes; before EKS migration  
+**Review Cadence**: Quarterly; when cluster topology changes; before EKS migration
 
 ---
 
@@ -27,11 +27,11 @@ The Velya runtime isolation model defines how workloads are separated from each 
 
 The following isolation mechanisms are configured but do not function as expected in kind:
 
-| Mechanism | Expected | Actual | Gap |
-|---|---|---|---|
-| NetworkPolicy | Pod-to-pod traffic restriction per tier | Not enforced — kindnet ignores NetworkPolicy | Critical gap (GAP-SEC-005, TECH-001) |
-| Node isolation | Workload-class-specific node pools | All pods share 5 kind nodes | No isolation by workload class |
-| Container network | Isolated pod networks per namespace | Pods can reach across namespaces | No actual isolation |
+| Mechanism         | Expected                                | Actual                                       | Gap                                  |
+| ----------------- | --------------------------------------- | -------------------------------------------- | ------------------------------------ |
+| NetworkPolicy     | Pod-to-pod traffic restriction per tier | Not enforced — kindnet ignores NetworkPolicy | Critical gap (GAP-SEC-005, TECH-001) |
+| Node isolation    | Workload-class-specific node pools      | All pods share 5 kind nodes                  | No isolation by workload class       |
+| Container network | Isolated pod networks per namespace     | Pods can reach across namespaces             | No actual isolation                  |
 
 This means the current dev cluster has **administrative** isolation (RBAC, quotas) but **zero network isolation**. All pods can communicate freely with all other pods.
 
@@ -41,20 +41,20 @@ This means the current dev cluster has **administrative** isolation (RBAC, quota
 
 ### Namespace Inventory and Purpose
 
-| Namespace | Purpose | PHI Exposure | Criticality | Network Tier |
-|---|---|---|---|---|
-| `velya-dev-clinical` | Patient-facing clinical services: patient-flow-service, discharge-orchestrator, task-inbox-service | HIGH — direct FHIR access | Critical | clinical-tier |
-| `velya-dev-core` | Core API infrastructure: api-gateway, audit-service | HIGH — PHI transit | Critical | backend-tier |
-| `velya-dev-platform` | Platform services: ESO, ArgoCD, cert-manager | MEDIUM — secret access | High | platform-tier |
-| `velya-dev-agents` | AI agent runtime: agent-orchestrator, ai-gateway, policy-engine, memory-service, decision-log-service | HIGH — LLM context includes PHI | Critical | ai-tier |
-| `velya-dev-observability` | Monitoring: Prometheus, Grafana, Loki, Promtail | LOW — logs contain scrubbed data | High | observability-tier |
-| `velya-dev-web` | Frontend: velya-web (Next.js) | LOW — browser-facing; no direct PHI | Medium | frontend-tier |
-| `argocd` | GitOps: ArgoCD server and application controller | LOW — infrastructure only | High | platform-tier |
-| `ingress-nginx` | Ingress controller: nginx-ingress | LOW — TLS termination only | Critical | ingress-tier |
-| `metallb-system` | Load balancer (dev only): MetalLB speakers | LOW — network infrastructure | High | infrastructure-tier |
-| `keda` | Autoscaling: KEDA operator | LOW — infrastructure only | Medium | platform-tier |
-| `temporal-system` | Workflow engine: Temporal server, web UI | MEDIUM — workflow history may contain references | High | platform-tier |
-| `nats` | Event broker: NATS JetStream cluster | HIGH — clinical events in flight | Critical | platform-tier |
+| Namespace                 | Purpose                                                                                               | PHI Exposure                                     | Criticality | Network Tier        |
+| ------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ----------- | ------------------- |
+| `velya-dev-clinical`      | Patient-facing clinical services: patient-flow-service, discharge-orchestrator, task-inbox-service    | HIGH — direct FHIR access                        | Critical    | clinical-tier       |
+| `velya-dev-core`          | Core API infrastructure: api-gateway, audit-service                                                   | HIGH — PHI transit                               | Critical    | backend-tier        |
+| `velya-dev-platform`      | Platform services: ESO, ArgoCD, cert-manager                                                          | MEDIUM — secret access                           | High        | platform-tier       |
+| `velya-dev-agents`        | AI agent runtime: agent-orchestrator, ai-gateway, policy-engine, memory-service, decision-log-service | HIGH — LLM context includes PHI                  | Critical    | ai-tier             |
+| `velya-dev-observability` | Monitoring: Prometheus, Grafana, Loki, Promtail                                                       | LOW — logs contain scrubbed data                 | High        | observability-tier  |
+| `velya-dev-web`           | Frontend: velya-web (Next.js)                                                                         | LOW — browser-facing; no direct PHI              | Medium      | frontend-tier       |
+| `argocd`                  | GitOps: ArgoCD server and application controller                                                      | LOW — infrastructure only                        | High        | platform-tier       |
+| `ingress-nginx`           | Ingress controller: nginx-ingress                                                                     | LOW — TLS termination only                       | Critical    | ingress-tier        |
+| `metallb-system`          | Load balancer (dev only): MetalLB speakers                                                            | LOW — network infrastructure                     | High        | infrastructure-tier |
+| `keda`                    | Autoscaling: KEDA operator                                                                            | LOW — infrastructure only                        | Medium      | platform-tier       |
+| `temporal-system`         | Workflow engine: Temporal server, web UI                                                              | MEDIUM — workflow history may contain references | High        | platform-tier       |
+| `nats`                    | Event broker: NATS JetStream cluster                                                                  | HIGH — clinical events in flight                 | Critical    | platform-tier       |
 
 ### Namespace Design Principles
 
@@ -73,11 +73,11 @@ This means the current dev cluster has **administrative** isolation (RBAC, quota
 
 ### Required CNI for NetworkPolicy Enforcement
 
-| Environment | CNI | NetworkPolicy Enforcement |
-|---|---|---|
-| kind (dev) — current | kindnet | NOT ENFORCED |
-| kind (dev) — required | Calico (via kind config) | ENFORCED |
-| EKS (production) | Amazon VPC CNI + NetworkPolicy support | ENFORCED |
+| Environment           | CNI                                    | NetworkPolicy Enforcement |
+| --------------------- | -------------------------------------- | ------------------------- |
+| kind (dev) — current  | kindnet                                | NOT ENFORCED              |
+| kind (dev) — required | Calico (via kind config)               | ENFORCED                  |
+| EKS (production)      | Amazon VPC CNI + NetworkPolicy support | ENFORCED                  |
 
 ### Replacing kindnet with Calico for kind
 
@@ -86,8 +86,8 @@ This means the current dev cluster has **administrative** isolation (RBAC, quota
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 networking:
-  disableDefaultCNI: true  # Disable kindnet
-  podSubnet: "192.168.0.0/16"  # Calico default subnet
+  disableDefaultCNI: true # Disable kindnet
+  podSubnet: '192.168.0.0/16' # Calico default subnet
 nodes:
   - role: control-plane
   - role: worker
@@ -134,7 +134,7 @@ metadata:
   name: default-deny-all
   namespace: velya-dev-clinical
 spec:
-  podSelector: {}  # All pods in namespace
+  podSelector: {} # All pods in namespace
   policyTypes:
     - Ingress
     - Egress
@@ -143,19 +143,19 @@ spec:
 
 ### Permitted Traffic Matrix
 
-| Source Namespace/Pod | Destination Namespace/Pod | Port | Justification |
-|---|---|---|---|
-| ingress-nginx | velya-dev-core / api-gateway | 3000 | All external traffic enters via api-gateway |
-| velya-dev-core / api-gateway | velya-dev-clinical / patient-flow-service | 3001 | Patient data API routing |
-| velya-dev-core / api-gateway | velya-dev-clinical / discharge-orchestrator | 3002 | Discharge API routing |
-| velya-dev-core / api-gateway | velya-dev-clinical / task-inbox-service | 3003 | Task API routing |
-| velya-dev-core / api-gateway | velya-dev-agents / ai-gateway | 3010 | AI request routing |
-| velya-dev-clinical / * | nats / nats-server | 4222 | NATS client connections |
-| velya-dev-agents / * | nats / nats-server | 4222 | Agent NATS communication |
-| velya-dev-agents / ai-gateway | api.anthropic.com (egress) | 443 | LLM API calls |
-| velya-dev-clinical / * | temporal-system / * | 7233 | Temporal workflow client |
-| velya-dev-* / * | velya-dev-observability / * | PROHIBITED | No direct observability access from services |
-| velya-dev-observability / promtail | velya-dev-* (egress only) | ANY | Log collection |
+| Source Namespace/Pod               | Destination Namespace/Pod                   | Port       | Justification                                |
+| ---------------------------------- | ------------------------------------------- | ---------- | -------------------------------------------- |
+| ingress-nginx                      | velya-dev-core / api-gateway                | 3000       | All external traffic enters via api-gateway  |
+| velya-dev-core / api-gateway       | velya-dev-clinical / patient-flow-service   | 3001       | Patient data API routing                     |
+| velya-dev-core / api-gateway       | velya-dev-clinical / discharge-orchestrator | 3002       | Discharge API routing                        |
+| velya-dev-core / api-gateway       | velya-dev-clinical / task-inbox-service     | 3003       | Task API routing                             |
+| velya-dev-core / api-gateway       | velya-dev-agents / ai-gateway               | 3010       | AI request routing                           |
+| velya-dev-clinical / \*            | nats / nats-server                          | 4222       | NATS client connections                      |
+| velya-dev-agents / \*              | nats / nats-server                          | 4222       | Agent NATS communication                     |
+| velya-dev-agents / ai-gateway      | api.anthropic.com (egress)                  | 443        | LLM API calls                                |
+| velya-dev-clinical / \*            | temporal-system / \*                        | 7233       | Temporal workflow client                     |
+| velya-dev-_ / _                    | velya-dev-observability / \*                | PROHIBITED | No direct observability access from services |
+| velya-dev-observability / promtail | velya-dev-\* (egress only)                  | ANY        | Log collection                               |
 
 ---
 
@@ -228,7 +228,7 @@ metadata:
   name: velya-system-critical
 value: 1000000
 globalDefault: false
-description: "Critical platform components: NATS, ESO, cert-manager. Evict other workloads before these."
+description: 'Critical platform components: NATS, ESO, cert-manager. Evict other workloads before these.'
 
 ---
 # Priority 2 — Clinical services: Direct patient care impact
@@ -238,7 +238,7 @@ metadata:
   name: velya-clinical-critical
 value: 900000
 globalDefault: false
-description: "Clinical services with direct patient safety impact: patient-flow, discharge-orchestrator, early-warning-agent."
+description: 'Clinical services with direct patient safety impact: patient-flow, discharge-orchestrator, early-warning-agent.'
 
 ---
 # Priority 3 — Platform services: Operational impact
@@ -248,7 +248,7 @@ metadata:
   name: velya-platform-high
 value: 800000
 globalDefault: false
-description: "Important platform services: api-gateway, ai-gateway, policy-engine, audit-service."
+description: 'Important platform services: api-gateway, ai-gateway, policy-engine, audit-service.'
 
 ---
 # Priority 4 — Default: Standard services
@@ -258,7 +258,7 @@ metadata:
   name: velya-standard
 value: 500000
 globalDefault: true
-description: "Standard services: memory-service, task-inbox, decision-log, velya-web."
+description: 'Standard services: memory-service, task-inbox, decision-log, velya-web.'
 
 ---
 # Priority 5 — Lowest: Batch and background
@@ -268,30 +268,30 @@ metadata:
   name: velya-batch-low
 value: 100000
 globalDefault: false
-description: "Non-urgent batch: market intelligence agents, report generation, cleanup jobs."
+description: 'Non-urgent batch: market intelligence agents, report generation, cleanup jobs.'
 ```
 
 ### Priority Assignment by Service
 
-| Service | PriorityClass | Rationale |
-|---|---|---|
-| NATS JetStream | velya-system-critical | Event backbone; all clinical workflows depend on it |
-| External Secrets Operator | velya-system-critical | All services need secrets to start |
-| cert-manager | velya-system-critical | TLS for all services depends on cert-manager |
-| patient-flow-service | velya-clinical-critical | Direct patient data access |
-| discharge-orchestrator | velya-clinical-critical | Patient discharge management |
-| early-warning-agent | velya-clinical-critical | Patient safety; deterioration alerts |
-| api-gateway | velya-platform-high | All external traffic routes through api-gateway |
-| ai-gateway | velya-platform-high | AI layer for clinical decision support |
-| audit-service | velya-platform-high | Compliance — must not be evicted |
-| policy-engine | velya-platform-high | Safety gate for agent actions |
-| Prometheus + Alertmanager | velya-platform-high | Observability and alerting |
-| task-inbox-service | velya-standard | Task routing |
-| velya-web | velya-standard | Frontend |
-| memory-service | velya-standard | Agent memory |
-| decision-log-service | velya-standard | AI audit trail |
-| market-intelligence-agent | velya-batch-low | Background; no direct patient impact |
-| report-generation jobs | velya-batch-low | Batch analytics |
+| Service                   | PriorityClass           | Rationale                                           |
+| ------------------------- | ----------------------- | --------------------------------------------------- |
+| NATS JetStream            | velya-system-critical   | Event backbone; all clinical workflows depend on it |
+| External Secrets Operator | velya-system-critical   | All services need secrets to start                  |
+| cert-manager              | velya-system-critical   | TLS for all services depends on cert-manager        |
+| patient-flow-service      | velya-clinical-critical | Direct patient data access                          |
+| discharge-orchestrator    | velya-clinical-critical | Patient discharge management                        |
+| early-warning-agent       | velya-clinical-critical | Patient safety; deterioration alerts                |
+| api-gateway               | velya-platform-high     | All external traffic routes through api-gateway     |
+| ai-gateway                | velya-platform-high     | AI layer for clinical decision support              |
+| audit-service             | velya-platform-high     | Compliance — must not be evicted                    |
+| policy-engine             | velya-platform-high     | Safety gate for agent actions                       |
+| Prometheus + Alertmanager | velya-platform-high     | Observability and alerting                          |
+| task-inbox-service        | velya-standard          | Task routing                                        |
+| velya-web                 | velya-standard          | Frontend                                            |
+| memory-service            | velya-standard          | Agent memory                                        |
+| decision-log-service      | velya-standard          | AI audit trail                                      |
+| market-intelligence-agent | velya-batch-low         | Background; no direct patient impact                |
+| report-generation jobs    | velya-batch-low         | Batch analytics                                     |
 
 ---
 
@@ -349,23 +349,23 @@ ServiceAccounts:
     automountServiceAccountToken: false
     annotations:
       velya.io/owner: clinical-team
-      
+
   - name: velya-discharge-orchestrator
     automountServiceAccountToken: false
     annotations:
       velya.io/owner: clinical-team
-      
+
   - name: velya-task-inbox
     automountServiceAccountToken: false
 
-# velya-dev-agents namespace  
+# velya-dev-agents namespace
 ServiceAccounts:
   - name: velya-ai-gateway
     automountServiceAccountToken: false
-    
+
   - name: velya-agent-orchestrator
     automountServiceAccountToken: false
-    
+
   - name: velya-policy-engine
     automountServiceAccountToken: false
 
@@ -373,7 +373,7 @@ ServiceAccounts:
 ServiceAccounts:
   - name: velya-external-secrets  # Needs K8s API for secret creation
     automountServiceAccountToken: true  # Exception: ESO needs API access
-    
+
   - name: velya-argocd  # Needs K8s API for resource management
     automountServiceAccountToken: true  # Exception: ArgoCD needs API access
 ```
@@ -408,14 +408,14 @@ metadata:
   name: velya-patient-flow-role
   namespace: velya-dev-clinical
 rules:
-  - apiGroups: [""]
-    resources: ["secrets"]
-    resourceNames: ["patient-flow-secrets"]  # Only its own secret
-    verbs: ["get"]
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    resourceNames: ["patient-flow-config"]
-    verbs: ["get", "watch"]
+  - apiGroups: ['']
+    resources: ['secrets']
+    resourceNames: ['patient-flow-secrets'] # Only its own secret
+    verbs: ['get']
+  - apiGroups: ['']
+    resources: ['configmaps']
+    resourceNames: ['patient-flow-config']
+    verbs: ['get', 'watch']
   # No cluster-level permissions
   # No cross-namespace permissions
 ```
@@ -430,14 +430,14 @@ All 5 kind nodes are identical. Workloads are not separated by node. No node tai
 
 ### Target EKS Node Pool Architecture
 
-| Node Pool Name | Instance Type | Workloads | Taints | Min | Max |
-|---|---|---|---|---|---|
-| `velya-clinical` | m6i.xlarge (4 CPU, 16GB) | Clinical services (patient-flow, discharge, task-inbox) | `velya.io/workload=clinical:NoSchedule` | 2 | 10 |
-| `velya-platform` | m6i.large (2 CPU, 8GB) | API gateway, ESO, cert-manager, NATS | `velya.io/workload=platform:NoSchedule` | 2 | 6 |
-| `velya-ai` | m6i.2xlarge (8 CPU, 32GB) | Agent runtime, ai-gateway, policy-engine | `velya.io/workload=ai:NoSchedule` | 1 | 5 |
-| `velya-observability` | r6i.large (2 CPU, 16GB) | Prometheus, Loki, Grafana (memory-intensive) | `velya.io/workload=observability:NoSchedule` | 2 | 4 |
-| `velya-web` | t3.medium (2 CPU, 4GB) | velya-web, ingress-nginx | `velya.io/workload=web:NoSchedule` | 1 | 8 |
-| `velya-batch` | m6i.xlarge Spot | Batch jobs, market intelligence | `velya.io/workload=batch:NoSchedule` | 0 | 10 |
+| Node Pool Name        | Instance Type             | Workloads                                               | Taints                                       | Min | Max |
+| --------------------- | ------------------------- | ------------------------------------------------------- | -------------------------------------------- | --- | --- |
+| `velya-clinical`      | m6i.xlarge (4 CPU, 16GB)  | Clinical services (patient-flow, discharge, task-inbox) | `velya.io/workload=clinical:NoSchedule`      | 2   | 10  |
+| `velya-platform`      | m6i.large (2 CPU, 8GB)    | API gateway, ESO, cert-manager, NATS                    | `velya.io/workload=platform:NoSchedule`      | 2   | 6   |
+| `velya-ai`            | m6i.2xlarge (8 CPU, 32GB) | Agent runtime, ai-gateway, policy-engine                | `velya.io/workload=ai:NoSchedule`            | 1   | 5   |
+| `velya-observability` | r6i.large (2 CPU, 16GB)   | Prometheus, Loki, Grafana (memory-intensive)            | `velya.io/workload=observability:NoSchedule` | 2   | 4   |
+| `velya-web`           | t3.medium (2 CPU, 4GB)    | velya-web, ingress-nginx                                | `velya.io/workload=web:NoSchedule`           | 1   | 8   |
+| `velya-batch`         | m6i.xlarge Spot           | Batch jobs, market intelligence                         | `velya.io/workload=batch:NoSchedule`         | 0   | 10  |
 
 ### EKS Node Pool Tolerations
 
@@ -449,9 +449,9 @@ spec:
   template:
     spec:
       tolerations:
-        - key: "velya.io/workload"
-          value: "clinical"
-          effect: "NoSchedule"
+        - key: 'velya.io/workload'
+          value: 'clinical'
+          effect: 'NoSchedule'
       nodeSelector:
         velya.io/workload: clinical
       topologySpreadConstraints:
@@ -472,7 +472,7 @@ All Velya containers must have the following security context (enforced by Kyver
 ```yaml
 securityContext:
   runAsNonRoot: true
-  runAsUser: 1001       # Non-root UID
+  runAsUser: 1001 # Non-root UID
   runAsGroup: 1001
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
@@ -481,16 +481,16 @@ securityContext:
   capabilities:
     drop:
       - ALL
-    add: []  # No capabilities added
+    add: [] # No capabilities added
 ```
 
 ### Exceptions
 
-| Container | Exception Required | Reason | Compensating Control |
-|---|---|---|---|
-| MetalLB speaker | hostNetwork: true | L2 ARP requires host network | Only in dev; replaced by AWS LBC in EKS |
-| ingress-nginx | Net bind capability (port 80/443) | Ingress requires port < 1024 | Add NET_BIND_SERVICE only; all other caps dropped |
-| Promtail | hostPath volume read | Log collection from node filesystem | Read-only mount; no write permission |
+| Container       | Exception Required                | Reason                              | Compensating Control                              |
+| --------------- | --------------------------------- | ----------------------------------- | ------------------------------------------------- |
+| MetalLB speaker | hostNetwork: true                 | L2 ARP requires host network        | Only in dev; replaced by AWS LBC in EKS           |
+| ingress-nginx   | Net bind capability (port 80/443) | Ingress requires port < 1024        | Add NET_BIND_SERVICE only; all other caps dropped |
+| Promtail        | hostPath volume read              | Log collection from node filesystem | Read-only mount; no write permission              |
 
 ---
 
@@ -523,4 +523,4 @@ kubectl run test-pod -n velya-dev-clinical --image=nginx --restart=Never --limit
 
 ---
 
-*This isolation model is the target state. The current kind cluster does not meet the isolation requirements for PHI handling due to the kindnet NetworkPolicy enforcement gap. No PHI should be processed in the current dev cluster until the CNI is replaced with Calico and all isolation tests pass.*
+_This isolation model is the target state. The current kind cluster does not meet the isolation requirements for PHI handling due to the kindnet NetworkPolicy enforcement gap. No PHI should be processed in the current dev cluster until the CNI is replaced with Calico and all isolation tests pass._

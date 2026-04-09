@@ -20,18 +20,18 @@ O modelo de propriedade por turno garante que, em qualquer momento, cada pacient
 
 ### 2.1 Configuracao Padrao
 
-| Turno | Horario | Codigo | Overlap |
-|---|---|---|---|
-| **Diurno (D)** | 07:00 - 19:00 | `SHIFT_D` | 07:00-07:30 com noturno anterior |
-| **Noturno (N)** | 19:00 - 07:00 | `SHIFT_N` | 19:00-19:30 com diurno anterior |
+| Turno           | Horario       | Codigo    | Overlap                          |
+| --------------- | ------------- | --------- | -------------------------------- |
+| **Diurno (D)**  | 07:00 - 19:00 | `SHIFT_D` | 07:00-07:30 com noturno anterior |
+| **Noturno (N)** | 19:00 - 07:00 | `SHIFT_N` | 19:00-19:30 com diurno anterior  |
 
 ### 2.2 Configuracao Alternativa (3 turnos)
 
-| Turno | Horario | Codigo | Overlap |
-|---|---|---|---|
-| **Manha (M)** | 07:00 - 13:00 | `SHIFT_M` | 07:00-07:15 com noturno |
-| **Tarde (T)** | 13:00 - 19:00 | `SHIFT_T` | 13:00-13:15 com manha |
-| **Noturno (N)** | 19:00 - 07:00 | `SHIFT_N` | 19:00-19:15 com tarde |
+| Turno           | Horario       | Codigo    | Overlap                 |
+| --------------- | ------------- | --------- | ----------------------- |
+| **Manha (M)**   | 07:00 - 13:00 | `SHIFT_M` | 07:00-07:15 com noturno |
+| **Tarde (T)**   | 13:00 - 19:00 | `SHIFT_T` | 13:00-13:15 com manha   |
+| **Noturno (N)** | 19:00 - 07:00 | `SHIFT_N` | 19:00-19:15 com tarde   |
 
 ### 2.3 Configuracao por Unidade
 
@@ -41,59 +41,59 @@ Cada unidade pode ter configuracao de turno diferente:
 # shift-config.yaml
 units:
   UTI-A:
-    shift_model: "12h"
+    shift_model: '12h'
     shifts:
-      - name: "Diurno"
-        code: "SHIFT_D"
-        start: "07:00"
-        end: "19:00"
+      - name: 'Diurno'
+        code: 'SHIFT_D'
+        start: '07:00'
+        end: '19:00'
         overlap_minutes: 30
-      - name: "Noturno"
-        code: "SHIFT_N"
-        start: "19:00"
-        end: "07:00"
+      - name: 'Noturno'
+        code: 'SHIFT_N'
+        start: '19:00'
+        end: '07:00'
         overlap_minutes: 30
     max_patients_per_nurse: 2
     max_patients_per_tech: 4
-    
+
   Enfermaria-4B:
-    shift_model: "12h"
+    shift_model: '12h'
     shifts:
-      - name: "Diurno"
-        code: "SHIFT_D"
-        start: "07:00"
-        end: "19:00"
+      - name: 'Diurno'
+        code: 'SHIFT_D'
+        start: '07:00'
+        end: '19:00'
         overlap_minutes: 30
-      - name: "Noturno"
-        code: "SHIFT_N"
-        start: "19:00"
-        end: "07:00"
+      - name: 'Noturno'
+        code: 'SHIFT_N'
+        start: '19:00'
+        end: '07:00'
         overlap_minutes: 30
     max_patients_per_nurse: 6
     max_patients_per_tech: 10
-    
+
   Emergencia:
-    shift_model: "6h"
+    shift_model: '6h'
     shifts:
-      - name: "Manha"
-        code: "SHIFT_M"
-        start: "07:00"
-        end: "13:00"
+      - name: 'Manha'
+        code: 'SHIFT_M'
+        start: '07:00'
+        end: '13:00'
         overlap_minutes: 15
-      - name: "Tarde"
-        code: "SHIFT_T"
-        start: "13:00"
-        end: "19:00"
+      - name: 'Tarde'
+        code: 'SHIFT_T'
+        start: '13:00'
+        end: '19:00'
         overlap_minutes: 15
-      - name: "Noite1"
-        code: "SHIFT_N1"
-        start: "19:00"
-        end: "01:00"
+      - name: 'Noite1'
+        code: 'SHIFT_N1'
+        start: '19:00'
+        end: '01:00'
         overlap_minutes: 15
-      - name: "Noite2"
-        code: "SHIFT_N2"
-        start: "01:00"
-        end: "07:00"
+      - name: 'Noite2'
+        code: 'SHIFT_N2'
+        start: '01:00'
+        end: '07:00'
         overlap_minutes: 15
     max_patients_per_nurse: 4
     max_patients_per_tech: 8
@@ -101,15 +101,15 @@ units:
   # Medicos podem ter escalas diferentes
   medical_shifts:
     default:
-      - name: "Plantao Diurno"
-        code: "MED_D"
-        start: "07:00"
-        end: "19:00"
+      - name: 'Plantao Diurno'
+        code: 'MED_D'
+        start: '07:00'
+        end: '19:00'
         overlap_minutes: 30
-      - name: "Plantao Noturno"
-        code: "MED_N"
-        start: "19:00"
-        end: "07:00"
+      - name: 'Plantao Noturno'
+        code: 'MED_N'
+        start: '19:00'
+        end: '07:00'
         overlap_minutes: 30
 ```
 
@@ -129,19 +129,19 @@ interface ShiftStartEvent {
   unit: string;
   startTime: ISO8601DateTime;
   expectedEndTime: ISO8601DateTime;
-  
+
   /** Lista de pacientes que aceita neste turno (via handoff) */
   acceptedPatients: PatientAssignment[];
-  
+
   /** Pendencias herdadas do turno anterior */
   inheritedPendingItems: InheritedPendingItem[];
-  
+
   /** Status do profissional */
   status: 'on_duty' | 'on_call' | 'backup';
-  
+
   /** Certificacao de que recebeu handoff completo */
   handoffReceived: boolean;
-  
+
   /** Observacoes do inicio do turno */
   notes: string;
 }
@@ -180,27 +180,27 @@ interface ShiftEndEvent {
   unit: string;
   actualEndTime: ISO8601DateTime;
   expectedEndTime: ISO8601DateTime;
-  
+
   /** Overtime registrado (minutos alem do esperado) */
   overtimeMinutes: number;
   /** Justificativa do overtime */
   overtimeReason?: string;
-  
+
   /** Pacientes transferidos neste fim de turno */
   transferredPatients: PatientTransfer[];
-  
+
   /** Pendencias criadas durante o turno */
   pendingItemsCreated: number;
   /** Pendencias resolvidas durante o turno */
   pendingItemsResolved: number;
   /** Pendencias herdadas e nao resolvidas (passadas adiante) */
   pendingItemsForwarded: number;
-  
+
   /** Todos os handoffs foram aceitos? */
   allHandoffsAccepted: boolean;
   /** IDs de handoffs pendentes (se houver) */
   pendingHandoffs: string[];
-  
+
   /** Resumo do turno */
   shiftSummary: string;
 }
@@ -231,13 +231,13 @@ O profissional pode finalizar com handoffs de rotina pendentes, mas o sistema re
 
 A lista de pacientes por profissional por turno e definida por:
 
-| Fator | Descricao |
-|---|---|
+| Fator            | Descricao                                                                                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **Continuidade** | Preferencialmente, o mesmo paciente permanece com o mesmo profissional em turnos consecutivos do mesmo tipo (ex: mesmo enfermeiro diurno) |
-| **Carga** | Distribuicao equilibrada de carga considerando acuidade dos pacientes |
-| **Competencia** | Pacientes com necessidades especiais atribuidos a profissionais com competencia adequada |
-| **Localizacao** | Pacientes fisicamente proximos para eficiencia operacional |
-| **Limitacao** | Respeito ao ratio maximo pacientes/profissional da unidade |
+| **Carga**        | Distribuicao equilibrada de carga considerando acuidade dos pacientes                                                                     |
+| **Competencia**  | Pacientes com necessidades especiais atribuidos a profissionais com competencia adequada                                                  |
+| **Localizacao**  | Pacientes fisicamente proximos para eficiencia operacional                                                                                |
+| **Limitacao**    | Respeito ao ratio maximo pacientes/profissional da unidade                                                                                |
 
 ### 4.2 Algoritmo de Sugestao
 
@@ -246,28 +246,28 @@ function suggestPatientAssignment(
   unit: string,
   shift: string,
   availableStaff: Practitioner[],
-  patients: Patient[]
+  patients: Patient[],
 ): PatientAssignment[] {
   // 1. Manter continuidade quando possivel
   const previousAssignments = getPreviousShiftAssignments(unit, shift);
-  
+
   // 2. Calcular acuidade de cada paciente
-  const patientAcuity = patients.map(p => ({
+  const patientAcuity = patients.map((p) => ({
     patient: p,
     acuity: calculateAcuity(p), // baseado no Digital Twin
   }));
-  
+
   // 3. Distribuir equilibrando carga
   const assignments: PatientAssignment[] = [];
   const staffLoad: Map<string, number> = new Map();
-  
+
   // Primeiro: manter continuidade
   for (const pa of patientAcuity) {
     const previousNurse = previousAssignments.find(
-      a => a.patientId === pa.patient.id
+      (a) => a.patientId === pa.patient.id,
     )?.practitionerId;
-    
-    if (previousNurse && availableStaff.find(s => s.id === previousNurse)) {
+
+    if (previousNurse && availableStaff.find((s) => s.id === previousNurse)) {
       const currentLoad = staffLoad.get(previousNurse) || 0;
       const maxLoad = getMaxLoadForUnit(unit);
       if (currentLoad + pa.acuity <= maxLoad) {
@@ -280,31 +280,27 @@ function suggestPatientAssignment(
       }
     }
   }
-  
+
   // Segundo: distribuir restantes por carga
   const unassigned = patientAcuity.filter(
-    pa => !assignments.find(a => a.patientId === pa.patient.id)
+    (pa) => !assignments.find((a) => a.patientId === pa.patient.id),
   );
-  
+
   for (const pa of unassigned.sort((a, b) => b.acuity - a.acuity)) {
     const leastLoadedStaff = availableStaff
-      .filter(s => !isOverloaded(s, staffLoad, unit))
-      .sort((a, b) => (staffLoad.get(a.id) || 0) - (staffLoad.get(b.id) || 0))
-      [0];
-    
+      .filter((s) => !isOverloaded(s, staffLoad, unit))
+      .sort((a, b) => (staffLoad.get(a.id) || 0) - (staffLoad.get(b.id) || 0))[0];
+
     if (leastLoadedStaff) {
       assignments.push({
         patientId: pa.patient.id,
         practitionerId: leastLoadedStaff.id,
         reason: 'load_balance',
       });
-      staffLoad.set(
-        leastLoadedStaff.id,
-        (staffLoad.get(leastLoadedStaff.id) || 0) + pa.acuity
-      );
+      staffLoad.set(leastLoadedStaff.id, (staffLoad.get(leastLoadedStaff.id) || 0) + pa.acuity);
     }
   }
-  
+
   return assignments;
 }
 ```
@@ -317,15 +313,15 @@ function suggestPatientAssignment(
 
 Quando um profissional aceita um handoff, todas as pendencias ativas do paciente sao automaticamente herdadas:
 
-| Tipo de Pendencia | Heranca | Nota |
-|---|---|---|
-| Medicamento atrasado | Automatica | Flagado com alerta |
-| Resultado critico sem acao | Automatica | Flagado como prioridade maxima |
-| Reavaliacao de dor | Automatica | Com horario original |
-| Troca de dispositivo | Automatica | Com data de insercao |
-| Documento sem assinatura | Automatica | Do autor original, nao do herdeiro |
-| Interconsulta pendente | Automatica | Com SLA original |
-| Exame pendente (coleta/resultado) | Automatica | Com SLA original |
+| Tipo de Pendencia                 | Heranca    | Nota                               |
+| --------------------------------- | ---------- | ---------------------------------- |
+| Medicamento atrasado              | Automatica | Flagado com alerta                 |
+| Resultado critico sem acao        | Automatica | Flagado como prioridade maxima     |
+| Reavaliacao de dor                | Automatica | Com horario original               |
+| Troca de dispositivo              | Automatica | Com data de insercao               |
+| Documento sem assinatura          | Automatica | Do autor original, nao do herdeiro |
+| Interconsulta pendente            | Automatica | Com SLA original                   |
+| Exame pendente (coleta/resultado) | Automatica | Com SLA original                   |
 
 ### 5.2 Visibilidade de Pendencias Herdadas
 
@@ -376,15 +372,15 @@ No inicio do turno, o profissional ve:
 
 ### 6.1 Gaps Monitorados
 
-| Gap | Descricao | Severidade |
-|---|---|---|
-| **Paciente sem aceite** | Paciente no handoff mas nao aceito pelo receptor | CRITICAL |
-| **Pendencia nao comunicada** | Pendencia do turno anterior nao incluida no handoff | HIGH |
-| **Continuidade quebrada** | Profissional designado diferente sem justificativa | MEDIUM |
-| **Overtime excessivo** | Profissional permaneceu > 2h alem do turno | MEDIUM |
-| **Carga desigual** | Diferenca > 50% na acuidade entre profissionais do turno | MEDIUM |
-| **Competencia inadequada** | Paciente com necessidade especial atribuido a profissional sem competencia | HIGH |
-| **Turno sem inicio** | Profissional da escala nao registrou inicio de turno em 15 min | HIGH |
+| Gap                          | Descricao                                                                  | Severidade |
+| ---------------------------- | -------------------------------------------------------------------------- | ---------- |
+| **Paciente sem aceite**      | Paciente no handoff mas nao aceito pelo receptor                           | CRITICAL   |
+| **Pendencia nao comunicada** | Pendencia do turno anterior nao incluida no handoff                        | HIGH       |
+| **Continuidade quebrada**    | Profissional designado diferente sem justificativa                         | MEDIUM     |
+| **Overtime excessivo**       | Profissional permaneceu > 2h alem do turno                                 | MEDIUM     |
+| **Carga desigual**           | Diferenca > 50% na acuidade entre profissionais do turno                   | MEDIUM     |
+| **Competencia inadequada**   | Paciente com necessidade especial atribuido a profissional sem competencia | HIGH       |
+| **Turno sem inicio**         | Profissional da escala nao registrou inicio de turno em 15 min             | HIGH       |
 
 ### 6.2 Deteccao Automatica
 
@@ -394,10 +390,10 @@ async function detectShiftGaps(unit: string, shift: string): Promise<Gap[]> {
   const expectedStaff = await getScheduledStaff(unit, shift);
   const actualStaff = await getCheckedInStaff(unit, shift);
   const patients = await getActivePatients(unit);
-  
+
   // Gap 1: Profissional da escala nao fez check-in
   for (const scheduled of expectedStaff) {
-    if (!actualStaff.find(a => a.id === scheduled.id)) {
+    if (!actualStaff.find((a) => a.id === scheduled.id)) {
       const delayMinutes = minutesSinceShiftStart(shift);
       if (delayMinutes > 15) {
         gaps.push({
@@ -409,7 +405,7 @@ async function detectShiftGaps(unit: string, shift: string): Promise<Gap[]> {
       }
     }
   }
-  
+
   // Gap 2: Paciente sem responsavel aceito
   for (const patient of patients) {
     const currentOwner = await getCurrentOwner(patient.id, 'nurse');
@@ -422,11 +418,11 @@ async function detectShiftGaps(unit: string, shift: string): Promise<Gap[]> {
       });
     }
   }
-  
+
   // Gap 3: Carga desigual
   const staffLoads = await calculateStaffLoads(unit, shift);
-  const maxLoad = Math.max(...staffLoads.map(s => s.acuityScore));
-  const minLoad = Math.min(...staffLoads.map(s => s.acuityScore));
+  const maxLoad = Math.max(...staffLoads.map((s) => s.acuityScore));
+  const minLoad = Math.min(...staffLoads.map((s) => s.acuityScore));
   if (maxLoad > 0 && (maxLoad - minLoad) / maxLoad > 0.5) {
     gaps.push({
       type: 'unequal_load',
@@ -434,7 +430,7 @@ async function detectShiftGaps(unit: string, shift: string): Promise<Gap[]> {
       description: `Carga desigual na unidade ${unit}: max=${maxLoad}, min=${minLoad}. Diferenca > 50%.`,
     });
   }
-  
+
   return gaps;
 }
 ```
@@ -447,12 +443,12 @@ async function detectShiftGaps(unit: string, shift: string): Promise<Gap[]> {
 
 O periodo de overlap entre turnos e o momento em que ambos os profissionais (saindo e entrando) estao presentes simultaneamente para realizar o handoff.
 
-| Duracao | Finalidade |
-|---|---|
+| Duracao             | Finalidade                                            |
+| ------------------- | ----------------------------------------------------- |
 | **Primeiros 5 min** | Login do profissional entrante, verificacao de escala |
-| **5-20 min** | Handoff estruturado (I-PASS) por paciente |
-| **20-25 min** | Conferencia de pendencias, duvidas, esclarecimentos |
-| **25-30 min** | Aceite formal no sistema, inicio do turno no sistema |
+| **5-20 min**        | Handoff estruturado (I-PASS) por paciente             |
+| **20-25 min**       | Conferencia de pendencias, duvidas, esclarecimentos   |
+| **25-30 min**       | Aceite formal no sistema, inicio do turno no sistema  |
 
 ### 7.2 Regras
 
@@ -467,20 +463,20 @@ O periodo de overlap entre turnos e o momento em que ambos os profissionais (sai
 
 ### 8.1 Tipos de Overtime
 
-| Tipo | Descricao | Registro |
-|---|---|---|
-| **Overtime de handoff** | Extensao para completar handoffs | Automatico (sistema detecta) |
+| Tipo                              | Descricao                                            | Registro                     |
+| --------------------------------- | ---------------------------------------------------- | ---------------------------- |
+| **Overtime de handoff**           | Extensao para completar handoffs                     | Automatico (sistema detecta) |
 | **Overtime de pendencia critica** | Pendencia critica surgiu nos ultimos 30 min do turno | Registrado pelo profissional |
-| **Overtime de cobertura** | Substituto nao chegou / emergencia | Registrado pelo coordenador |
-| **Overtime de documentacao** | Profissional precisa completar documentacao | Registrado pelo profissional |
+| **Overtime de cobertura**         | Substituto nao chegou / emergencia                   | Registrado pelo coordenador  |
+| **Overtime de documentacao**      | Profissional precisa completar documentacao          | Registrado pelo profissional |
 
 ### 8.2 Limites
 
-| Regra | Limite | Acao ao atingir |
-|---|---|---|
-| Overtime por turno | Maximo 2 horas | Alerta para coordenador, busca substituto |
-| Overtime semanal | Maximo 6 horas | Notificacao ao RH |
-| Overtimes consecutivos | Maximo 3 turnos seguidos | Bloqueio de escala (obriga descanso) |
+| Regra                  | Limite                   | Acao ao atingir                           |
+| ---------------------- | ------------------------ | ----------------------------------------- |
+| Overtime por turno     | Maximo 2 horas           | Alerta para coordenador, busca substituto |
+| Overtime semanal       | Maximo 6 horas           | Notificacao ao RH                         |
+| Overtimes consecutivos | Maximo 3 turnos seguidos | Bloqueio de escala (obriga descanso)      |
 
 ### 8.3 Monitoramento
 
@@ -502,13 +498,13 @@ sum(rate(velya_shift_overtime_events_total[7d]))
 
 ### 9.1 Mecanismos de Continuidade
 
-| Mecanismo | Descricao |
-|---|---|
-| **Plano de cuidado persistente** | O CarePlan nao muda com o turno — continua ativo |
-| **Pendencias herdadas** | Pendencias se transferem automaticamente com handoff |
-| **Historico acessivel** | Profissional do novo turno ve timeline completa |
-| **Anotacoes cross-turno** | Notas marcadas como "para proximo turno" ficam destacadas |
-| **Alertas persistentes** | Alertas clinicos nao expiram com o turno |
+| Mecanismo                        | Descricao                                                              |
+| -------------------------------- | ---------------------------------------------------------------------- |
+| **Plano de cuidado persistente** | O CarePlan nao muda com o turno — continua ativo                       |
+| **Pendencias herdadas**          | Pendencias se transferem automaticamente com handoff                   |
+| **Historico acessivel**          | Profissional do novo turno ve timeline completa                        |
+| **Anotacoes cross-turno**        | Notas marcadas como "para proximo turno" ficam destacadas              |
+| **Alertas persistentes**         | Alertas clinicos nao expiram com o turno                               |
 | **Continuidade de profissional** | Sistema prioriza atribuir o mesmo profissional em turnos do mesmo tipo |
 
 ### 9.2 Handoff Cross-Turno de Medico
@@ -538,7 +534,7 @@ metadata:
     module: shift-verification
 spec:
   # Executa a cada 15 minutos
-  schedule: "*/15 * * * *"
+  schedule: '*/15 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 24
   failedJobsHistoryLimit: 5
@@ -585,9 +581,9 @@ spec:
                       name: velya-kafka-config
                       key: brokers
                 - name: NOTIFICATION_SERVICE_URL
-                  value: "http://notification-service.velya.svc.cluster.local:8080"
+                  value: 'http://notification-service.velya.svc.cluster.local:8080'
                 - name: LOG_LEVEL
-                  value: "info"
+                  value: 'info'
               resources:
                 requests:
                   cpu: 100m
@@ -616,7 +612,7 @@ metadata:
 spec:
   # Executa nos horarios de transicao de turno + 30min apos
   # 07:00, 07:30, 13:00, 13:30, 19:00, 19:30, 01:00, 01:30
-  schedule: "0,30 1,7,13,19 * * *"
+  schedule: '0,30 1,7,13,19 * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 48
   failedJobsHistoryLimit: 10
@@ -656,7 +652,7 @@ spec:
                       name: velya-redis-credentials
                       key: url
                 - name: NOTIFICATION_SERVICE_URL
-                  value: "http://notification-service.velya.svc.cluster.local:8080"
+                  value: 'http://notification-service.velya.svc.cluster.local:8080'
               resources:
                 requests:
                   cpu: 200m
@@ -677,7 +673,7 @@ metadata:
     module: shift-reporting
 spec:
   # Executa diariamente as 06:00 (antes do turno diurno)
-  schedule: "0 6 * * *"
+  schedule: '0 6 * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 30
   failedJobsHistoryLimit: 5
@@ -733,14 +729,14 @@ spec:
 
 ### 11.1 KPIs
 
-| KPI | Meta | Frequencia |
-|---|---|---|
-| Cobertura de pacientes | 100% (zero gaps) | Tempo real |
-| Handoffs completos no overlap | > 95% | Por turno |
-| Overtime medio | < 15 min | Semanal |
-| Continuidade de profissional | > 70% (mesmo profissional em turnos consecutivos do mesmo tipo) | Mensal |
-| Carga equilibrada | Desvio < 30% entre profissionais | Por turno |
-| Check-in no horario | > 98% dos profissionais | Mensal |
+| KPI                           | Meta                                                            | Frequencia |
+| ----------------------------- | --------------------------------------------------------------- | ---------- |
+| Cobertura de pacientes        | 100% (zero gaps)                                                | Tempo real |
+| Handoffs completos no overlap | > 95%                                                           | Por turno  |
+| Overtime medio                | < 15 min                                                        | Semanal    |
+| Continuidade de profissional  | > 70% (mesmo profissional em turnos consecutivos do mesmo tipo) | Mensal     |
+| Carga equilibrada             | Desvio < 30% entre profissionais                                | Por turno  |
+| Check-in no horario           | > 98% dos profissionais                                         | Mensal     |
 
 ### 11.2 PromQL
 

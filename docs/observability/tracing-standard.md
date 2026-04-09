@@ -8,13 +8,13 @@
 
 ## 1. Estado Atual
 
-| Componente | Estado | Detalhe |
-|-----------|--------|---------|
-| OTel Collector | Instalado | Rodando em velya-dev-observability, mas sem exportador de traces configurado |
-| Grafana Tempo | **NÃO instalado** | Tracing end-to-end não está funcionando |
-| Instrumentação NestJS | **NÃO implementada** | Nenhum serviço envia traces |
-| Instrumentação Next.js | **NÃO implementada** | Frontend invisível para tracing |
-| Propagação via NATS | **NÃO implementada** | trace_id não é propagado por mensagens assíncronas |
+| Componente             | Estado               | Detalhe                                                                      |
+| ---------------------- | -------------------- | ---------------------------------------------------------------------------- |
+| OTel Collector         | Instalado            | Rodando em velya-dev-observability, mas sem exportador de traces configurado |
+| Grafana Tempo          | **NÃO instalado**    | Tracing end-to-end não está funcionando                                      |
+| Instrumentação NestJS  | **NÃO implementada** | Nenhum serviço envia traces                                                  |
+| Instrumentação Next.js | **NÃO implementada** | Frontend invisível para tracing                                              |
+| Propagação via NATS    | **NÃO implementada** | trace_id não é propagado por mensagens assíncronas                           |
 
 **Consequência atual**: O campo `trace_id` existe nos logs (schema definido) mas não há traces no backend. Não é possível correlacionar logs com spans distribuídos. Fluxos end-to-end como discharge workflow são completamente opacos.
 
@@ -25,6 +25,7 @@
 ### 2.1 Fluxos que devem ser rastreados
 
 **Fluxo clínico de alta**:
+
 ```
 velya-web (Next.js)
   → api-gateway (roteamento)
@@ -59,7 +60,7 @@ velya-web (Next.js)
 tempo:
   storage:
     trace:
-      backend: local  # Para prod: s3
+      backend: local # Para prod: s3
       local:
         path: /var/tempo
 
@@ -114,13 +115,13 @@ processors:
     policies:
       - name: errors-policy
         type: status_code
-        status_code: {status_codes: [ERROR]}
+        status_code: { status_codes: [ERROR] }
       - name: clinical-high-risk
         type: string_attribute
-        string_attribute: {key: velya.risk_class, values: [high]}
+        string_attribute: { key: velya.risk_class, values: [high] }
       - name: probabilistic-sampling
         type: probabilistic
-        probabilistic: {sampling_percentage: 10}
+        probabilistic: { sampling_percentage: 10 }
 
 exporters:
   otlp/tempo:
@@ -129,7 +130,7 @@ exporters:
       insecure: true
 
   prometheus:
-    endpoint: "0.0.0.0:8889"
+    endpoint: '0.0.0.0:8889'
 
   loki:
     endpoint: http://loki.velya-dev-observability:3100/loki/api/v1/push
@@ -171,7 +172,7 @@ datasources:
       tracesToMetrics:
         datasourceUid: prometheus
         queries:
-          - name: "Error Rate"
+          - name: 'Error Rate'
             query: 'rate(http_requests_total{service="$${__tags.service}",status=~"5.."}[5m])'
       serviceMap:
         datasourceUid: prometheus
@@ -216,7 +217,9 @@ const sdk = new NodeSDK({
     'velya.office': process.env.VELYA_OFFICE || 'unknown',
   }),
   traceExporter: new OTLPTraceExporter({
-    url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://otel-collector.velya-dev-observability:4317',
+    url:
+      process.env.OTEL_EXPORTER_OTLP_ENDPOINT ||
+      'http://otel-collector.velya-dev-observability:4317',
   }),
   instrumentations: [
     getNodeAutoInstrumentations({
@@ -242,7 +245,8 @@ sdk.start();
 
 // Garantir shutdown limpo
 process.on('SIGTERM', () => {
-  sdk.shutdown()
+  sdk
+    .shutdown()
     .then(() => process.exit(0))
     .catch(() => process.exit(1));
 });
@@ -297,7 +301,7 @@ export class DischargeService {
             });
             span.setAttributes({
               'velya.discharge.blocker_count': blockers.length,
-              'velya.discharge.blocker_types': blockers.map(b => b.type).join(','),
+              'velya.discharge.blocker_types': blockers.map((b) => b.type).join(','),
               'velya.outcome': 'failure',
             });
             return;
@@ -307,7 +311,6 @@ export class DischargeService {
 
           span.setAttributes({ 'velya.outcome': 'success' });
           span.setStatus({ code: SpanStatusCode.OK });
-
         } catch (error) {
           span.recordException(error);
           span.setStatus({
@@ -318,7 +321,7 @@ export class DischargeService {
         } finally {
           span.end();
         }
-      }
+      },
     );
   }
 }
@@ -335,7 +338,8 @@ export class DischargeService {
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { NodeSDK } = await import('@opentelemetry/sdk-node');
-    const { getNodeAutoInstrumentations } = await import('@opentelemetry/auto-instrumentations-node');
+    const { getNodeAutoInstrumentations } =
+      await import('@opentelemetry/auto-instrumentations-node');
     const { OTLPTraceExporter } = await import('@opentelemetry/exporter-trace-otlp-http');
     const { Resource } = await import('@opentelemetry/resources');
     const { SemanticResourceAttributes } = await import('@opentelemetry/semantic-conventions');
@@ -343,7 +347,8 @@ export async function register() {
     const sdk = new NodeSDK({
       resource: new Resource({
         [SemanticResourceAttributes.SERVICE_NAME]: 'velya-web',
-        [SemanticResourceAttributes.SERVICE_VERSION]: process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0',
+        [SemanticResourceAttributes.SERVICE_VERSION]:
+          process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0',
         [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: process.env.NODE_ENV || 'dev',
       }),
       traceExporter: new OTLPTraceExporter({
@@ -380,27 +385,33 @@ function sendVital(payload: VitalsPayload): void {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      resourceMetrics: [{
-        resource: {
-          attributes: [
-            { key: 'service.name', value: { stringValue: 'velya-web' } },
-            { key: 'environment', value: { stringValue: process.env.NEXT_PUBLIC_ENV || 'dev' } },
+      resourceMetrics: [
+        {
+          resource: {
+            attributes: [
+              { key: 'service.name', value: { stringValue: 'velya-web' } },
+              { key: 'environment', value: { stringValue: process.env.NEXT_PUBLIC_ENV || 'dev' } },
+            ],
+          },
+          scopeMetrics: [
+            {
+              metrics: [
+                {
+                  name: `velya_web_${payload.name.toLowerCase()}_${payload.name === 'CLS' ? 'score' : 'seconds'}`,
+                  gauge: {
+                    dataPoints: [
+                      {
+                        asDouble: payload.name === 'CLS' ? payload.value : payload.value / 1000,
+                        attributes: [{ key: 'route', value: { stringValue: payload.route } }],
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
           ],
         },
-        scopeMetrics: [{
-          metrics: [{
-            name: `velya_web_${payload.name.toLowerCase()}_${payload.name === 'CLS' ? 'score' : 'seconds'}`,
-            gauge: {
-              dataPoints: [{
-                asDouble: payload.name === 'CLS' ? payload.value : payload.value / 1000,
-                attributes: [
-                  { key: 'route', value: { stringValue: payload.route } },
-                ],
-              }],
-            },
-          }],
-        }],
-      }],
+      ],
     }),
     keepalive: true, // importante para envio durante navegação
   }).catch(() => {
@@ -440,11 +451,7 @@ import { JsMsg, NatsConnection } from 'nats';
 const propagator = new W3CTraceContextPropagator();
 
 // AO PUBLICAR: injetar contexto de trace nos headers da mensagem
-export function publishWithTrace(
-  nc: NatsConnection,
-  subject: string,
-  payload: Uint8Array
-): void {
+export function publishWithTrace(nc: NatsConnection, subject: string, payload: Uint8Array): void {
   const headers: Record<string, string> = {};
 
   // Injetar trace context nos headers
@@ -512,23 +519,23 @@ async function handleDischargeRequested(msg: JsMsg): Promise<void> {
 
 ### 7.1 Atributos padrão (todos os spans)
 
-| Atributo OTel | Valor | Fonte |
-|-------------|-------|-------|
-| `service.name` | `discharge-orchestrator` | Resource do SDK |
-| `service.version` | `0.5.0` | Resource do SDK |
-| `deployment.environment` | `dev` | Resource do SDK |
+| Atributo OTel            | Valor                    | Fonte           |
+| ------------------------ | ------------------------ | --------------- |
+| `service.name`           | `discharge-orchestrator` | Resource do SDK |
+| `service.version`        | `0.5.0`                  | Resource do SDK |
+| `deployment.environment` | `dev`                    | Resource do SDK |
 
 ### 7.2 Atributos customizados Velya (quando aplicável)
 
-| Atributo | Tipo | Quando incluir |
-|----------|------|---------------|
-| `velya.office` | string | Em spans de agents e serviços com office |
-| `velya.agent_name` | string | Em spans de execução de agent |
-| `velya.risk_class` | string | Em spans de operações clínicas |
-| `velya.patient_id` | string (tokenizado) | Em spans que operam sobre dados de paciente |
-| `velya.workflow_id` | string | Em spans dentro de workflow Temporal |
-| `velya.action` | string | Em spans de ações de negócio |
-| `velya.outcome` | string | Ao final do span (success/failure/partial) |
+| Atributo            | Tipo                | Quando incluir                              |
+| ------------------- | ------------------- | ------------------------------------------- |
+| `velya.office`      | string              | Em spans de agents e serviços com office    |
+| `velya.agent_name`  | string              | Em spans de execução de agent               |
+| `velya.risk_class`  | string              | Em spans de operações clínicas              |
+| `velya.patient_id`  | string (tokenizado) | Em spans que operam sobre dados de paciente |
+| `velya.workflow_id` | string              | Em spans dentro de workflow Temporal        |
+| `velya.action`      | string              | Em spans de ações de negócio                |
+| `velya.outcome`     | string              | Ao final do span (success/failure/partial)  |
 
 **Restrição de PHI em spans**: Da mesma forma que logs, nunca incluir nome, CPF, data de nascimento ou diagnóstico clínico em atributos de span. Apenas identificadores tokenizados.
 
@@ -542,14 +549,14 @@ Rastrear 100% das requisições seria custoso em termos de storage e processamen
 
 ### 8.2 Política de Sampling (Tail-based no OTel Collector)
 
-| Condição | Taxa de Sampling | Justificativa |
-|----------|-----------------|---------------|
-| Span com erro (`status=ERROR`) | 100% | Erros sempre devem ser investigáveis |
-| `velya.risk_class=high` | 100% | Operações clínicas críticas nunca amostradas |
-| Span com duração > 5s | 100% | Latência anormal deve ser investigável |
-| `velya.action=~"discharge.*"` | 100% | Fluxo de alta é crítico |
-| `velya.action=~"clinical.alert.*"` | 100% | Alertas clínicos sempre rastreados |
-| Tráfego normal (sem os acima) | 10% | Custo controlado |
+| Condição                           | Taxa de Sampling | Justificativa                                |
+| ---------------------------------- | ---------------- | -------------------------------------------- |
+| Span com erro (`status=ERROR`)     | 100%             | Erros sempre devem ser investigáveis         |
+| `velya.risk_class=high`            | 100%             | Operações clínicas críticas nunca amostradas |
+| Span com duração > 5s              | 100%             | Latência anormal deve ser investigável       |
+| `velya.action=~"discharge.*"`      | 100%             | Fluxo de alta é crítico                      |
+| `velya.action=~"clinical.alert.*"` | 100%             | Alertas clínicos sempre rastreados           |
+| Tráfego normal (sem os acima)      | 10%              | Custo controlado                             |
 
 ### 8.3 Configuração no OTel Collector (tail sampling)
 

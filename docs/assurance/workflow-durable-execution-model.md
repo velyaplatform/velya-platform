@@ -14,13 +14,13 @@ A Velya utiliza Temporal como engine de execucao duravel para processos criticos
 
 ## 2. Workflows Criticos da Velya
 
-| Workflow | Criticidade | Duracao Tipica | Owner |
-|---|---|---|---|
-| Discharge Orchestration Saga | Critico | 1h - 24h | clinical-eng |
-| Institutional Escalation | Critico | 15min - 4h | clinical-eng |
-| Multi-Step Correction | Alto | 30min - 2h | clinical-eng |
-| Agent Promotion/Quarantine/Retirement | Alto | 5min - 1h | ai-ops |
-| Post-Failure Learning Consolidation | Medio | 10min - 30min | ai-ops |
+| Workflow                              | Criticidade | Duracao Tipica | Owner        |
+| ------------------------------------- | ----------- | -------------- | ------------ |
+| Discharge Orchestration Saga          | Critico     | 1h - 24h       | clinical-eng |
+| Institutional Escalation              | Critico     | 15min - 4h     | clinical-eng |
+| Multi-Step Correction                 | Alto        | 30min - 2h     | clinical-eng |
+| Agent Promotion/Quarantine/Retirement | Alto        | 5min - 1h      | ai-ops       |
+| Post-Failure Learning Consolidation   | Medio       | 10min - 30min  | ai-ops       |
 
 ---
 
@@ -95,20 +95,20 @@ A Velya utiliza Temporal como engine de execucao duravel para processos criticos
     PHARMACY falhou          --> reverter NURSING_CHECKLIST, notificar farmacia
     NURSING falhou           --> reverter MEDICATION_REVIEW, notificar enfermagem
     MEDICATION_REVIEW falhou --> reverter CLINICAL_REVIEW, notificar medico
-    
+
     TIMEOUT em qualquer etapa --> ESCALATION workflow
 ```
 
 ### 3.2 Checkpoints
 
-| Checkpoint | Dados Persistidos | Validacao |
-|---|---|---|
-| Apos CLINICAL_REVIEW | Aprovacao clinica, medico responsavel, criterios | Assinatura digital do medico |
-| Apos MEDICATION_REVIEW | Lista de medicamentos reconciliados, interacoes verificadas | Hash da lista de medicamentos |
-| Apos NURSING_CHECKLIST | Itens do checklist completados, enfermeiro responsavel | Todos os itens obrigatorios marcados |
-| Apos PHARMACY_CLEARANCE | Liberacao da farmacia, medicamentos dispensados | Confirmacao da farmacia |
-| Apos BILLING_SETTLEMENT | Fatura gerada, status de pagamento | Numero da fatura valido |
-| Apos BED_RELEASE | Leito liberado, equipe de limpeza notificada | Status do leito atualizado no patient-flow |
+| Checkpoint              | Dados Persistidos                                           | Validacao                                  |
+| ----------------------- | ----------------------------------------------------------- | ------------------------------------------ |
+| Apos CLINICAL_REVIEW    | Aprovacao clinica, medico responsavel, criterios            | Assinatura digital do medico               |
+| Apos MEDICATION_REVIEW  | Lista de medicamentos reconciliados, interacoes verificadas | Hash da lista de medicamentos              |
+| Apos NURSING_CHECKLIST  | Itens do checklist completados, enfermeiro responsavel      | Todos os itens obrigatorios marcados       |
+| Apos PHARMACY_CLEARANCE | Liberacao da farmacia, medicamentos dispensados             | Confirmacao da farmacia                    |
+| Apos BILLING_SETTLEMENT | Fatura gerada, status de pagamento                          | Numero da fatura valido                    |
+| Apos BED_RELEASE        | Leito liberado, equipe de limpeza notificada                | Status do leito atualizado no patient-flow |
 
 ### 3.3 Retry Policy
 
@@ -129,14 +129,14 @@ const dischargeRetryPolicy: RetryPolicy = {
 
 ### 3.4 Timeout Configuration
 
-| Activity | Start-to-Close | Schedule-to-Start | Heartbeat |
-|---|---|---|---|
-| clinicalReview | 2h | 5min | 10min |
-| medicationReview | 1h | 2min | 5min |
-| nursingChecklist | 2h | 2min | 15min |
-| pharmacyClearance | 1h | 2min | 5min |
-| billingSettlement | 4h | 5min | 30min |
-| bedRelease | 30min | 1min | 5min |
+| Activity          | Start-to-Close | Schedule-to-Start | Heartbeat |
+| ----------------- | -------------- | ----------------- | --------- |
+| clinicalReview    | 2h             | 5min              | 10min     |
+| medicationReview  | 1h             | 2min              | 5min      |
+| nursingChecklist  | 2h             | 2min              | 15min     |
+| pharmacyClearance | 1h             | 2min              | 5min      |
+| billingSettlement | 4h             | 5min              | 30min     |
+| bedRelease        | 30min          | 1min              | 5min      |
 
 ### 3.5 Escalation
 
@@ -259,7 +259,7 @@ interface CompensationEntry {
 }
 
 export async function DischargeOrchestrationWorkflow(
-  input: DischargeInput
+  input: DischargeInput,
 ): Promise<{ success: boolean; summary: Record<string, unknown> }> {
   const compensationStack: CompensationEntry[] = [];
   let paused = false;
@@ -342,7 +342,7 @@ export async function DischargeOrchestrationWorkflow(
     // STEP 1: Clinical Review
     await checkPauseAndCancel();
     currentStep = 'CLINICAL_REVIEW';
-    
+
     const clinicalResult = await performClinicalReview({
       patientId: input.patientId,
       requestedBy: input.requestedBy,
@@ -356,15 +356,19 @@ export async function DischargeOrchestrationWorkflow(
         reason: clinicalResult.rejectionReason,
         actor: clinicalResult.reviewedBy,
       });
-      return { success: false, summary: { reason: 'clinical_review_rejected', details: clinicalResult } };
+      return {
+        success: false,
+        summary: { reason: 'clinical_review_rejected', details: clinicalResult },
+      };
     }
 
     compensationStack.push({
       step: 'CLINICAL_REVIEW',
-      compensationFn: () => cancelClinicalReview({
-        patientId: input.patientId,
-        reviewId: clinicalResult.reviewId,
-      }),
+      compensationFn: () =>
+        cancelClinicalReview({
+          patientId: input.patientId,
+          reviewId: clinicalResult.reviewId,
+        }),
       data: clinicalResult,
     });
     completedSteps.push('CLINICAL_REVIEW');
@@ -381,10 +385,11 @@ export async function DischargeOrchestrationWorkflow(
 
     compensationStack.push({
       step: 'MEDICATION_REVIEW',
-      compensationFn: () => revertMedicationReview({
-        patientId: input.patientId,
-        reviewId: medicationResult.reviewId,
-      }),
+      compensationFn: () =>
+        revertMedicationReview({
+          patientId: input.patientId,
+          reviewId: medicationResult.reviewId,
+        }),
       data: medicationResult,
     });
     completedSteps.push('MEDICATION_REVIEW');
@@ -401,10 +406,11 @@ export async function DischargeOrchestrationWorkflow(
 
     compensationStack.push({
       step: 'NURSING_CHECKLIST',
-      compensationFn: () => revertNursingChecklist({
-        patientId: input.patientId,
-        checklistId: nursingResult.checklistId,
-      }),
+      compensationFn: () =>
+        revertNursingChecklist({
+          patientId: input.patientId,
+          checklistId: nursingResult.checklistId,
+        }),
       data: nursingResult,
     });
     completedSteps.push('NURSING_CHECKLIST');
@@ -421,10 +427,11 @@ export async function DischargeOrchestrationWorkflow(
 
     compensationStack.push({
       step: 'PHARMACY_CLEARANCE',
-      compensationFn: () => revertPharmacyClearance({
-        patientId: input.patientId,
-        clearanceId: pharmacyResult.clearanceId,
-      }),
+      compensationFn: () =>
+        revertPharmacyClearance({
+          patientId: input.patientId,
+          clearanceId: pharmacyResult.clearanceId,
+        }),
       data: pharmacyResult,
     });
     completedSteps.push('PHARMACY_CLEARANCE');
@@ -442,10 +449,11 @@ export async function DischargeOrchestrationWorkflow(
 
     compensationStack.push({
       step: 'BILLING_SETTLEMENT',
-      compensationFn: () => revertBillingSettlement({
-        patientId: input.patientId,
-        invoiceId: billingResult.invoiceId,
-      }),
+      compensationFn: () =>
+        revertBillingSettlement({
+          patientId: input.patientId,
+          invoiceId: billingResult.invoiceId,
+        }),
       data: billingResult,
     });
     completedSteps.push('BILLING_SETTLEMENT');
@@ -462,10 +470,11 @@ export async function DischargeOrchestrationWorkflow(
 
     compensationStack.push({
       step: 'BED_RELEASE',
-      compensationFn: () => revertBedRelease({
-        patientId: input.patientId,
-        bedId: clinicalResult.currentBedId,
-      }),
+      compensationFn: () =>
+        revertBedRelease({
+          patientId: input.patientId,
+          bedId: clinicalResult.currentBedId,
+        }),
       data: bedResult,
     });
     completedSteps.push('BED_RELEASE');
@@ -498,7 +507,6 @@ export async function DischargeOrchestrationWorkflow(
     currentStep = 'COMPLETED';
 
     return { success: true, summary };
-
   } catch (error) {
     // Se for cancelamento do Temporal, executar compensacoes
     if (isCancellation(error)) {
@@ -697,13 +705,12 @@ export async function AgentQuarantineWorkflow(input: {
   triggeredBy: string;
   evidence: Record<string, unknown>;
 }): Promise<QuarantineResult> {
-  
   // 1. Parar trafego imediatamente
   await stopAgentTraffic({
     agentId: input.agentId,
     reason: input.reason,
   });
-  
+
   // 2. Salvar estado atual para analise
   const stateSnapshot = await saveAgentState({
     agentId: input.agentId,
@@ -711,13 +718,13 @@ export async function AgentQuarantineWorkflow(input: {
     includeRecentDecisions: true,
     decisionWindow: '24h',
   });
-  
+
   // 3. Ativar agente substituto (se disponivel)
   const fallbackResult = await activateFallbackAgent({
     agentId: input.agentId,
     fallbackStrategy: 'previous_version',
   });
-  
+
   // 4. Executar diagnostico
   const diagnosis = await runAgentDiagnostics({
     agentId: input.agentId,
@@ -731,7 +738,7 @@ export async function AgentQuarantineWorkflow(input: {
       'hallucination_detection',
     ],
   });
-  
+
   // 5. Registrar no decision-log-service
   await recordDecisionLog({
     agentId: input.agentId,
@@ -741,14 +748,14 @@ export async function AgentQuarantineWorkflow(input: {
     triggeredBy: input.triggeredBy,
     fallbackAgent: fallbackResult.activeAgentId,
   });
-  
+
   // 6. Notificar
   await notifyStakeholder({
     channel: '#velya-ai-ops',
     message: `Agente ${input.agentId} em quarentena. Motivo: ${input.reason}. Fallback: ${fallbackResult.activeAgentId}`,
     severity: 'high',
   });
-  
+
   return {
     agentId: input.agentId,
     quarantinedAt: new Date().toISOString(),
@@ -918,7 +925,6 @@ export async function PostFailureLearningWorkflow(input: {
   timestamp: string;
   context: Record<string, unknown>;
 }): Promise<LearningResult> {
-
   // 1. Coletar evidencias de multiplas fontes
   const [logs, traces, metrics, agentDecisions, workflowState] = await Promise.all([
     queryLoki({
@@ -977,7 +983,7 @@ export async function PostFailureLearningWorkflow(input: {
     whyItHappened: rootCauseAnalysis.rootCause,
     howToPrevent: rootCauseAnalysis.preventionMeasures,
     correctiveActions: rootCauseAnalysis.correctiveActions,
-    similarIncidents: similarFailures.map(f => f.id),
+    similarIncidents: similarFailures.map((f) => f.id),
     recurrenceRisk: calculateRecurrenceRisk(similarFailures),
     evidenceLinks: {
       lokiQuery: logs.query,
@@ -998,8 +1004,9 @@ export async function PostFailureLearningWorkflow(input: {
   await distributeToTeams({
     learning,
     channels: determineChannels(input.service, rootCauseAnalysis.severity),
-    createIssues: rootCauseAnalysis.correctiveActions
-      .filter(a => a.type === 'code_change' || a.type === 'config_change'),
+    createIssues: rootCauseAnalysis.correctiveActions.filter(
+      (a) => a.type === 'code_change' || a.type === 'config_change',
+    ),
   });
 
   return {
@@ -1049,7 +1056,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Discharge workflow rodando ha mais de 24h para paciente {{ $labels.patient_id }}"
+          summary: 'Discharge workflow rodando ha mais de 24h para paciente {{ $labels.patient_id }}'
 
       - alert: WorkflowCompensationTriggered
         expr: |
@@ -1058,7 +1065,7 @@ groups:
         labels:
           severity: high
         annotations:
-          summary: "Compensacao disparada no step {{ $labels.step }}: {{ $labels.reason }}"
+          summary: 'Compensacao disparada no step {{ $labels.step }}: {{ $labels.reason }}'
 
       - alert: AgentQuarantineTriggered
         expr: |
@@ -1067,7 +1074,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Agente {{ $labels.agent_id }} entrou em quarentena"
+          summary: 'Agente {{ $labels.agent_id }} entrou em quarentena'
 ```
 
 ---
@@ -1109,11 +1116,11 @@ const workerConfig = {
 
 ## 10. Pos-condicoes de Cada Workflow
 
-| Workflow | Pos-condicao Obrigatoria |
-|---|---|
-| Discharge Orchestration | Paciente com status `discharged` no patient-flow, leito liberado, sumario emitido, audit trail completo |
-| Institutional Escalation | Incidente com owner definido, ack registrado, plano de acao documentado |
-| Multi-Step Correction | Todos os registros corrigidos ou rollback completo, audit trail, zero registros em estado intermediario |
-| Agent Quarantine | Agente isolado, fallback ativo, diagnostico registrado, notificacao enviada |
-| Agent Promotion | Agente em producao com metricas baseline, shadow mode concluido com sucesso |
-| Post-Failure Learning | Learning persistido no memory-service, times notificados, issues criadas |
+| Workflow                 | Pos-condicao Obrigatoria                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------------------------- |
+| Discharge Orchestration  | Paciente com status `discharged` no patient-flow, leito liberado, sumario emitido, audit trail completo |
+| Institutional Escalation | Incidente com owner definido, ack registrado, plano de acao documentado                                 |
+| Multi-Step Correction    | Todos os registros corrigidos ou rollback completo, audit trail, zero registros em estado intermediario |
+| Agent Quarantine         | Agente isolado, fallback ativo, diagnostico registrado, notificacao enviada                             |
+| Agent Promotion          | Agente em producao com metricas baseline, shadow mode concluido com sucesso                             |
+| Post-Failure Learning    | Learning persistido no memory-service, times notificados, issues criadas                                |

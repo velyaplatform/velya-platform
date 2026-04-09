@@ -8,13 +8,13 @@ Velya e a **memoria institucional** do hospital. Cada acao realizada por qualque
 
 ### 1.1 Por Que Accountability Institucional?
 
-| Problema | Impacto sem Velya | Solucao com Velya |
-|---|---|---|
-| "Quem pediu esse exame?" | Busca em papeis, ligacoes, incerteza | Evento rastreavel com autoria digital |
-| "Quem estava cuidando do paciente as 3h?" | Escalas em papel, memoria humana | Cadeia de custodia com handoffs explicitos |
-| "Por que esse medicamento foi omitido?" | Sem registro ou justificativa | Evento de omissao com justificativa obrigatoria |
-| "Quem viu esse resultado critico?" | Incerteza, responsabilizacao pos-facto | AuditEvent de leitura + Communication registrada |
-| "O que aconteceu entre 14h e 16h?" | Reconstituicao impossivel | Timeline completa do paciente derivada do ledger |
+| Problema                                  | Impacto sem Velya                      | Solucao com Velya                                |
+| ----------------------------------------- | -------------------------------------- | ------------------------------------------------ |
+| "Quem pediu esse exame?"                  | Busca em papeis, ligacoes, incerteza   | Evento rastreavel com autoria digital            |
+| "Quem estava cuidando do paciente as 3h?" | Escalas em papel, memoria humana       | Cadeia de custodia com handoffs explicitos       |
+| "Por que esse medicamento foi omitido?"   | Sem registro ou justificativa          | Evento de omissao com justificativa obrigatoria  |
+| "Quem viu esse resultado critico?"        | Incerteza, responsabilizacao pos-facto | AuditEvent de leitura + Communication registrada |
+| "O que aconteceu entre 14h e 16h?"        | Reconstituicao impossivel              | Timeline completa do paciente derivada do ledger |
 
 ### 1.2 Principios Fundamentais
 
@@ -56,16 +56,16 @@ Cada evento responde obrigatoriamente a 8 perguntas:
 
 O Ledger se materializa atraves de recursos FHIR interconectados:
 
-| Pergunta | Recurso FHIR | Campo |
-|---|---|---|
-| QUEM | Provenance | agent.who |
-| O QUE | Task / Procedure / MedicationAdministration / etc. | code, description |
-| QUANDO | Todos | recorded, period, occurrence |
-| ONDE | Encounter | location; Task.location |
-| POR QUE | Task | basedOn (referencia a ServiceRequest/MedicationRequest) |
-| RESULTADO | Task | output, outcome; Procedure.outcome |
-| HANDOFF | Task (handoff) | owner (de/para) |
-| ACEITE | Task (handoff) | status (accepted/rejected), statusReason |
+| Pergunta  | Recurso FHIR                                       | Campo                                                   |
+| --------- | -------------------------------------------------- | ------------------------------------------------------- |
+| QUEM      | Provenance                                         | agent.who                                               |
+| O QUE     | Task / Procedure / MedicationAdministration / etc. | code, description                                       |
+| QUANDO    | Todos                                              | recorded, period, occurrence                            |
+| ONDE      | Encounter                                          | location; Task.location                                 |
+| POR QUE   | Task                                               | basedOn (referencia a ServiceRequest/MedicationRequest) |
+| RESULTADO | Task                                               | output, outcome; Procedure.outcome                      |
+| HANDOFF   | Task (handoff)                                     | owner (de/para)                                         |
+| ACEITE    | Task (handoff)                                     | status (accepted/rejected), statusReason                |
 
 ---
 
@@ -394,35 +394,35 @@ interface FHIRCoding {
 
 ### 4.1 Categorias
 
-| Categoria | Exemplos | Volume Estimado |
-|---|---|---|
-| **Clinicos** | Prescricoes, administracoes, avaliacoes, procedimentos, resultados | ~60% |
-| **Operacionais** | Handoffs, turnos, transportes, leitos, chamadas | ~20% |
-| **Documentacao** | Evolucoes, laudos, consentimentos, assinaturas | ~10% |
-| **Comunicacao** | Notificacoes, acionamentos, respostas | ~7% |
-| **Acesso** | Leituras de prontuario, exportacoes, break-glass | ~3% |
+| Categoria        | Exemplos                                                           | Volume Estimado |
+| ---------------- | ------------------------------------------------------------------ | --------------- |
+| **Clinicos**     | Prescricoes, administracoes, avaliacoes, procedimentos, resultados | ~60%            |
+| **Operacionais** | Handoffs, turnos, transportes, leitos, chamadas                    | ~20%            |
+| **Documentacao** | Evolucoes, laudos, consentimentos, assinaturas                     | ~10%            |
+| **Comunicacao**  | Notificacoes, acionamentos, respostas                              | ~7%             |
+| **Acesso**       | Leituras de prontuario, exportacoes, break-glass                   | ~3%             |
 
 ### 4.2 Eventos Criticos (Requerem Resposta Imediata)
 
-| Evento | SLA de Resposta | Escalacao |
-|---|---|---|
-| `result.critical` | 15 min (leitura) + 60 min (acao) | Automatica |
-| `handoff.requested` com prioridade critica | 5 min (aceite) | Automatica |
-| `call.triggered` tipo emergencia | 1 min | Automatica |
-| `assessment.vitals` com NEWS2 >= 7 | 15 min (medico) | Automatica |
-| `access.break_glass` | 24h (revisao) | Notificacao imediata |
+| Evento                                     | SLA de Resposta                  | Escalacao            |
+| ------------------------------------------ | -------------------------------- | -------------------- |
+| `result.critical`                          | 15 min (leitura) + 60 min (acao) | Automatica           |
+| `handoff.requested` com prioridade critica | 5 min (aceite)                   | Automatica           |
+| `call.triggered` tipo emergencia           | 1 min                            | Automatica           |
+| `assessment.vitals` com NEWS2 >= 7         | 15 min (medico)                  | Automatica           |
+| `access.break_glass`                       | 24h (revisao)                    | Notificacao imediata |
 
 ### 4.3 Eventos que Requerem Justificativa
 
-| Evento | Justificativa |
-|---|---|
-| `medication.omitted` | Motivo da omissao (recusa, contraindicacao, indisponibilidade) |
-| `medication.refused` | Registro da recusa com tentativa de orientacao |
-| `order.cancelled` | Motivo do cancelamento |
-| `procedure.cancelled` | Motivo do cancelamento |
-| `handoff.rejected` | Motivo da rejeicao |
-| `document.amended` | O que mudou e por que |
-| `access.break_glass` | Justificativa clinica |
+| Evento                | Justificativa                                                  |
+| --------------------- | -------------------------------------------------------------- |
+| `medication.omitted`  | Motivo da omissao (recusa, contraindicacao, indisponibilidade) |
+| `medication.refused`  | Registro da recusa com tentativa de orientacao                 |
+| `order.cancelled`     | Motivo do cancelamento                                         |
+| `procedure.cancelled` | Motivo do cancelamento                                         |
+| `handoff.rejected`    | Motivo da rejeicao                                             |
+| `document.amended`    | O que mudou e por que                                          |
+| `access.break_glass`  | Justificativa clinica                                          |
 
 ---
 
@@ -434,11 +434,11 @@ Eventos nunca sao editados ou deletados. Correcoes sao implementadas como novos 
 
 ### 5.2 Tipos de Correcao
 
-| Tipo | Descricao | Implementacao |
-|---|---|---|
+| Tipo          | Descricao                             | Implementacao                                          |
+| ------------- | ------------------------------------- | ------------------------------------------------------ |
 | **Amendment** | Complemento ou correcao de informacao | Novo evento com `metadata.corrects = eventId_original` |
-| **Void** | Anulacao de evento erroneo | Novo evento com `metadata.voids = eventId_original` |
-| **Supersede** | Substituicao completa | Novo evento com `metadata.corrects` + dados completos |
+| **Void**      | Anulacao de evento erroneo            | Novo evento com `metadata.voids = eventId_original`    |
+| **Supersede** | Substituicao completa                 | Novo evento com `metadata.corrects` + dados completos  |
 
 ### 5.3 Regras de Correcao
 
@@ -477,12 +477,12 @@ Eventos nunca sao editados ou deletados. Correcoes sao implementadas como novos 
 
 ### 6.2 Retencao
 
-| Categoria | Hot (PostgreSQL) | Cold (Object Store) | Total |
-|---|---|---|---|
-| Eventos clinicos | 1 ano | 19 anos | 20 anos (CFM 1821/2007) |
-| Eventos operacionais | 1 ano | 4 anos | 5 anos |
-| Eventos de acesso/auditoria | 1 ano | 19 anos | 20 anos |
-| Eventos administrativos | 1 ano | 4 anos | 5 anos |
+| Categoria                   | Hot (PostgreSQL) | Cold (Object Store) | Total                   |
+| --------------------------- | ---------------- | ------------------- | ----------------------- |
+| Eventos clinicos            | 1 ano            | 19 anos             | 20 anos (CFM 1821/2007) |
+| Eventos operacionais        | 1 ano            | 4 anos              | 5 anos                  |
+| Eventos de acesso/auditoria | 1 ano            | 19 anos             | 20 anos                 |
+| Eventos administrativos     | 1 ano            | 4 anos              | 5 anos                  |
 
 ---
 
@@ -503,6 +503,7 @@ GET  /api/v1/ledger/integrity/verify?from={ts}&to={ts}  # verificacao de integri
 ### 7.2 Exemplos de Consultas
 
 **Reconstituir o que aconteceu com paciente X entre 14h e 16h**:
+
 ```sql
 SELECT e.recorded_at, e.event_type, e.who_display_name, e.what_description,
        e.outcome_status, e.where_unit, e.where_bed
@@ -513,6 +514,7 @@ ORDER BY e.recorded_at ASC;
 ```
 
 **Quem estava responsavel pelo paciente Y as 3h da manha?**:
+
 ```sql
 SELECT h.who_display_name AS responsavel,
        h.recorded_at AS inicio_responsabilidade,
@@ -533,6 +535,7 @@ LIMIT 1;
 ```
 
 **Todas as omissoes de medicamento sem justificativa no ultimo mes**:
+
 ```sql
 SELECT e.patient_id, e.recorded_at, e.who_display_name,
        e.what_description, e.why_justification
@@ -549,15 +552,15 @@ ORDER BY e.recorded_at DESC;
 
 ### 8.1 KPIs Institucionais
 
-| Indicador | Meta | Formula | Frequencia |
-|---|---|---|---|
-| **Completude de autoria** | > 99.9% | Eventos com autor valido / Total de eventos | Diario |
-| **Handoffs com aceite** | > 95% | Handoffs aceitos / Handoffs solicitados | Por turno |
-| **Registro retroativo** | < 5% | Eventos com delay > 2h / Total de eventos | Semanal |
-| **Justificativas presentes** | 100% | Eventos que requerem justificativa com justificativa / Total que requerem | Diario |
-| **Correcoes tardias** | < 10% | Correcoes > 24h / Total de correcoes | Mensal |
-| **Gaps sem resolucao** | < 5% alem do SLA | Gaps nao resolvidos alem do SLA / Total de gaps | Diario |
-| **Integridade do ledger** | 100% | Hash chain valida / Total de eventos | Diario |
+| Indicador                    | Meta             | Formula                                                                   | Frequencia |
+| ---------------------------- | ---------------- | ------------------------------------------------------------------------- | ---------- |
+| **Completude de autoria**    | > 99.9%          | Eventos com autor valido / Total de eventos                               | Diario     |
+| **Handoffs com aceite**      | > 95%            | Handoffs aceitos / Handoffs solicitados                                   | Por turno  |
+| **Registro retroativo**      | < 5%             | Eventos com delay > 2h / Total de eventos                                 | Semanal    |
+| **Justificativas presentes** | 100%             | Eventos que requerem justificativa com justificativa / Total que requerem | Diario     |
+| **Correcoes tardias**        | < 10%            | Correcoes > 24h / Total de correcoes                                      | Mensal     |
+| **Gaps sem resolucao**       | < 5% alem do SLA | Gaps nao resolvidos alem do SLA / Total de gaps                           | Diario     |
+| **Integridade do ledger**    | 100%             | Hash chain valida / Total de eventos                                      | Diario     |
 
 ### 8.2 Metricas PromQL
 
@@ -586,6 +589,7 @@ histogram_quantile(0.95, rate(velya_event_recording_delay_seconds_bucket[1h]))
 ### 9.1 Onboarding
 
 Todo profissional novo recebe treinamento sobre:
+
 1. O que e o Work Event Ledger e por que existe.
 2. Como suas acoes sao registradas.
 3. Importancia do handoff com aceite.
@@ -596,6 +600,7 @@ Todo profissional novo recebe treinamento sobre:
 ### 9.2 Feedback Positivo
 
 Accountability nao e apenas punitiva. O sistema reconhece:
+
 - Profissionais com 100% de handoffs aceitos no prazo.
 - Unidades com menor taxa de gaps.
 - Profissionais com documentacao consistente.
@@ -604,6 +609,7 @@ Accountability nao e apenas punitiva. O sistema reconhece:
 ### 9.3 Principio de Nao-Punitivo
 
 Erros registrados honestamente sao tratados como oportunidades de aprendizado. O sistema so penaliza:
+
 - Omissao deliberada de registro.
 - Falsificacao de autoria.
 - Acesso indevido a dados.
@@ -613,12 +619,12 @@ Erros registrados honestamente sao tratados como oportunidades de aprendizado. O
 
 ## 10. Relacionamento com Outros Modulos
 
-| Modulo | Relacao |
-|---|---|
-| Digital Twin | Projecao read-only do ledger para estado atual do paciente |
-| Gap Detection | Monitora o ledger para detectar desvios |
-| Handoff Acceptance | Garante aceite explicito nos eventos de handoff |
-| Shift Ownership | Define quem e responsavel por quais pacientes por turno |
-| Task/Communication/Provenance | Recursos FHIR que compoe os eventos do ledger |
-| Audit Dashboards | Visualizacao dos dados do ledger |
-| Security & Access | Controle de quem pode ler/escrever no ledger |
+| Modulo                        | Relacao                                                    |
+| ----------------------------- | ---------------------------------------------------------- |
+| Digital Twin                  | Projecao read-only do ledger para estado atual do paciente |
+| Gap Detection                 | Monitora o ledger para detectar desvios                    |
+| Handoff Acceptance            | Garante aceite explicito nos eventos de handoff            |
+| Shift Ownership               | Define quem e responsavel por quais pacientes por turno    |
+| Task/Communication/Provenance | Recursos FHIR que compoe os eventos do ledger              |
+| Audit Dashboards              | Visualizacao dos dados do ledger                           |
+| Security & Access             | Controle de quem pode ler/escrever no ledger               |

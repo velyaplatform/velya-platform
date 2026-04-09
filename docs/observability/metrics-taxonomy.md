@@ -15,6 +15,7 @@ velya_{domínio}_{nome}_{unidade_suffix}
 ```
 
 **Exemplos corretos**:
+
 - `velya_patient_flow_active_count` — contagem de pacientes ativos
 - `velya_discharge_blocker_age_seconds` — idade em segundos do bloqueador
 - `velya_agent_validation_pass_rate` — taxa (ratio), sem unidade de tempo
@@ -23,28 +24,28 @@ velya_{domínio}_{nome}_{unidade_suffix}
 
 **Sufixos obrigatórios por tipo**:
 
-| Tipo de dado | Sufixo | Exemplo |
-|-------------|--------|---------|
-| Tempo/duração | `_seconds` | `velya_handoff_duration_seconds` |
-| Bytes | `_bytes` | `velya_payload_size_bytes` |
-| Contagem acumulada | `_total` | `velya_agent_task_total` |
-| Proporção/ratio | `_ratio` | `velya_evidence_completeness_ratio` |
-| Informação (sempre 1) | `_info` | `velya_service_info` |
-| Gauge sem unidade física | sem sufixo | `velya_task_inbox_depth` |
+| Tipo de dado             | Sufixo     | Exemplo                             |
+| ------------------------ | ---------- | ----------------------------------- |
+| Tempo/duração            | `_seconds` | `velya_handoff_duration_seconds`    |
+| Bytes                    | `_bytes`   | `velya_payload_size_bytes`          |
+| Contagem acumulada       | `_total`   | `velya_agent_task_total`            |
+| Proporção/ratio          | `_ratio`   | `velya_evidence_completeness_ratio` |
+| Informação (sempre 1)    | `_info`    | `velya_service_info`                |
+| Gauge sem unidade física | sem sufixo | `velya_task_inbox_depth`            |
 
 ### 1.2 Domínios Reconhecidos
 
-| Domínio | Prefixo | Exemplos de contexto |
-|---------|---------|---------------------|
-| Fluxo do paciente | `velya_patient_` | Ocupação, movimentação |
-| Alta médica | `velya_discharge_` | Bloqueadores, estágios |
-| Task inbox | `velya_task_` | Profundidade, prioridades, SLA |
-| Handoff entre turnos | `velya_handoff_` | Duração, completude |
-| Agents | `velya_agent_` | Throughput, validação, silêncio |
-| Office | `velya_office_` | Backlog, health |
-| AI / Inferência | `velya_ai_` | Tokens, latência, erros |
-| Web / Frontend | `velya_web_` | Core Web Vitals, erros JS |
-| Sistema geral | `velya_` | Modo degradado, secrets |
+| Domínio              | Prefixo            | Exemplos de contexto            |
+| -------------------- | ------------------ | ------------------------------- |
+| Fluxo do paciente    | `velya_patient_`   | Ocupação, movimentação          |
+| Alta médica          | `velya_discharge_` | Bloqueadores, estágios          |
+| Task inbox           | `velya_task_`      | Profundidade, prioridades, SLA  |
+| Handoff entre turnos | `velya_handoff_`   | Duração, completude             |
+| Agents               | `velya_agent_`     | Throughput, validação, silêncio |
+| Office               | `velya_office_`    | Backlog, health                 |
+| AI / Inferência      | `velya_ai_`        | Tokens, latência, erros         |
+| Web / Frontend       | `velya_web_`       | Core Web Vitals, erros JS       |
+| Sistema geral        | `velya_`           | Modo degradado, secrets         |
 
 ### 1.3 Regras de Naming
 
@@ -60,15 +61,15 @@ velya_{domínio}_{nome}_{unidade_suffix}
 
 Todo serviço Velya deve incluir os seguintes labels em todas as métricas:
 
-| Label | Tipo | Valores esperados | Obrigatório |
-|-------|------|------------------|------------|
-| `service` | String | `patient-flow-service`, `api-gateway`, `velya-web` | Sim |
-| `namespace` | String | `velya-dev-core`, `velya-dev-platform`, `velya-dev-agents`, `velya-dev-web` | Sim |
-| `environment` | String | `dev`, `staging`, `prod` | Sim |
-| `version` | String | `1.2.0` (semver) | Sim |
-| `office` | String | `clinical-office`, `administrative-office`, `platform-office` | Para serviços com office |
-| `agent_name` | String | `discharge-coordinator-agent`, `task-router-agent` | Para métricas de agent |
-| `risk_class` | String | `high`, `medium`, `low` | Para métricas de operações clínicas |
+| Label         | Tipo   | Valores esperados                                                           | Obrigatório                         |
+| ------------- | ------ | --------------------------------------------------------------------------- | ----------------------------------- |
+| `service`     | String | `patient-flow-service`, `api-gateway`, `velya-web`                          | Sim                                 |
+| `namespace`   | String | `velya-dev-core`, `velya-dev-platform`, `velya-dev-agents`, `velya-dev-web` | Sim                                 |
+| `environment` | String | `dev`, `staging`, `prod`                                                    | Sim                                 |
+| `version`     | String | `1.2.0` (semver)                                                            | Sim                                 |
+| `office`      | String | `clinical-office`, `administrative-office`, `platform-office`               | Para serviços com office            |
+| `agent_name`  | String | `discharge-coordinator-agent`, `task-router-agent`                          | Para métricas de agent              |
+| `risk_class`  | String | `high`, `medium`, `low`                                                     | Para métricas de operações clínicas |
 
 **Aviso de cardinalidade**: Nunca usar como label valores de alta cardinalidade como `patient_id`, `user_id`, `request_id`, `trace_id`. Esses campos vão em logs e traces, nunca em métricas.
 
@@ -108,67 +109,67 @@ const httpConnectionsActive = new Gauge({
 
 ### 3.1 patient-flow-service
 
-| Sinal | Métrica | Tipo | Query de exemplo |
-|-------|---------|------|-----------------|
-| Rate | `http_requests_total{service="patient-flow-service"}` | Counter | `rate(http_requests_total{service="patient-flow-service"}[5m])` |
-| Errors | `http_requests_total{service="patient-flow-service",status=~"5.."}` | Counter | `rate(...)[5m] / rate(total)[5m]` |
-| Duration P99 | `http_request_duration_seconds_bucket{service="patient-flow-service"}` | Histogram | `histogram_quantile(0.99, rate(...[$__rate_interval]))` |
-| Saturation | `velya_patient_flow_active_count` | Gauge | `velya_patient_flow_active_count` |
+| Sinal        | Métrica                                                                | Tipo      | Query de exemplo                                                |
+| ------------ | ---------------------------------------------------------------------- | --------- | --------------------------------------------------------------- |
+| Rate         | `http_requests_total{service="patient-flow-service"}`                  | Counter   | `rate(http_requests_total{service="patient-flow-service"}[5m])` |
+| Errors       | `http_requests_total{service="patient-flow-service",status=~"5.."}`    | Counter   | `rate(...)[5m] / rate(total)[5m]`                               |
+| Duration P99 | `http_request_duration_seconds_bucket{service="patient-flow-service"}` | Histogram | `histogram_quantile(0.99, rate(...[$__rate_interval]))`         |
+| Saturation   | `velya_patient_flow_active_count`                                      | Gauge     | `velya_patient_flow_active_count`                               |
 
 ---
 
 ### 3.2 task-inbox-service
 
-| Sinal | Métrica | Tipo | Query de exemplo |
-|-------|---------|------|-----------------|
-| Rate | `http_requests_total{service="task-inbox-service"}` | Counter | `rate(...[5m])` |
-| Errors | `http_requests_total{service="task-inbox-service",status=~"5.."}` | Counter | Taxa de erros |
-| Duration P99 | `http_request_duration_seconds{service="task-inbox-service"}` | Histogram | P99 |
-| Saturation | `velya_task_inbox_depth` | Gauge | `sum(velya_task_inbox_depth) by (priority)` |
+| Sinal        | Métrica                                                           | Tipo      | Query de exemplo                            |
+| ------------ | ----------------------------------------------------------------- | --------- | ------------------------------------------- |
+| Rate         | `http_requests_total{service="task-inbox-service"}`               | Counter   | `rate(...[5m])`                             |
+| Errors       | `http_requests_total{service="task-inbox-service",status=~"5.."}` | Counter   | Taxa de erros                               |
+| Duration P99 | `http_request_duration_seconds{service="task-inbox-service"}`     | Histogram | P99                                         |
+| Saturation   | `velya_task_inbox_depth`                                          | Gauge     | `sum(velya_task_inbox_depth) by (priority)` |
 
 ---
 
 ### 3.3 discharge-orchestrator
 
-| Sinal | Métrica | Tipo | Query de exemplo |
-|-------|---------|------|-----------------|
-| Rate | `http_requests_total{service="discharge-orchestrator"}` | Counter | `rate(...[5m])` |
-| Errors | Taxa de erros HTTP | Counter | Taxa 5xx |
-| Duration P99 | Latência de orquestração | Histogram | P99 de duração |
-| Saturation | `velya_discharge_pending_total` | Gauge | Total de altas em andamento |
+| Sinal        | Métrica                                                 | Tipo      | Query de exemplo            |
+| ------------ | ------------------------------------------------------- | --------- | --------------------------- |
+| Rate         | `http_requests_total{service="discharge-orchestrator"}` | Counter   | `rate(...[5m])`             |
+| Errors       | Taxa de erros HTTP                                      | Counter   | Taxa 5xx                    |
+| Duration P99 | Latência de orquestração                                | Histogram | P99 de duração              |
+| Saturation   | `velya_discharge_pending_total`                         | Gauge     | Total de altas em andamento |
 
 ---
 
 ### 3.4 api-gateway
 
-| Sinal | Métrica | Tipo | Query de exemplo |
-|-------|---------|------|-----------------|
-| Rate | `http_requests_total{service="api-gateway"}` | Counter | `rate(...[5m])` — volume de entrada total |
-| Errors | Taxa 4xx e 5xx | Counter | `rate(http_requests_total{status=~"[45].."}[5m])` |
-| Duration P99 | Latência de gateway | Histogram | P99 incluindo overhead de routing |
-| Saturation | `http_connections_active{service="api-gateway"}` | Gauge | Conexões simultâneas |
+| Sinal        | Métrica                                          | Tipo      | Query de exemplo                                  |
+| ------------ | ------------------------------------------------ | --------- | ------------------------------------------------- |
+| Rate         | `http_requests_total{service="api-gateway"}`     | Counter   | `rate(...[5m])` — volume de entrada total         |
+| Errors       | Taxa 4xx e 5xx                                   | Counter   | `rate(http_requests_total{status=~"[45].."}[5m])` |
+| Duration P99 | Latência de gateway                              | Histogram | P99 incluindo overhead de routing                 |
+| Saturation   | `http_connections_active{service="api-gateway"}` | Gauge     | Conexões simultâneas                              |
 
 ---
 
 ### 3.5 ai-gateway
 
-| Sinal | Métrica | Tipo | Query de exemplo |
-|-------|---------|------|-----------------|
-| Rate | `velya_ai_request_total` | Counter | `rate(velya_ai_request_total[5m])` |
-| Errors | `velya_ai_error_total` | Counter | `rate(velya_ai_error_total[5m])` por error_type |
+| Sinal        | Métrica                             | Tipo      | Query de exemplo                                        |
+| ------------ | ----------------------------------- | --------- | ------------------------------------------------------- |
+| Rate         | `velya_ai_request_total`            | Counter   | `rate(velya_ai_request_total[5m])`                      |
+| Errors       | `velya_ai_error_total`              | Counter   | `rate(velya_ai_error_total[5m])` por error_type         |
 | Duration P99 | `velya_ai_request_duration_seconds` | Histogram | `histogram_quantile(0.99, rate(...[$__rate_interval]))` |
-| Saturation | `velya_ai_token_consumption_total` | Counter | `rate(velya_ai_token_consumption_total[1h])` |
+| Saturation   | `velya_ai_token_consumption_total`  | Counter   | `rate(velya_ai_token_consumption_total[1h])`            |
 
 ---
 
 ### 3.6 velya-web (Next.js)
 
-| Sinal | Métrica | Tipo | Query de exemplo |
-|-------|---------|------|-----------------|
-| Rate | `velya_web_page_view_total` | Counter | `rate(velya_web_page_view_total[5m])` |
-| Errors | `velya_web_js_error_total` | Counter | `rate(velya_web_js_error_total[5m])` |
-| Duration (LCP) | `velya_web_lcp_seconds` | Histogram | `histogram_quantile(0.95, ...)` |
-| Saturation | `velya_web_active_sessions` | Gauge | Sessões ativas simultâneas |
+| Sinal          | Métrica                     | Tipo      | Query de exemplo                      |
+| -------------- | --------------------------- | --------- | ------------------------------------- |
+| Rate           | `velya_web_page_view_total` | Counter   | `rate(velya_web_page_view_total[5m])` |
+| Errors         | `velya_web_js_error_total`  | Counter   | `rate(velya_web_js_error_total[5m])`  |
+| Duration (LCP) | `velya_web_lcp_seconds`     | Histogram | `histogram_quantile(0.95, ...)`       |
+| Saturation     | `velya_web_active_sessions` | Gauge     | Sessões ativas simultâneas            |
 
 ---
 
@@ -203,7 +204,7 @@ velya_discharge_total{unit}
 ```promql
 # Altas pendentes por status e tipo de bloqueador
 velya_discharge_pending_total{status, blocker_type, unit}
-# Labels: 
+# Labels:
 #   status: medical-ready, awaiting-documentation, awaiting-transport, awaiting-social-work
 #   blocker_type: medication, exam, social, transport, administrative
 #   unit: UTI, Enfermaria-A, Enfermaria-B
@@ -517,11 +518,11 @@ velya_agent_info{agent_name, office, version, model_provider}
 
 ## 10. Buckets de Histograma Recomendados por Contexto
 
-| Contexto | Buckets sugeridos | Justificativa |
-|----------|------------------|---------------|
-| Latência HTTP (API gateway) | `[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5]` | SLO de P99 < 2s |
-| Latência de AI (inferência) | `[0.5, 1, 2, 5, 10, 30, 60]` | Inferência pode demorar até 60s |
-| Duração de workflow clínico | `[60, 300, 900, 1800, 3600, 14400, 86400]` (segundos) | Alta pode demorar horas |
-| Idade de bloqueador de alta | `[1800, 3600, 7200, 14400, 28800, 86400]` (segundos) | Threshold crítico em 4h |
-| Core Web Vitals (LCP) | `[0.5, 1.0, 1.5, 2.5, 4.0, 6.0, 10.0]` (segundos) | Limites do Web Vitals |
-| Handoff de agent | `[1, 5, 30, 60, 300, 600, 1800]` (segundos) | Handoff ideal < 5 minutos |
+| Contexto                    | Buckets sugeridos                                       | Justificativa                   |
+| --------------------------- | ------------------------------------------------------- | ------------------------------- |
+| Latência HTTP (API gateway) | `[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5]` | SLO de P99 < 2s                 |
+| Latência de AI (inferência) | `[0.5, 1, 2, 5, 10, 30, 60]`                            | Inferência pode demorar até 60s |
+| Duração de workflow clínico | `[60, 300, 900, 1800, 3600, 14400, 86400]` (segundos)   | Alta pode demorar horas         |
+| Idade de bloqueador de alta | `[1800, 3600, 7200, 14400, 28800, 86400]` (segundos)    | Threshold crítico em 4h         |
+| Core Web Vitals (LCP)       | `[0.5, 1.0, 1.5, 2.5, 4.0, 6.0, 10.0]` (segundos)       | Limites do Web Vitals           |
+| Handoff de agent            | `[1, 5, 30, 60, 300, 600, 1800]` (segundos)             | Handoff ideal < 5 minutos       |

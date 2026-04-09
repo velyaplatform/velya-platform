@@ -2,7 +2,7 @@
 
 **Versão:** 1.0  
 **Cluster:** kind-velya-local (simulando AWS EKS)  
-**Última revisão:** 2026-04-08  
+**Última revisão:** 2026-04-08
 
 ---
 
@@ -57,37 +57,37 @@ PASSO 5: MANAGED SERVICE É JUSTIFICÁVEL?
 
 ### 3.1 Decisões Atuais (Status: Adotado)
 
-| Componente | Escolha Atual | Alternativa Managed Rejeitada | Motivo da Rejeição |
-|---|---|---|---|
-| Orquestração de containers | Kubernetes (kind local / EKS) | ECS, Cloud Run | EKS é OSS + AWS, equivalente |
-| Messaging | NATS JetStream (OSS) | AWS SQS/SNS | $0 vs $0.40/million msgs. Funcionalidade superior. |
-| Workflows | Temporal (OSS) | AWS Step Functions | $0 vs $0.025/state transition. Muito mais poderoso. |
-| Observabilidade | Prometheus + Grafana + Loki + Tempo | Datadog, Splunk | Datadog: $15-23/host/mês. Stack OSS: $0 |
-| GitOps | ArgoCD (OSS) | AWS CodePipeline + Flux | ArgoCD mais maduro, UI melhor |
-| Secrets | External Secrets Operator (OSS) | HashiCorp Vault Enterprise | ESO + AWS Secrets Manager: $0.40/secret/mês vs $0+ |
-| IaC | OpenTofu (OSS fork) | Terraform Cloud | OpenTofu gratuito, Terraform Cloud: $20+/user/mês |
-| Autoscaling | KEDA (OSS, CNCF) | Custom solution | KEDA maduro, 80+ triggers, suporte NATS nativo |
-| Node provisioning | Karpenter (OSS, EKS) | Managed Node Groups | Karpenter mais eficiente, spot instances melhor |
-| Service mesh | Cilium (OSS) | AWS App Mesh, Istio | Cilium mais leve, eBPF-based |
+| Componente                 | Escolha Atual                       | Alternativa Managed Rejeitada | Motivo da Rejeição                                  |
+| -------------------------- | ----------------------------------- | ----------------------------- | --------------------------------------------------- |
+| Orquestração de containers | Kubernetes (kind local / EKS)       | ECS, Cloud Run                | EKS é OSS + AWS, equivalente                        |
+| Messaging                  | NATS JetStream (OSS)                | AWS SQS/SNS                   | $0 vs $0.40/million msgs. Funcionalidade superior.  |
+| Workflows                  | Temporal (OSS)                      | AWS Step Functions            | $0 vs $0.025/state transition. Muito mais poderoso. |
+| Observabilidade            | Prometheus + Grafana + Loki + Tempo | Datadog, Splunk               | Datadog: $15-23/host/mês. Stack OSS: $0             |
+| GitOps                     | ArgoCD (OSS)                        | AWS CodePipeline + Flux       | ArgoCD mais maduro, UI melhor                       |
+| Secrets                    | External Secrets Operator (OSS)     | HashiCorp Vault Enterprise    | ESO + AWS Secrets Manager: $0.40/secret/mês vs $0+  |
+| IaC                        | OpenTofu (OSS fork)                 | Terraform Cloud               | OpenTofu gratuito, Terraform Cloud: $20+/user/mês   |
+| Autoscaling                | KEDA (OSS, CNCF)                    | Custom solution               | KEDA maduro, 80+ triggers, suporte NATS nativo      |
+| Node provisioning          | Karpenter (OSS, EKS)                | Managed Node Groups           | Karpenter mais eficiente, spot instances melhor     |
+| Service mesh               | Cilium (OSS)                        | AWS App Mesh, Istio           | Cilium mais leve, eBPF-based                        |
 
 ### 3.2 Serviços Managed Justificados (com Justificativa)
 
-| Serviço | Provider | Custo Estimado | Justificativa Formal |
-|---|---|---|---|
-| Banco de dados principal | AWS RDS PostgreSQL | ~$50-100/mês (dev) | Backup automático, multi-AZ para prod, replicação. Custo de operação manual seria maior. |
-| Container Registry | AWS ECR | ~$10/mês | Integração nativa com EKS IAM, scan de vulnerabilidades incluso |
-| DNS | AWS Route53 | ~$1/mês | Dominância de mercado, 100% SLA, custo mínimo |
-| Load Balancer | AWS ALB (via ingress) | ~$20/mês | Gerenciado pelo AWS Load Balancer Controller, sem alternativa OSS equivalente em EKS |
-| Certificate Manager | AWS ACM | $0 (grátis) | Gratuito para ALB, sem razão para usar alternativa |
-| AI Inference | Anthropic/OpenAI APIs | Variável por uso | Não existe OSS equivalente para LLMs de qualidade necessária. Custo por token é mais eficiente que hospedar modelo. |
+| Serviço                  | Provider              | Custo Estimado     | Justificativa Formal                                                                                                |
+| ------------------------ | --------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| Banco de dados principal | AWS RDS PostgreSQL    | ~$50-100/mês (dev) | Backup automático, multi-AZ para prod, replicação. Custo de operação manual seria maior.                            |
+| Container Registry       | AWS ECR               | ~$10/mês           | Integração nativa com EKS IAM, scan de vulnerabilidades incluso                                                     |
+| DNS                      | AWS Route53           | ~$1/mês            | Dominância de mercado, 100% SLA, custo mínimo                                                                       |
+| Load Balancer            | AWS ALB (via ingress) | ~$20/mês           | Gerenciado pelo AWS Load Balancer Controller, sem alternativa OSS equivalente em EKS                                |
+| Certificate Manager      | AWS ACM               | $0 (grátis)        | Gratuito para ALB, sem razão para usar alternativa                                                                  |
+| AI Inference             | Anthropic/OpenAI APIs | Variável por uso   | Não existe OSS equivalente para LLMs de qualidade necessária. Custo por token é mais eficiente que hospedar modelo. |
 
 ### 3.3 Componentes em Avaliação
 
-| Componente | Candidato OSS | Alternativa Managed | Prazo de Decisão | Status |
-|---|---|---|---|---|
-| Service Discovery | Kubernetes native | AWS Cloud Map | Q2 2026 | K8s native suficiente |
-| Object Storage | MinIO (OSS) vs S3 | AWS S3 | Q2 2026 | S3 preferível por simplicidade |
-| Message Schema Registry | Confluent Schema Registry (OSS) | AWS Glue Schema Registry | Q3 2026 | Ainda não necessário |
+| Componente              | Candidato OSS                   | Alternativa Managed      | Prazo de Decisão | Status                         |
+| ----------------------- | ------------------------------- | ------------------------ | ---------------- | ------------------------------ |
+| Service Discovery       | Kubernetes native               | AWS Cloud Map            | Q2 2026          | K8s native suficiente          |
+| Object Storage          | MinIO (OSS) vs S3               | AWS S3                   | Q2 2026          | S3 preferível por simplicidade |
+| Message Schema Registry | Confluent Schema Registry (OSS) | AWS Glue Schema Registry | Q3 2026          | Ainda não necessário           |
 
 ---
 
@@ -124,13 +124,13 @@ AWS SQS + SNS:
   SNS: $0.50/million notifications = $1/mês
   Custo de API: ~$1-2/mês
   TOTAL: ~$3-4/mês
-  
+
   MAS:
   - SQS não suporta pull consumers com ack granular como NATS
   - SQS não tem DLQ tão configurável
   - SQS não tem replay de mensagens por timestamp
   - Funcionalidades faltantes = workarounds = ~$500/mês em eng time
-  
+
   TCO real (funcionalidade equivalente): ~$503/mês
 
 DECISÃO: NATS JetStream
@@ -151,14 +151,14 @@ AWS Step Functions:
   Custo: $0.025 per 1000 state transitions
   Estado médio por workflow: 15 states
   100k * 15 = 1.5M state transitions = $37.50/mês
-  
+
   MAS:
   - Step Functions Express: max 5 minutos por workflow
   - Discharge workflow pode durar até 4 horas → Standard required
   - Standard: $0.025 per 1000 transitions (mais caro por exec longa)
   - Sem suporte nativo a signals/queries (necessário para humanl-in-loop)
   - Vendor lock-in: migrar de Step Functions custaria 3-6 meses de eng
-  
+
   TCO real (funcionalidade equivalente): ~$200-800/mês + eng time de migração futura
 
 DECISÃO: Temporal OSS
@@ -175,41 +175,41 @@ Qualquer adoção de serviço managed ou solução paga que não seja trivial (>
 
 ```yaml
 # justificativa-managed-service.yaml
-service_name: "AWS RDS PostgreSQL"
+service_name: 'AWS RDS PostgreSQL'
 monthly_cost_estimate_usd: 75
 annual_cost_estimate_usd: 900
 
-oss_alternative_evaluated: "PostgreSQL self-managed no EKS (StatefulSet)"
+oss_alternative_evaluated: 'PostgreSQL self-managed no EKS (StatefulSet)'
 oss_alternative_rejected_reasons:
-  - reason: "Backup automatizado"
-    detail: "RDS tem backups automáticos e point-in-time recovery. Self-managed requer pgbackrest ou similar + S3, adiciona ~4h/mês de manutenção."
-  
-  - reason: "Multi-AZ para production"
-    detail: "RDS Multi-AZ é flip de botão. Self-managed multi-AZ requer setup complexo de Patroni ou similar."
-  
-  - reason: "Patch automatizado de segurança"
-    detail: "RDS aplica patches de segurança automaticamente. Self-managed requer processo manual e janela de manutenção."
+  - reason: 'Backup automatizado'
+    detail: 'RDS tem backups automáticos e point-in-time recovery. Self-managed requer pgbackrest ou similar + S3, adiciona ~4h/mês de manutenção.'
+
+  - reason: 'Multi-AZ para production'
+    detail: 'RDS Multi-AZ é flip de botão. Self-managed multi-AZ requer setup complexo de Patroni ou similar.'
+
+  - reason: 'Patch automatizado de segurança'
+    detail: 'RDS aplica patches de segurança automaticamente. Self-managed requer processo manual e janela de manutenção.'
 
 total_oss_operation_cost_estimate:
-  compute: "$15/mês"
-  storage: "$5/mês"
-  maintenance_engineer_hours: "6h/mês"
-  maintenance_cost_at_100_usd_per_hour: "$600/mês"
-  total: "$620/mês"
+  compute: '$15/mês'
+  storage: '$5/mês'
+  maintenance_engineer_hours: '6h/mês'
+  maintenance_cost_at_100_usd_per_hour: '$600/mês'
+  total: '$620/mês'
 
-managed_cost: "$75/mês"
+managed_cost: '$75/mês'
 
-cost_difference: "RDS é $545/mês mais barato quando custo de eng é considerado"
+cost_difference: 'RDS é $545/mês mais barato quando custo de eng é considerado'
 
-compliance_requirement: "LGPD: backup e recovery documentados obrigatórios"
+compliance_requirement: 'LGPD: backup e recovery documentados obrigatórios'
 
 approved_by:
-  - name: "Arquiteto Principal"
-    date: "2026-04-08"
-  - name: "FinOps Lead"
-    date: "2026-04-08"
+  - name: 'Arquiteto Principal'
+    date: '2026-04-08'
+  - name: 'FinOps Lead'
+    date: '2026-04-08'
 
-review_deadline: "2027-04-08"  # Revisar em 1 ano
+review_deadline: '2027-04-08' # Revisar em 1 ano
 ```
 
 ---
@@ -218,17 +218,18 @@ review_deadline: "2027-04-08"  # Revisar em 1 ano
 
 ### 6.1 O que Requer Aprovação Formal
 
-| Situação | Aprovadores necessários |
-|---|---|
-| Adotar qualquer managed service > $50/mês | 2 arquitetos sênior |
-| Adotar qualquer managed service > $200/mês | 2 arquitetos + CTO |
-| Rejeitar OSS em favor de managed sem justificativa escrita | Proibido |
-| Renovar contrato de serviço pago > $500/mês sem revisão | Proibido |
-| Introduzir vendor lock-in sem análise de exit strategy | Proibido |
+| Situação                                                   | Aprovadores necessários |
+| ---------------------------------------------------------- | ----------------------- |
+| Adotar qualquer managed service > $50/mês                  | 2 arquitetos sênior     |
+| Adotar qualquer managed service > $200/mês                 | 2 arquitetos + CTO      |
+| Rejeitar OSS em favor de managed sem justificativa escrita | Proibido                |
+| Renovar contrato de serviço pago > $500/mês sem revisão    | Proibido                |
+| Introduzir vendor lock-in sem análise de exit strategy     | Proibido                |
 
 ### 6.2 Auditoria Mensal
 
 O FinOps Office realiza auditoria mensal:
+
 - Lista todos os serviços pagos ativos com custo atual
 - Verifica se justificativa está documentada e ainda válida
 - Identifica serviços pagos onde OSS passou a ser viável (novas versões, maturidade aumentada)
@@ -237,6 +238,7 @@ O FinOps Office realiza auditoria mensal:
 ### 6.3 Revisão Anual Obrigatória
 
 Toda justificativa de serviço managed é revisada anualmente. Critérios de revisão:
+
 - O custo aumentou significativamente?
 - Surgiu alternativa OSS mais madura?
 - O uso real justifica o custo (utilização > 50%)?
@@ -291,6 +293,7 @@ Toda justificativa de serviço managed é revisada anualmente. Critérios de rev
 **Justificativa:** Não existe alternativa OSS equivalente para modelos de linguagem de qualidade suficiente para uso clínico. Hospedar modelos localmente requer GPU ($2000+/mês por instância p3.2xlarge) vs custo por token (~$0.002-0.015/1000 tokens). Para o volume atual da Velya, APIs são significativamente mais econômicas.
 
 **Condições da exceção:**
+
 - Custo monitorado por agent e por office
 - Budget hard limit implementado (circuit breaker automático)
 - Reavaliado semestralmente (modelos OSS estão melhorando rapidamente)

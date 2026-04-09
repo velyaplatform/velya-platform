@@ -1,4 +1,5 @@
 # Red Team & Blind Spot Discovery Validation
+
 **Velya Hospital AI Platform**
 **Document Type:** Security & Risk Validation Report
 **Date:** 2026-04-08
@@ -16,11 +17,11 @@ This document records the output of a structured red team and blind spot discove
 ### Severity Distribution
 
 | Severity | Count | % of Total |
-|---|---|---|
-| Critical | 4 | 12% |
-| High | 11 | 33% |
-| Medium | 10 | 30% |
-| Low | 8 | 24% |
+| -------- | ----- | ---------- |
+| Critical | 4     | 12%        |
+| High     | 11    | 33%        |
+| Medium   | 10    | 30%        |
+| Low      | 8     | 24%        |
 
 **Top finding:** Network policy isolation between namespaces (`velya-dev-core`, `velya-dev-platform`, `velya-dev-agents`) is written into YAML but unenforced because kindnet does not implement the NetworkPolicy API. Any pod in any namespace can freely call any other pod's IP directly, bypassing all intended segmentation. This means agent services can call patient-flow-service or PostgreSQL directly without going through api-gateway.
 
@@ -42,18 +43,18 @@ Each service was analyzed for Spoofing, Tampering, Repudiation, Information Disc
 
 Applied to ai-gateway and agent-orchestrator as the primary AI-facing surfaces. Each of the 10 LLM risk categories was evaluated for presence, partial mitigation, and gap.
 
-| LLM Risk | Present | Mitigated | Gap |
-|---|---|---|---|
-| LLM01: Prompt Injection | Yes | No | No input sanitization exists |
-| LLM02: Insecure Output Handling | Yes | No | No output validation before NATS publish |
-| LLM03: Training Data Poisoning | Partial | No | memory-service writes accepted without validation |
-| LLM04: Model DoS | Yes | No | No token budget limits implemented |
-| LLM05: Supply Chain | Yes | Partial | Anthropic SDK pinned but no SBOMs |
-| LLM06: Sensitive Information Disclosure | Yes | No | No PII scrubbing before LLM calls |
-| LLM07: Insecure Plugin Design | Yes | No | No tool call validation in agent runtime |
-| LLM08: Excessive Agency | Yes | No | Agents not scope-limited in scaffold |
-| LLM09: Overreliance | Yes | No | No confidence scoring or disclaimers |
-| LLM10: Model Theft | Low | Partial | No fine-tuned models yet |
+| LLM Risk                                | Present | Mitigated | Gap                                               |
+| --------------------------------------- | ------- | --------- | ------------------------------------------------- |
+| LLM01: Prompt Injection                 | Yes     | No        | No input sanitization exists                      |
+| LLM02: Insecure Output Handling         | Yes     | No        | No output validation before NATS publish          |
+| LLM03: Training Data Poisoning          | Partial | No        | memory-service writes accepted without validation |
+| LLM04: Model DoS                        | Yes     | No        | No token budget limits implemented                |
+| LLM05: Supply Chain                     | Yes     | Partial   | Anthropic SDK pinned but no SBOMs                 |
+| LLM06: Sensitive Information Disclosure | Yes     | No        | No PII scrubbing before LLM calls                 |
+| LLM07: Insecure Plugin Design           | Yes     | No        | No tool call validation in agent runtime          |
+| LLM08: Excessive Agency                 | Yes     | No        | Agents not scope-limited in scaffold              |
+| LLM09: Overreliance                     | Yes     | No        | No confidence scoring or disclaimers              |
+| LLM10: Model Theft                      | Low     | Partial   | No fine-tuned models yet                          |
 
 ### 2.3 MITRE ATLAS
 
@@ -81,6 +82,7 @@ The following areas were explicitly scoped in:
 - Alert routing and actionability
 
 The following were explicitly scoped out of this round:
+
 - External EKS production topology (not yet deployed)
 - Medplum FHIR integration (not yet implemented)
 - Temporal workflow engine (not yet deployed)
@@ -195,6 +197,7 @@ The following were explicitly scoped out of this round:
 ## 5. Blind Spots by Category
 
 ### Security (8 findings)
+
 - BS-001: NetworkPolicy unenforced (Critical)
 - BS-002: NATS open authorization (Critical)
 - BS-004: PHI to LLM without scrubbing (Critical)
@@ -205,6 +208,7 @@ The following were explicitly scoped out of this round:
 - No image signing or admission controller for image provenance
 
 ### AI/Agent (7 findings)
+
 - BS-005: Memory poisoning via unvalidated writes (High)
 - No prompt injection prevention in any service
 - No output validation before NATS publish
@@ -214,6 +218,7 @@ The following were explicitly scoped out of this round:
 - No self-validation detection (agent validating its own output)
 
 ### Clinical (5 findings)
+
 - BS-007: No event deduplication (High)
 - BS-010: No degraded mode UI (Medium-High)
 - No discharge blocker enforcement (scaffold only)
@@ -221,6 +226,7 @@ The following were explicitly scoped out of this round:
 - No shift handoff data completeness check
 
 ### Infrastructure (6 findings)
+
 - BS-001: kindnet CNI unenforced NetworkPolicy (Critical)
 - BS-006: ArgoCD auto-sync without rollback gate (High)
 - BS-008: KEDA ScaledObjects not deployed (High)
@@ -229,23 +235,27 @@ The following were explicitly scoped out of this round:
 - Loki log retention not configured — logs may roll off before incident investigation
 
 ### Governance (4 findings)
+
 - BS-003: All services scaffold — governance described but not enforced (Critical)
 - BS-009: Alertmanager routing not configured (High)
 - No quarantine zone for agents — quarantine is described but has no implementation
 - decision-log-service scaffold — all agent decisions are currently unlogged
 
 ### Data (4 findings)
+
 - BS-004: PHI to LLM (Critical)
 - No data classification labels on any Kubernetes resource
 - No field-level encryption for patient data at rest in PostgreSQL
 - No data retention policy enforcement — NATS streams will grow unbounded
 
 ### Frontend (3 findings)
+
 - BS-010: No degraded mode (Medium-High)
 - No mobile-specific UI validation performed
 - No alert fatigue testing — inbox behavior under 50+ alerts unknown
 
 ### Economic (2 findings)
+
 - No per-agent token cost tracking — runaway agent could consume unbounded API budget
 - No cost circuit breaker — no mechanism to halt AI calls if daily spend exceeds threshold
 
@@ -254,6 +264,7 @@ The following were explicitly scoped out of this round:
 ## 6. Coverage Gaps vs. Previous Validation Prompts
 
 Previous validation documents in `docs/validation/` covered:
+
 - Cluster architecture (networking, storage, DNS)
 - Security baseline (RBAC, secrets, TLS)
 - Observability (Prometheus, Grafana, Loki)
@@ -262,6 +273,7 @@ Previous validation documents in `docs/validation/` covered:
 - Master validation matrix
 
 **What was not covered:**
+
 - AI/LLM-specific attack surfaces (OWASP LLM Top 10 not previously applied)
 - NATS authorization model
 - Clinical event integrity guarantees
@@ -274,65 +286,65 @@ Previous validation documents in `docs/validation/` covered:
 
 ## 7. New Risks Discovered in This Round
 
-| Risk ID | Title | Why It's New |
-|---|---|---|
-| BS-001 | kindnet CNI enforcement gap | Previous networking validation assumed NetworkPolicy = enforcement |
-| BS-002 | NATS open auth | NATS security was treated as infrastructure concern, not reviewed at auth level |
-| BS-004 | PHI to LLM | Data flow to Anthropic API was not traced in previous security baseline |
-| BS-005 | Memory poisoning | AI security section was not previously included in validation scope |
-| BS-007 | No event deduplication | NATS was validated as "running" not "correctly configured for clinical safety" |
-| BS-009 | Alertmanager black hole | Previous observability validation confirmed rules exist, not routing |
+| Risk ID | Title                       | Why It's New                                                                    |
+| ------- | --------------------------- | ------------------------------------------------------------------------------- |
+| BS-001  | kindnet CNI enforcement gap | Previous networking validation assumed NetworkPolicy = enforcement              |
+| BS-002  | NATS open auth              | NATS security was treated as infrastructure concern, not reviewed at auth level |
+| BS-004  | PHI to LLM                  | Data flow to Anthropic API was not traced in previous security baseline         |
+| BS-005  | Memory poisoning            | AI security section was not previously included in validation scope             |
+| BS-007  | No event deduplication      | NATS was validated as "running" not "correctly configured for clinical safety"  |
+| BS-009  | Alertmanager black hole     | Previous observability validation confirmed rules exist, not routing            |
 
 ---
 
 ## 8. Risks That Were Assumed Covered but Aren't
 
-| Assumption | Reality |
-|---|---|
-| "NetworkPolicies protect service isolation" | NetworkPolicies exist but kindnet does not enforce them |
-| "RBAC controls what agents can do" | RBAC controls k8s API access; it does not control what an agent can publish to NATS |
-| "Audit service logs all agent decisions" | audit-service is a scaffold; it logs nothing |
-| "Policy-engine enforces agent boundaries" | policy-engine is a scaffold; it enforces nothing |
-| "ArgoCD sync = validated deployment" | ArgoCD syncs on manifest validity + pod readiness, not on clinical logic correctness |
-| "Alerts notify on-call" | Alertmanager has no receiver configured; alerts fire internally only |
-| "discharge-orchestrator blocks unsafe discharges" | discharge-orchestrator is a scaffold with no blocking logic |
+| Assumption                                        | Reality                                                                              |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| "NetworkPolicies protect service isolation"       | NetworkPolicies exist but kindnet does not enforce them                              |
+| "RBAC controls what agents can do"                | RBAC controls k8s API access; it does not control what an agent can publish to NATS  |
+| "Audit service logs all agent decisions"          | audit-service is a scaffold; it logs nothing                                         |
+| "Policy-engine enforces agent boundaries"         | policy-engine is a scaffold; it enforces nothing                                     |
+| "ArgoCD sync = validated deployment"              | ArgoCD syncs on manifest validity + pod readiness, not on clinical logic correctness |
+| "Alerts notify on-call"                           | Alertmanager has no receiver configured; alerts fire internally only                 |
+| "discharge-orchestrator blocks unsafe discharges" | discharge-orchestrator is a scaffold with no blocking logic                          |
 
 ---
 
 ## 9. Remediation Backlog
 
-| ID | Finding | Priority | Effort | Owner |
-|---|---|---|---|---|
-| REM-001 | Replace kindnet with Calico or Cilium for NetworkPolicy enforcement | Critical | High (cluster rebuild) | Infra |
-| REM-002 | Configure NATS authorization with NKeys or accounts | Critical | Medium | Infra/Platform |
-| REM-003 | Implement PHI scrubbing layer in ai-gateway before any Anthropic API calls | Critical | High | Platform |
-| REM-004 | Configure Alertmanager receivers (PagerDuty/Slack) and validate routing | High | Low | Ops |
-| REM-005 | Define and deploy KEDA ScaledObjects for patient-flow, task-inbox, discharge-orchestrator | High | Medium | Infra |
-| REM-006 | Implement memory-service write validation and source attestation | High | Medium | Platform |
-| REM-007 | Configure NATS stream deduplication windows per stream | High | Low | Platform |
-| REM-008 | Define Pod Disruption Budgets for all clinical services | High | Low | Infra |
-| REM-009 | Add ArgoCD custom health checks for service logic, not just pod readiness | High | Medium | Infra |
-| REM-010 | Implement degraded mode UI with stale data indicators in velya-web | Medium | High | Frontend |
-| REM-011 | Add resource limits to agent-orchestrator pod spec | Medium | Low | Infra |
-| REM-012 | Implement token budget limiting in ai-gateway | Medium | Medium | Platform |
-| REM-013 | Configure Loki retention policy | Medium | Low | Ops |
-| REM-014 | Define data classification labels for all Kubernetes resources | Low | Low | Governance |
-| REM-015 | Implement per-agent cost tracking and daily cost circuit breaker | Medium | Medium | Platform |
+| ID      | Finding                                                                                   | Priority | Effort                 | Owner          |
+| ------- | ----------------------------------------------------------------------------------------- | -------- | ---------------------- | -------------- |
+| REM-001 | Replace kindnet with Calico or Cilium for NetworkPolicy enforcement                       | Critical | High (cluster rebuild) | Infra          |
+| REM-002 | Configure NATS authorization with NKeys or accounts                                       | Critical | Medium                 | Infra/Platform |
+| REM-003 | Implement PHI scrubbing layer in ai-gateway before any Anthropic API calls                | Critical | High                   | Platform       |
+| REM-004 | Configure Alertmanager receivers (PagerDuty/Slack) and validate routing                   | High     | Low                    | Ops            |
+| REM-005 | Define and deploy KEDA ScaledObjects for patient-flow, task-inbox, discharge-orchestrator | High     | Medium                 | Infra          |
+| REM-006 | Implement memory-service write validation and source attestation                          | High     | Medium                 | Platform       |
+| REM-007 | Configure NATS stream deduplication windows per stream                                    | High     | Low                    | Platform       |
+| REM-008 | Define Pod Disruption Budgets for all clinical services                                   | High     | Low                    | Infra          |
+| REM-009 | Add ArgoCD custom health checks for service logic, not just pod readiness                 | High     | Medium                 | Infra          |
+| REM-010 | Implement degraded mode UI with stale data indicators in velya-web                        | Medium   | High                   | Frontend       |
+| REM-011 | Add resource limits to agent-orchestrator pod spec                                        | Medium   | Low                    | Infra          |
+| REM-012 | Implement token budget limiting in ai-gateway                                             | Medium   | Medium                 | Platform       |
+| REM-013 | Configure Loki retention policy                                                           | Medium   | Low                    | Ops            |
+| REM-014 | Define data classification labels for all Kubernetes resources                            | Low      | Low                    | Governance     |
+| REM-015 | Implement per-agent cost tracking and daily cost circuit breaker                          | Medium   | Medium                 | Platform       |
 
 ---
 
 ## 10. Validation Score by Domain
 
-| Domain | Score | Max | Grade | Notes |
-|---|---|---|---|---|
-| Security | 18 | 50 | F | Critical gaps: NetworkPolicy unenforced, NATS open, PHI exposure |
-| AI/Agent | 12 | 50 | F | No prompt injection protection, no output validation, no scope enforcement |
-| Clinical | 22 | 50 | D | No event deduplication, no discharge blocking, no degraded mode |
-| Infrastructure | 28 | 50 | D+ | Services running, observability present, but autoscaling absent and PDBs missing |
-| Governance | 20 | 50 | D | Governance documented but not implemented in any service |
-| Data | 15 | 50 | F | PHI flow to LLM unresolved, no field encryption, no retention enforcement |
-| Frontend | 25 | 50 | D+ | UI exists, no degraded mode, no mobile validation |
-| Economic | 10 | 50 | F | No cost tracking, no circuit breaker |
-| **Overall** | **150** | **400** | **D-** | Platform is at scaffold stage — documentation ahead of implementation |
+| Domain         | Score   | Max     | Grade  | Notes                                                                            |
+| -------------- | ------- | ------- | ------ | -------------------------------------------------------------------------------- |
+| Security       | 18      | 50      | F      | Critical gaps: NetworkPolicy unenforced, NATS open, PHI exposure                 |
+| AI/Agent       | 12      | 50      | F      | No prompt injection protection, no output validation, no scope enforcement       |
+| Clinical       | 22      | 50      | D      | No event deduplication, no discharge blocking, no degraded mode                  |
+| Infrastructure | 28      | 50      | D+     | Services running, observability present, but autoscaling absent and PDBs missing |
+| Governance     | 20      | 50      | D      | Governance documented but not implemented in any service                         |
+| Data           | 15      | 50      | F      | PHI flow to LLM unresolved, no field encryption, no retention enforcement        |
+| Frontend       | 25      | 50      | D+     | UI exists, no degraded mode, no mobile validation                                |
+| Economic       | 10      | 50      | F      | No cost tracking, no circuit breaker                                             |
+| **Overall**    | **150** | **400** | **D-** | Platform is at scaffold stage — documentation ahead of implementation            |
 
 > **Note:** This score reflects the current state of a platform under active development. The goal of this exercise is to close gaps before business logic implementation begins, which is the appropriate time to catch architectural issues. The risk is that implementation proceeds without addressing these gaps.

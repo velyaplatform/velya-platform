@@ -10,6 +10,7 @@ Adversarial review is NOT optional. It is a gate in the delivery pipeline.
 ## Red Team Office Authority
 
 The Red Team & Blind Spot Discovery Office has authority to:
+
 - Block any component from entering production if critical blind spots are unresolved
 - Open formal blockers that require executive agent sign-off to close
 - Require additional shadow mode time for any agent
@@ -27,25 +28,27 @@ an explicit assumption log section. See `docs/risk/assumption-log.md` for format
 Assumptions that are not validated are treated as **active risks**.
 
 If an assumption cannot be validated within the sprint, it must be:
+
 1. Documented in `docs/risk/assumption-log.md` with status "Assumed"
 2. Have a defined validation method and deadline
 3. Have a documented fallback if the assumption is wrong
 
 ## Blind Spot Discovery Cadence
 
-| Activity | Frequency | Owner |
-|---|---|---|
-| Micro red team review (per component) | Per PR for critical components | Red Team Manager Agent |
-| Office-level blind spot scan | Weekly | Blind Spot Discovery Coordinator |
-| Platform-wide adversarial exercise | Monthly | Red Team Manager Agent |
-| Clinical safety gap review | Monthly | Clinical Safety Gap Hunter |
-| AI behavior adversarial test | Bi-weekly | Adversarial Behavior Analyst |
-| Unknown-unknown discovery session | Quarterly | Full Red Team Office |
+| Activity                              | Frequency                      | Owner                            |
+| ------------------------------------- | ------------------------------ | -------------------------------- |
+| Micro red team review (per component) | Per PR for critical components | Red Team Manager Agent           |
+| Office-level blind spot scan          | Weekly                         | Blind Spot Discovery Coordinator |
+| Platform-wide adversarial exercise    | Monthly                        | Red Team Manager Agent           |
+| Clinical safety gap review            | Monthly                        | Clinical Safety Gap Hunter       |
+| AI behavior adversarial test          | Bi-weekly                      | Adversarial Behavior Analyst     |
+| Unknown-unknown discovery session     | Quarterly                      | Full Red Team Office             |
 
 ## Silent Failure Detection
 
 Every system component must be audited for silent failure modes.
 A silent failure is a failure that:
+
 - Does not generate an alert
 - Does not appear in dashboards
 - Does not interrupt the workflow
@@ -57,6 +60,7 @@ Every silent failure mode must have a detection mechanism added.
 ## Adversarial Test Requirements
 
 Before any component enters production:
+
 - Prompt injection tests must be executed (if AI is involved)
 - Tool abuse tests must be executed (if tools/MCP are involved)
 - Excessive agency tests must be executed (if agent has write permissions)
@@ -77,6 +81,7 @@ Warning signs are checked during every red team review.
 ## Prohibited Assumptions
 
 The following can NEVER be assumed without explicit proof:
+
 - A component is secure because it has a security policy
 - An agent is safe because it passed shadow mode once
 - A clinical workflow is safe because it worked in testing

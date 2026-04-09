@@ -107,27 +107,29 @@ metric_score = 100 × (actual / target) if actual ≤ target (for metrics where 
 ```
 
 For metrics where the target is a direction (higher is better):
+
 ```
 score = min(100, 100 × actual / target)
 ```
 
 For metrics where lower is better (e.g., correction recurrence, incident generation):
+
 ```
 score = max(0, 100 × (1 - actual / critical_threshold))
 ```
 
 **Weighted composite score:**
 
-| Metric | Weight |
-|---|---|
-| Completion quality | 20% |
-| Evidence completeness | 15% |
-| Audit pass rate | 15% |
-| SLA adherence | 10% |
-| Silent failure rate | 15% (inverted — any non-zero heavily penalized) |
-| Learning adoption rate | 10% |
-| Correction recurrence | 10% |
-| Handoff quality | 5% |
+| Metric                 | Weight                                          |
+| ---------------------- | ----------------------------------------------- |
+| Completion quality     | 20%                                             |
+| Evidence completeness  | 15%                                             |
+| Audit pass rate        | 15%                                             |
+| SLA adherence          | 10%                                             |
+| Silent failure rate    | 15% (inverted — any non-zero heavily penalized) |
+| Learning adoption rate | 10%                                             |
+| Correction recurrence  | 10%                                             |
+| Handoff quality        | 5%                                              |
 
 Additional metrics (throughput, escalation frequency, incident generation, false positive rate) are tracked and reported but do not contribute to the composite score — they are used for contextual analysis and trend identification.
 
@@ -135,42 +137,42 @@ Additional metrics (throughput, escalation frequency, incident generation, false
 
 ## 4. Scoring Thresholds and Colors
 
-| Band | Score Range | Color | Meaning |
-|---|---|---|---|
-| Green | 90–100 | Green | Operating within institutional expectations |
-| Yellow | 75–89 | Yellow | Degraded performance; investigation required |
-| Red | 50–74 | Red | Significant performance deficiency; intervention required |
-| Critical | 0–49 | Red/Black | Severe deficiency; immediate action required |
+| Band     | Score Range | Color     | Meaning                                                   |
+| -------- | ----------- | --------- | --------------------------------------------------------- |
+| Green    | 90–100      | Green     | Operating within institutional expectations               |
+| Yellow   | 75–89       | Yellow    | Degraded performance; investigation required              |
+| Red      | 50–74       | Red       | Significant performance deficiency; intervention required |
+| Critical | 0–49        | Red/Black | Severe deficiency; immediate action required              |
 
 ---
 
 ## 5. Scorecard Review Cadence
 
-| Review Type | Frequency | Reviewer | Action Authority |
-|---|---|---|---|
-| Automated score generation | Weekly (Monday) | Scorecard Engine | None — informational |
-| Office Manager scorecard review | Weekly | Office Manager | Initiate informal improvement plan |
-| Pattern analysis (trend) | Weekly | Knowledge & Memory Office | Flag to manager |
-| Probation determination | Monthly | Office Manager + Executive | Formal probation |
-| Quarantine consideration | Triggered by 4 weeks critical | Office Manager | Quarantine request |
-| Retirement consideration | Triggered by 8 weeks critical | Office Manager + Executive | Retirement proposal |
+| Review Type                     | Frequency                     | Reviewer                   | Action Authority                   |
+| ------------------------------- | ----------------------------- | -------------------------- | ---------------------------------- |
+| Automated score generation      | Weekly (Monday)               | Scorecard Engine           | None — informational               |
+| Office Manager scorecard review | Weekly                        | Office Manager             | Initiate informal improvement plan |
+| Pattern analysis (trend)        | Weekly                        | Knowledge & Memory Office  | Flag to manager                    |
+| Probation determination         | Monthly                       | Office Manager + Executive | Formal probation                   |
+| Quarantine consideration        | Triggered by 4 weeks critical | Office Manager             | Quarantine request                 |
+| Retirement consideration        | Triggered by 8 weeks critical | Office Manager + Executive | Retirement proposal                |
 
 ---
 
 ## 6. Scorecard-Triggered Actions
 
-| Trigger Condition | Action | Timeline |
-|---|---|---|
-| Yellow for 2 consecutive weeks | Office Manager informal review | Within 1 week |
-| Yellow for 4 consecutive weeks | Formal improvement plan with Learning Office | Within 2 weeks |
-| Red for 2 consecutive weeks | Formal improvement plan + Executive notification | Within 1 week |
-| Red for 4 consecutive weeks | Probation consideration | Immediate assessment |
-| Critical for 1 week | Investigation opened | Within 48 hours |
-| Critical for 4 consecutive weeks | Quarantine consideration | Immediate assessment |
-| Critical for 8 consecutive weeks | Retirement assessment | Within 1 week |
-| Silent failure rate > 0 for any week | Immediate investigation | Within 24 hours |
-| Evidence completeness < 90% for any week | Audit triggered | Within 48 hours |
-| Learning adoption rate < 50% for any week | Learning Office engagement | Within 1 week |
+| Trigger Condition                         | Action                                           | Timeline             |
+| ----------------------------------------- | ------------------------------------------------ | -------------------- |
+| Yellow for 2 consecutive weeks            | Office Manager informal review                   | Within 1 week        |
+| Yellow for 4 consecutive weeks            | Formal improvement plan with Learning Office     | Within 2 weeks       |
+| Red for 2 consecutive weeks               | Formal improvement plan + Executive notification | Within 1 week        |
+| Red for 4 consecutive weeks               | Probation consideration                          | Immediate assessment |
+| Critical for 1 week                       | Investigation opened                             | Within 48 hours      |
+| Critical for 4 consecutive weeks          | Quarantine consideration                         | Immediate assessment |
+| Critical for 8 consecutive weeks          | Retirement assessment                            | Within 1 week        |
+| Silent failure rate > 0 for any week      | Immediate investigation                          | Within 24 hours      |
+| Evidence completeness < 90% for any week  | Audit triggered                                  | Within 48 hours      |
+| Learning adoption rate < 50% for any week | Learning Office engagement                       | Within 1 week        |
 
 ---
 
@@ -178,34 +180,35 @@ Additional metrics (throughput, escalation frequency, incident generation, false
 
 The following behaviors are detected by the scoring engine and flagged as integrity violations:
 
-| Behavior | Detection Method | Consequence |
-|---|---|---|
-| Filing evidence after task completion (retroactive) | Timestamp analysis on evidence submissions | Evidence completeness metric nulled; audit triggered |
-| Splitting tasks to inflate throughput without proportional validation | Task complexity normalization; validation ratio check | Throughput metric normalized; manager review |
-| Re-routing validations to more lenient validators | Validator diversity analysis | Routing pattern audit; manager notification |
-| Not reporting failures to keep silent failure rate at zero | External detection cross-reference | Trust flag; audit investigation |
-| Requesting validation on low-risk work to inflate validation pass rate | Risk class vs. validation rate analysis | Rate normalized to risk class cohort |
-| Filing correction reports for un-rejected work to inflate correction quality | Correction report/rejection cross-reference | Report rejected; integrity flag |
+| Behavior                                                                     | Detection Method                                      | Consequence                                          |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------- |
+| Filing evidence after task completion (retroactive)                          | Timestamp analysis on evidence submissions            | Evidence completeness metric nulled; audit triggered |
+| Splitting tasks to inflate throughput without proportional validation        | Task complexity normalization; validation ratio check | Throughput metric normalized; manager review         |
+| Re-routing validations to more lenient validators                            | Validator diversity analysis                          | Routing pattern audit; manager notification          |
+| Not reporting failures to keep silent failure rate at zero                   | External detection cross-reference                    | Trust flag; audit investigation                      |
+| Requesting validation on low-risk work to inflate validation pass rate       | Risk class vs. validation rate analysis               | Rate normalized to risk class cohort                 |
+| Filing correction reports for un-rejected work to inflate correction quality | Correction report/rejection cross-reference           | Report rejected; integrity flag                      |
 
 ---
 
 ## 8. Sample Scorecards
 
 ### 8.1 Sample Scorecard: `platform-office/infrastructure-specialist-agent`
-**Week of:** 2026-04-07  
-**Role Type:** Specialist  
 
-| Metric | Target | Actual | Score | Band |
-|---|---|---|---|---|
-| Completion quality | 95% | 97.3% | 100 | Green |
-| Evidence completeness | 100% | 100% | 100 | Green |
-| Audit pass rate | 98% | 96.0% | 98 | Green |
-| SLA adherence | 95% | 93.1% | 98 | Green |
-| Silent failure rate | 0% | 0% | 100 | Green |
-| Learning adoption rate | 95% | 91.0% | 96 | Green |
-| Correction recurrence | <5% | 0% | 100 | Green |
-| Handoff quality | 90% | 88.0% | 98 | Yellow (borderline) |
-| **COMPOSITE SCORE** | | | **99.1** | **Green** |
+**Week of:** 2026-04-07  
+**Role Type:** Specialist
+
+| Metric                 | Target | Actual | Score    | Band                |
+| ---------------------- | ------ | ------ | -------- | ------------------- |
+| Completion quality     | 95%    | 97.3%  | 100      | Green               |
+| Evidence completeness  | 100%   | 100%   | 100      | Green               |
+| Audit pass rate        | 98%    | 96.0%  | 98       | Green               |
+| SLA adherence          | 95%    | 93.1%  | 98       | Green               |
+| Silent failure rate    | 0%     | 0%     | 100      | Green               |
+| Learning adoption rate | 95%    | 91.0%  | 96       | Green               |
+| Correction recurrence  | <5%    | 0%     | 100      | Green               |
+| Handoff quality        | 90%    | 88.0%  | 98       | Yellow (borderline) |
+| **COMPOSITE SCORE**    |        |        | **99.1** | **Green**           |
 
 **Trend:** Stable. Handoff quality slightly below target — coordinator to review context package depth.  
 **Manager note:** Schedule review of handoff template completeness.
@@ -213,20 +216,21 @@ The following behaviors are detected by the scoring engine and flagged as integr
 ---
 
 ### 8.2 Sample Scorecard: `quality-assurance/regression-validator-agent`
-**Week of:** 2026-04-07  
-**Role Type:** Validator  
 
-| Metric | Target | Actual | Score | Band |
-|---|---|---|---|---|
-| Completion quality (validation accuracy) | 98% | 94.0% | 96 | Yellow |
-| Evidence completeness | 100% | 98.5% | 99 | Green |
-| Audit pass rate | 99% | 99.0% | 100 | Green |
-| SLA adherence | 95% | 88.0% | 93 | Yellow |
-| Silent failure rate | 0% | 0% | 100 | Green |
-| Learning adoption rate | 95% | 95.0% | 100 | Green |
-| False positive rate | <2% | 6.0% | 70 | Red |
-| Handoff quality | N/A | N/A | N/A | — |
-| **COMPOSITE SCORE** | | | **84.7** | **Yellow** |
+**Week of:** 2026-04-07  
+**Role Type:** Validator
+
+| Metric                                   | Target | Actual | Score    | Band       |
+| ---------------------------------------- | ------ | ------ | -------- | ---------- |
+| Completion quality (validation accuracy) | 98%    | 94.0%  | 96       | Yellow     |
+| Evidence completeness                    | 100%   | 98.5%  | 99       | Green      |
+| Audit pass rate                          | 99%    | 99.0%  | 100      | Green      |
+| SLA adherence                            | 95%    | 88.0%  | 93       | Yellow     |
+| Silent failure rate                      | 0%     | 0%     | 100      | Green      |
+| Learning adoption rate                   | 95%    | 95.0%  | 100      | Green      |
+| False positive rate                      | <2%    | 6.0%   | 70       | Red        |
+| Handoff quality                          | N/A    | N/A    | N/A      | —          |
+| **COMPOSITE SCORE**                      |        |        | **84.7** | **Yellow** |
 
 **Trend:** False positive rate elevated for 2 weeks — two rejections were overturned by QA Manager review. SLA adherence degraded due to high volume week.  
 **Manager note:** Formal review of rejection criteria calibration required. Assess validator workload — may be at capacity.
@@ -234,20 +238,21 @@ The following behaviors are detected by the scoring engine and flagged as integr
 ---
 
 ### 8.3 Sample Scorecard: `agent-runtime-supervision/platform-watchdog-agent`
-**Week of:** 2026-04-07  
-**Role Type:** Watchdog  
 
-| Metric | Target | Actual | Score | Band |
-|---|---|---|---|---|
-| Detection precision (alerts that were valid) | >90% | 92.0% | 100 | Green |
-| Detection recall (genuine anomalies caught) | >95% | 98.0% | 100 | Green |
-| Alert response time (mean, minutes) | <5 min | 3.2 min | 100 | Green |
-| False positive rate | <10% | 8.0% | 100 | Green |
-| Scope compliance | 100% | 100% | 100 | Green |
-| Status report compliance | 100% | 100% | 100 | Green |
-| Investigation completeness | >95% | 97.0% | 100 | Green |
-| Threshold currency | <90 days | 45 days | 100 | Green |
-| **COMPOSITE SCORE** | | | **99.8** | **Green** |
+**Week of:** 2026-04-07  
+**Role Type:** Watchdog
+
+| Metric                                       | Target   | Actual  | Score    | Band      |
+| -------------------------------------------- | -------- | ------- | -------- | --------- |
+| Detection precision (alerts that were valid) | >90%     | 92.0%   | 100      | Green     |
+| Detection recall (genuine anomalies caught)  | >95%     | 98.0%   | 100      | Green     |
+| Alert response time (mean, minutes)          | <5 min   | 3.2 min | 100      | Green     |
+| False positive rate                          | <10%     | 8.0%    | 100      | Green     |
+| Scope compliance                             | 100%     | 100%    | 100      | Green     |
+| Status report compliance                     | 100%     | 100%    | 100      | Green     |
+| Investigation completeness                   | >95%     | 97.0%   | 100      | Green     |
+| Threshold currency                           | <90 days | 45 days | 100      | Green     |
+| **COMPOSITE SCORE**                          |          |         | **99.8** | **Green** |
 
 **Trend:** Performing well. One near-miss on scope — observed anomaly in adjacent office but correctly referred to the appropriate cross-office watchdog rather than acting on it.  
 **Manager note:** Commend scope discipline. No action required.

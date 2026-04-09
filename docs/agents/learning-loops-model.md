@@ -4,7 +4,7 @@
 **Cluster:** kind-velya-local (simulando AWS EKS)  
 **Office:** Learning Office  
 **Namespace:** velya-dev-agents  
-**Última revisão:** 2026-04-08  
+**Última revisão:** 2026-04-08
 
 ---
 
@@ -13,6 +13,7 @@
 A Velya aprende de forma sistemática e controlada. Todo incidente, correção, alerta e feedback é uma oportunidade de melhoria. Porém, o aprendizado institucional não pode ser ad hoc: mudanças propagadas sem validação podem introduzir novos problemas ou regredir comportamentos já corretos.
 
 O modelo de learning loops define:
+
 - Quais eventos geram aprendizado
 - Como o aprendizado é validado antes de propagação
 - Como as melhorias são implementadas de forma segura
@@ -29,14 +30,14 @@ Todo evento de aprendizado segue este schema:
 ```json
 {
   "$schema": "https://schemas.velya.io/learning-event/v1.0",
-  
+
   "event_id": "learn-uuid-v4",
   "event_type": "incident_lesson",
   "generated_at": "2026-04-08T16:00:00.000Z",
   "generated_by": "learning-office",
   "source_event_id": "incident-2026-04-08-003",
   "source_event_type": "retry_storm",
-  
+
   "context": {
     "office": "clinical-operations",
     "agent_name": "task-inbox-worker",
@@ -45,7 +46,7 @@ Todo evento de aprendizado segue este schema:
     "frequency": "first_occurrence",
     "severity": "medium"
   },
-  
+
   "observation": {
     "what_happened": "task-inbox-worker entrou em retry storm por timeout de get_patient_context",
     "root_cause": "patient-flow-service degradado por 45 minutos, timeout de 10s insuficiente",
@@ -56,14 +57,14 @@ Todo evento de aprendizado segue este schema:
     ],
     "what_worked": "Watchdog detectou em 12 minutos. Escalação para on-call funcionou."
   },
-  
+
   "lesson_learned": {
     "title": "Timeout de tools devem ter margem para condições degradadas",
     "description": "O timeout de tools deve ser configurado como P99 normal * 2, não apenas P99 normal",
     "actionable": true,
     "category": "resilience"
   },
-  
+
   "proposed_changes": [
     {
       "change_id": "change-001",
@@ -85,7 +86,7 @@ Todo evento de aprendizado segue este schema:
       "requires_human_review": true
     }
   ],
-  
+
   "validation_status": "pending_review",
   "validated_by": null,
   "propagated_at": null,
@@ -207,6 +208,7 @@ Validator Rule aprovada e deployada
 **Gatilho:** Alerta disparado com taxa de falso positivo > 20% nas últimas 2 semanas.
 
 **Definição de falso positivo:** Alerta que foi disparado mas:
+
 - Foi ignorado pela equipe sem nenhuma ação (sinal de que não é acionável)
 - Foi silenciado/resolvido em < 2 minutos sem ação real
 - Foi explicitamente marcado como "expected behavior" pelo on-call
@@ -219,22 +221,22 @@ class AlertTuningLoop:
     Analisa alertas disparados e identifica candidatos a ajuste.
     Executa diariamente como Batch Agent.
     """
-    
+
     def analyze_alert_quality(self, alert_name: str, period_days: int = 14) -> AlertQualityReport:
         alerts = self.prometheus.query_range(
             query=f'ALERTS{{alertname="{alert_name}"}}',
             period=f"{period_days}d"
         )
-        
+
         actions_taken = self.loki.query(
             query=f'{{event="incident_action"}} |= "{alert_name}"',
             period=f"{period_days}d"
         )
-        
+
         total_alerts = len(alerts)
         alerts_with_action = len(actions_taken)
         false_positive_rate = 1 - (alerts_with_action / total_alerts)
-        
+
         return AlertQualityReport(
             alert_name=alert_name,
             period_days=period_days,
@@ -243,7 +245,7 @@ class AlertTuningLoop:
             false_positive_rate=false_positive_rate,
             recommendation=self.generate_recommendation(alert_name, false_positive_rate)
         )
-    
+
     def generate_recommendation(self, alert_name: str, fp_rate: float) -> AlertRecommendation:
         if fp_rate > 0.50:
             return AlertRecommendation(
@@ -291,9 +293,9 @@ CAUSA IDENTIFICADA → BUDGET RULE PROPOSTA:
     rule: "Se retry_rate > 30%, pausar novas inferências LLM"
     scope: agent-level
     override: "human-in-loop para tasks clínicas críticas"
-  
+
   OU
-  
+
   Causa: Volume de tasks aumentou 2x sem correspondente análise de budget
   Budget Rule:
     rule: "Budget de inferência se auto-ajusta com volume * 1.2 (headroom de 20%)"
@@ -314,12 +316,14 @@ BUDGET RULE IMPLEMENTADA como ConfigMap:
 **Gatilho:** Mais de 5 instâncias de usuários clínicos explicitamente substituindo a decisão automatizada do agent (override manual).
 
 **Fontes de friction detectadas:**
+
 - Overrides de classificação de urgência por enfermeiros
 - Rejeições de propostas de roteamento pelo patient flow optimizer
 - Cancelamentos manuais de workflows de alta iniciados automaticamente
 - Feedbacks negativos marcados no task inbox
 
 **Fluxo:**
+
 ```
 FRICTION PATTERN DETECTADO (5+ overrides similares em 7 dias)
          │
@@ -352,16 +356,16 @@ Toda mudança proposta por um Learning Agent passa por um processo de validaçã
 
 ### 4.1 Níveis de Risco de Mudança
 
-| Tipo de Mudança | Nível de Risco | Validação Necessária |
-|---|---|---|
-| Timeout de tool (não-clínico) | Baixo | Governance Agent review |
-| Regra de validator nova | Médio | Governance Agent + Knowledge Office |
-| Mudança de prompt de LLM | Médio | Shadow mode 7 dias |
-| Budget rule nova | Baixo | FinOps Office review |
-| Alert threshold | Baixo | Observability Office review |
-| Mudança de lógica clínica | Alto | Governance Agent + Human review |
-| Nova tool em agent clínico | Alto | Security review + Human approval |
-| Mudança de confidence threshold | Alto | Architecture Review + Shadow mode |
+| Tipo de Mudança                 | Nível de Risco | Validação Necessária                |
+| ------------------------------- | -------------- | ----------------------------------- |
+| Timeout de tool (não-clínico)   | Baixo          | Governance Agent review             |
+| Regra de validator nova         | Médio          | Governance Agent + Knowledge Office |
+| Mudança de prompt de LLM        | Médio          | Shadow mode 7 dias                  |
+| Budget rule nova                | Baixo          | FinOps Office review                |
+| Alert threshold                 | Baixo          | Observability Office review         |
+| Mudança de lógica clínica       | Alto           | Governance Agent + Human review     |
+| Nova tool em agent clínico      | Alto           | Security review + Human approval    |
+| Mudança de confidence threshold | Alto           | Architecture Review + Shadow mode   |
 
 ### 4.2 Processo de Validação
 
@@ -371,14 +375,14 @@ class LearningPropagationGate:
     Gate de validação para propagação de aprendizado.
     Nenhuma mudança passa sem passar por este gate.
     """
-    
+
     async def validate_change(self, change: ProposedChange) -> ValidationResult:
         risk_level = self.assess_risk(change)
-        
+
         if risk_level == "low":
             # Validação automática por Governance Agent
             return await self.governance_agent_review(change)
-        
+
         elif risk_level == "medium":
             # Governance Agent + Knowledge Office review
             governance_result = await self.governance_agent_review(change)
@@ -386,13 +390,13 @@ class LearningPropagationGate:
                 knowledge_result = await self.knowledge_office_review(change)
                 return knowledge_result
             return governance_result
-        
+
         elif risk_level == "high":
             # Governance Agent + Human review obrigatório
             governance_result = await self.governance_agent_review(change)
             if not governance_result.approved:
                 return governance_result
-            
+
             # Publicar para revisão humana com deadline
             human_review = await self.request_human_review(
                 change=change,
@@ -400,11 +404,11 @@ class LearningPropagationGate:
                 reviewer_role="architecture-review"
             )
             return human_review
-        
+
         elif risk_level == "critical":
             # Sempre human review + shadow mode
             return await self.request_human_review_with_shadow(change)
-    
+
     def assess_risk(self, change: ProposedChange) -> str:
         if change.affects_clinical_logic:
             return "high"
@@ -461,38 +465,38 @@ Todo sábado às 20h UTC, o Knowledge Office gera um digest semanal:
 
 ```yaml
 digest_template:
-  title: "Velya Knowledge Digest - Semana {week_number}"
+  title: 'Velya Knowledge Digest - Semana {week_number}'
   sections:
     - incidents_this_week:
         count: 3
         severities: [S2, S3, S3]
         resolved_all: true
         avg_mttr_minutes: 42
-    
+
     - lessons_learned:
-        - lesson: "Timeout de tools deve usar P99 * 2"
-          status: "propagated"
+        - lesson: 'Timeout de tools deve usar P99 * 2'
+          status: 'propagated'
           affected_agents: 8
-        
+
     - validator_rules_added:
-        - rule: "VLD-001: spo2_critical_threshold"
-          status: "active"
+        - rule: 'VLD-001: spo2_critical_threshold'
+          status: 'active'
           false_positive_rate_7d: 0.02
-    
+
     - alerts_tuned:
-        - alert: "AgentHeartbeatStale"
-          change: "for: 1m → for: 2m"
+        - alert: 'AgentHeartbeatStale'
+          change: 'for: 1m → for: 2m'
           fp_reduction_percent: 45
-    
+
     - cost_changes:
-        - action: "Timeout reduzido para task-classification"
+        - action: 'Timeout reduzido para task-classification'
           saving_percent: 12
-    
+
     - pending_reviews:
-        - change: "Aumentar confidence threshold de 0.70 para 0.75"
-          risk: "high"
-          waiting_since: "2026-04-06"
-          reviewer: "architecture-review"
+        - change: 'Aumentar confidence threshold de 0.70 para 0.75'
+          risk: 'high'
+          waiting_since: '2026-04-06'
+          reviewer: 'architecture-review'
 ```
 
 ---

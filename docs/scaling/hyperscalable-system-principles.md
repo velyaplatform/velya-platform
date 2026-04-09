@@ -72,6 +72,7 @@ Cada camada tem seus próprios mecanismos de scaling, seus próprios SLOs e suas
 ### Escalabilidade de Storage em kind-velya-local
 
 No ambiente local, os PVCs usam `standard` StorageClass. Em EKS, migrar para `gp3` (EBS) com:
+
 - `throughput: 250 MBps`
 - `iops: 6000`
 - `type: gp3`
@@ -95,13 +96,13 @@ A Velya não provisiona nós manualmente. Em EKS, Karpenter é o único provisio
 
 ### Bin Packing vs Spreading
 
-| Workload | Estratégia | Razão |
-|---|---|---|
-| api-gateway | Spreading por AZ | Alta disponibilidade, latência previsível |
-| patient-flow-service | Spreading por nó | Isolamento de falhas |
-| discharge-orchestrator | Packing | Custo, workload stateless |
-| ai-agent-workers | Packing em GPU nodes | Localidade de modelo |
-| CronJobs | Packing em Spot | Custo mínimo |
+| Workload               | Estratégia           | Razão                                     |
+| ---------------------- | -------------------- | ----------------------------------------- |
+| api-gateway            | Spreading por AZ     | Alta disponibilidade, latência previsível |
+| patient-flow-service   | Spreading por nó     | Isolamento de falhas                      |
+| discharge-orchestrator | Packing              | Custo, workload stateless                 |
+| ai-agent-workers       | Packing em GPU nodes | Localidade de modelo                      |
+| CronJobs               | Packing em Spot      | Custo mínimo                              |
 
 ---
 
@@ -118,6 +119,7 @@ VPA ──────────────── Para right-sizing de reques
 ```
 
 **Regra de não-conflito:**
+
 - HPA e KEDA **nunca** controlam o mesmo deployment simultaneamente.
 - VPA em modo `Auto` **nunca** coexiste com HPA na mesma dimensão (CPU).
 - VPA pode usar modo `Initial` com HPA para requests, sem conflito.
@@ -162,6 +164,7 @@ Nenhum pod entra em produção sem `requests` e `limits` explícitos. Namespace 
 ### NATS JetStream como Backbone de Eventos
 
 A Velya usa NATS JetStream para:
+
 - Eventos clínicos (admissões, altas, transferências)
 - Tarefas assíncronas (notificações, enriquecimento de dados)
 - Comunicação inter-serviços event-driven
@@ -181,15 +184,16 @@ velya.audit.log         ──── audit trail imutável
 
 O sistema detecta acúmulo de fila e age em 3 estágios:
 
-| Estágio | Profundidade | Ação |
-|---|---|---|
-| Amarelo | > 500 msgs | KEDA scale-up de workers |
-| Laranja | > 2000 msgs | Throttle de novas entradas, priorização |
-| Vermelho | > 10000 msgs | Circuit breaker, modo degradado |
+| Estágio  | Profundidade | Ação                                    |
+| -------- | ------------ | --------------------------------------- |
+| Amarelo  | > 500 msgs   | KEDA scale-up de workers                |
+| Laranja  | > 2000 msgs  | Throttle de novas entradas, priorização |
+| Vermelho | > 10000 msgs | Circuit breaker, modo degradado         |
 
 ### Dead Letter Queue
 
 Todo stream tem DLQ configurado:
+
 - `max_deliver: 5` tentativas antes de DLQ
 - `ack_wait: 30s` para tasks normais, `300s` para tasks longas
 - Alerta Prometheus dispara quando DLQ cresce > 10 msgs/min
@@ -214,13 +218,13 @@ Temporal Schedule ── Durável, com compensation, exige consistência
 
 ### Exemplos Velya
 
-| Job | Executor | Frequência | Razão |
-|---|---|---|---|
-| cost-sweep | CronJob | Diário 2h | Simples, idempotente |
-| report-generation | CronJob + agent | Diário 6h | Simples com síntese LLM |
-| discharge-orchestration | Temporal Schedule | Evento-driven | Exige durabilidade, compensation |
-| patient-flow-routing | KEDA + worker | Contínuo | Event-driven, fila NATS |
-| market-intelligence | Batch agent | Semanal | Long-running, pode falhar e retry |
+| Job                     | Executor          | Frequência    | Razão                             |
+| ----------------------- | ----------------- | ------------- | --------------------------------- |
+| cost-sweep              | CronJob           | Diário 2h     | Simples, idempotente              |
+| report-generation       | CronJob + agent   | Diário 6h     | Simples com síntese LLM           |
+| discharge-orchestration | Temporal Schedule | Evento-driven | Exige durabilidade, compensation  |
+| patient-flow-routing    | KEDA + worker     | Contínuo      | Event-driven, fila NATS           |
+| market-intelligence     | Batch agent       | Semanal       | Long-running, pode falhar e retry |
 
 ---
 
@@ -229,6 +233,7 @@ Temporal Schedule ── Durável, com compensation, exige consistência
 ### Temporal como Engine de Durabilidade
 
 Workflows duráveis na Velya usam Temporal quando:
+
 1. O processo tem mais de 3 steps
 2. Qualquer step pode falhar e precisar de retry com backoff
 3. Existe compensation logic (rollback parcial)
@@ -245,12 +250,12 @@ velya-prod    ──── EKS prod, retention 30 dias
 
 ### Overlap Policies para Schedules
 
-| Política | Uso |
-|---|---|
-| `SKIP` | Reports diários — não acumular |
-| `BUFFER_ONE` | Discharge orchestration — processar mas não empilhar |
-| `ALLOW_ALL` | Nunca usar em prod — risco de thundering herd |
-| `TERMINATE_IF_RUNNING` | Sweeps de custo — nova execução é mais atual |
+| Política               | Uso                                                  |
+| ---------------------- | ---------------------------------------------------- |
+| `SKIP`                 | Reports diários — não acumular                       |
+| `BUFFER_ONE`           | Discharge orchestration — processar mas não empilhar |
+| `ALLOW_ALL`            | Nunca usar em prod — risco de thundering herd        |
+| `TERMINATE_IF_RUNNING` | Sweeps de custo — nova execução é mais atual         |
 
 ---
 
@@ -260,12 +265,12 @@ velya-prod    ──── EKS prod, retention 30 dias
 
 Cada agent na Velya tem um orçamento de tokens diário declarado e monitorado:
 
-| Agent | Tokens/dia (estimado) | Budget Limite | Ação em Breach |
-|---|---|---|---|
-| discharge-summary-agent | 500k | 1M | Alerta + throttle |
-| patient-context-agent | 200k | 500k | Alerta |
-| market-intelligence-agent | 2M | 5M | Alerta + pausa |
-| cost-analysis-agent | 100k | 300k | Alerta |
+| Agent                     | Tokens/dia (estimado) | Budget Limite | Ação em Breach    |
+| ------------------------- | --------------------- | ------------- | ----------------- |
+| discharge-summary-agent   | 500k                  | 1M            | Alerta + throttle |
+| patient-context-agent     | 200k                  | 500k          | Alerta            |
+| market-intelligence-agent | 2M                    | 5M            | Alerta + pausa    |
+| cost-analysis-agent       | 100k                  | 300k          | Alerta            |
 
 ### Tool Trust Tiers
 
@@ -280,6 +285,7 @@ Tier 4: Impacto clínico direto (NUNCA sem aprovação humana explícita)
 ### Context Engineering
 
 O contexto de um agent deve ser:
+
 - **Mínimo suficiente**: não incluir o prontuário completo quando só precisa do diagnóstico de admissão
 - **Confiável**: com timestamp e fonte explícitos
 - **Atualizado**: SLA de freshness por tipo de dado
@@ -312,12 +318,12 @@ metadata:
   namespace: velya-dev-agents
 spec:
   hard:
-    requests.cpu: "8"
+    requests.cpu: '8'
     requests.memory: 16Gi
-    limits.cpu: "16"
+    limits.cpu: '16'
     limits.memory: 32Gi
-    pods: "50"
-    count/deployments.apps: "20"
+    pods: '50'
+    count/deployments.apps: '20'
 ```
 
 ### PriorityClasses da Velya
@@ -339,30 +345,35 @@ velya-background       ──── -200     ──── agents assíncronos, s
 A escalabilidade da Velya vai além das métricas tradicionais:
 
 #### 1. Scaling por Profundidade de Fila (Queue Depth)
+
 ```
 Trigger: velya_nats_pending_messages{stream="discharge.queue"} > 100
 Ação: Escalar discharge-orchestrator workers (KEDA)
 ```
 
 #### 2. Scaling por Latência P99
+
 ```
 Trigger: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 0.5
 Ação: Escalar api-gateway (HPA com métrica custom)
 ```
 
 #### 3. Scaling por Backlog Age
+
 ```
 Trigger: velya_queue_oldest_message_age_seconds > 300
 Ação: Scale-up emergencial, alerta de operação
 ```
 
 #### 4. Scaling por Budget Cognitivo Restante
+
 ```
 Trigger: velya_ai_tokens_remaining_today / velya_ai_tokens_budget_daily < 0.1
 Ação: Throttle agents de baixa prioridade, preservar budget para críticos
 ```
 
 #### 5. Scaling por Taxa de Retry
+
 ```
 Trigger: rate(velya_temporal_workflow_retry_total[5m]) > 10
 Ação: Investigar dependência externa, alertar operação
@@ -372,13 +383,13 @@ Ação: Investigar dependência externa, alertar operação
 
 Tão importante quanto saber quando escalar é saber quando **não** escalar:
 
-| Condição | Não Escalar | Motivo |
-|---|---|---|
-| Spike < 30s | Não escalar HPA | Cooldown default 30s — seria inútil |
-| Memory leak detectado | Não escalar | Escalar mascara o problema |
-| Dependência externa down | Não escalar workers | Acumulariam filas sem processar |
-| Budget de custo esgotado | Não escalar além do teto | Proteção financeira |
-| PDB violado | Não scale-down | Proteção de disponibilidade |
+| Condição                 | Não Escalar              | Motivo                              |
+| ------------------------ | ------------------------ | ----------------------------------- |
+| Spike < 30s              | Não escalar HPA          | Cooldown default 30s — seria inútil |
+| Memory leak detectado    | Não escalar              | Escalar mascara o problema          |
+| Dependência externa down | Não escalar workers      | Acumulariam filas sem processar     |
+| Budget de custo esgotado | Não escalar além do teto | Proteção financeira                 |
+| PDB violado              | Não scale-down           | Proteção de disponibilidade         |
 
 ---
 
@@ -389,6 +400,7 @@ Tão importante quanto saber quando escalar é saber quando **não** escalar:
 > **Nenhum mecanismo de autoscaling é ativado sem métricas e alertas configurados para monitorá-lo.**
 
 Antes de criar um ScaledObject KEDA ou HPA, você deve ter:
+
 - Dashboard Grafana mostrando a métrica de trigger
 - Alerta Prometheus para anomalias da métrica
 - Log de eventos de scale no Loki
@@ -404,6 +416,7 @@ Antes de criar um ScaledObject KEDA ou HPA, você deve ter:
 ### 4. Testes de Scaling são Obrigatórios
 
 Antes de qualquer mudança em HPA, KEDA, NodePool ou VPA em staging/prod:
+
 1. Executar cenário de carga em kind-velya-local
 2. Validar métricas de scaling no Grafana
 3. Confirmar que SLOs foram mantidos
@@ -412,6 +425,7 @@ Antes de qualquer mudança em HPA, KEDA, NodePool ou VPA em staging/prod:
 ### 5. Reversibilidade
 
 Todo mecanismo de scaling deve poder ser desativado em < 5 minutos:
+
 - HPA: `kubectl patch hpa ... --patch '{"spec":{"minReplicas":X,"maxReplicas":X}}'`
 - KEDA: `kubectl annotate scaledobject ... autoscaling.keda.sh/paused=true`
 - NodePool: `kubectl patch nodepool ... --patch '{"spec":{"disruption":{"consolidationPolicy":"WhenEmptyAndUnderutilized"}}}'`
@@ -425,13 +439,13 @@ Todo mecanismo de scaling deve poder ser desativado em < 5 minutos:
 ```yaml
 # PROIBIDO em produção
 spec:
-  replicas: 3  # hardcoded sem HPA
+  replicas: 3 # hardcoded sem HPA
 ```
 
 ```yaml
 # CORRETO
 spec:
-  replicas: 2  # mínimo, HPA controla o máximo
+  replicas: 2 # mínimo, HPA controla o máximo
 ```
 
 ### Anti-Padrão 2: Scaling Sem Readiness Probe
@@ -444,19 +458,20 @@ Pods que escalam sem readiness probe adequada causam tráfego para instâncias n
 # PROIBIDO: CronJob para processo de 30+ minutos com estado
 kind: CronJob
 spec:
-  schedule: "0 * * * *"
+  schedule: '0 * * * *'
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-          - name: discharge-orchestrator
-            # Este processo precisa de Temporal, não CronJob
+            - name: discharge-orchestrator
+              # Este processo precisa de Temporal, não CronJob
 ```
 
 ### Anti-Padrão 4: Agent Sem Budget de Tokens
 
 Nenhum agent é deployado sem:
+
 - `velya.ai/token-budget-daily` annotation
 - Métricas de consumo de tokens no Prometheus
 - Alerta de breach de budget
@@ -469,7 +484,7 @@ Workloads com estado local (sessões, cache em memória) precisam de `preStop` h
 lifecycle:
   preStop:
     exec:
-      command: ["/bin/sh", "-c", "sleep 15 && /app/drain.sh"]
+      command: ['/bin/sh', '-c', 'sleep 15 && /app/drain.sh']
 ```
 
 ---
@@ -478,14 +493,14 @@ lifecycle:
 
 ### SLOs do Sistema de Scaling
 
-| Métrica | Target | Alerta |
-|---|---|---|
-| Tempo de scale-up (pod ready) | < 60s | > 120s |
-| Tempo de node provisioning (Karpenter) | < 3min | > 5min |
-| Queue backlog clearance | < 5min | > 15min |
-| DLQ growth rate | 0 msgs/min | > 5 msgs/min |
-| Scale oscillation events | < 2/hora | > 5/hora |
-| Budget breach events | 0/dia | Qualquer |
+| Métrica                                | Target     | Alerta       |
+| -------------------------------------- | ---------- | ------------ |
+| Tempo de scale-up (pod ready)          | < 60s      | > 120s       |
+| Tempo de node provisioning (Karpenter) | < 3min     | > 5min       |
+| Queue backlog clearance                | < 5min     | > 15min      |
+| DLQ growth rate                        | 0 msgs/min | > 5 msgs/min |
+| Scale oscillation events               | < 2/hora   | > 5/hora     |
+| Budget breach events                   | 0/dia      | Qualquer     |
 
 ### Dashboard de Saúde
 
@@ -503,6 +518,7 @@ O Grafana dashboard `Velya - Hyperscale Health` deve mostrar em tempo real:
 ## Roadmap de Maturidade
 
 ### Nível 1 (Atual — kind-velya-local)
+
 - [x] PriorityClasses configuradas
 - [x] ResourceQuotas por namespace
 - [x] KEDA instalado
@@ -510,6 +526,7 @@ O Grafana dashboard `Velya - Hyperscale Health` deve mostrar em tempo real:
 - [ ] KEDA ScaledObject em discharge-orchestrator
 
 ### Nível 2 (EKS Staging)
+
 - [ ] Karpenter NodePools por workload class
 - [ ] HPA em todos os serviços HTTP
 - [ ] KEDA em todos os workers event-driven
@@ -517,6 +534,7 @@ O Grafana dashboard `Velya - Hyperscale Health` deve mostrar em tempo real:
 - [ ] Temporal com namespaces por ambiente
 
 ### Nível 3 (EKS Produção)
+
 - [ ] VPA em modo Auto para workloads batch
 - [ ] Goldilocks para recomendações contínuas
 - [ ] Budget alerts via Prometheus + PagerDuty
@@ -524,6 +542,7 @@ O Grafana dashboard `Velya - Hyperscale Health` deve mostrar em tempo real:
 - [ ] Multi-AZ spreading com topology constraints
 
 ### Nível 4 (Hyperscale)
+
 - [ ] Predictive scaling baseado em padrões históricos
 - [ ] KRON-based (cronológico + evento) scheduling
 - [ ] Multi-cluster federation para isolamento por região
@@ -542,4 +561,4 @@ O Grafana dashboard `Velya - Hyperscale Health` deve mostrar em tempo real:
 
 ---
 
-*Documento mantido pela equipe de Arquitetura Velya. Revisão obrigatória a cada release de infraestrutura.*
+_Documento mantido pela equipe de Arquitetura Velya. Revisão obrigatória a cada release de infraestrutura._

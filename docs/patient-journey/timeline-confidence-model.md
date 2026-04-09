@@ -42,15 +42,15 @@ confiavel e a documentacao naquele periodo.
 
 ### 2.1 Sete Dimensoes de Confianca
 
-| Dimensao | Peso | Descricao | Faixa |
-|---|---|---|---|
-| **Origem** | 20% | Confiabilidade da fonte do dado | 0-100 |
-| **Completude** | 25% | Eventos esperados presentes vs ausentes | 0-100 |
-| **Consistencia** | 15% | Dados internamente consistentes | 0-100 |
-| **Versao** | 10% | Estabilidade (sem correcoes = melhor) | 0-100 |
-| **Proveniencia** | 10% | Cadeia de proveniencia rastreavel | 0-100 |
-| **Temporalidade** | 10% | Atraso entre ocorrencia e registro | 0-100 |
-| **Concordancia** | 10% | Fontes multiplas concordam | 0-100 |
+| Dimensao          | Peso | Descricao                               | Faixa |
+| ----------------- | ---- | --------------------------------------- | ----- |
+| **Origem**        | 20%  | Confiabilidade da fonte do dado         | 0-100 |
+| **Completude**    | 25%  | Eventos esperados presentes vs ausentes | 0-100 |
+| **Consistencia**  | 15%  | Dados internamente consistentes         | 0-100 |
+| **Versao**        | 10%  | Estabilidade (sem correcoes = melhor)   | 0-100 |
+| **Proveniencia**  | 10%  | Cadeia de proveniencia rastreavel       | 0-100 |
+| **Temporalidade** | 10%  | Atraso entre ocorrencia e registro      | 0-100 |
+| **Concordancia**  | 10%  | Fontes multiplas concordam              | 0-100 |
 
 ### 2.2 Diagrama de Composicao
 
@@ -164,13 +164,11 @@ interface ConfidenceScore {
 /**
  * Calcula o score de confianca para um segmento temporal da timeline.
  */
-function calculateTimelineConfidence(
-  context: ScoreContext
-): ConfidenceScore {
+function calculateTimelineConfidence(context: ScoreContext): ConfidenceScore {
   const dimensions: ConfidenceDimension[] = [
     {
       name: 'origin',
-      weight: 0.20,
+      weight: 0.2,
       calculate: calculateOriginScore,
     },
     {
@@ -185,22 +183,22 @@ function calculateTimelineConfidence(
     },
     {
       name: 'version',
-      weight: 0.10,
+      weight: 0.1,
       calculate: calculateVersionScore,
     },
     {
       name: 'provenance',
-      weight: 0.10,
+      weight: 0.1,
       calculate: calculateProvenanceScore,
     },
     {
       name: 'temporality',
-      weight: 0.10,
+      weight: 0.1,
       calculate: calculateTemporalityScore,
     },
     {
       name: 'concordance',
-      weight: 0.10,
+      weight: 0.1,
       calculate: calculateConcordanceScore,
     },
   ];
@@ -263,26 +261,26 @@ function calculateOriginScore(context: ScoreContext): number {
   };
 
   const roleScores: Record<string, number> = {
-    'physician': 95,
-    'nurse': 95,
-    'nursing_technician': 90,
-    'pharmacist': 95,
-    'physiotherapist': 90,
-    'nutritionist': 90,
-    'psychologist': 90,
-    'social_worker': 85,
-    'administrative': 75,
-    'system': 70,
-    'device': 80,
-    'patient': 60,
-    'companion': 50,
+    physician: 95,
+    nurse: 95,
+    nursing_technician: 90,
+    pharmacist: 95,
+    physiotherapist: 90,
+    nutritionist: 90,
+    psychologist: 90,
+    social_worker: 85,
+    administrative: 75,
+    system: 70,
+    device: 80,
+    patient: 60,
+    companion: 50,
   };
 
   let totalScore = 0;
   for (const event of context.events) {
     const sourceScore = sourceScores[event.source_system] || 50;
     const roleScore = roleScores[event.authored_role] || 50;
-    totalScore += (sourceScore * 0.6 + roleScore * 0.4);
+    totalScore += sourceScore * 0.6 + roleScore * 0.4;
   }
 
   return Math.round(totalScore / context.events.length);
@@ -297,21 +295,15 @@ function calculateCompletenessScore(context: ScoreContext): number {
   if (totalExpectations === 0) return 95; // Sem expectativas = bom
 
   const satisfied = context.expectations.filter(
-    e => e.status === 'satisfied' || e.status === 'cancelled'
+    (e) => e.status === 'satisfied' || e.status === 'cancelled',
   ).length;
 
-  const gaps = context.expectations.filter(
-    e => e.status === 'gap'
-  ).length;
+  const gaps = context.expectations.filter((e) => e.status === 'gap').length;
 
-  const active = context.expectations.filter(
-    e => e.status === 'active'
-  ).length;
+  const active = context.expectations.filter((e) => e.status === 'active').length;
 
   // Gaps criticos penalizam mais
-  const criticalGaps = context.gaps.filter(
-    g => g.payload.severity === 'critical'
-  ).length;
+  const criticalGaps = context.gaps.filter((g) => g.payload.severity === 'critical').length;
 
   let score = (satisfied / totalExpectations) * 100;
 
@@ -337,13 +329,14 @@ function calculateConsistencyScore(context: ScoreContext): number {
     const recorded = new Date(event.recorded_at).getTime();
 
     // Evento registrado ANTES de acontecer = inconsistente
-    if (recorded < occurred - 60000) { // 1 min de tolerancia
+    if (recorded < occurred - 60000) {
+      // 1 min de tolerancia
       score -= 20;
     }
   }
 
   // Verificar vital signs inconsistentes
-  const vitalEvents = events.filter(e => e.event_type === 'vital_signs');
+  const vitalEvents = events.filter((e) => e.event_type === 'vital_signs');
   for (let i = 1; i < vitalEvents.length; i++) {
     const prev = vitalEvents[i - 1].payload as any;
     const curr = vitalEvents[i].payload as any;
@@ -362,12 +355,10 @@ function calculateConsistencyScore(context: ScoreContext): number {
   }
 
   // Verificar medicacao: administracao referenciando prescricao cancelada
-  const medAdmins = events.filter(
-    e => e.event_type.startsWith('medication_administration')
-  );
+  const medAdmins = events.filter((e) => e.event_type.startsWith('medication_administration'));
   const cancelledRequests = events
-    .filter(e => e.event_type === 'medication_request.cancelled')
-    .map(e => (e.payload as any).fhir_medication_request_id);
+    .filter((e) => e.event_type === 'medication_request.cancelled')
+    .map((e) => (e.payload as any).fhir_medication_request_id);
 
   for (const admin of medAdmins) {
     const ref = (admin.payload as any).request_reference;
@@ -384,10 +375,10 @@ function calculateConsistencyScore(context: ScoreContext): number {
         events[i].authored_by === events[j].authored_by
       ) {
         const timeDiff = Math.abs(
-          new Date(events[i].occurred_at).getTime() -
-          new Date(events[j].occurred_at).getTime()
+          new Date(events[i].occurred_at).getTime() - new Date(events[j].occurred_at).getTime(),
         );
-        if (timeDiff < 120000) { // < 2 min
+        if (timeDiff < 120000) {
+          // < 2 min
           score -= 5;
         }
       }
@@ -406,15 +397,9 @@ function calculateVersionScore(context: ScoreContext): number {
 
   let score = 100;
 
-  const corrections = context.events.filter(
-    e => e.event_category === 'corrected'
-  );
-  const superseded = context.events.filter(
-    e => e.status === 'superseded'
-  );
-  const retracted = context.events.filter(
-    e => e.status === 'retracted'
-  );
+  const corrections = context.events.filter((e) => e.event_category === 'corrected');
+  const superseded = context.events.filter((e) => e.status === 'superseded');
+  const retracted = context.events.filter((e) => e.status === 'retracted');
 
   // Cada correcao reduz levemente
   score -= corrections.length * 3;
@@ -426,14 +411,14 @@ function calculateVersionScore(context: ScoreContext): number {
   score -= retracted.length * 10;
 
   // Correcoes tardias (> 4h) sao mais preocupantes
-  const lateCorrections = corrections.filter(e => {
+  const lateCorrections = corrections.filter((e) => {
     const delay = (e.payload as any).delay_from_original_seconds || 0;
     return delay > 4 * 3600;
   });
   score -= lateCorrections.length * 8;
 
   // Bonus: eventos com versao 1 (nunca corrigidos) em alta proporcao
-  const v1Events = context.events.filter(e => e.version === 1);
+  const v1Events = context.events.filter((e) => e.version === 1);
   const v1Ratio = v1Events.length / context.events.length;
   if (v1Ratio > 0.95) score = Math.min(score + 5, 100);
 
@@ -469,7 +454,7 @@ function calculateProvenanceScore(context: ScoreContext): number {
   }
 
   const clinicalEvents = context.events.filter(
-    e => !['system', 'inferred', 'automated'].includes(e.event_category)
+    (e) => !['system', 'inferred', 'automated'].includes(e.event_category),
   );
 
   if (clinicalEvents.length === 0) return 95;
@@ -496,17 +481,17 @@ function calculateTemporalityScore(context: ScoreContext): number {
 
     let eventScore: number;
     if (delayMinutes <= 5) {
-      eventScore = 100;          // Excelente: ate 5 min
+      eventScore = 100; // Excelente: ate 5 min
     } else if (delayMinutes <= 15) {
-      eventScore = 90;           // Bom: 5-15 min
+      eventScore = 90; // Bom: 5-15 min
     } else if (delayMinutes <= 30) {
-      eventScore = 75;           // Aceitavel: 15-30 min
+      eventScore = 75; // Aceitavel: 15-30 min
     } else if (delayMinutes <= 60) {
-      eventScore = 55;           // Preocupante: 30-60 min
+      eventScore = 55; // Preocupante: 30-60 min
     } else if (delayMinutes <= 240) {
-      eventScore = 30;           // Ruim: 1-4 horas
+      eventScore = 30; // Ruim: 1-4 horas
     } else {
-      eventScore = 10;           // Critico: > 4 horas
+      eventScore = 10; // Critico: > 4 horas
     }
 
     // Eventos clinicos criticos com atraso sao mais graves
@@ -532,19 +517,17 @@ function calculateConcordanceScore(context: ScoreContext): number {
 
   // Verificar vital signs de fontes diferentes no mesmo periodo
   const vitalsByWindow = groupEventsByTimeWindow(
-    events.filter(e => e.event_type === 'vital_signs'),
-    15 // Janela de 15 minutos
+    events.filter((e) => e.event_type === 'vital_signs'),
+    15, // Janela de 15 minutos
   );
 
   for (const [_window, windowEvents] of Object.entries(vitalsByWindow)) {
     if ((windowEvents as PatientJourneyEvent[]).length > 1) {
-      const sources = new Set(
-        (windowEvents as PatientJourneyEvent[]).map(e => e.source_system)
-      );
+      const sources = new Set((windowEvents as PatientJourneyEvent[]).map((e) => e.source_system));
       if (sources.size > 1) {
         // Multiplas fontes no mesmo periodo - verificar concordancia
         const hrs = (windowEvents as PatientJourneyEvent[])
-          .map(e => (e.payload as any).heart_rate)
+          .map((e) => (e.payload as any).heart_rate)
           .filter(Boolean);
         if (hrs.length > 1) {
           const maxDiff = Math.max(...hrs) - Math.min(...hrs);
@@ -555,21 +538,13 @@ function calculateConcordanceScore(context: ScoreContext): number {
   }
 
   // Verificar medicacao: informacao da farmacia vs enfermagem
-  const pharmacyEvents = events.filter(
-    e => e.source_system === 'velya-pharmacy'
-  );
-  const nursingEvents = events.filter(
-    e => e.source_system === 'velya-nursing'
-  );
+  const pharmacyEvents = events.filter((e) => e.source_system === 'velya-pharmacy');
+  const nursingEvents = events.filter((e) => e.source_system === 'velya-nursing');
 
   // Se ha muitos eventos de enfermagem sem correspondente na farmacia
   if (pharmacyEvents.length > 0 && nursingEvents.length > 0) {
-    const nursingMedEvents = nursingEvents.filter(
-      e => e.event_type.startsWith('medication')
-    );
-    const pharmacyMedEvents = pharmacyEvents.filter(
-      e => e.event_type.startsWith('medication')
-    );
+    const nursingMedEvents = nursingEvents.filter((e) => e.event_type.startsWith('medication'));
+    const pharmacyMedEvents = pharmacyEvents.filter((e) => e.event_type.startsWith('medication'));
     if (nursingMedEvents.length > 0 && pharmacyMedEvents.length === 0) {
       score -= 10; // Medicacao registrada por enfermagem sem visibilidade da farmacia
     }
@@ -591,7 +566,7 @@ function getIndicator(score: number): ConfidenceScore['indicator'] {
 function getDimensionIssueDescription(
   dimension: string,
   score: number,
-  context: ScoreContext
+  context: ScoreContext,
 ): string {
   const issues: Record<string, string> = {
     origin: `Fontes de dados com confiabilidade reduzida (score: ${score})`,
@@ -607,14 +582,12 @@ function getDimensionIssueDescription(
 
 function groupEventsByTimeWindow(
   events: PatientJourneyEvent[],
-  windowMinutes: number
+  windowMinutes: number,
 ): Record<string, PatientJourneyEvent[]> {
   const groups: Record<string, PatientJourneyEvent[]> = {};
   for (const event of events) {
     const timestamp = new Date(event.occurred_at).getTime();
-    const windowKey = Math.floor(
-      timestamp / (windowMinutes * 60000)
-    ).toString();
+    const windowKey = Math.floor(timestamp / (windowMinutes * 60000)).toString();
     if (!groups[windowKey]) groups[windowKey] = [];
     groups[windowKey].push(event);
   }
@@ -632,9 +605,7 @@ function groupEventsByTimeWindow(
 /**
  * Agrega scores de confianca de todos os segmentos de um encounter.
  */
-function aggregateEncounterConfidence(
-  segmentScores: ConfidenceScore[]
-): EncounterConfidenceReport {
+function aggregateEncounterConfidence(segmentScores: ConfidenceScore[]): EncounterConfidenceReport {
   if (segmentScores.length === 0) {
     return {
       overall: 0,
@@ -652,7 +623,7 @@ function aggregateEncounterConfidence(
   }
 
   const overall = Math.round(
-    segmentScores.reduce((sum, s) => sum + s.overall, 0) / segmentScores.length
+    segmentScores.reduce((sum, s) => sum + s.overall, 0) / segmentScores.length,
   );
 
   // Contar segmentos por indicador
@@ -664,11 +635,11 @@ function aggregateEncounterConfidence(
   // Encontrar segmento com menor score
   const lowest = segmentScores.reduce(
     (min, s) => (s.overall < min.overall ? s : min),
-    segmentScores[0]
+    segmentScores[0],
   );
 
   // Agregar detratores
-  const allDetractors = segmentScores.flatMap(s => s.detractors);
+  const allDetractors = segmentScores.flatMap((s) => s.detractors);
   const detractorMap = new Map<string, { dimension: string; count: number; totalImpact: number }>();
   for (const d of allDetractors) {
     const key = d.dimension;
@@ -685,9 +656,10 @@ function aggregateEncounterConfidence(
   const recentScores = segmentScores.slice(-6); // Ultimos 6 segmentos
   const olderScores = segmentScores.slice(-12, -6);
   const recentAvg = recentScores.reduce((s, x) => s + x.overall, 0) / recentScores.length;
-  const olderAvg = olderScores.length > 0
-    ? olderScores.reduce((s, x) => s + x.overall, 0) / olderScores.length
-    : recentAvg;
+  const olderAvg =
+    olderScores.length > 0
+      ? olderScores.reduce((s, x) => s + x.overall, 0) / olderScores.length
+      : recentAvg;
 
   let trend: 'improving' | 'stable' | 'worsening' | 'unknown';
   if (olderScores.length === 0) trend = 'unknown';
@@ -755,9 +727,9 @@ interface TimeWindowAggregation {
 
   /** Calculo por turno */
   shift_aggregation: {
-    morning: { start: '06:00', end: '12:00' };
-    afternoon: { start: '12:00', end: '18:00' };
-    night: { start: '18:00', end: '06:00' };
+    morning: { start: '06:00'; end: '12:00' };
+    afternoon: { start: '12:00'; end: '18:00' };
+    night: { start: '18:00'; end: '06:00' };
   };
 }
 ```
@@ -1016,14 +988,14 @@ Value: JSON com EncounterConfidenceReport
 
 ## 9. Alertas de Confianca
 
-| Alerta | Condicao | Destinatario | Canal |
-|---|---|---|---|
-| `ConfidenceDrop` | Score caiu > 20 pontos em 1 segmento | Enf. Responsavel | Push |
-| `ConfidenceCritical` | Score < 30 em segmento ativo | Enf. Chefe | Push |
-| `ConfidenceGrey` | Segmento sem dados (GREY) > 2h | Enf. Responsavel | Push |
-| `CompletenessLow` | Dimensao completude < 40 | Enf. Chefe | Push |
-| `LateDocumentation` | Dimensao temporalidade < 40 | Enf. Responsavel | Push |
-| `InconsistencyDetected` | Dimensao consistencia < 50 | Enf. Chefe | Push + Email |
+| Alerta                  | Condicao                             | Destinatario     | Canal        |
+| ----------------------- | ------------------------------------ | ---------------- | ------------ |
+| `ConfidenceDrop`        | Score caiu > 20 pontos em 1 segmento | Enf. Responsavel | Push         |
+| `ConfidenceCritical`    | Score < 30 em segmento ativo         | Enf. Chefe       | Push         |
+| `ConfidenceGrey`        | Segmento sem dados (GREY) > 2h       | Enf. Responsavel | Push         |
+| `CompletenessLow`       | Dimensao completude < 40             | Enf. Chefe       | Push         |
+| `LateDocumentation`     | Dimensao temporalidade < 40          | Enf. Responsavel | Push         |
+| `InconsistencyDetected` | Dimensao consistencia < 50           | Enf. Chefe       | Push + Email |
 
 ---
 

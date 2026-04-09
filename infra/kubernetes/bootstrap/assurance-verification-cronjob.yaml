@@ -15,7 +15,7 @@ metadata:
     velya.io/agent-class: sentinel
     velya.io/loop: medium
 spec:
-  schedule: "*/15 * * * *"
+  schedule: '*/15 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -41,7 +41,7 @@ spec:
               image: bitnami/kubectl:1.31
               env:
                 - name: VELYA_WEBHOOK_URL
-                  value: "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel"
+                  value: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel'
               resources:
                 requests:
                   cpu: 50m
@@ -51,7 +51,7 @@ spec:
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
-                  drop: ["ALL"]
+                  drop: ['ALL']
               command:
                 - /bin/sh
                 - -c

@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/part-of: velya-platform
     velya.io/component: agent-bridge
 spec:
-  schedule: "*/2 * * * *"
+  schedule: '*/2 * * * *'
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
   concurrencyPolicy: Forbid
@@ -23,8 +23,8 @@ spec:
               image: bitnami/kubectl:1.29
               env:
                 - name: WEBHOOK_URL
-                  value: "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/events"
-              command: ["sh", "-c"]
+                  value: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/events'
+              command: ['sh', '-c']
               args:
                 - |
                   set -e

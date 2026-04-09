@@ -39,15 +39,48 @@ interface NavItemDef {
 const NAV_ITEMS: NavItemDef[] = [
   // --- Assistencial ---
   { href: '/', icon: '\u2B1B', label: 'Centro de Comando', section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/patients', icon: '\uD83E\uDDD1\u200D\u2695\uFE0F', label: 'Pacientes', badge: 47, section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/tasks', icon: '\u2705', label: 'Caixa de Tarefas', badge: 12, section: NAV_SECTIONS.ASSISTENCIAL },
+  {
+    href: '/patients',
+    icon: '\uD83E\uDDD1\u200D\u2695\uFE0F',
+    label: 'Pacientes',
+    badge: 47,
+    section: NAV_SECTIONS.ASSISTENCIAL,
+  },
+  {
+    href: '/tasks',
+    icon: '\u2705',
+    label: 'Caixa de Tarefas',
+    badge: 12,
+    section: NAV_SECTIONS.ASSISTENCIAL,
+  },
   // --- Gestao ---
-  { href: '/discharge', icon: '\uD83C\uDFE0', label: 'Torre de Altas', badge: 5, section: NAV_SECTIONS.GESTAO },
+  {
+    href: '/discharge',
+    icon: '\uD83C\uDFE0',
+    label: 'Torre de Altas',
+    badge: 5,
+    section: NAV_SECTIONS.GESTAO,
+  },
   // --- Administracao ---
-  { href: '/system', icon: '\u2699\uFE0F', label: 'Status do Sistema', section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/activity', icon: '\uD83D\uDCCB', label: 'Log de Atividade', section: NAV_SECTIONS.ADMINISTRACAO },
+  {
+    href: '/system',
+    icon: '\u2699\uFE0F',
+    label: 'Status do Sistema',
+    section: NAV_SECTIONS.ADMINISTRACAO,
+  },
+  {
+    href: '/activity',
+    icon: '\uD83D\uDCCB',
+    label: 'Log de Atividade',
+    section: NAV_SECTIONS.ADMINISTRACAO,
+  },
   { href: '/audit', icon: '\uD83D\uDD12', label: 'Auditoria', section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/suggestions', icon: '\uD83D\uDCA1', label: 'Sugestoes', section: NAV_SECTIONS.ADMINISTRACAO },
+  {
+    href: '/suggestions',
+    icon: '\uD83D\uDCA1',
+    label: 'Sugestoes',
+    section: NAV_SECTIONS.ADMINISTRACAO,
+  },
 ];
 
 const SECTION_LABELS: Record<string, string> = {
@@ -65,7 +98,13 @@ interface NavigationProps {
   onMobileClose?: () => void;
 }
 
-export function Navigation({ currentRole, userName, onLogout, mobileOpen, onMobileClose }: NavigationProps) {
+export function Navigation({
+  currentRole,
+  userName,
+  onLogout,
+  mobileOpen,
+  onMobileClose,
+}: NavigationProps) {
   const pathname = usePathname();
   const [suggestionText, setSuggestionText] = useState('');
   const [suggestionStatus, setSuggestionStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
@@ -87,11 +126,7 @@ export function Navigation({ currentRole, userName, onLogout, mobileOpen, onMobi
   }
 
   // Section render order
-  const sectionOrder = [
-    NAV_SECTIONS.ASSISTENCIAL,
-    NAV_SECTIONS.GESTAO,
-    NAV_SECTIONS.ADMINISTRACAO,
-  ];
+  const sectionOrder = [NAV_SECTIONS.ASSISTENCIAL, NAV_SECTIONS.GESTAO, NAV_SECTIONS.ADMINISTRACAO];
 
   const showObservability = allowedSections.includes(NAV_SECTIONS.OBSERVABILIDADE);
 
@@ -127,7 +162,12 @@ export function Navigation({ currentRole, userName, onLogout, mobileOpen, onMobi
     onMobileClose?.();
   }
 
-  const accessLevelBg = roleDef?.accessLevel >= 6 ? 'bg-red-500' : roleDef?.accessLevel >= 4 ? 'bg-amber-500' : 'bg-gray-500';
+  const accessLevelBg =
+    roleDef?.accessLevel >= 6
+      ? 'bg-red-500'
+      : roleDef?.accessLevel >= 4
+        ? 'bg-amber-500'
+        : 'bg-gray-500';
 
   return (
     <aside
@@ -146,13 +186,20 @@ export function Navigation({ currentRole, userName, onLogout, mobileOpen, onMobi
         aria-label="Fechar menu"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
 
       <div className="px-5 py-5 border-b border-white/[0.08]">
         <div className="text-xl font-bold text-white tracking-tight">Velya</div>
-        <div className="text-xs text-white/45 mt-0.5 tracking-widest uppercase">Plataforma Hospitalar</div>
+        <div className="text-xs text-white/45 mt-0.5 tracking-widest uppercase">
+          Plataforma Hospitalar
+        </div>
       </div>
 
       <nav className="flex-1 px-2 py-4 flex flex-col gap-1">
@@ -166,7 +213,8 @@ export function Navigation({ currentRole, userName, onLogout, mobileOpen, onMobi
               </div>
               <div className="flex flex-col gap-1">
                 {items.map((item) => {
-                  const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+                  const isActive =
+                    item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
                   return (
                     <Link
                       key={item.href}
@@ -175,9 +223,10 @@ export function Navigation({ currentRole, userName, onLogout, mobileOpen, onMobi
                       className={`
                         flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
                         no-underline transition-colors duration-150 min-h-[40px]
-                        ${isActive
-                          ? 'bg-blue-600/25 text-white border-l-[3px] border-blue-500 pl-[calc(0.75rem-3px)]'
-                          : 'text-white/65 hover:bg-white/[0.08] hover:text-white/90'
+                        ${
+                          isActive
+                            ? 'bg-blue-600/25 text-white border-l-[3px] border-blue-500 pl-[calc(0.75rem-3px)]'
+                            : 'text-white/65 hover:bg-white/[0.08] hover:text-white/90'
                         }
                       `}
                     >
@@ -271,12 +320,8 @@ export function Navigation({ currentRole, userName, onLogout, mobileOpen, onMobi
               </span>
             )}
           </div>
-          <div className="text-white/85 text-sm font-semibold mt-0.5">
-            {currentRole}
-          </div>
-          <div className="text-white/50 text-[0.7rem] mt-0.5">
-            {userName}
-          </div>
+          <div className="text-white/85 text-sm font-semibold mt-0.5">{currentRole}</div>
+          <div className="text-white/50 text-[0.7rem] mt-0.5">{userName}</div>
         </div>
 
         <button

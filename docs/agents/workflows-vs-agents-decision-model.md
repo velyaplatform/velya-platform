@@ -2,7 +2,7 @@
 
 **Versão:** 1.0  
 **Cluster:** kind-velya-local (simulando AWS EKS)  
-**Última revisão:** 2026-04-08  
+**Última revisão:** 2026-04-08
 
 ---
 
@@ -79,18 +79,18 @@ A regra de ouro é: **se um engenheiro sênior pode escrever a lógica em códig
 
 ## 3. Tabela de Decisão: Workflow vs Agent
 
-| Característica | Favorece Workflow | Favorece Agent |
-|---|---|---|
-| Etapas da tarefa | Completamente conhecidas antes | Determinadas durante execução |
-| Lógica de controle | Codificável em if/switch/loop | Requer julgamento contextual |
-| Resultado esperado | Determinístico dado o input | Variável e dependente de contexto |
-| Custo de erros | Alto — precisa de confiabilidade | Médio — pode ser supervisionado |
-| Volume de execuções | Alto (>1000/dia) | Baixo a médio (<500/dia) |
-| Latência aceitável | Qualquer — precisa ser consistente | Tolerável a 1-10s por LLM call |
-| Auditabilidade | Crítica | Importante mas instrumentável |
-| Ferramentas necessárias | Fixas e conhecidas | Dinâmicas, baseadas em contexto |
-| Dados de entrada | Estruturados e validados | Semiestruturados ou não-estruturados |
-| Frequência de mudança | Baixa (processo estável) | Alta (lógica evolui com aprendizado) |
+| Característica          | Favorece Workflow                  | Favorece Agent                       |
+| ----------------------- | ---------------------------------- | ------------------------------------ |
+| Etapas da tarefa        | Completamente conhecidas antes     | Determinadas durante execução        |
+| Lógica de controle      | Codificável em if/switch/loop      | Requer julgamento contextual         |
+| Resultado esperado      | Determinístico dado o input        | Variável e dependente de contexto    |
+| Custo de erros          | Alto — precisa de confiabilidade   | Médio — pode ser supervisionado      |
+| Volume de execuções     | Alto (>1000/dia)                   | Baixo a médio (<500/dia)             |
+| Latência aceitável      | Qualquer — precisa ser consistente | Tolerável a 1-10s por LLM call       |
+| Auditabilidade          | Crítica                            | Importante mas instrumentável        |
+| Ferramentas necessárias | Fixas e conhecidas                 | Dinâmicas, baseadas em contexto      |
+| Dados de entrada        | Estruturados e validados           | Semiestruturados ou não-estruturados |
+| Frequência de mudança   | Baixa (processo estável)           | Alta (lógica evolui com aprendizado) |
 
 ---
 
@@ -117,6 +117,7 @@ Processo de Alta (sempre nesta sequência):
 Cada etapa é uma Activity no Temporal com retry configurado. A lógica de controle é completamente determinística. Não há julgamento de contexto clínico — apenas execução de checklist.
 
 **Configuração Temporal:**
+
 ```go
 // Workflow de Alta — Temporal
 func DischargeWorkflow(ctx workflow.Context, patientID string) error {
@@ -128,7 +129,7 @@ func DischargeWorkflow(ctx workflow.Context, patientID string) error {
         },
     }
     ctx = workflow.WithActivityOptions(ctx, opts)
-    
+
     if err := workflow.ExecuteActivity(ctx, ValidatePrescription, patientID).Get(ctx, nil); err != nil {
         return err
     }
@@ -152,12 +153,14 @@ func DischargeWorkflow(ctx workflow.Context, patientID string) error {
 **Por que Agent:**
 
 O inbox pode conter em uma mesma hora:
+
 - "Paciente do leito 204 com SpO2 em 88% há 10 minutos" — urgência: CRÍTICA
 - "Paciente do leito 112 solicitando anti-emético para náusea leve" — urgência: BAIXA
 - "Resultado de hemograma do paciente do leito 301 disponível" — urgência: depende do valor
 - "Solicitação de interconsulta de cardiologia para paciente do leito 405" — urgência: depende da condição
 
 A classificação correta de urgência requer:
+
 1. Leitura e compreensão do texto clínico (não estruturado)
 2. Correlação com contexto do paciente (condição base, medicações, histórico)
 3. Aplicação de protocolos de triagem clínica
@@ -165,6 +168,7 @@ A classificação correta de urgência requer:
 Isso não pode ser codificado em regras simples sem perda inaceitável de acurácia.
 
 **Configuração do Agent:**
+
 ```yaml
 agent_name: task-inbox-classifier
 class: Worker
@@ -225,6 +229,7 @@ Requer leitura de conteúdo técnico não-estruturado de múltiplas fontes, aval
 Qualquer recomendação de adoção de nova tecnologia tem implicações de custo, segurança e arquitetura que requerem julgamento humano antes de implementação.
 
 **Fluxo:**
+
 ```
 CronJob (segunda-feira 3h UTC)
     ↓
@@ -253,6 +258,7 @@ Human Review (Architecture Review Office)
 **Por que Agent (e não Workflow com alertas simples):**
 
 Anomalias de custo verdadeiramente importantes são frequentemente combinações de fatores que isoladamente parecem normais:
+
 - Queue lag aumentando gradualmente (normal individualmente)
 - Retry rate subindo (normal individualmente)
 - Horário de pico fora do padrão (suspeito)
@@ -273,11 +279,13 @@ Quando uma automação inicialmente implementada como Workflow precisa evoluir p
 ### 5.1 Workflow → Agent (Escalada de Complexidade)
 
 **Trigger para reavaliação:**
+
 - Taxa de erros de lógica no workflow > 5% após 30 dias de produção
 - Necessidade de mais de 3 condicionais aninhadas para cobrir casos reais
 - Feedback clínico indicando decisões inadequadas em casos complexos
 
 **Processo:**
+
 1. Documentar os casos onde o workflow falha
 2. Propor ao Architecture Review Office
 3. Implementar em shadow mode (agent e workflow em paralelo por 14 dias)
@@ -287,11 +295,13 @@ Quando uma automação inicialmente implementada como Workflow precisa evoluir p
 ### 5.2 Agent → Workflow (Simplificação)
 
 **Trigger para reavaliação:**
+
 - Accuracy do agent > 99% por 90 dias (indica que a lógica é na verdade determinística)
 - Padrão de decisão do agent identificado e codificável como regra
 - Custo de LLM > benefício de flexibilidade do agent
 
 **Processo:**
+
 1. Analisar logs de decisões do agent por 90 dias
 2. Identificar regras que cobrem >95% dos casos
 3. Implementar como Workflow Temporal
@@ -307,12 +317,14 @@ Quando uma automação inicialmente implementada como Workflow precisa evoluir p
 **Problema:** Usar um agent/LLM para parsear dados estruturados que poderiam ser parseados com código.
 
 **Exemplo ruim:**
+
 ```python
 # ERRADO: usar LLM para extrair campos de JSON estruturado
 result = llm.invoke(f"Extraia o patient_id deste JSON: {json_data}")
 ```
 
 **Correto:**
+
 ```python
 # CERTO: parsear diretamente
 patient_id = json_data["patient"]["id"]
@@ -327,6 +339,7 @@ patient_id = json_data["patient"]["id"]
 **Problema:** Usar um Workflow Temporal para simular conversação ou raciocínio iterativo que requer estado dinâmico.
 
 **Exemplo ruim:**
+
 ```go
 // ERRADO: workflow com dezenas de condicionais tentando simular raciocínio
 func ClassifyUrgency(ctx workflow.Context, text string) (string, error) {
@@ -394,13 +407,13 @@ func ClassifyUrgency(ctx workflow.Context, text string) (string, error) {
 
 Para cada automação proposta, avaliar a matriz de risco:
 
-| Dimensão | Baixo Risco | Médio Risco | Alto Risco |
-|---|---|---|---|
-| Impacto de erro | Apenas operacional | Financeiro < $1000 | Clínico ou financeiro > $1000 |
-| Reversibilidade | Totalmente reversível | Reversível com esforço | Irreversível |
-| Frequência | <10/dia | 10-100/dia | >100/dia |
-| Visibilidade do erro | Detectado imediatamente | Detectado em horas | Pode não ser detectado |
-| Dados envolvidos | Dados operacionais | Dados financeiros | Dados de pacientes |
+| Dimensão             | Baixo Risco             | Médio Risco            | Alto Risco                    |
+| -------------------- | ----------------------- | ---------------------- | ----------------------------- |
+| Impacto de erro      | Apenas operacional      | Financeiro < $1000     | Clínico ou financeiro > $1000 |
+| Reversibilidade      | Totalmente reversível   | Reversível com esforço | Irreversível                  |
+| Frequência           | <10/dia                 | 10-100/dia             | >100/dia                      |
+| Visibilidade do erro | Detectado imediatamente | Detectado em horas     | Pode não ser detectado        |
+| Dados envolvidos     | Dados operacionais      | Dados financeiros      | Dados de pacientes            |
 
 **Para automações de Alto Risco:** Sempre requer Workflow (para determinismo) + Governance Agent (para auditoria) + Human-in-Loop (para decisões críticas). Agent autônomo é proibido.
 
@@ -411,6 +424,7 @@ Para cada automação proposta, avaliar a matriz de risco:
 ### 8.1 Quando o Workflow é Grande Demais
 
 Um Workflow Temporal com mais de 20 Activities provavelmente está tentando fazer demais. Sinais de warning:
+
 - Mais de 5 níveis de aninhamento de condicionais
 - Activities com lógica de negócio complexa dentro delas
 - Necessidade de passar estado mutável entre Activities distantes
@@ -420,6 +434,7 @@ Um Workflow Temporal com mais de 20 Activities provavelmente está tentando faze
 ### 8.2 Quando o Agent é Caro Demais
 
 Se o custo de inferência de um agent ultrapassa R$500/mês, é obrigatório revisar:
+
 1. Pode alguma etapa ser substituída por lógica determinística?
 2. Pode usar um modelo menor para triagem e LLM grande apenas para casos complexos?
 3. Pode cachear respostas para inputs similares?
@@ -432,6 +447,7 @@ Para NLP de textos não-clínicos (ex: classificação de e-mails internos, aná
 ### 8.4 Aceleração com Cache
 
 Para agents que fazem classificações frequentemente repetidas (ex: mesma frase de urgência aparece dezenas de vezes por dia), implementar cache semântico:
+
 - Embeddings das últimas 1000 classificações
 - Similarity threshold: 0.95 → retorna cached response sem chamar LLM
 - TTL de cache: 4 horas (para evitar stale em mudanças de contexto)
@@ -444,6 +460,7 @@ Para agents que fazem classificações frequentemente repetidas (ex: mesma frase
 Antes de aprovar a implementação de qualquer nova automação:
 
 **Para Workflows:**
+
 - [ ] Todas as etapas listadas e sequenciadas
 - [ ] Retry policy definida por Activity
 - [ ] Timeout definido por Activity
@@ -452,6 +469,7 @@ Antes de aprovar a implementação de qualquer nova automação:
 - [ ] Dados de estado não são compartilhados mutavelmente entre workers
 
 **Para Agents:**
+
 - [ ] Classe do agent definida
 - [ ] Justificativa para necessidade de LLM documentada
 - [ ] Confidence threshold configurado

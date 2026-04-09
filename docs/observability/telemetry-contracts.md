@@ -27,14 +27,15 @@ Serviços que não atendem ao nível exigido para o seu ambiente **não devem se
 
 ### 2.1 Health Check
 
-| Requisito | Detalhe | Verificação |
-|-----------|---------|------------|
-| Endpoint `/health` | Responde HTTP 200 | `curl -sf http://service:3000/health` |
-| Latência < 100ms | Health check não deve depender de DB ou serviços externos | Medir com Prometheus |
-| Corpo JSON | `{ "status": "healthy", "timestamp": "ISO8601" }` | Schema validation |
-| Readiness separado de Liveness | `/health/ready` e `/health/live` como probes K8s | Kubernetes config |
+| Requisito                      | Detalhe                                                   | Verificação                           |
+| ------------------------------ | --------------------------------------------------------- | ------------------------------------- |
+| Endpoint `/health`             | Responde HTTP 200                                         | `curl -sf http://service:3000/health` |
+| Latência < 100ms               | Health check não deve depender de DB ou serviços externos | Medir com Prometheus                  |
+| Corpo JSON                     | `{ "status": "healthy", "timestamp": "ISO8601" }`         | Schema validation                     |
+| Readiness separado de Liveness | `/health/ready` e `/health/live` como probes K8s          | Kubernetes config                     |
 
 **Exemplo NestJS**:
+
 ```typescript
 // src/health/health.controller.ts
 import { Controller, Get } from '@nestjs/common';
@@ -50,9 +51,7 @@ export class HealthController {
   @Get()
   @HealthCheck()
   check() {
-    return this.health.check([
-      () => this.db.pingCheck('database', { timeout: 1000 }),
-    ]);
+    return this.health.check([() => this.db.pingCheck('database', { timeout: 1000 })]);
   }
 
   @Get('live')
@@ -65,26 +64,25 @@ export class HealthController {
   @HealthCheck()
   ready() {
     // Readiness: verifica se o serviço está pronto para receber tráfego
-    return this.health.check([
-      () => this.db.pingCheck('database', { timeout: 1000 }),
-    ]);
+    return this.health.check([() => this.db.pingCheck('database', { timeout: 1000 })]);
   }
 }
 ```
 
 ### 2.2 Logs JSON Estruturados com Campos Base
 
-| Campo obrigatório | Verificação |
-|------------------|------------|
-| `timestamp` (ISO 8601) | `jq '.timestamp' log.json \| date -f` válido |
+| Campo obrigatório               | Verificação                                             |
+| ------------------------------- | ------------------------------------------------------- |
+| `timestamp` (ISO 8601)          | `jq '.timestamp' log.json \| date -f` válido            |
 | `level` (debug/info/warn/error) | `jq '.level' \| grep -E "^(debug\|info\|warn\|error)$"` |
-| `service` (nome do serviço) | `jq '.service' \| grep -v null` |
-| `namespace` | `jq '.namespace' \| grep -v null` |
-| `environment` | `jq '.environment' \| grep -E "^(dev\|staging\|prod)$"` |
-| `message` | `jq '.message' \| grep -v null` |
-| Formato JSON válido | `jq . log.json > /dev/null 2>&1 && echo VALID` |
+| `service` (nome do serviço)     | `jq '.service' \| grep -v null`                         |
+| `namespace`                     | `jq '.namespace' \| grep -v null`                       |
+| `environment`                   | `jq '.environment' \| grep -E "^(dev\|staging\|prod)$"` |
+| `message`                       | `jq '.message' \| grep -v null`                         |
+| Formato JSON válido             | `jq . log.json > /dev/null 2>&1 && echo VALID`          |
 
 **Verificação automática de conformidade**:
+
 ```bash
 # Script para verificar conformidade de logs (rodar em CI)
 #!/bin/bash
@@ -112,6 +110,7 @@ collectDefaultMetrics({ register: registry }); // CPU, memória, GC, event loop,
 ```
 
 Métricas automáticas incluídas:
+
 - `process_cpu_seconds_total` — tempo de CPU consumido
 - `process_resident_memory_bytes` — memória residente
 - `nodejs_heap_size_used_bytes` — heap em uso
@@ -144,6 +143,7 @@ spec:
 ```
 
 **Verificação**:
+
 ```bash
 # Verificar que o target está sendo scrapeado
 kubectl port-forward svc/kube-prometheus-stack-prometheus -n velya-dev-observability 9090:9090
@@ -159,14 +159,15 @@ kubectl port-forward svc/kube-prometheus-stack-prometheus -n velya-dev-observabi
 
 Todos os quatro sinais devem ser expostos como métricas Prometheus:
 
-| Sinal | Métrica mínima | Verificação |
-|-------|---------------|------------|
-| Rate | `http_requests_total{service, method, route, status}` | `curl /metrics \| grep http_requests_total` |
-| Errors | Subset de Rate com `status=~"5.."` | Calculado via PromQL do Rate acima |
-| Duration | `http_request_duration_seconds_bucket{service, method, route, status}` | Deve ter `_bucket`, `_count`, `_sum` |
-| Saturation | Qualquer gauge relevante (conexões ativas, queue depth, etc.) | Definido por serviço |
+| Sinal      | Métrica mínima                                                         | Verificação                                 |
+| ---------- | ---------------------------------------------------------------------- | ------------------------------------------- |
+| Rate       | `http_requests_total{service, method, route, status}`                  | `curl /metrics \| grep http_requests_total` |
+| Errors     | Subset de Rate com `status=~"5.."`                                     | Calculado via PromQL do Rate acima          |
+| Duration   | `http_request_duration_seconds_bucket{service, method, route, status}` | Deve ter `_bucket`, `_count`, `_sum`        |
+| Saturation | Qualquer gauge relevante (conexões ativas, queue depth, etc.)          | Definido por serviço                        |
 
 **Exemplo de implementação com middleware NestJS**:
+
 ```typescript
 // src/middleware/metrics.middleware.ts
 import { Injectable, NestMiddleware } from '@nestjs/common';
@@ -214,19 +215,21 @@ export class MetricsMiddleware implements NestMiddleware {
 
 Quando o SDK OTel estiver configurado (ver tracing-standard.md):
 
-| Requisito | Verificação |
-|-----------|------------|
-| `trace_id` presente em todos os logs de eventos | `kubectl logs ... | jq '.trace_id' | grep -v null` |
+| Requisito                                                | Verificação                   |
+| -------------------------------------------------------- | ----------------------------- | -------------- | ------------- |
+| `trace_id` presente em todos os logs de eventos          | `kubectl logs ...             | jq '.trace_id' | grep -v null` |
 | Headers W3C TraceContext propagados em requests outbound | Inspecionar requests via OTel |
-| `trace_id` propagado em mensagens NATS | Ver nats-trace-propagator.ts |
+| `trace_id` propagado em mensagens NATS                   | Ver nats-trace-propagator.ts  |
 
 ### 3.3 Correlação de Logs com trace_id
 
 Logs e traces devem ser correlacionáveis:
+
 - Todo log de evento de negócio deve conter `trace_id` quando houver span ativo
 - `trace_id` no log deve ser idêntico ao `traceId` do span correspondente no Tempo
 
 **Verificação**:
+
 ```bash
 # Pegar um trace_id de um log recente
 TRACE_ID=$(kubectl logs deployment/patient-flow-service -n velya-dev-core --tail=10 \
@@ -257,7 +260,10 @@ export class HealthController {
       // NATS JetStream
       () => this.natsIndicator.isHealthy('nats'),
       // Serviços dependentes via HTTP (circuit breaker)
-      () => this.http.pingCheck('ai-gateway', 'http://ai-gateway.velya-dev-agents:3000/health', { timeout: 2000 }),
+      () =>
+        this.http.pingCheck('ai-gateway', 'http://ai-gateway.velya-dev-agents:3000/health', {
+          timeout: 2000,
+        }),
     ]);
   }
 }
@@ -287,15 +293,16 @@ circuitBreakerState
 
 Cada serviço clínico deve ter SLOs documentados e mensuráveis:
 
-| Serviço | SLO de Disponibilidade | SLO de Latência P99 | SLO de Error Rate |
-|---------|----------------------|--------------------|--------------------|
-| patient-flow-service | 99.5% | < 1s | < 1% |
-| discharge-orchestrator | 99.5% | < 2s | < 1% |
-| task-inbox-service | 99.5% | < 500ms | < 0.5% |
-| api-gateway | 99.9% | < 500ms | < 0.5% |
-| ai-gateway | 99.0% | < 10s | < 2% |
+| Serviço                | SLO de Disponibilidade | SLO de Latência P99 | SLO de Error Rate |
+| ---------------------- | ---------------------- | ------------------- | ----------------- |
+| patient-flow-service   | 99.5%                  | < 1s                | < 1%              |
+| discharge-orchestrator | 99.5%                  | < 2s                | < 1%              |
+| task-inbox-service     | 99.5%                  | < 500ms             | < 0.5%            |
+| api-gateway            | 99.9%                  | < 500ms             | < 0.5%            |
+| ai-gateway             | 99.0%                  | < 10s               | < 2%              |
 
 **Query de SLO (Burn Rate Alert)**:
+
 ```promql
 # Error budget burn rate (1 hora)
 (
@@ -309,11 +316,11 @@ Cada serviço clínico deve ter SLOs documentados e mensuráveis:
 
 Cada serviço clínico deve ter alertas configurados e runbooks documentados:
 
-| Serviço | Alerta de Latência | Alerta de Error Rate | Runbook |
-|---------|-------------------|--------------------|---------|
-| patient-flow-service | P99 > 1s por 10min | Error rate > 1% por 5min | /runbooks/patient-flow-high-latency |
-| discharge-orchestrator | P99 > 2s por 10min | Error rate > 1% por 5min | /runbooks/discharge-high-latency |
-| task-inbox-service | P99 > 500ms por 10min | Error rate > 0.5% por 5min | /runbooks/task-inbox-errors |
+| Serviço                | Alerta de Latência    | Alerta de Error Rate       | Runbook                             |
+| ---------------------- | --------------------- | -------------------------- | ----------------------------------- |
+| patient-flow-service   | P99 > 1s por 10min    | Error rate > 1% por 5min   | /runbooks/patient-flow-high-latency |
+| discharge-orchestrator | P99 > 2s por 10min    | Error rate > 1% por 5min   | /runbooks/discharge-high-latency    |
+| task-inbox-service     | P99 > 500ms por 10min | Error rate > 0.5% por 5min | /runbooks/task-inbox-errors         |
 
 ### 4.3 Auditoria de Operações Clínicas
 
@@ -325,7 +332,7 @@ this.decisionLogService.record({
   event_type: 'patient.discharge.approved',
   action: 'discharge.approve',
   outcome: 'success',
-  patient_id: 'PAT-001',  // tokenizado
+  patient_id: 'PAT-001', // tokenizado
   provider_id: 'PROV-123', // tokenizado
   agent_name: 'discharge-coordinator-agent',
   office: 'clinical-office',
@@ -341,6 +348,7 @@ this.decisionLogService.record({
 ```
 
 **Verificação**:
+
 ```bash
 # Toda operação de alta deve ter log no decision-log
 kubectl logs deployment/decision-log -n velya-dev-platform --tail=100 \
@@ -360,15 +368,11 @@ const degradedModeActive = new Gauge({
 
 // Ativar quando dependência crítica estiver indisponível:
 circuitBreaker.on('open', (dependency) => {
-  degradedModeActive
-    .labels({ service: SERVICE_NAME, reason: `circuit_open_${dependency}` })
-    .set(1);
+  degradedModeActive.labels({ service: SERVICE_NAME, reason: `circuit_open_${dependency}` }).set(1);
 });
 
 circuitBreaker.on('close', (dependency) => {
-  degradedModeActive
-    .labels({ service: SERVICE_NAME, reason: `circuit_open_${dependency}` })
-    .set(0);
+  degradedModeActive.labels({ service: SERVICE_NAME, reason: `circuit_open_${dependency}` }).set(0);
 });
 ```
 
@@ -378,17 +382,17 @@ circuitBreaker.on('close', (dependency) => {
 // Toda decisão clínica deve ser registrada no decision-log service
 // com todos os campos de auditoria obrigatórios
 interface ClinicalDecisionLog {
-  event_type: string;         // Obrigatório
-  action: string;             // Obrigatório
+  event_type: string; // Obrigatório
+  action: string; // Obrigatório
   outcome: 'success' | 'failure' | 'partial'; // Obrigatório
-  patient_id: string;         // Obrigatório (tokenizado)
+  patient_id: string; // Obrigatório (tokenizado)
   risk_class: 'high' | 'medium' | 'low'; // Obrigatório
   evidence: Record<string, unknown>; // Obrigatório
-  agent_name?: string;        // Quando aplicável
-  provider_id?: string;       // Quando aplicável
-  workflow_id: string;        // Obrigatório
-  trace_id: string;           // Obrigatório
-  timestamp: string;          // Gerado automaticamente
+  agent_name?: string; // Quando aplicável
+  provider_id?: string; // Quando aplicável
+  workflow_id: string; // Obrigatório
+  trace_id: string; // Obrigatório
+  timestamp: string; // Gerado automaticamente
 }
 ```
 
@@ -396,19 +400,20 @@ interface ClinicalDecisionLog {
 
 ## 5. Tabela de Estado Atual dos Serviços
 
-| Serviço | Namespace | Nível Atual | Nível Alvo | Principais Gaps | Prioridade |
-|---------|-----------|------------|-----------|----------------|-----------|
-| **patient-flow-service** | velya-dev-core | 0 (sem instrumentação) | 3 (clínico) | ServiceMonitor, métricas golden signals, métricas de negócio, decision log | P0 |
-| **task-inbox-service** | velya-dev-core | 0 | 3 | ServiceMonitor, golden signals, métricas de inbox, SLOs | P0 |
-| **discharge-orchestrator** | velya-dev-core | 0 | 3 | ServiceMonitor, golden signals, métricas de alta, decision log | P0 |
-| **api-gateway** | velya-dev-platform | 0 | 2 | ServiceMonitor, golden signals, circuit breaker exposto | P0 |
-| **ai-gateway** | velya-dev-agents | 0 | 2 | ServiceMonitor, métricas de AI (tokens, latência, erros) | P0 |
-| **decision-log** | velya-dev-platform | 0 | 2 | ServiceMonitor, golden signals | P1 |
-| **memory-service** | velya-dev-agents | 0 | 2 | ServiceMonitor, golden signals | P1 |
-| **policy-engine** | velya-dev-platform | 0 | 2 | ServiceMonitor, golden signals, métricas de rejeição de policy | P1 |
-| **velya-web** | velya-dev-web | 0 | 2 | Web Vitals, JS errors, RUM completo | P1 |
+| Serviço                    | Namespace          | Nível Atual            | Nível Alvo  | Principais Gaps                                                            | Prioridade |
+| -------------------------- | ------------------ | ---------------------- | ----------- | -------------------------------------------------------------------------- | ---------- |
+| **patient-flow-service**   | velya-dev-core     | 0 (sem instrumentação) | 3 (clínico) | ServiceMonitor, métricas golden signals, métricas de negócio, decision log | P0         |
+| **task-inbox-service**     | velya-dev-core     | 0                      | 3           | ServiceMonitor, golden signals, métricas de inbox, SLOs                    | P0         |
+| **discharge-orchestrator** | velya-dev-core     | 0                      | 3           | ServiceMonitor, golden signals, métricas de alta, decision log             | P0         |
+| **api-gateway**            | velya-dev-platform | 0                      | 2           | ServiceMonitor, golden signals, circuit breaker exposto                    | P0         |
+| **ai-gateway**             | velya-dev-agents   | 0                      | 2           | ServiceMonitor, métricas de AI (tokens, latência, erros)                   | P0         |
+| **decision-log**           | velya-dev-platform | 0                      | 2           | ServiceMonitor, golden signals                                             | P1         |
+| **memory-service**         | velya-dev-agents   | 0                      | 2           | ServiceMonitor, golden signals                                             | P1         |
+| **policy-engine**          | velya-dev-platform | 0                      | 2           | ServiceMonitor, golden signals, métricas de rejeição de policy             | P1         |
+| **velya-web**              | velya-dev-web      | 0                      | 2           | Web Vitals, JS errors, RUM completo                                        | P1         |
 
 **Legenda de Nível Atual**:
+
 - `0` — Nenhuma instrumentação implementada. Visibilidade zero.
 - `1` — Health check e logs básicos, mas sem ServiceMonitor ou golden signals.
 - `2` — Golden signals + ServiceMonitor + trace propagation.
@@ -496,10 +501,10 @@ echo "=== Verificação de Nível 2 concluída ==="
 
 ## 7. Política de Promoção entre Ambientes
 
-| Promoção | Nível Mínimo Requerido | Bloqueio Automático |
-|---------|----------------------|---------------------|
-| `dev → staging` | Nível 1 completo | CI/CD verifica health check e formato de log |
-| `staging → prod` | Nível 2 completo | Revisão manual + scripts de verificação de nível |
-| Serviço clínico em prod | Nível 3 completo | Revisão de segurança + aprovação de clinical-office |
+| Promoção                | Nível Mínimo Requerido | Bloqueio Automático                                 |
+| ----------------------- | ---------------------- | --------------------------------------------------- |
+| `dev → staging`         | Nível 1 completo       | CI/CD verifica health check e formato de log        |
+| `staging → prod`        | Nível 2 completo       | Revisão manual + scripts de verificação de nível    |
+| Serviço clínico em prod | Nível 3 completo       | Revisão de segurança + aprovação de clinical-office |
 
 **Nota de estado atual**: Todos os serviços estão em Nível 0 (ambiente dev). Nenhum pode ser considerado pronto para staging com o estado atual de instrumentação.

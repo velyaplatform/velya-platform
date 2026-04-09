@@ -109,7 +109,7 @@ export const metadata = {
     userScalable: false,
     viewportFit: 'cover',
   },
-}
+};
 ```
 
 ---
@@ -120,50 +120,45 @@ export const metadata = {
 
 ```tsx
 function useStandaloneMode(): boolean {
-  const [isStandalone, setIsStandalone] = useState(false)
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     const standalone =
       window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true
+      (window.navigator as any).standalone === true;
 
-    setIsStandalone(standalone)
-  }, [])
+    setIsStandalone(standalone);
+  }, []);
 
-  return isStandalone
+  return isStandalone;
 }
 ```
 
 ### 3.2 Adaptações para Standalone
 
-| Aspecto | Browser Tab | Standalone (PWA) |
-|---|---|---|
-| Navegação | Browser back/forward | Custom back button |
-| URL bar | Visível | Oculta |
-| Status bar | Não controlável | theme-color + status-bar-style |
-| Safe areas | Não relevante | Respeitar env(safe-area-*) |
-| Pull-to-refresh | Browser nativo | Custom ou desabilitado |
-| Splash screen | Nenhum | Splash configurado |
+| Aspecto         | Browser Tab          | Standalone (PWA)               |
+| --------------- | -------------------- | ------------------------------ |
+| Navegação       | Browser back/forward | Custom back button             |
+| URL bar         | Visível              | Oculta                         |
+| Status bar      | Não controlável      | theme-color + status-bar-style |
+| Safe areas      | Não relevante        | Respeitar env(safe-area-\*)    |
+| Pull-to-refresh | Browser nativo       | Custom ou desabilitado         |
+| Splash screen   | Nenhum               | Splash configurado             |
 
 ### 3.3 Custom Back Navigation
 
 ```tsx
 function StandaloneBackButton() {
-  const isStandalone = useStandaloneMode()
-  const router = useRouter()
+  const isStandalone = useStandaloneMode();
+  const router = useRouter();
 
-  if (!isStandalone) return null
+  if (!isStandalone) return null;
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => router.back()}
-      className="md:hidden"
-    >
+    <Button variant="ghost" size="icon" onClick={() => router.back()} className="md:hidden">
       <ChevronLeft className="h-5 w-5" />
     </Button>
-  )
+  );
 }
 ```
 
@@ -173,18 +168,18 @@ function StandaloneBackButton() {
 
 ### 4.1 O que Cachear vs Não Cachear
 
-| Recurso | Cachear? | Estratégia | Motivo |
-|---|---|---|---|
-| HTML de rotas | Sim | Network-first | Atualizar sempre, fallback se offline |
-| JS bundles | Sim | Cache-first | Versionados, imutáveis |
-| CSS | Sim | Cache-first | Versionados, imutáveis |
-| Fontes | Sim | Cache-first | Raramente mudam |
-| Imagens estáticas | Sim | Cache-first | Logo, ícones |
-| Dados de paciente | **Não** | Network-only | Dados sensíveis, sempre frescos |
-| Dados de medicação | **Não** | Network-only | Críticos, tempo-sensíveis |
-| Dados de chamada | **Não** | Network-only | Real-time |
-| Dados de dashboard | Parcial | Network-first, stale ok | Métricas podem ter delay |
-| Configuração do usuário | Sim | Network-first | Atualizar quando possível |
+| Recurso                 | Cachear? | Estratégia              | Motivo                                |
+| ----------------------- | -------- | ----------------------- | ------------------------------------- |
+| HTML de rotas           | Sim      | Network-first           | Atualizar sempre, fallback se offline |
+| JS bundles              | Sim      | Cache-first             | Versionados, imutáveis                |
+| CSS                     | Sim      | Cache-first             | Versionados, imutáveis                |
+| Fontes                  | Sim      | Cache-first             | Raramente mudam                       |
+| Imagens estáticas       | Sim      | Cache-first             | Logo, ícones                          |
+| Dados de paciente       | **Não**  | Network-only            | Dados sensíveis, sempre frescos       |
+| Dados de medicação      | **Não**  | Network-only            | Críticos, tempo-sensíveis             |
+| Dados de chamada        | **Não**  | Network-only            | Real-time                             |
+| Dados de dashboard      | Parcial  | Network-first, stale ok | Métricas podem ter delay              |
+| Configuração do usuário | Sim      | Network-first           | Atualizar quando possível             |
 
 ### 4.2 Service Worker (Mínimo)
 
@@ -233,7 +228,7 @@ const withPWA = require('next-pwa')({
       },
     },
   ],
-})
+});
 ```
 
 ### 4.3 Limpeza de Cache
@@ -242,19 +237,17 @@ const withPWA = require('next-pwa')({
 // Limpar cache ao fazer logout
 async function clearAppCache() {
   if ('caches' in window) {
-    const cacheNames = await caches.keys()
-    await Promise.all(
-      cacheNames.map((name) => caches.delete(name))
-    )
+    const cacheNames = await caches.keys();
+    await Promise.all(cacheNames.map((name) => caches.delete(name)));
   }
 
   // Limpar localStorage de dados sensíveis
-  const keysToKeep = ['theme', 'locale']
+  const keysToKeep = ['theme', 'locale'];
   Object.keys(localStorage).forEach((key) => {
     if (!keysToKeep.includes(key)) {
-      localStorage.removeItem(key)
+      localStorage.removeItem(key);
     }
-  })
+  });
 }
 ```
 
@@ -268,29 +261,29 @@ O modo degradado NÃO é modo offline. É o estado em que a aplicação detecta 
 
 ### 5.2 Níveis de Degradação
 
-| Nível | Condição | Comportamento |
-|---|---|---|
-| **Normal** | Rede estável, APIs respondendo | Operação completa |
-| **Lento** | Latência > 3s | Banner amarelo, dados podem estar desatualizados |
-| **Parcial** | Algumas APIs falhando | Banner laranja, features afetadas listadas |
-| **Offline** | Sem conexão | Banner vermelho, somente dados cacheados, ações bloqueadas |
-| **Recuperando** | Voltando do offline | Banner azul, sincronizando dados |
+| Nível           | Condição                       | Comportamento                                              |
+| --------------- | ------------------------------ | ---------------------------------------------------------- |
+| **Normal**      | Rede estável, APIs respondendo | Operação completa                                          |
+| **Lento**       | Latência > 3s                  | Banner amarelo, dados podem estar desatualizados           |
+| **Parcial**     | Algumas APIs falhando          | Banner laranja, features afetadas listadas                 |
+| **Offline**     | Sem conexão                    | Banner vermelho, somente dados cacheados, ações bloqueadas |
+| **Recuperando** | Voltando do offline            | Banner azul, sincronizando dados                           |
 
 ### 5.3 Detecção de Estado de Rede
 
 ```tsx
 // providers/degraded-provider.tsx
-'use client'
+'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react';
 
-type NetworkStatus = 'online' | 'slow' | 'partial' | 'offline' | 'recovering'
+type NetworkStatus = 'online' | 'slow' | 'partial' | 'offline' | 'recovering';
 
 interface DegradedContextValue {
-  status: NetworkStatus
-  lastSync: Date | null
-  affectedServices: string[]
-  isActionAllowed: (action: string) => boolean
+  status: NetworkStatus;
+  lastSync: Date | null;
+  affectedServices: string[];
+  isActionAllowed: (action: string) => boolean;
 }
 
 const DegradedContext = createContext<DegradedContextValue>({
@@ -298,89 +291,89 @@ const DegradedContext = createContext<DegradedContextValue>({
   lastSync: null,
   affectedServices: [],
   isActionAllowed: () => true,
-})
+});
 
 export function DegradedProvider({ children }: { children: React.ReactNode }) {
-  const [status, setStatus] = useState<NetworkStatus>('online')
-  const [lastSync, setLastSync] = useState<Date | null>(new Date())
-  const [affectedServices, setAffectedServices] = useState<string[]>([])
+  const [status, setStatus] = useState<NetworkStatus>('online');
+  const [lastSync, setLastSync] = useState<Date | null>(new Date());
+  const [affectedServices, setAffectedServices] = useState<string[]>([]);
 
   useEffect(() => {
     // Detectar online/offline
     function handleOnline() {
-      setStatus('recovering')
+      setStatus('recovering');
       // Verificar APIs
       checkServices().then((result) => {
-        setStatus(result.allHealthy ? 'online' : 'partial')
-        setAffectedServices(result.unhealthy)
-        setLastSync(new Date())
-      })
+        setStatus(result.allHealthy ? 'online' : 'partial');
+        setAffectedServices(result.unhealthy);
+        setLastSync(new Date());
+      });
     }
 
     function handleOffline() {
-      setStatus('offline')
+      setStatus('offline');
     }
 
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     // Health check periódico
     const interval = setInterval(async () => {
       if (!navigator.onLine) {
-        setStatus('offline')
-        return
+        setStatus('offline');
+        return;
       }
 
       try {
-        const start = performance.now()
-        const result = await checkServices()
-        const latency = performance.now() - start
+        const start = performance.now();
+        const result = await checkServices();
+        const latency = performance.now() - start;
 
         if (!result.allHealthy) {
-          setStatus('partial')
-          setAffectedServices(result.unhealthy)
+          setStatus('partial');
+          setAffectedServices(result.unhealthy);
         } else if (latency > 3000) {
-          setStatus('slow')
+          setStatus('slow');
         } else {
-          setStatus('online')
-          setAffectedServices([])
+          setStatus('online');
+          setAffectedServices([]);
         }
-        setLastSync(new Date())
+        setLastSync(new Date());
       } catch {
-        setStatus('offline')
+        setStatus('offline');
       }
-    }, 30000) // A cada 30s
+    }, 30000); // A cada 30s
 
     return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-      clearInterval(interval)
-    }
-  }, [])
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      clearInterval(interval);
+    };
+  }, []);
 
   function isActionAllowed(action: string): boolean {
-    if (status === 'offline') return false
+    if (status === 'offline') return false;
     if (status === 'partial') {
       // Verificar se o serviço necessário está disponível
       const serviceMap: Record<string, string> = {
         'medication.administer': 'medication-service',
         'patient.admit': 'patient-service',
         'call.respond': 'call-service',
-      }
-      return !affectedServices.includes(serviceMap[action] || '')
+      };
+      return !affectedServices.includes(serviceMap[action] || '');
     }
-    return true
+    return true;
   }
 
   return (
     <DegradedContext.Provider value={{ status, lastSync, affectedServices, isActionAllowed }}>
       {children}
     </DegradedContext.Provider>
-  )
+  );
 }
 
 export function useDegraded() {
-  return useContext(DegradedContext)
+  return useContext(DegradedContext);
 }
 ```
 
@@ -388,9 +381,9 @@ export function useDegraded() {
 
 ```tsx
 function NetworkStatusBanner() {
-  const { status, lastSync, affectedServices } = useDegraded()
+  const { status, lastSync, affectedServices } = useDegraded();
 
-  if (status === 'online') return null
+  if (status === 'online') return null;
 
   const config = {
     slow: {
@@ -417,9 +410,9 @@ function NetworkStatusBanner() {
       iconColor: 'text-info animate-spin',
       message: 'Reconectando e sincronizando dados...',
     },
-  }
+  };
 
-  const { bg, icon: Icon, iconColor, message } = config[status]
+  const { bg, icon: Icon, iconColor, message } = config[status];
 
   return (
     <div className={cn('border-b px-4 py-2 flex items-center gap-3', bg)}>
@@ -431,7 +424,7 @@ function NetworkStatusBanner() {
         </span>
       )}
     </div>
-  )
+  );
 }
 ```
 
@@ -443,37 +436,40 @@ function DegradedActionGuard({
   children,
   fallback,
 }: {
-  action: string
-  children: React.ReactNode
-  fallback?: React.ReactNode
+  action: string;
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
 }) {
-  const { isActionAllowed, status } = useDegraded()
+  const { isActionAllowed, status } = useDegraded();
 
   if (!isActionAllowed(action)) {
-    return fallback || (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="inline-block">
-            <Button disabled variant="outline">
-              <WifiOff className="mr-2 h-4 w-4" />
-              Indisponível
-            </Button>
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>
-          Ação indisponível — {status === 'offline' ? 'sem conexão' : 'serviço temporariamente indisponível'}
-        </TooltipContent>
-      </Tooltip>
-    )
+    return (
+      fallback || (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="inline-block">
+              <Button disabled variant="outline">
+                <WifiOff className="mr-2 h-4 w-4" />
+                Indisponível
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            Ação indisponível —{' '}
+            {status === 'offline' ? 'sem conexão' : 'serviço temporariamente indisponível'}
+          </TooltipContent>
+        </Tooltip>
+      )
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 // Uso
 <DegradedActionGuard action="medication.administer">
   <Button onClick={handleAdminister}>Administrar medicação</Button>
-</DegradedActionGuard>
+</DegradedActionGuard>;
 ```
 
 ---
@@ -485,15 +481,15 @@ function DegradedActionGuard({
 ```tsx
 function useConnectionType() {
   const [connection, setConnection] = useState<{
-    type: string
-    effectiveType: string
-    downlink: number
-    rtt: number
-  } | null>(null)
+    type: string;
+    effectiveType: string;
+    downlink: number;
+    rtt: number;
+  } | null>(null);
 
   useEffect(() => {
-    const nav = navigator as any
-    const conn = nav.connection || nav.mozConnection || nav.webkitConnection
+    const nav = navigator as any;
+    const conn = nav.connection || nav.mozConnection || nav.webkitConnection;
 
     if (conn) {
       function updateConnection() {
@@ -502,16 +498,16 @@ function useConnectionType() {
           effectiveType: conn.effectiveType,
           downlink: conn.downlink,
           rtt: conn.rtt,
-        })
+        });
       }
 
-      updateConnection()
-      conn.addEventListener('change', updateConnection)
-      return () => conn.removeEventListener('change', updateConnection)
+      updateConnection();
+      conn.addEventListener('change', updateConnection);
+      return () => conn.removeEventListener('change', updateConnection);
     }
-  }, [])
+  }, []);
 
-  return connection
+  return connection;
 }
 ```
 
@@ -519,27 +515,31 @@ function useConnectionType() {
 
 ```tsx
 function useAdaptiveLoading() {
-  const connection = useConnectionType()
+  const connection = useConnectionType();
 
   return {
     // Desabilitar animações em conexão lenta
     enableAnimations: connection?.effectiveType !== '2g',
 
     // Reduzir tamanho de página em conexão lenta
-    pageSize: connection?.effectiveType === '2g' ? 10 :
-              connection?.effectiveType === '3g' ? 20 : 50,
+    pageSize:
+      connection?.effectiveType === '2g' ? 10 : connection?.effectiveType === '3g' ? 20 : 50,
 
     // Desabilitar prefetch em conexão lenta
     enablePrefetch: connection?.effectiveType === '4g',
 
     // Reduzir qualidade de imagens
-    imageQuality: connection?.effectiveType === '2g' ? 30 :
-                  connection?.effectiveType === '3g' ? 60 : 85,
+    imageQuality:
+      connection?.effectiveType === '2g' ? 30 : connection?.effectiveType === '3g' ? 60 : 85,
 
     // Intervalo de refresh do dashboard
-    refreshInterval: connection?.effectiveType === '2g' ? 120000 :
-                     connection?.effectiveType === '3g' ? 60000 : 30000,
-  }
+    refreshInterval:
+      connection?.effectiveType === '2g'
+        ? 120000
+        : connection?.effectiveType === '3g'
+          ? 60000
+          : 30000,
+  };
 }
 ```
 
@@ -551,50 +551,52 @@ function useAdaptiveLoading() {
 
 ```tsx
 function BackgroundResumeManager() {
-  const queryClient = useQueryClient()
-  const { status } = useDegraded()
+  const queryClient = useQueryClient();
+  const { status } = useDegraded();
 
   useEffect(() => {
-    let lastActive = Date.now()
+    let lastActive = Date.now();
 
     function handleVisibilityChange() {
       if (document.visibilityState === 'visible') {
-        const elapsed = Date.now() - lastActive
+        const elapsed = Date.now() - lastActive;
 
         // Se ficou mais de 1 minuto em background
         if (elapsed > 60000) {
           // 1. Verificar sessão
-          fetch('/api/auth/session').then((res) => {
-            if (!res.ok) {
-              signOut({ callbackUrl: '/login?reason=expired' })
-              return
-            }
-          }).catch(() => {
-            // Offline — handled by degraded provider
-          })
+          fetch('/api/auth/session')
+            .then((res) => {
+              if (!res.ok) {
+                signOut({ callbackUrl: '/login?reason=expired' });
+                return;
+              }
+            })
+            .catch(() => {
+              // Offline — handled by degraded provider
+            });
 
           // 2. Invalidar queries para buscar dados frescos
-          queryClient.invalidateQueries()
+          queryClient.invalidateQueries();
 
           // 3. Verificar atualizações do PWA
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then((registration) => {
-              registration.update()
-            })
+              registration.update();
+            });
           }
         }
 
-        lastActive = Date.now()
+        lastActive = Date.now();
       } else {
-        lastActive = Date.now()
+        lastActive = Date.now();
       }
     }
 
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [queryClient])
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [queryClient]);
 
-  return null
+  return null;
 }
 ```
 
@@ -605,7 +607,7 @@ function StaleDataIndicator({ queryKey }: { queryKey: string[] }) {
   const { dataUpdatedAt, isStale, isRefetching } = useQuery({
     queryKey,
     enabled: false, // Apenas observa
-  })
+  });
 
   if (isRefetching) {
     return (
@@ -613,7 +615,7 @@ function StaleDataIndicator({ queryKey }: { queryKey: string[] }) {
         <RefreshCw className="h-3 w-3 animate-spin" />
         Atualizando...
       </div>
-    )
+    );
   }
 
   if (isStale && dataUpdatedAt) {
@@ -622,10 +624,10 @@ function StaleDataIndicator({ queryKey }: { queryKey: string[] }) {
         <Clock className="h-3 w-3" />
         Dados de {formatRelativeTime(new Date(dataUpdatedAt))}
       </div>
-    )
+    );
   }
 
-  return null
+  return null;
 }
 ```
 
@@ -635,16 +637,16 @@ function StaleDataIndicator({ queryKey }: { queryKey: string[] }) {
 
 ### 8.1 O que Funciona Offline
 
-| Funcionalidade | Status | Detalhes |
-|---|---|---|
-| Visualizar telas cacheadas | Parcial | Layout sem dados frescos |
-| Navegar entre rotas cacheadas | Sim | Service worker serve cache |
-| Preencher formulários | Sim | Dados locais, mas não envia |
-| Consultar dados de paciente | **Não** | Dados sensíveis, não cacheados |
-| Administrar medicação | **Não** | Requer confirmação servidor |
-| Responder chamada | **Não** | Requer comunicação real-time |
-| Ver dashboard | Parcial | Dados da última sincronização |
-| Alterar configurações | **Não** | Requer persistência servidor |
+| Funcionalidade                | Status  | Detalhes                       |
+| ----------------------------- | ------- | ------------------------------ |
+| Visualizar telas cacheadas    | Parcial | Layout sem dados frescos       |
+| Navegar entre rotas cacheadas | Sim     | Service worker serve cache     |
+| Preencher formulários         | Sim     | Dados locais, mas não envia    |
+| Consultar dados de paciente   | **Não** | Dados sensíveis, não cacheados |
+| Administrar medicação         | **Não** | Requer confirmação servidor    |
+| Responder chamada             | **Não** | Requer comunicação real-time   |
+| Ver dashboard                 | Parcial | Dados da última sincronização  |
+| Alterar configurações         | **Não** | Requer persistência servidor   |
 
 ### 8.2 Fila de Ações Pendentes
 
@@ -653,34 +655,34 @@ function StaleDataIndicator({ queryKey }: { queryKey: string[] }) {
 // Ações críticas (medicação, chamadas) NUNCA são enfileiradas
 
 function usePendingActions() {
-  const [pending, setPending] = useState<PendingAction[]>([])
-  const { status } = useDegraded()
+  const [pending, setPending] = useState<PendingAction[]>([]);
+  const { status } = useDegraded();
 
   function queueAction(action: PendingAction) {
     if (action.critical) {
-      throw new Error('Ações críticas não podem ser enfileiradas')
+      throw new Error('Ações críticas não podem ser enfileiradas');
     }
-    setPending((prev) => [...prev, { ...action, queuedAt: new Date() }])
-    localStorage.setItem('pending-actions', JSON.stringify([...pending, action]))
+    setPending((prev) => [...prev, { ...action, queuedAt: new Date() }]);
+    localStorage.setItem('pending-actions', JSON.stringify([...pending, action]));
   }
 
   // Processar fila quando reconectar
   useEffect(() => {
     if (status === 'online' && pending.length > 0) {
       processPendingActions(pending).then((results) => {
-        const failed = results.filter((r) => !r.success)
-        setPending(failed.map((r) => r.action))
+        const failed = results.filter((r) => !r.success);
+        setPending(failed.map((r) => r.action));
         if (failed.length > 0) {
-          toast.warning(`${failed.length} ações pendentes não puderam ser processadas`)
+          toast.warning(`${failed.length} ações pendentes não puderam ser processadas`);
         } else {
-          toast.success('Ações pendentes processadas com sucesso')
-          localStorage.removeItem('pending-actions')
+          toast.success('Ações pendentes processadas com sucesso');
+          localStorage.removeItem('pending-actions');
         }
-      })
+      });
     }
-  }, [status])
+  }, [status]);
 
-  return { pending, queueAction }
+  return { pending, queueAction };
 }
 ```
 
@@ -693,8 +695,8 @@ function OfflineScreen() {
       <WifiOff className="h-16 w-16 text-muted-foreground/50 mb-4" />
       <h2 className="text-xl font-semibold">Sem conexão</h2>
       <p className="text-muted-foreground mt-2 max-w-sm">
-        A plataforma Velya requer conexão com a internet para operar.
-        Verifique sua conexão Wi-Fi ou dados móveis.
+        A plataforma Velya requer conexão com a internet para operar. Verifique sua conexão Wi-Fi ou
+        dados móveis.
       </p>
       <div className="mt-6 space-y-2">
         <Button onClick={() => window.location.reload()}>
@@ -706,7 +708,7 @@ function OfflineScreen() {
         </p>
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -718,32 +720,32 @@ function OfflineScreen() {
 
 ```tsx
 function InstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
-  const [showPrompt, setShowPrompt] = useState(false)
-  const isStandalone = useStandaloneMode()
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const isStandalone = useStandaloneMode();
 
   useEffect(() => {
-    if (isStandalone) return
+    if (isStandalone) return;
 
     function handleBeforeInstallPrompt(e: Event) {
-      e.preventDefault()
-      setDeferredPrompt(e)
+      e.preventDefault();
+      setDeferredPrompt(e);
 
       // Mostrar prompt customizado após 30s de uso
-      setTimeout(() => setShowPrompt(true), 30000)
+      setTimeout(() => setShowPrompt(true), 30000);
     }
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-  }, [isStandalone])
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, [isStandalone]);
 
-  if (!showPrompt || !deferredPrompt) return null
+  if (!showPrompt || !deferredPrompt) return null;
 
   async function handleInstall() {
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
-      setShowPrompt(false)
+      setShowPrompt(false);
     }
   }
 
@@ -758,7 +760,9 @@ function InstallPrompt() {
               Acesse mais rápido pela tela inicial do seu dispositivo
             </p>
             <div className="flex gap-2 mt-2">
-              <Button size="sm" onClick={handleInstall}>Instalar</Button>
+              <Button size="sm" onClick={handleInstall}>
+                Instalar
+              </Button>
               <Button size="sm" variant="ghost" onClick={() => setShowPrompt(false)}>
                 Agora não
               </Button>
@@ -767,7 +771,7 @@ function InstallPrompt() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 ```
 
@@ -779,26 +783,26 @@ function InstallPrompt() {
 
 ```tsx
 function PWAUpdateNotification() {
-  const [showUpdate, setShowUpdate] = useState(false)
+  const [showUpdate, setShowUpdate] = useState(false);
 
   useEffect(() => {
-    if (!('serviceWorker' in navigator)) return
+    if (!('serviceWorker' in navigator)) return;
 
     navigator.serviceWorker.ready.then((registration) => {
       registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing
-        if (!newWorker) return
+        const newWorker = registration.installing;
+        if (!newWorker) return;
 
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            setShowUpdate(true)
+            setShowUpdate(true);
           }
-        })
-      })
-    })
-  }, [])
+        });
+      });
+    });
+  }, []);
 
-  if (!showUpdate) return null
+  if (!showUpdate) return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 z-50">
@@ -808,17 +812,13 @@ function PWAUpdateNotification() {
           <p className="text-xs text-muted-foreground mt-1">
             Uma nova versão da plataforma está disponível.
           </p>
-          <Button
-            size="sm"
-            className="mt-2 w-full"
-            onClick={() => window.location.reload()}
-          >
+          <Button size="sm" className="mt-2 w-full" onClick={() => window.location.reload()}>
             Atualizar agora
           </Button>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 ```
 
@@ -826,15 +826,15 @@ function PWAUpdateNotification() {
 
 ## 11. Métricas de PWA
 
-| Métrica | Target | Monitorar |
-|---|---|---|
-| Install rate | Track | Quantos instalam a PWA |
-| Standalone usage | Track | % de uso em modo standalone |
-| Offline events | Track | Frequência de desconexões |
-| Degraded mode duration | Minimize | Tempo em modo degradado |
-| Background resume latency | < 2s | Tempo para re-sincronizar |
-| Cache hit rate | > 80% para assets | Eficiência do cache |
-| Service worker update adoption | > 90% em 24h | Velocidade de atualização |
+| Métrica                        | Target            | Monitorar                   |
+| ------------------------------ | ----------------- | --------------------------- |
+| Install rate                   | Track             | Quantos instalam a PWA      |
+| Standalone usage               | Track             | % de uso em modo standalone |
+| Offline events                 | Track             | Frequência de desconexões   |
+| Degraded mode duration         | Minimize          | Tempo em modo degradado     |
+| Background resume latency      | < 2s              | Tempo para re-sincronizar   |
+| Cache hit rate                 | > 80% para assets | Eficiência do cache         |
+| Service worker update adoption | > 90% em 24h      | Velocidade de atualização   |
 
 ---
 

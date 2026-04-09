@@ -31,13 +31,13 @@ capability_gap:
   evidence_of_gap:
     - type: enum [incident, scorecard_deficiency, escalation_pattern, manual_work, missing_coverage]
       description: string
-      frequency: string          # how often this gap manifests
+      frequency: string # how often this gap manifests
   current_workaround: string
-  workaround_cost: string        # time, risk, or quality cost of workaround
+  workaround_cost: string # time, risk, or quality cost of workaround
   clinical_impact: string
   proposed_resolution:
     enum: [new_agent, capability_expansion, process_change, human_escalation]
-  if_new_agent: string           # preliminary description of proposed agent
+  if_new_agent: string # preliminary description of proposed agent
 ```
 
 If the proposed resolution is `new_agent`, the gap owner files a Request for Comments (RFC) with the Agent Factory Office.
@@ -53,6 +53,7 @@ The Agent Factory Manager Agent reviews the RFC against five criteria:
 5. **Capacity:** Does the requesting office have capacity to onboard a new agent?
 
 RFC review produces one of:
+
 - **Approved:** Proceed to Step 3
 - **Revise and resubmit:** RFC has addressable gaps
 - **Declined:** Gap should be addressed differently (capability expansion, process change)
@@ -65,7 +66,7 @@ rfc:
   filed_at: datetime
   office: string
   gap_id: string
-  proposed_agent_name: string    # preliminary — naming committee will validate
+  proposed_agent_name: string # preliminary — naming committee will validate
   proposed_role_type: string
   proposed_purpose: string
   proposed_scope: list<string>
@@ -76,7 +77,7 @@ rfc:
   dependencies: list<string>
   estimated_shadow_duration_weeks: int
   clinical_or_financial: bool
-  sponsor: string                # office manager sponsoring the RFC
+  sponsor: string # office manager sponsoring the RFC
   review_status: enum [pending, approved, revise_resubmit, declined, deferred]
   review_notes: string
   approved_by: string
@@ -88,6 +89,7 @@ rfc:
 Before any further work, the proposed agent name is submitted to the Naming Governance Office for validation.
 
 **Naming requirements (from the institutional naming standard):**
+
 - Pattern: `{office-slug}/{role-type}-{function}-agent`
 - Office slug must be one of the 23 canonical office slugs
 - Role type must be one of: `manager`, `coordinator`, `specialist`, `validator`, `auditor`, `watchdog`, `trainer`
@@ -96,11 +98,13 @@ Before any further work, the proposed agent name is submitted to the Naming Gove
 - Naming committee reviews name for: pattern compliance, uniqueness, clarity, domain alignment
 
 **Examples of valid names:**
+
 - `platform-office/infrastructure-specialist-agent`
 - `security-office/vulnerability-auditor-agent`
 - `clinical-office/discharge-coordinator-agent`
 
 **Examples of invalid names:**
+
 - `ops-agent` (no office, no role type, no function)
 - `clinical-office/manager-agent` (no function — which manager?)
 - `platform-office/infra-util-agent` (abbreviation, generic function)
@@ -112,6 +116,7 @@ The Naming Committee (convened by the Naming Governance Office) has 48 hours to 
 With an approved name and RFC, the Agent Factory begins drafting the full runtime contract per the schema defined in the Agent Runtime Contracts document.
 
 Contract drafting involves:
+
 - Detailed scope and non-scope definition (with the sponsoring office)
 - Input/output interface definition
 - Dependency mapping (confirming all dependencies exist and are willing to interface)
@@ -121,6 +126,7 @@ Contract drafting involves:
 - Scorecard metric selection and threshold setting
 
 The contract draft is reviewed by:
+
 - Sponsoring office manager
 - ARB Agent (for design adequacy)
 - Security Office (for permission scope)
@@ -141,6 +147,7 @@ The permission scoping process:
 7. Submit permission scope for Security Office review
 
 The Security Office has veto authority over permission grants. If the Security Office determines that the minimum viable permission set is still too broad for the risk class, it can:
+
 - Recommend redesigning the agent's scope to reduce permissions
 - Recommend adding compensating controls (additional validators, monitoring)
 - Block the RFC pending redesign
@@ -148,6 +155,7 @@ The Security Office has veto authority over permission grants. If the Security O
 ### Step 6: Dependency Mapping
 
 Every dependency the new agent requires must be:
+
 - Confirmed to exist and be operational
 - Willing to accept the interface the new agent will use (confirmed by the dependency's office manager)
 - Documented with its schema reference, SLA, and failure behavior
@@ -163,7 +171,7 @@ dependency_map:
       confirmed_by: string
       interface_schema: string
       sla: string
-      failure_behavior: string          # what happens if this dependency is unavailable
+      failure_behavior: string # what happens if this dependency is unavailable
       circuit_breaker_strategy: string
 ```
 
@@ -172,6 +180,7 @@ Unconfirmed dependencies are a blocker to sandbox promotion. No agent enters san
 ### Step 7: Validator and Auditor Assignment
 
 Validators and auditors are named in the contract. Before the contract is approved, each assigned validator and auditor must:
+
 1. Confirm they have the domain competence to validate/audit this agent's work
 2. Confirm they are not in a reporting relationship with the producing agent
 3. Confirm they have capacity to accept validation/audit requests from this agent
@@ -184,6 +193,7 @@ If no suitable validator exists for a novel domain, the Agent Factory may need t
 The sponsoring office implements the agent in the `velya-sandbox` environment. The Agent Factory does not implement agents — it reviews them.
 
 During sandbox, the Agent Factory monitors:
+
 - Does the agent stay within its declared scope?
 - Does the agent produce the declared output formats?
 - Does the agent generate complete evidence packages?
@@ -191,6 +201,7 @@ During sandbox, the Agent Factory monitors:
 - Does the agent respect its permission boundaries?
 
 Sandbox test requirements:
+
 - All allowed actions exercised at least 3 times
 - All forbidden actions attempted and blocked (confirms constraints work)
 - All failure modes tested (dependency unavailable, invalid input, timeout)
@@ -204,6 +215,7 @@ Test report filed by the implementing team; reviewed by the Agent Factory Manage
 Following sandbox success, the agent is deployed to the production environment in shadow mode.
 
 Shadow deployment checklist:
+
 - Production permissions provisioned at read level
 - Shadow NATS subjects configured (separate from production topics)
 - Watchdog assigned and confirmed operational
@@ -214,15 +226,16 @@ Shadow deployment checklist:
 
 During shadow, the Agent Factory tracks the comparison metrics:
 
-| Metric | Standard | Clinical/Financial |
-|---|---|---|
-| Output accuracy vs. reference | >92% | >95% |
-| Scenario coverage | 100% of scope task types | 100% |
-| Evidence completeness | >95% | >99% |
-| Forbidden action rate | 0% | 0% |
-| SLA adherence in shadow | >85% | >90% |
+| Metric                        | Standard                 | Clinical/Financial |
+| ----------------------------- | ------------------------ | ------------------ |
+| Output accuracy vs. reference | >92%                     | >95%               |
+| Scenario coverage             | 100% of scope task types | 100%               |
+| Evidence completeness         | >95%                     | >99%               |
+| Forbidden action rate         | 0%                       | 0%                 |
+| SLA adherence in shadow       | >85%                     | >90%               |
 
 The comparison framework logs every shadow output alongside the reference output (incumbent agent or human decision) and flags discrepancies for review. All discrepancies are categorized:
+
 - **True error:** Agent is genuinely wrong
 - **Reference error:** Reference output is wrong (agent is actually correct)
 - **Ambiguous:** Both responses have merit — requires expert review
@@ -230,21 +243,22 @@ The comparison framework logs every shadow output alongside the reference output
 
 ### Step 11: Shadow Period Exit Criteria
 
-| Criterion | Standard Agent | Clinical/Financial/Security Agent |
-|---|---|---|
-| Minimum shadow duration | 2 weeks | 4 weeks |
-| Output accuracy | >92% | >95% |
-| All scope task types covered | Yes | Yes |
-| Forbidden action incidents | 0 | 0 |
-| Evidence completeness | >95% | >99% |
-| Watchdog: no behavioral anomalies | Yes | Yes |
-| Office Manager approval | Yes | Yes |
-| Compliance Office review | Not required | Required |
-| Clinical stakeholder sample review | Not required | Required for clinical |
+| Criterion                          | Standard Agent | Clinical/Financial/Security Agent |
+| ---------------------------------- | -------------- | --------------------------------- |
+| Minimum shadow duration            | 2 weeks        | 4 weeks                           |
+| Output accuracy                    | >92%           | >95%                              |
+| All scope task types covered       | Yes            | Yes                               |
+| Forbidden action incidents         | 0              | 0                                 |
+| Evidence completeness              | >95%           | >99%                              |
+| Watchdog: no behavioral anomalies  | Yes            | Yes                               |
+| Office Manager approval            | Yes            | Yes                               |
+| Compliance Office review           | Not required   | Required                          |
+| Clinical stakeholder sample review | Not required   | Required for clinical             |
 
 ### Step 12: Probation Promotion
 
 Following shadow exit, the agent is promoted to Probation. The Agent Factory:
+
 - Updates the contract lifecycle stage to `probation`
 - Provisions full production permissions per the approved contract
 - Configures the probation supervision layer (designates human or senior-agent supervisor)
@@ -254,12 +268,14 @@ Following shadow exit, the agent is promoted to Probation. The Agent Factory:
 ### Step 13: Probation Monitoring
 
 The Agent Factory maintains active monitoring during probation:
+
 - Weekly probation review meeting (Factory Manager + Office Manager + Probation Supervisor)
 - Scorecard review at end of each week
 - All corrections reviewed by Factory Manager (are they systematic or one-off?)
 - Go/no-go recommendation to Executive at end of probation period
 
 Probation extension criteria (extends by 2 additional weeks):
+
 - Human supervisor overrides more than 10% of outputs in any 2-week window
 - Any quarantine event during probation
 - Scorecard falls below Yellow in any metric during final 2 weeks
@@ -284,11 +300,12 @@ activation_recommendation:
     discrepancy_categories: object
   recommendation: enum [activate, extend_probation, return_to_sandbox, retire]
   justification: string
-  conditions: list<string>        # any conditions on activation
+  conditions: list<string> # any conditions on activation
   approved_by: list<string>
 ```
 
 Upon activation approval:
+
 - Contract updated to `lifecycle_stage: active`
 - Human oversight removed (or reduced to break-glass)
 - Activation announced to all dependent agents and offices
@@ -297,6 +314,7 @@ Upon activation approval:
 ### Step 15: Supervised Probation Review — 30-Day Post-Activation
 
 At 30 days after activation, the Factory Manager conducts a final review:
+
 - Is the agent performing autonomously as expected?
 - Are there any new failure modes discovered without supervision?
 - Is the validator chain functioning correctly?
@@ -326,16 +344,16 @@ The `agent-factory/factory-manager-agent` is responsible for:
 
 ## 4. Quality Gates
 
-| Gate | Metric | Failure Consequence |
-|---|---|---|
-| RFC Gate | All 5 review criteria met | RFC returned or declined |
-| Naming Gate | Name complies with standard | Contract cannot proceed |
-| Permission Gate | Security Office approval | Contract cannot proceed |
-| Dependency Gate | All dependencies confirmed | Sandbox cannot proceed |
-| Sandbox Gate | All tests pass | Shadow cannot proceed |
-| Shadow Gate | Exit criteria met | Probation cannot proceed |
-| Probation Gate | Human supervisor approval | Activation cannot proceed |
-| Post-Activation Gate | 30-day review clear | Factory flags for monitoring |
+| Gate                 | Metric                      | Failure Consequence          |
+| -------------------- | --------------------------- | ---------------------------- |
+| RFC Gate             | All 5 review criteria met   | RFC returned or declined     |
+| Naming Gate          | Name complies with standard | Contract cannot proceed      |
+| Permission Gate      | Security Office approval    | Contract cannot proceed      |
+| Dependency Gate      | All dependencies confirmed  | Sandbox cannot proceed       |
+| Sandbox Gate         | All tests pass              | Shadow cannot proceed        |
+| Shadow Gate          | Exit criteria met           | Probation cannot proceed     |
+| Probation Gate       | Human supervisor approval   | Activation cannot proceed    |
+| Post-Activation Gate | 30-day review clear         | Factory flags for monitoring |
 
 **A gate failure does not block the pipeline permanently.** It returns work to the appropriate step for remediation. But each gate failure is tracked on the Factory's quality scorecard — repeated gate failures on the same agent indicate a design problem that may require RFC revision.
 
@@ -344,6 +362,7 @@ The `agent-factory/factory-manager-agent` is responsible for:
 ## 5. Naming Committee
 
 The Naming Committee is convened by the Naming Governance Office for each new agent name review. Composition:
+
 - Naming Governance Manager (chair)
 - Agent Factory Manager
 - Sponsoring office manager
@@ -359,13 +378,13 @@ The committee maintains the **canonical agent name registry**: a complete, up-to
 
 The Agent Factory enforces enterprise capacity limits to prevent workforce bloat:
 
-| Limit | Threshold | Action When Exceeded |
-|---|---|---|
-| Maximum agents in Sandbox simultaneously | 10 | New RFC must be deferred or existing sandbox must exit |
-| Maximum agents in Shadow simultaneously | 15 | New probation promotion requires Executive approval |
-| Maximum agents in Probation simultaneously | 8 | New RFC deferred until probation count drops |
-| Maximum total active agents per office | 20 | Office must propose retirements before new agents approved |
-| Maximum agent/office ratio | 25:1 | New agents require restructuring plan |
+| Limit                                      | Threshold | Action When Exceeded                                       |
+| ------------------------------------------ | --------- | ---------------------------------------------------------- |
+| Maximum agents in Sandbox simultaneously   | 10        | New RFC must be deferred or existing sandbox must exit     |
+| Maximum agents in Shadow simultaneously    | 15        | New probation promotion requires Executive approval        |
+| Maximum agents in Probation simultaneously | 8         | New RFC deferred until probation count drops               |
+| Maximum total active agents per office     | 20        | Office must propose retirements before new agents approved |
+| Maximum agent/office ratio                 | 25:1      | New agents require restructuring plan                      |
 
 Capacity limits exist because each new agent adds: monitoring overhead, watchdog coverage requirements, validator capacity needs, and institutional memory complexity. Unbounded agent growth degrades enterprise governance quality.
 

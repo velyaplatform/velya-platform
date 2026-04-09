@@ -6,13 +6,17 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const firingAlerts = body.alerts?.filter((a: { status: string }) => a.status === 'firing') || [];
-    const maxSeverity = firingAlerts.reduce((max: string, a: { labels?: { severity?: string } }) => {
-      const sev = a.labels?.severity || 'info';
-      if (sev === 'critical') return 'critical';
-      if (sev === 'warning' && max !== 'critical') return 'warning';
-      return max;
-    }, 'info');
+    const firingAlerts =
+      body.alerts?.filter((a: { status: string }) => a.status === 'firing') || [];
+    const maxSeverity = firingAlerts.reduce(
+      (max: string, a: { labels?: { severity?: string } }) => {
+        const sev = a.labels?.severity || 'info';
+        if (sev === 'critical') return 'critical';
+        if (sev === 'warning' && max !== 'critical') return 'warning';
+        return max;
+      },
+      'info',
+    );
 
     const stored = appendEvent('alert', {
       timestamp: body.receivedAt || new Date().toISOString(),
@@ -29,22 +33,26 @@ export async function POST(request: NextRequest) {
     });
 
     // Log structured alert
-    console.log(JSON.stringify({
-      level: firingAlerts.length > 0 ? 'warn' : 'info',
-      service: 'velya-web',
-      event: 'alertmanager_webhook',
-      status: body.status,
-      receiver: body.receiver,
-      alertCount: body.alerts?.length || 0,
-      firingCount: firingAlerts.length,
-      eventId: stored.id,
-      alerts: firingAlerts.map((a: { labels?: { alertname?: string; severity?: string; namespace?: string } }) => ({
-        name: a.labels?.alertname,
-        severity: a.labels?.severity,
-        namespace: a.labels?.namespace,
-      })),
-      timestamp: stored.receivedAt,
-    }));
+    console.log(
+      JSON.stringify({
+        level: firingAlerts.length > 0 ? 'warn' : 'info',
+        service: 'velya-web',
+        event: 'alertmanager_webhook',
+        status: body.status,
+        receiver: body.receiver,
+        alertCount: body.alerts?.length || 0,
+        firingCount: firingAlerts.length,
+        eventId: stored.id,
+        alerts: firingAlerts.map(
+          (a: { labels?: { alertname?: string; severity?: string; namespace?: string } }) => ({
+            name: a.labels?.alertname,
+            severity: a.labels?.severity,
+            namespace: a.labels?.namespace,
+          }),
+        ),
+        timestamp: stored.receivedAt,
+      }),
+    );
 
     audit({
       category: 'infra',
@@ -87,7 +95,7 @@ export async function GET(request: NextRequest) {
 
   const { events, total } = getEvents('alert', { severity, source, limit, since, unackedOnly });
 
-  const firing = events.filter(e => (e.data as { status?: string }).status === 'firing').length;
+  const firing = events.filter((e) => (e.data as { status?: string }).status === 'firing').length;
 
   return NextResponse.json({
     alerts: events,

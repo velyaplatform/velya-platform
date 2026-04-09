@@ -376,124 +376,124 @@ const eventCategoryMapping: Record<WorkEventType, WorkEventCategory> = {
 
 ### 4.1 Entrada/Acolhimento (10 tipos)
 
-| Tipo | Categoria | Papel Principal | Campos Adicionais Obrigatorios |
-|---|---|---|---|
-| chegada_paciente | operacional | Recepcao | hora_chegada, tipo_atendimento |
-| cadastro_paciente | operacional | Cadastrista | dados_demograficos, convenio |
-| classificacao_risco | assistencial | Enfermeiro | protocolo_manchester, cor, queixa |
-| alocacao_atendimento | operacional | Recepcao/Sistema | area_destino, prioridade |
-| triagem | assistencial | Enfermeiro | sinais_vitais, queixa_principal |
-| abertura_atendimento | operacional | Recepcao | tipo_atendimento, guia |
-| verificacao_elegibilidade | administrativo | Recepcao | convenio, resultado |
-| autorizacao_convenio | administrativo | Faturamento | numero_autorizacao, validade |
-| atualizacao_cadastro | operacional | Cadastrista | campos_alterados |
-| reclassificacao_risco | assistencial | Enfermeiro | motivo, nova_cor |
+| Tipo                      | Categoria      | Papel Principal  | Campos Adicionais Obrigatorios    |
+| ------------------------- | -------------- | ---------------- | --------------------------------- |
+| chegada_paciente          | operacional    | Recepcao         | hora_chegada, tipo_atendimento    |
+| cadastro_paciente         | operacional    | Cadastrista      | dados_demograficos, convenio      |
+| classificacao_risco       | assistencial   | Enfermeiro       | protocolo_manchester, cor, queixa |
+| alocacao_atendimento      | operacional    | Recepcao/Sistema | area_destino, prioridade          |
+| triagem                   | assistencial   | Enfermeiro       | sinais_vitais, queixa_principal   |
+| abertura_atendimento      | operacional    | Recepcao         | tipo_atendimento, guia            |
+| verificacao_elegibilidade | administrativo | Recepcao         | convenio, resultado               |
+| autorizacao_convenio      | administrativo | Faturamento      | numero_autorizacao, validade      |
+| atualizacao_cadastro      | operacional    | Cadastrista      | campos_alterados                  |
+| reclassificacao_risco     | assistencial   | Enfermeiro       | motivo, nova_cor                  |
 
 ### 4.2 Assistencia Clinica (32 tipos)
 
-| Tipo | Categoria | Papel Principal | Campos Adicionais Obrigatorios |
-|---|---|---|---|
-| avaliacao_inicial | assistencial | Medico/Enfermeiro | tipo_avaliacao, achados |
-| evolucao_medica | assistencial | Medico | conteudo_estruturado, diagnosticos |
-| evolucao_enfermagem | assistencial | Enfermeiro | diagnosticos_enfermagem, intervencoes |
-| prescricao_medica | assistencial | Medico | itens_prescritos, vigencia |
-| administracao_medicamento | assistencial | Tec. Enfermagem | medicamento, dose, via, horario |
-| coleta_material | apoio | Tec. Laboratorio | tipo_material, tubo, paciente |
-| resultado_exame | apoio | Lab/Imagem | exame, resultado, referencia |
-| comunicacao_valor_critico | comunicacao | Lab | valor, exame, receptor, confirmacao |
-| procedimento | assistencial | Medico/Enfermeiro | tipo, local, duracao |
-| cirurgia | assistencial | Cirurgiao | tipo, duracao, equipe, anestesia |
-| interconsulta_solicitacao | comunicacao | Medico | especialidade, motivo, urgencia |
-| alta_medica | assistencial | Medico | tipo_alta, condicoes, orientacoes |
-| transferencia_interna | handoff | Medico/Enfermeiro | origem, destino, motivo, SBAR |
-| obito | assistencial | Medico | hora, causa, CID |
+| Tipo                      | Categoria    | Papel Principal   | Campos Adicionais Obrigatorios        |
+| ------------------------- | ------------ | ----------------- | ------------------------------------- |
+| avaliacao_inicial         | assistencial | Medico/Enfermeiro | tipo_avaliacao, achados               |
+| evolucao_medica           | assistencial | Medico            | conteudo_estruturado, diagnosticos    |
+| evolucao_enfermagem       | assistencial | Enfermeiro        | diagnosticos_enfermagem, intervencoes |
+| prescricao_medica         | assistencial | Medico            | itens_prescritos, vigencia            |
+| administracao_medicamento | assistencial | Tec. Enfermagem   | medicamento, dose, via, horario       |
+| coleta_material           | apoio        | Tec. Laboratorio  | tipo_material, tubo, paciente         |
+| resultado_exame           | apoio        | Lab/Imagem        | exame, resultado, referencia          |
+| comunicacao_valor_critico | comunicacao  | Lab               | valor, exame, receptor, confirmacao   |
+| procedimento              | assistencial | Medico/Enfermeiro | tipo, local, duracao                  |
+| cirurgia                  | assistencial | Cirurgiao         | tipo, duracao, equipe, anestesia      |
+| interconsulta_solicitacao | comunicacao  | Medico            | especialidade, motivo, urgencia       |
+| alta_medica               | assistencial | Medico            | tipo_alta, condicoes, orientacoes     |
+| transferencia_interna     | handoff      | Medico/Enfermeiro | origem, destino, motivo, SBAR         |
+| obito                     | assistencial | Medico            | hora, causa, CID                      |
 
 ### 4.3 Apoio ao Paciente (15 tipos)
 
-| Tipo | Categoria | Papel Principal | Campos Adicionais Obrigatorios |
-|---|---|---|---|
-| chamada_paciente | comunicacao | Paciente/Acompanhante | tipo_chamada, leito |
-| resposta_chamada | comunicacao | Enfermagem | tempo_resposta, acao |
-| avaliacao_dor | assistencial | Enfermagem | escala, intensidade, local |
-| transporte_paciente | transporte | Maqueiro | origem, destino, tipo, restricoes |
-| entrega_dieta | apoio | Nutricao Op | tipo_dieta, horario, aceite |
+| Tipo                | Categoria    | Papel Principal       | Campos Adicionais Obrigatorios    |
+| ------------------- | ------------ | --------------------- | --------------------------------- |
+| chamada_paciente    | comunicacao  | Paciente/Acompanhante | tipo_chamada, leito               |
+| resposta_chamada    | comunicacao  | Enfermagem            | tempo_resposta, acao              |
+| avaliacao_dor       | assistencial | Enfermagem            | escala, intensidade, local        |
+| transporte_paciente | transporte   | Maqueiro              | origem, destino, tipo, restricoes |
+| entrega_dieta       | apoio        | Nutricao Op           | tipo_dieta, horario, aceite       |
 
 ### 4.4 Limpeza/Higienizacao (9 tipos)
 
-| Tipo | Categoria | Papel Principal | Campos Adicionais Obrigatorios |
-|---|---|---|---|
-| acionamento_limpeza | higiene | Enfermagem/Sistema | tipo_limpeza, local, prioridade |
-| chegada_limpeza | higiene | Higienizacao | tempo_resposta |
-| execucao_limpeza | higiene | Higienizacao | produtos, tecnica, duracao |
-| liberacao_limpeza | higiene | Higienizacao | conferencia, liberado_por |
-| limpeza_terminal | higiene | Higienizacao | motivo_terminal, checklist |
-| limpeza_concorrente | higiene | Higienizacao | areas_cobertas |
-| limpeza_imediata | higiene | Higienizacao | motivo, tipo_contaminacao |
-| limpeza_area_critica | higiene | Higienizacao | area, protocolo_especial |
-| desinfeccao | higiene | Higienizacao | agente, concentracao, tempo_contato |
+| Tipo                 | Categoria | Papel Principal    | Campos Adicionais Obrigatorios      |
+| -------------------- | --------- | ------------------ | ----------------------------------- |
+| acionamento_limpeza  | higiene   | Enfermagem/Sistema | tipo_limpeza, local, prioridade     |
+| chegada_limpeza      | higiene   | Higienizacao       | tempo_resposta                      |
+| execucao_limpeza     | higiene   | Higienizacao       | produtos, tecnica, duracao          |
+| liberacao_limpeza    | higiene   | Higienizacao       | conferencia, liberado_por           |
+| limpeza_terminal     | higiene   | Higienizacao       | motivo_terminal, checklist          |
+| limpeza_concorrente  | higiene   | Higienizacao       | areas_cobertas                      |
+| limpeza_imediata     | higiene   | Higienizacao       | motivo, tipo_contaminacao           |
+| limpeza_area_critica | higiene   | Higienizacao       | area, protocolo_especial            |
+| desinfeccao          | higiene   | Higienizacao       | agente, concentracao, tempo_contato |
 
 ### 4.5 Manutencao (9 tipos)
 
-| Tipo | Categoria | Papel Principal | Campos Adicionais |
-|---|---|---|---|
-| chamado_manutencao | manutencao | Qualquer | equipamento, defeito, urgencia |
-| inicio_manutencao | manutencao | Tec. Manutencao | diagnostico_tecnico |
-| execucao_manutencao | manutencao | Tec. Manutencao | servico_realizado, pecas |
-| conclusao_manutencao | manutencao | Tec. Manutencao | status_final, teste |
+| Tipo                          | Categoria  | Papel Principal | Campos Adicionais              |
+| ----------------------------- | ---------- | --------------- | ------------------------------ |
+| chamado_manutencao            | manutencao | Qualquer        | equipamento, defeito, urgencia |
+| inicio_manutencao             | manutencao | Tec. Manutencao | diagnostico_tecnico            |
+| execucao_manutencao           | manutencao | Tec. Manutencao | servico_realizado, pecas       |
+| conclusao_manutencao          | manutencao | Tec. Manutencao | status_final, teste            |
 | indisponibilidade_equipamento | manutencao | Tec. Manutencao | equipamento, impacto, previsao |
 
 ### 4.6 Transporte (7 tipos)
 
-| Tipo | Categoria | Campos Adicionais |
-|---|---|---|
+| Tipo                   | Categoria  | Campos Adicionais                       |
+| ---------------------- | ---------- | --------------------------------------- |
 | acionamento_transporte | transporte | origem, destino, prioridade, restricoes |
-| aceite_transporte | transporte | maqueiro_id, previsao |
-| saida_transporte | transporte | hora_saida, acompanhantes |
-| chegada_transporte | transporte | hora_chegada, condicao_paciente |
-| transferencia_custodia | transporte | de_quem, para_quem, aceite |
-| recusa_transporte | transporte | motivo, alternativa |
-| atraso_transporte | transporte | motivo, nova_previsao |
+| aceite_transporte      | transporte | maqueiro_id, previsao                   |
+| saida_transporte       | transporte | hora_saida, acompanhantes               |
+| chegada_transporte     | transporte | hora_chegada, condicao_paciente         |
+| transferencia_custodia | transporte | de_quem, para_quem, aceite              |
+| recusa_transporte      | transporte | motivo, alternativa                     |
+| atraso_transporte      | transporte | motivo, nova_previsao                   |
 
 ### 4.7 Auditoria/Sessao (13 tipos)
 
-| Tipo | Categoria | Detalhes |
-|---|---|---|
-| login | auditoria | metodo, dispositivo, unidade, ip |
-| logout | auditoria | motivo, duracao_sessao |
-| troca_usuario | auditoria | usuario_saiu, usuario_entrou |
-| acesso_prontuario | auditoria | paciente, motivo, relacao |
-| break_glass | auditoria | justificativa, paciente, duracao |
-| edicao_registro | correcao | registro_original, campo, valor_antigo, valor_novo |
-| correcao_registro | correcao | justificativa, aprovador |
-| assinatura_digital | validacao | documento, tipo_assinatura, certificado |
-| cancelamento | correcao | item_cancelado, motivo |
-| exportacao_dados | auditoria | tipo_dado, quantidade, formato, destino |
-| visualizacao_sensivel | auditoria | dado_acessado, justificativa |
-| falha_autenticacao | auditoria | motivo, tentativa_numero |
-| impressao_documento | auditoria | documento, impressora, copias |
+| Tipo                  | Categoria | Detalhes                                           |
+| --------------------- | --------- | -------------------------------------------------- |
+| login                 | auditoria | metodo, dispositivo, unidade, ip                   |
+| logout                | auditoria | motivo, duracao_sessao                             |
+| troca_usuario         | auditoria | usuario_saiu, usuario_entrou                       |
+| acesso_prontuario     | auditoria | paciente, motivo, relacao                          |
+| break_glass           | auditoria | justificativa, paciente, duracao                   |
+| edicao_registro       | correcao  | registro_original, campo, valor_antigo, valor_novo |
+| correcao_registro     | correcao  | justificativa, aprovador                           |
+| assinatura_digital    | validacao | documento, tipo_assinatura, certificado            |
+| cancelamento          | correcao  | item_cancelado, motivo                             |
+| exportacao_dados      | auditoria | tipo_dado, quantidade, formato, destino            |
+| visualizacao_sensivel | auditoria | dado_acessado, justificativa                       |
+| falha_autenticacao    | auditoria | motivo, tentativa_numero                           |
+| impressao_documento   | auditoria | documento, impressora, copias                      |
 
 ---
 
 ## 5. Contagem Total
 
-| Grupo Funcional | Quantidade de Tipos |
-|---|---|
-| Entrada/Acolhimento | 10 |
-| Assistencia Clinica | 32 |
-| Apoio ao Paciente | 15 |
-| Limpeza/Higienizacao | 9 |
-| Manutencao | 9 |
-| Transporte | 7 |
-| Central de Leitos | 7 |
-| Seguranca | 5 |
-| TI | 6 |
-| Farmacia | 6 |
-| Nutricao | 4 |
-| Operacao/Fluxo | 8 |
-| Auditoria/Sessao | 13 |
-| Qualidade/Seguranca Paciente | 6 |
-| Faturamento | 4 |
-| **TOTAL** | **141** |
+| Grupo Funcional              | Quantidade de Tipos |
+| ---------------------------- | ------------------- |
+| Entrada/Acolhimento          | 10                  |
+| Assistencia Clinica          | 32                  |
+| Apoio ao Paciente            | 15                  |
+| Limpeza/Higienizacao         | 9                   |
+| Manutencao                   | 9                   |
+| Transporte                   | 7                   |
+| Central de Leitos            | 7                   |
+| Seguranca                    | 5                   |
+| TI                           | 6                   |
+| Farmacia                     | 6                   |
+| Nutricao                     | 4                   |
+| Operacao/Fluxo               | 8                   |
+| Auditoria/Sessao             | 13                  |
+| Qualidade/Seguranca Paciente | 6                   |
+| Faturamento                  | 4                   |
+| **TOTAL**                    | **141**             |
 
 ---
 
@@ -515,6 +515,7 @@ interface ExtendedWorkEvent extends WorkEvent {
 ```
 
 Novos tipos devem ser propostos via PR com:
+
 1. Definicao do tipo no enum
 2. Mapeamento para categoria
 3. Campos obrigatorios adicionais

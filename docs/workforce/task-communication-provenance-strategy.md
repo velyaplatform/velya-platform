@@ -6,14 +6,14 @@
 
 O modelo de dados da Velya utiliza recursos FHIR R4 como unidade fundamental de representacao. Seis recursos formam o nucleo da estrategia de rastreabilidade:
 
-| Recurso FHIR | Papel na Velya |
-|---|---|
-| **Task** | Atribuicao, execucao e conclusao de trabalho |
+| Recurso FHIR      | Papel na Velya                                            |
+| ----------------- | --------------------------------------------------------- |
+| **Task**          | Atribuicao, execucao e conclusao de trabalho              |
 | **Communication** | Acionamentos, retornos e notificacoes entre profissionais |
-| **CareTeam** | Contexto de equipe — quem cuida de quem |
-| **Encounter** | Contexto do encontro — internacao, consulta, emergencia |
-| **Provenance** | Autoria e integridade — quem criou/alterou cada recurso |
-| **AuditEvent** | Trilha de acesso — quem acessou o que e quando |
+| **CareTeam**      | Contexto de equipe — quem cuida de quem                   |
+| **Encounter**     | Contexto do encontro — internacao, consulta, emergencia   |
+| **Provenance**    | Autoria e integridade — quem criou/alterou cada recurso   |
+| **AuditEvent**    | Trilha de acesso — quem acessou o que e quando            |
 
 ### 1.1 Diagrama de Interconexao
 
@@ -63,19 +63,19 @@ draft → requested → received → accepted → in-progress → completed
 
 ### 2.3 Tipos de Task na Velya
 
-| Tipo | Descricao | Exemplo |
-|---|---|---|
-| `handoff` | Transferencia de responsabilidade | Handoff de turno |
-| `medication-admin` | Administracao de medicamento | Aplicar insulina |
-| `assessment` | Avaliacao/registro | Sinais vitais, dor |
-| `procedure` | Procedimento | Troca de curativo |
-| `lab-collection` | Coleta de exame | Coleta de sangue |
-| `documentation` | Documentacao | Evolucao de enfermagem |
-| `signature` | Assinatura digital | Assinar evolucao medica |
-| `consultation` | Interconsulta | Avaliacao cardiologica |
-| `discharge-step` | Etapa de alta | Orientacao de alta |
-| `transport` | Transporte do paciente | Levar ao RX |
-| `notification` | Notificacao acionavel | Resultado critico |
+| Tipo               | Descricao                         | Exemplo                 |
+| ------------------ | --------------------------------- | ----------------------- |
+| `handoff`          | Transferencia de responsabilidade | Handoff de turno        |
+| `medication-admin` | Administracao de medicamento      | Aplicar insulina        |
+| `assessment`       | Avaliacao/registro                | Sinais vitais, dor      |
+| `procedure`        | Procedimento                      | Troca de curativo       |
+| `lab-collection`   | Coleta de exame                   | Coleta de sangue        |
+| `documentation`    | Documentacao                      | Evolucao de enfermagem  |
+| `signature`        | Assinatura digital                | Assinar evolucao medica |
+| `consultation`     | Interconsulta                     | Avaliacao cardiologica  |
+| `discharge-step`   | Etapa de alta                     | Orientacao de alta      |
+| `transport`        | Transporte do paciente            | Levar ao RX             |
+| `notification`     | Notificacao acionavel             | Resultado critico       |
 
 ### 2.4 Exemplo FHIR: Task de Administracao de Medicamento
 
@@ -86,9 +86,7 @@ draft → requested → received → accepted → in-progress → completed
   "meta": {
     "versionId": "1",
     "lastUpdated": "2026-04-09T14:00:00Z",
-    "profile": [
-      "http://velya.health/StructureDefinition/VelyaTask"
-    ]
+    "profile": ["http://velya.health/StructureDefinition/VelyaTask"]
   },
   "identifier": [
     {
@@ -291,15 +289,15 @@ O recurso `Communication` registra toda troca de informacao entre profissionais.
 
 ### 3.2 Tipos de Communication na Velya
 
-| Tipo | Descricao | Exemplo |
-|---|---|---|
-| `critical-result-notification` | Comunicacao de resultado critico | Lab comunica K+ = 6.8 ao medico |
-| `clinical-escalation` | Escalacao clinica (SBAR) | Enfermeiro escala deterioracao ao medico |
-| `order-clarification` | Esclarecimento de prescricao | Farmaceutico questiona dose |
-| `care-coordination` | Coordenacao de cuidado | Nutricionista informa troca de dieta |
-| `family-communication` | Comunicacao com familiar | Medico informa boletim |
-| `discharge-instruction` | Orientacao de alta | Instrucoes para o paciente |
-| `safety-alert` | Alerta de seguranca | Sistema detecta interacao medicamentosa |
+| Tipo                           | Descricao                        | Exemplo                                  |
+| ------------------------------ | -------------------------------- | ---------------------------------------- |
+| `critical-result-notification` | Comunicacao de resultado critico | Lab comunica K+ = 6.8 ao medico          |
+| `clinical-escalation`          | Escalacao clinica (SBAR)         | Enfermeiro escala deterioracao ao medico |
+| `order-clarification`          | Esclarecimento de prescricao     | Farmaceutico questiona dose              |
+| `care-coordination`            | Coordenacao de cuidado           | Nutricionista informa troca de dieta     |
+| `family-communication`         | Comunicacao com familiar         | Medico informa boletim                   |
+| `discharge-instruction`        | Orientacao de alta               | Instrucoes para o paciente               |
+| `safety-alert`                 | Alerta de seguranca              | Sistema detecta interacao medicamentosa  |
 
 ### 3.3 Exemplo FHIR: Comunicacao de Resultado Critico
 
@@ -412,7 +410,7 @@ Sender (Lab)  ──── Communication (resultado critico) ────>  Reci
                                                                     │
 Sender (Lab)  <──── Communication (acknowledgement) ────────────────┘
                     inResponseTo = Communication original
-                    
+
 SE acknowledgement NAO recebido em 15 min:
   Sistema gera escalacao automatica
 ```
@@ -548,14 +546,14 @@ O `CareTeam` define quem e responsavel por quem em cada momento. E o recurso cen
 
 O CareTeam e atualizado automaticamente quando:
 
-| Evento | Atualizacao |
-|---|---|
-| Handoff aceito | Troca do membro na funcao correspondente |
-| Interconsulta aceita | Adiciona consultor |
-| Alta de consultoria | Remove consultor (define `period.end`) |
-| Transferencia de unidade | Troca de toda a equipe de enfermagem |
-| Troca de medico responsavel | Troca do `attending-physician` |
-| Inicio de turno | Atualiza enfermeiro/tecnico conforme escala |
+| Evento                      | Atualizacao                                 |
+| --------------------------- | ------------------------------------------- |
+| Handoff aceito              | Troca do membro na funcao correspondente    |
+| Interconsulta aceita        | Adiciona consultor                          |
+| Alta de consultoria         | Remove consultor (define `period.end`)      |
+| Transferencia de unidade    | Troca de toda a equipe de enfermagem        |
+| Troca de medico responsavel | Troca do `attending-physician`              |
+| Inicio de turno             | Atualiza enfermeiro/tecnico conforme escala |
 
 ---
 
@@ -676,14 +674,14 @@ O `Provenance` e o selo de autoria e integridade de cada recurso FHIR. Todo recu
 
 ### 6.2 Quando Gerar Provenance
 
-| Acao | Provenance | Activity |
-|---|---|---|
-| Criacao de recurso | Obrigatorio | `create` |
-| Atualizacao de recurso | Obrigatorio | `update` |
-| Assinatura digital | Obrigatorio | `sign` |
+| Acao                        | Provenance  | Activity |
+| --------------------------- | ----------- | -------- |
+| Criacao de recurso          | Obrigatorio | `create` |
+| Atualizacao de recurso      | Obrigatorio | `update` |
+| Assinatura digital          | Obrigatorio | `sign`   |
 | Importacao de outro sistema | Obrigatorio | `import` |
-| Correcao/amendment | Obrigatorio | `amend` |
-| Anulacao | Obrigatorio | `void` |
+| Correcao/amendment          | Obrigatorio | `amend`  |
+| Anulacao                    | Obrigatorio | `void`   |
 
 ### 6.3 Exemplo FHIR: Provenance de Evolucao Medica
 
@@ -948,16 +946,16 @@ Todos os acessos geram AuditEvent correspondente.
 
 ## 9. Regras de Integridade Referencial
 
-| Regra | Descricao |
-|---|---|
+| Regra                                         | Descricao                                              |
+| --------------------------------------------- | ------------------------------------------------------ |
 | **Todo recurso clinico referencia Encounter** | Nenhum recurso clinico existe sem contexto de encontro |
-| **Todo recurso clinico tem Provenance** | Nenhum recurso existe sem selo de autoria |
-| **Toda Task tem owner** | Nenhuma tarefa existe sem responsavel |
-| **Toda Communication tem sender e recipient** | Nenhuma comunicacao e anonima |
-| **Todo CareTeam member tem periodo** | Inicio e fim de participacao sao rastreados |
-| **Todo AuditEvent tem agent** | Nenhum acesso e sem identificacao |
-| **Task.basedOn aponta para ordem valida** | Tarefas de execucao devem ter ordem correspondente |
-| **Communication.inResponseTo fecha o loop** | Acknowledgements referenciam a comunicacao original |
+| **Todo recurso clinico tem Provenance**       | Nenhum recurso existe sem selo de autoria              |
+| **Toda Task tem owner**                       | Nenhuma tarefa existe sem responsavel                  |
+| **Toda Communication tem sender e recipient** | Nenhuma comunicacao e anonima                          |
+| **Todo CareTeam member tem periodo**          | Inicio e fim de participacao sao rastreados            |
+| **Todo AuditEvent tem agent**                 | Nenhum acesso e sem identificacao                      |
+| **Task.basedOn aponta para ordem valida**     | Tarefas de execucao devem ter ordem correspondente     |
+| **Communication.inResponseTo fecha o loop**   | Acknowledgements referenciam a comunicacao original    |
 
 ---
 
@@ -984,10 +982,10 @@ sum(velya_referential_integrity_violations_total)
 
 ## 11. Consideracoes de Performance
 
-| Aspecto | Estrategia |
-|---|---|
-| **Volume de Provenance** | Um Provenance por recurso criado/alterado. Estimativa: 2-3x o volume de recursos clinicos. |
-| **Volume de AuditEvent** | Alto volume. Particionar por data + tenant. Cold storage apos 1 ano. |
-| **Queries de cadeia** | Indices em `target.reference` e `entity.what.reference` para reconstituicao rapida. |
-| **CareTeam updates** | Atualizacoes frequentes (a cada handoff). Cache em Redis com TTL = turno. |
-| **Communication closed-loop** | Monitor com janela temporal (CEP) para detectar falta de acknowledgement. |
+| Aspecto                       | Estrategia                                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------------------------ |
+| **Volume de Provenance**      | Um Provenance por recurso criado/alterado. Estimativa: 2-3x o volume de recursos clinicos. |
+| **Volume de AuditEvent**      | Alto volume. Particionar por data + tenant. Cold storage apos 1 ano.                       |
+| **Queries de cadeia**         | Indices em `target.reference` e `entity.what.reference` para reconstituicao rapida.        |
+| **CareTeam updates**          | Atualizacoes frequentes (a cada handoff). Cache em Redis com TTL = turno.                  |
+| **Communication closed-loop** | Monitor com janela temporal (CEP) para detectar falta de acknowledgement.                  |

@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   visual-and-auth-test:
-    name: "Visual + Auth Flow Test"
+    name: 'Visual + Auth Flow Test'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

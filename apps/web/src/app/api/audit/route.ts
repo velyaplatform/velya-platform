@@ -14,7 +14,8 @@ export async function POST(request: NextRequest) {
       resource: body.resource || 'unknown',
       result: body.result || 'info',
       details: body.details || {},
-      origin: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+      origin:
+        request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
       clientId: request.headers.get('user-agent') || 'unknown',
       durationMs: body.durationMs,
       statusCode: body.statusCode,

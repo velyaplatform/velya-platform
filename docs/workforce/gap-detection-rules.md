@@ -25,11 +25,11 @@ interface GapDetectionRule {
   // Deteccao
   detection: {
     type: 'query' | 'stream' | 'cron';
-    query?: string;                      // SQL para deteccao por query
-    stream_filter?: string;              // NATS subject para deteccao por stream
-    cron_schedule?: string;              // Cron para deteccao periodica
-    lookback_minutes: number;            // Janela de analise
-    threshold?: number;                  // Limiar para disparo
+    query?: string; // SQL para deteccao por query
+    stream_filter?: string; // NATS subject para deteccao por stream
+    cron_schedule?: string; // Cron para deteccao periodica
+    lookback_minutes: number; // Janela de analise
+    threshold?: number; // Limiar para disparo
   };
 
   // Resposta
@@ -43,29 +43,29 @@ interface GapDetectionRule {
   };
 
   // Contexto
-  applies_to: string[];                 // Departamentos/areas
+  applies_to: string[]; // Departamentos/areas
   active: boolean;
   last_triggered?: string;
 }
 
 enum GapCategory {
-  REPORTE = 'reporte',                   // Falha de reporte
-  HANDOFF = 'handoff',                   // Falha de handoff
-  COMUNICACAO = 'comunicacao',           // Falha de comunicacao
-  EVIDENCIA = 'evidencia',              // Falta de evidencia
-  CORRECAO = 'correcao',                // Correcao irregular
-  ACESSO = 'acesso',                    // Acesso suspeito
-  SESSAO = 'sessao',                    // Anomalia de sessao
-  COBERTURA = 'cobertura',              // Gap de cobertura
-  SLA = 'sla',                          // Estouro de SLA
-  PROCESSO = 'processo',                // Desvio de processo
+  REPORTE = 'reporte', // Falha de reporte
+  HANDOFF = 'handoff', // Falha de handoff
+  COMUNICACAO = 'comunicacao', // Falha de comunicacao
+  EVIDENCIA = 'evidencia', // Falta de evidencia
+  CORRECAO = 'correcao', // Correcao irregular
+  ACESSO = 'acesso', // Acesso suspeito
+  SESSAO = 'sessao', // Anomalia de sessao
+  COBERTURA = 'cobertura', // Gap de cobertura
+  SLA = 'sla', // Estouro de SLA
+  PROCESSO = 'processo', // Desvio de processo
 }
 
 enum GapSeverity {
-  CRITICA = 'critica',                   // Risco imediato, acao em minutos
-  ALTA = 'alta',                         // Risco elevado, acao em horas
-  MEDIA = 'media',                       // Desvio importante, acao em 24h
-  BAIXA = 'baixa',                       // Alerta informativo, revisao periodica
+  CRITICA = 'critica', // Risco imediato, acao em minutos
+  ALTA = 'alta', // Risco elevado, acao em horas
+  MEDIA = 'media', // Desvio importante, acao em 24h
+  BAIXA = 'baixa', // Alerta informativo, revisao periodica
 }
 
 interface AutomatedAction {
@@ -366,7 +366,8 @@ const evidenciaGapRules: GapDetectionRule[] = [
   {
     rule_id: 'GAP-EVD-001',
     name: 'Tarefa fechada sem evidencia minima',
-    description: 'WorkEvent com delivery_status=concluido mas duracao < 1 minuto ou sem campos obrigatorios',
+    description:
+      'WorkEvent com delivery_status=concluido mas duracao < 1 minuto ou sem campos obrigatorios',
     category: GapCategory.EVIDENCIA,
     severity: GapSeverity.MEDIA,
     detection: {
@@ -398,7 +399,8 @@ const evidenciaGapRules: GapDetectionRule[] = [
   {
     rule_id: 'GAP-EVD-002',
     name: 'Texto livre excessivo em vez de estruturado',
-    description: 'Profissional usando campos de texto livre quando estruturado esta disponivel (>70% texto livre)',
+    description:
+      'Profissional usando campos de texto livre quando estruturado esta disponivel (>70% texto livre)',
     category: GapCategory.PROCESSO,
     severity: GapSeverity.BAIXA,
     detection: {
@@ -419,9 +421,7 @@ const evidenciaGapRules: GapDetectionRule[] = [
       lookback_minutes: 1440,
     },
     response: {
-      automated_actions: [
-        { action_type: 'log' },
-      ],
+      automated_actions: [{ action_type: 'log' }],
       notification_targets: ['qualidade', 'ti'],
       dashboard_visibility: true,
       requires_resolution: false,
@@ -531,9 +531,7 @@ const acessoGapRules: GapDetectionRule[] = [
       lookback_minutes: 10,
     },
     response: {
-      automated_actions: [
-        { action_type: 'alert', target: 'ti', channel: 'push' },
-      ],
+      automated_actions: [{ action_type: 'alert', target: 'ti', channel: 'push' }],
       notification_targets: ['ti', 'auditoria'],
       dashboard_visibility: true,
       requires_resolution: true,
@@ -635,9 +633,7 @@ const acessoGapRules: GapDetectionRule[] = [
       lookback_minutes: 1440,
     },
     response: {
-      automated_actions: [
-        { action_type: 'alert', target: 'qualidade', channel: 'email' },
-      ],
+      automated_actions: [{ action_type: 'alert', target: 'qualidade', channel: 'email' }],
       notification_targets: ['qualidade', 'ti'],
       dashboard_visibility: true,
       requires_resolution: false,
@@ -652,23 +648,23 @@ const acessoGapRules: GapDetectionRule[] = [
 
 ## 4. Tabela Consolidada de Regras
 
-| ID | Nome | Categoria | Severidade | Frequencia | Acao |
-|---|---|---|---|---|---|
-| GAP-REP-001 | Atividade sem reporte | Reporte | Alta | 30 min | Alert + Task |
-| GAP-REP-002 | Departamento sem reporte por turno | Reporte | Media | 2h | Alert |
-| GAP-REP-003 | Area recebendo mas nao fechando | Processo | Alta | 30 min | Alert |
-| GAP-HND-001 | Handoff sem aceite | Handoff | Alta | 5 min | Escalate |
-| GAP-HND-002 | Passagem plantao incompleta | Handoff | Critica | Stream | Alert + Block |
-| GAP-COM-001 | Chamado sem resposta | Comunicacao | Alta | 2 min | Alert |
-| GAP-COM-002 | Valor critico sem comunicacao | Comunicacao | Critica | Stream | Escalate + Phone |
-| GAP-EVD-001 | Tarefa fechada sem evidencia | Evidencia | Media | Stream | Log + Task |
-| GAP-EVD-002 | Texto livre excessivo | Processo | Baixa | 6h | Log |
-| GAP-ACE-001 | Acesso sem relacao | Acesso | Alta | Stream | Alert + Log |
-| GAP-ACE-002 | Trocas usuario suspeitas | Sessao | Alta | 15 min | Alert |
-| GAP-ACE-003 | Contextos incompativeis | Sessao | Alta | 10 min | Alert |
-| GAP-ACE-004 | Edicao fora de janela | Correcao | Alta | Stream | Alert + Block |
-| GAP-ACE-005 | Pendencia sem responsavel | Processo | Alta | 15 min | Alert + Task |
-| GAP-ACE-006 | Area sem reporte SLA | Reporte | Media | 4h | Alert |
+| ID          | Nome                               | Categoria   | Severidade | Frequencia | Acao             |
+| ----------- | ---------------------------------- | ----------- | ---------- | ---------- | ---------------- |
+| GAP-REP-001 | Atividade sem reporte              | Reporte     | Alta       | 30 min     | Alert + Task     |
+| GAP-REP-002 | Departamento sem reporte por turno | Reporte     | Media      | 2h         | Alert            |
+| GAP-REP-003 | Area recebendo mas nao fechando    | Processo    | Alta       | 30 min     | Alert            |
+| GAP-HND-001 | Handoff sem aceite                 | Handoff     | Alta       | 5 min      | Escalate         |
+| GAP-HND-002 | Passagem plantao incompleta        | Handoff     | Critica    | Stream     | Alert + Block    |
+| GAP-COM-001 | Chamado sem resposta               | Comunicacao | Alta       | 2 min      | Alert            |
+| GAP-COM-002 | Valor critico sem comunicacao      | Comunicacao | Critica    | Stream     | Escalate + Phone |
+| GAP-EVD-001 | Tarefa fechada sem evidencia       | Evidencia   | Media      | Stream     | Log + Task       |
+| GAP-EVD-002 | Texto livre excessivo              | Processo    | Baixa      | 6h         | Log              |
+| GAP-ACE-001 | Acesso sem relacao                 | Acesso      | Alta       | Stream     | Alert + Log      |
+| GAP-ACE-002 | Trocas usuario suspeitas           | Sessao      | Alta       | 15 min     | Alert            |
+| GAP-ACE-003 | Contextos incompativeis            | Sessao      | Alta       | 10 min     | Alert            |
+| GAP-ACE-004 | Edicao fora de janela              | Correcao    | Alta       | Stream     | Alert + Block    |
+| GAP-ACE-005 | Pendencia sem responsavel          | Processo    | Alta       | 15 min     | Alert + Task     |
+| GAP-ACE-006 | Area sem reporte SLA               | Reporte     | Media      | 4h         | Alert            |
 
 ---
 
@@ -676,10 +672,10 @@ const acessoGapRules: GapDetectionRule[] = [
 
 ```yaml
 subjects:
-  - "velya.gap.detected.{category}.{severity}"
-  - "velya.gap.resolved.{gap_id}"
-  - "velya.gap.escalated.{gap_id}.{level}"
-  - "velya.gap.timeout.{gap_id}"
+  - 'velya.gap.detected.{category}.{severity}'
+  - 'velya.gap.resolved.{gap_id}'
+  - 'velya.gap.escalated.{gap_id}.{level}'
+  - 'velya.gap.timeout.{gap_id}'
 ```
 
 ---
@@ -725,23 +721,23 @@ metrics:
   - name: velya_gaps_detected_total
     type: counter
     labels: [rule_id, category, severity, department]
-    help: "Total de gaps detectados"
+    help: 'Total de gaps detectados'
 
   - name: velya_gaps_active
     type: gauge
     labels: [category, severity, department]
-    help: "Gaps ativos por categoria e severidade"
+    help: 'Gaps ativos por categoria e severidade'
 
   - name: velya_gaps_resolution_time_hours
     type: histogram
     labels: [category, severity]
     buckets: [0.25, 0.5, 1, 2, 4, 8, 12, 24, 48]
-    help: "Tempo de resolucao de gaps em horas"
+    help: 'Tempo de resolucao de gaps em horas'
 
   - name: velya_gaps_sla_breach_total
     type: counter
     labels: [rule_id, department]
-    help: "Total de gaps que estouraram SLA de resolucao"
+    help: 'Total de gaps que estouraram SLA de resolucao'
 ```
 
 ---

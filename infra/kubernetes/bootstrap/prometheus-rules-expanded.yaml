@@ -26,10 +26,10 @@ spec:
             domain: infrastructure
             office: platform-office
           annotations:
-            summary: "Pod {{ $labels.pod }} em CrashLoop no namespace {{ $labels.namespace }}"
-            description: "O container {{ $labels.container }} reiniciou {{ $value }} vezes nos últimos 15 minutos."
-            runbook: "docs/runbooks/service-health-runbook.md"
-            dashboard: "velya-cluster-overview"
+            summary: 'Pod {{ $labels.pod }} em CrashLoop no namespace {{ $labels.namespace }}'
+            description: 'O container {{ $labels.container }} reiniciou {{ $value }} vezes nos últimos 15 minutos.'
+            runbook: 'docs/runbooks/service-health-runbook.md'
+            dashboard: 'velya-cluster-overview'
 
         - alert: VelyaPodOOMKilled
           expr: |
@@ -43,9 +43,9 @@ spec:
             domain: infrastructure
             office: platform-office
           annotations:
-            summary: "Pod {{ $labels.pod }} foi encerrado por OOM no namespace {{ $labels.namespace }}"
-            description: "O container {{ $labels.container }} foi eliminado por falta de memória. Ajuste os resource limits."
-            runbook: "docs/runbooks/service-health-runbook.md"
+            summary: 'Pod {{ $labels.pod }} foi encerrado por OOM no namespace {{ $labels.namespace }}'
+            description: 'O container {{ $labels.container }} foi eliminado por falta de memória. Ajuste os resource limits.'
+            runbook: 'docs/runbooks/service-health-runbook.md'
 
         - alert: VelyaPodPendingLong
           expr: |
@@ -59,8 +59,8 @@ spec:
             domain: infrastructure
             office: platform-office
           annotations:
-            summary: "Pod {{ $labels.pod }} pendente há mais de 10 minutos"
-            description: "Pod no namespace {{ $labels.namespace }} não consegue iniciar. Verificar scheduling, recursos e PVCs."
+            summary: 'Pod {{ $labels.pod }} pendente há mais de 10 minutos'
+            description: 'Pod no namespace {{ $labels.namespace }} não consegue iniciar. Verificar scheduling, recursos e PVCs.'
 
         - alert: VelyaHighRestartRate
           expr: |
@@ -73,8 +73,8 @@ spec:
             domain: infrastructure
             office: platform-office
           annotations:
-            summary: "Taxa alta de restart em {{ $labels.pod }} ({{ $labels.namespace }})"
-            description: "Container {{ $labels.container }} reiniciando mais de 6 vezes por hora."
+            summary: 'Taxa alta de restart em {{ $labels.pod }} ({{ $labels.namespace }})'
+            description: 'Container {{ $labels.container }} reiniciando mais de 6 vezes por hora.'
 
     - name: velya.infrastructure.nodes
       interval: 2m
@@ -88,8 +88,8 @@ spec:
             domain: infrastructure
             office: platform-office
           annotations:
-            summary: "Node {{ $labels.node }} sob pressão de memória"
-            description: "Node em MemoryPressure pode causar eviction de pods críticos."
+            summary: 'Node {{ $labels.node }} sob pressão de memória'
+            description: 'Node em MemoryPressure pode causar eviction de pods críticos.'
 
         - alert: VelyaNodeDiskPressure
           expr: |
@@ -100,7 +100,7 @@ spec:
             domain: infrastructure
             office: platform-office
           annotations:
-            summary: "Node {{ $labels.node }} sob pressão de disco"
+            summary: 'Node {{ $labels.node }} sob pressão de disco'
 
         - alert: VelyaNodeNotReady
           expr: |
@@ -111,7 +111,7 @@ spec:
             domain: infrastructure
             office: platform-office
           annotations:
-            summary: "Node {{ $labels.node }} não está Ready"
+            summary: 'Node {{ $labels.node }} não está Ready'
 
     - name: velya.infrastructure.resources
       interval: 2m
@@ -133,7 +133,7 @@ spec:
             domain: infrastructure
             office: platform-office
           annotations:
-            summary: "Namespace {{ $labels.namespace }} usando > 85% da quota de CPU"
+            summary: 'Namespace {{ $labels.namespace }} usando > 85% da quota de CPU'
 
         - alert: VelyaNamespaceQuotaMemoryHigh
           expr: |
@@ -152,7 +152,7 @@ spec:
             domain: infrastructure
             office: platform-office
           annotations:
-            summary: "Namespace {{ $labels.namespace }} usando > 85% da quota de memória"
+            summary: 'Namespace {{ $labels.namespace }} usando > 85% da quota de memória'
 
 ---
 apiVersion: monitoring.coreos.com/v1
@@ -177,8 +177,8 @@ spec:
             domain: platform
             office: platform-office
           annotations:
-            summary: "KEDA scaler com erros: {{ $labels.scaler }}"
-            description: "ScaledObject {{ $labels.scaledObject }} com erros no scaler {{ $labels.scaler }}. Verificar fonte de métricas."
+            summary: 'KEDA scaler com erros: {{ $labels.scaler }}'
+            description: 'ScaledObject {{ $labels.scaledObject }} com erros no scaler {{ $labels.scaler }}. Verificar fonte de métricas.'
 
         - alert: VelyaKEDAScalingThrash
           expr: |
@@ -189,8 +189,8 @@ spec:
             domain: platform
             office: platform-office
           annotations:
-            summary: "KEDA thrash detectado em {{ $labels.scaledObject }}"
-            description: "Mais de 10 mudanças de scaling em 30 minutos. Verificar calibração do trigger."
+            summary: 'KEDA thrash detectado em {{ $labels.scaledObject }}'
+            description: 'Mais de 10 mudanças de scaling em 30 minutos. Verificar calibração do trigger.'
 
     - name: velya.platform.prometheus
       interval: 2m
@@ -204,8 +204,8 @@ spec:
             domain: platform
             office: reliability-office
           annotations:
-            summary: "Prometheus com alta cardinalidade: {{ $value }} séries"
-            description: "Mais de 800K time series. Risco de OOMKilled. Revisar labels e métricas de alta cardinalidade."
+            summary: 'Prometheus com alta cardinalidade: {{ $value }} séries'
+            description: 'Mais de 800K time series. Risco de OOMKilled. Revisar labels e métricas de alta cardinalidade.'
 
         - alert: VelyaPrometheusScrapeFailing
           expr: |
@@ -216,8 +216,8 @@ spec:
             domain: platform
             office: reliability-office
           annotations:
-            summary: "Scrape falhando para {{ $labels.job }} em {{ $labels.namespace }}"
-            description: "Prometheus não consegue coletar métricas do serviço {{ $labels.instance }}."
+            summary: 'Scrape falhando para {{ $labels.job }} em {{ $labels.namespace }}'
+            description: 'Prometheus não consegue coletar métricas do serviço {{ $labels.instance }}.'
 
 ---
 apiVersion: monitoring.coreos.com/v1
@@ -248,9 +248,9 @@ spec:
             domain: backend
             office: reliability-office
           annotations:
-            summary: "Taxa de erro > 5% em {{ $labels.service }} ({{ $labels.namespace }})"
-            description: "Error rate atual: {{ humanizePercentage $value }}. SLO violado."
-            runbook: "docs/runbooks/service-health-runbook.md"
+            summary: 'Taxa de erro > 5% em {{ $labels.service }} ({{ $labels.namespace }})'
+            description: 'Error rate atual: {{ humanizePercentage $value }}. SLO violado.'
+            runbook: 'docs/runbooks/service-health-runbook.md'
 
         - alert: VelyaServiceHighLatencyP99
           expr: |
@@ -265,8 +265,8 @@ spec:
             domain: backend
             office: reliability-office
           annotations:
-            summary: "Latência P99 > 2s em {{ $labels.service }}"
-            description: "P99 atual: {{ humanizeDuration $value }}. Pode indicar gargalo de DB, NATS ou AI."
+            summary: 'Latência P99 > 2s em {{ $labels.service }}'
+            description: 'P99 atual: {{ humanizeDuration $value }}. Pode indicar gargalo de DB, NATS ou AI.'
 
         - alert: VelyaServiceDown
           expr: |
@@ -280,8 +280,8 @@ spec:
             domain: backend
             office: reliability-office
           annotations:
-            summary: "Serviço Velya inativo: {{ $labels.job }} em {{ $labels.namespace }}"
-            runbook: "docs/runbooks/service-health-runbook.md"
+            summary: 'Serviço Velya inativo: {{ $labels.job }} em {{ $labels.namespace }}'
+            runbook: 'docs/runbooks/service-health-runbook.md'
 
     - name: velya.backend.clinical
       interval: 1m
@@ -295,9 +295,9 @@ spec:
             domain: clinical
             office: clinical-office
           annotations:
-            summary: "CRÍTICO: patient-flow-service indisponível"
-            description: "Serviço de fluxo de pacientes fora do ar. Impacto imediato na operação clínica."
-            runbook: "docs/runbooks/service-health-runbook.md"
+            summary: 'CRÍTICO: patient-flow-service indisponível'
+            description: 'Serviço de fluxo de pacientes fora do ar. Impacto imediato na operação clínica.'
+            runbook: 'docs/runbooks/service-health-runbook.md'
 
         - alert: VelyaDischargeOrchestratorDown
           expr: |
@@ -308,8 +308,8 @@ spec:
             domain: clinical
             office: clinical-office
           annotations:
-            summary: "CRÍTICO: discharge-orchestrator indisponível"
-            description: "Orquestrador de altas fora do ar. Altas hospitalares podem ser bloqueadas."
+            summary: 'CRÍTICO: discharge-orchestrator indisponível'
+            description: 'Orquestrador de altas fora do ar. Altas hospitalares podem ser bloqueadas.'
 
         - alert: VelyaTaskInboxDown
           expr: |
@@ -320,8 +320,8 @@ spec:
             domain: clinical
             office: clinical-office
           annotations:
-            summary: "CRÍTICO: task-inbox-service indisponível"
-            description: "Fila de tarefas clínicas fora do ar. Roteamento de tarefas comprometido."
+            summary: 'CRÍTICO: task-inbox-service indisponível'
+            description: 'Fila de tarefas clínicas fora do ar. Roteamento de tarefas comprometido.'
 
 ---
 apiVersion: monitoring.coreos.com/v1
@@ -346,8 +346,8 @@ spec:
             domain: observability
             office: reliability-office
           annotations:
-            summary: "Loki indisponível — logs não estão sendo coletados"
-            description: "Stack de logs Loki fora do ar. Investigação de incidentes comprometida."
+            summary: 'Loki indisponível — logs não estão sendo coletados'
+            description: 'Stack de logs Loki fora do ar. Investigação de incidentes comprometida.'
 
         - alert: VelyaPromtailDown
           expr: |
@@ -358,7 +358,7 @@ spec:
             domain: observability
             office: reliability-office
           annotations:
-            summary: "Promtail down em {{ $labels.instance }} — logs de nó perdidos"
+            summary: 'Promtail down em {{ $labels.instance }} — logs de nó perdidos'
 
         - alert: VelyaGrafanaDown
           expr: |
@@ -369,4 +369,4 @@ spec:
             domain: observability
             office: reliability-office
           annotations:
-            summary: "Grafana indisponível — visibilidade operacional comprometida"
+            summary: 'Grafana indisponível — visibilidade operacional comprometida'

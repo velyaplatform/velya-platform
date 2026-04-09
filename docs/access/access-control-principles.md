@@ -26,12 +26,14 @@ Nenhum usuario, independentemente de cargo ou hierarquia, possui acesso implicit
 a qualquer recurso do sistema.
 
 **Fundamento Legal:**
+
 - LGPD Art. 46: Agentes de tratamento devem adotar medidas de seguranca para
   proteger dados pessoais de acessos nao autorizados.
 - LGPD Art. 6o, VII: Principio da seguranca - utilizacao de medidas tecnicas e
   administrativas aptas a proteger os dados pessoais.
 
 **Implementacao no Sistema:**
+
 - Middlewares de autorizacao retornam `403 Forbidden` como resposta padrao.
 - Politicas de acesso sao aditivas: cada regra concede permissao, nunca remove.
 - Ausencia de politica aplicavel = acesso negado.
@@ -51,8 +53,8 @@ async function authorize(request: AuthRequest): Promise<AuthDecision> {
 
   // Somente concede se ao menos uma politica permitir
   // e nenhuma politica negar explicitamente
-  const hasExplicitDeny = policies.some(p => p.effect === 'DENY');
-  const hasAllow = policies.some(p => p.effect === 'ALLOW');
+  const hasExplicitDeny = policies.some((p) => p.effect === 'DENY');
+  const hasAllow = policies.some((p) => p.effect === 'ALLOW');
 
   if (hasExplicitDeny) {
     return { decision: 'DENY', reason: 'EXPLICIT_DENY', audit: true };
@@ -62,7 +64,7 @@ async function authorize(request: AuthRequest): Promise<AuthDecision> {
     return { decision: 'DENY', reason: 'NO_ALLOW_POLICY', audit: true };
   }
 
-  return { decision: 'ALLOW', policies: policies.filter(p => p.effect === 'ALLOW') };
+  return { decision: 'ALLOW', policies: policies.filter((p) => p.effect === 'ALLOW') };
 }
 ```
 
@@ -73,6 +75,7 @@ para executar suas funcoes profissionais. Nenhum acesso adicional e concedido
 "por conveniencia" ou "para o futuro".
 
 **Fundamento Legal:**
+
 - LGPD Art. 6o, III: Principio da necessidade - limitacao do tratamento ao minimo
   necessario para a realizacao de suas finalidades.
 - Lei 12.842/2013 (Ato Medico), Art. 4o: Define atos privativos do medico, limitando
@@ -80,6 +83,7 @@ para executar suas funcoes profissionais. Nenhum acesso adicional e concedido
 - Lei 7.498/1986, Art. 11-15: Define escopo de atuacao de cada nivel de enfermagem.
 
 **Implementacao no Sistema:**
+
 - Roles sao granulares: `medical_staff_attending` vs `medical_staff_on_call`
 - Permissoes sao contextuais: um medico so acessa prontuarios de pacientes sob
   seus cuidados (ReBAC).
@@ -92,12 +96,14 @@ delas para o cuidado direto ao paciente ou para uma funcao administrativa especi
 e documentada.
 
 **Fundamento Legal:**
+
 - LGPD Art. 6o, I: Principio da finalidade - realizacao do tratamento para propositos
   legitimos, especificos, explicitos e informados ao titular.
 - Resolucao CFM 1.638/2002: Prontuario medico e documento sigiloso.
 - Resolucao CFM 2.217/2018 (Codigo de Etica Medica), Art. 73-79: Sigilo profissional.
 
 **Implementacao no Sistema:**
+
 - ReBAC (Relationship-Based Access Control): acesso condicionado a existencia de
   relacao profissional-paciente ativa.
 - Tipos de relacao: medico_assistente, equipe_enfermagem, equipe_multidisciplinar.
@@ -109,11 +115,13 @@ e documentada.
 sao retornados. Campos irrelevantes sao omitidos ou mascarados.
 
 **Fundamento Legal:**
+
 - LGPD Art. 6o, III: Principio da necessidade.
 - LGPD Art. 11, §4o: Dados de saude nao podem ser utilizados com objetivo de
   obter vantagem economica, salvo assistencia farmaceutica e servicos de saude.
 
 **Implementacao no Sistema:**
+
 - Field-level access control: cada campo do prontuario tem classificacao de
   sensibilidade (Classes A-E).
 - Projections dinamicas: a API retorna apenas os campos permitidos para o role + contexto.
@@ -133,10 +141,10 @@ interface FieldProjection {
 const cpfProjection: FieldProjection = {
   field: 'patient.cpf',
   sensitivityClass: 'B',
-  masking: 'partial',  // ***.***.***-XX
+  masking: 'partial', // ***.***.***-XX
   visibleTo: ['receptionist_registration', 'billing_authorization'],
   contextConditions: [
-    { attribute: 'action', operator: 'in', value: ['register', 'verify_identity'] }
+    { attribute: 'action', operator: 'in', value: ['register', 'verify_identity'] },
   ],
 };
 ```
@@ -148,12 +156,14 @@ utilizados para outra finalidade sem autorizacao explicita. Cada acesso e vincul
 a um proposito declarado.
 
 **Fundamento Legal:**
+
 - LGPD Art. 6o, I: Principio da finalidade.
 - LGPD Art. 6o, II: Principio da adequacao - compatibilidade do tratamento com
   as finalidades informadas ao titular.
 - LGPD Art. 7o, VIII: Tutela da saude como base legal para tratamento de dados.
 
 **Implementacao no Sistema:**
+
 - Cada requisicao de acesso inclui `purpose` declarado.
 - O purpose e validado contra as permissoes do role.
 - Logs de auditoria registram o purpose junto com a acao executada.
@@ -162,7 +172,7 @@ a um proposito declarado.
 ```yaml
 # Exemplo de policy com purpose limitation
 policy:
-  id: "nurse-vitals-access"
+  id: 'nurse-vitals-access'
   effect: ALLOW
   subject:
     role: nurse
@@ -311,16 +321,16 @@ a qual um usuario pode chegar. Os niveis sao cumulativos parcialmente - um
 nivel superior nao necessariamente inclui todos os dados dos niveis inferiores
 (principio de necessidade).
 
-| Nivel | Nome                    | Descricao                                              | Exemplo de Role                    | Dados Acessiveis                | Auditoria   |
-|-------|-------------------------|---------------------------------------------------------|------------------------------------|---------------------------------|-------------|
-| 0     | Sem Dados de Paciente   | Nenhum acesso a dados de pacientes                      | maintenance, security_guard        | Nenhum dado de paciente         | Padrao      |
-| 1     | Operacional Minimo      | Apenas dados operacionais sem identificacao             | cleaning_hygiene, patient_transporter | Numero do leito, status de limpeza, ordem de transporte (sem nome) | Padrao      |
-| 2     | Identificacao Basica    | Nome e localizacao do paciente                          | receptionist_registration          | Nome, leito, setor, plano de saude | Padrao      |
-| 3     | Administrativo          | Dados cadastrais e de faturamento                       | billing_authorization              | Cadastro completo, convenio, guias, autorizacoes | Elevada     |
-| 4     | Clinico Contextual      | Dados clinicos do contexto de cuidado                   | nursing_technician, physiotherapist | Sinais vitais, prescricoes ativas, anotacoes de enfermagem | Elevada     |
-| 5     | Clinico Completo        | Prontuario completo (exceto dados restritos)            | medical_staff_attending, nurse      | Evolucoes, resultados, historico, prescricoes | Elevada     |
-| 6     | Dados Sensiveis         | Inclui dados com protecao especial                      | clinical_director (com justificativa) | Saude mental, HIV, violencia sexual, dependencia quimica | Maxima      |
-| 7     | Break-Glass / Emergencia | Acesso total temporario em situacao de emergencia       | emergency_break_glass_role         | Todos os dados, incluindo sequestrados | Maxima + Alerta |
+| Nivel | Nome                     | Descricao                                         | Exemplo de Role                       | Dados Acessiveis                                                   | Auditoria       |
+| ----- | ------------------------ | ------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------ | --------------- |
+| 0     | Sem Dados de Paciente    | Nenhum acesso a dados de pacientes                | maintenance, security_guard           | Nenhum dado de paciente                                            | Padrao          |
+| 1     | Operacional Minimo       | Apenas dados operacionais sem identificacao       | cleaning_hygiene, patient_transporter | Numero do leito, status de limpeza, ordem de transporte (sem nome) | Padrao          |
+| 2     | Identificacao Basica     | Nome e localizacao do paciente                    | receptionist_registration             | Nome, leito, setor, plano de saude                                 | Padrao          |
+| 3     | Administrativo           | Dados cadastrais e de faturamento                 | billing_authorization                 | Cadastro completo, convenio, guias, autorizacoes                   | Elevada         |
+| 4     | Clinico Contextual       | Dados clinicos do contexto de cuidado             | nursing_technician, physiotherapist   | Sinais vitais, prescricoes ativas, anotacoes de enfermagem         | Elevada         |
+| 5     | Clinico Completo         | Prontuario completo (exceto dados restritos)      | medical_staff_attending, nurse        | Evolucoes, resultados, historico, prescricoes                      | Elevada         |
+| 6     | Dados Sensiveis          | Inclui dados com protecao especial                | clinical_director (com justificativa) | Saude mental, HIV, violencia sexual, dependencia quimica           | Maxima          |
+| 7     | Break-Glass / Emergencia | Acesso total temporario em situacao de emergencia | emergency_break_glass_role            | Todos os dados, incluindo sequestrados                             | Maxima + Alerta |
 
 ### Regras dos Niveis
 
@@ -445,9 +455,9 @@ Toda decisao de autorizacao gera um registro de auditoria imutavel.
 ```typescript
 interface AuditEntry {
   // Identificacao
-  auditId: string;           // UUID v7 (ordenavel por tempo)
-  timestamp: string;         // ISO 8601 com timezone
-  correlationId: string;     // ID da requisicao original
+  auditId: string; // UUID v7 (ordenavel por tempo)
+  timestamp: string; // ISO 8601 com timezone
+  correlationId: string; // ID da requisicao original
 
   // Sujeito
   userId: string;
@@ -458,7 +468,7 @@ interface AuditEntry {
   location: GeoLocation;
 
   // Recurso
-  resourceType: string;      // 'patient_chart', 'prescription', etc.
+  resourceType: string; // 'patient_chart', 'prescription', etc.
   resourceId: string;
   patientId?: string;
   dataClass: 'A' | 'B' | 'C' | 'D' | 'E';
@@ -483,18 +493,18 @@ interface AuditEntry {
   stepUpPerformed: boolean;
 
   // Integridade
-  hash: string;              // SHA-256 da entry anterior + esta
-  signature: string;         // Assinatura digital do servico
+  hash: string; // SHA-256 da entry anterior + esta
+  signature: string; // Assinatura digital do servico
 }
 ```
 
 ### 6.2 Niveis de Auditoria
 
-| Nivel       | Retencao   | Acesso ao Log           | Alerta em Tempo Real | Aplica-se a          |
-|-------------|------------|-------------------------|----------------------|----------------------|
-| Padrao      | 5 anos     | Compliance, Auditoria   | Nao                  | Nivel 0-1, Classe A  |
-| Elevada     | 10 anos    | Compliance, Diretoria   | Anomalias            | Nivel 2-5, Classe B-D |
-| Maxima      | 20 anos    | Compliance, DPO, Legal  | Todos os acessos     | Nivel 6-7, Classe E  |
+| Nivel   | Retencao | Acesso ao Log          | Alerta em Tempo Real | Aplica-se a           |
+| ------- | -------- | ---------------------- | -------------------- | --------------------- |
+| Padrao  | 5 anos   | Compliance, Auditoria  | Nao                  | Nivel 0-1, Classe A   |
+| Elevada | 10 anos  | Compliance, Diretoria  | Anomalias            | Nivel 2-5, Classe B-D |
+| Maxima  | 20 anos  | Compliance, DPO, Legal | Todos os acessos     | Nivel 6-7, Classe E   |
 
 ---
 
@@ -504,13 +514,13 @@ interface AuditEntry {
 
 O sistema reconhece as seguintes bases legais conforme LGPD Art. 7o e 11:
 
-| Base Legal                          | Artigo LGPD | Uso no Sistema                              | Requer Consentimento Explicito |
-|-------------------------------------|-------------|---------------------------------------------|-------------------------------|
-| Tutela da saude                     | Art. 7o, VIII; Art. 11, II, f | Atendimento clinico direto         | Nao                           |
-| Obrigacao legal/regulatoria         | Art. 7o, II; Art. 11, II, a | Notificacao compulsoria, ANVISA      | Nao                           |
-| Exercicio regular de direitos       | Art. 7o, VI; Art. 11, II, d | Defesa em processos                 | Nao                           |
-| Protecao da vida                    | Art. 7o, VII; Art. 11, II, e | Emergencia / Break-glass            | Nao                           |
-| Consentimento                       | Art. 7o, I; Art. 11, I | Compartilhamento com terceiros, pesquisa | Sim                           |
+| Base Legal                    | Artigo LGPD                   | Uso no Sistema                           | Requer Consentimento Explicito |
+| ----------------------------- | ----------------------------- | ---------------------------------------- | ------------------------------ |
+| Tutela da saude               | Art. 7o, VIII; Art. 11, II, f | Atendimento clinico direto               | Nao                            |
+| Obrigacao legal/regulatoria   | Art. 7o, II; Art. 11, II, a   | Notificacao compulsoria, ANVISA          | Nao                            |
+| Exercicio regular de direitos | Art. 7o, VI; Art. 11, II, d   | Defesa em processos                      | Nao                            |
+| Protecao da vida              | Art. 7o, VII; Art. 11, II, e  | Emergencia / Break-glass                 | Nao                            |
+| Consentimento                 | Art. 7o, I; Art. 11, I        | Compartilhamento com terceiros, pesquisa | Sim                            |
 
 ### 7.2 Consentimento Granular
 
@@ -518,13 +528,13 @@ O sistema reconhece as seguintes bases legais conforme LGPD Art. 7o e 11:
 consent_model:
   types:
     - id: clinical_care
-      description: "Acesso para cuidado clinico direto"
+      description: 'Acesso para cuidado clinico direto'
       base_legal: tutela_saude
-      revocable: false  # Nao pode revogar durante internacao ativa
+      revocable: false # Nao pode revogar durante internacao ativa
       auto_granted: true
 
     - id: teaching_research
-      description: "Uso de dados para ensino e pesquisa"
+      description: 'Uso de dados para ensino e pesquisa'
       base_legal: consentimento
       revocable: true
       auto_granted: false
@@ -532,14 +542,14 @@ consent_model:
       anonymization: required
 
     - id: third_party_share
-      description: "Compartilhamento com terceiros (outro hospital, plano)"
+      description: 'Compartilhamento com terceiros (outro hospital, plano)'
       base_legal: consentimento
       revocable: true
       auto_granted: false
       requires: explicit_consent_per_recipient
 
     - id: family_access
-      description: "Acesso por familiares designados"
+      description: 'Acesso por familiares designados'
       base_legal: consentimento
       revocable: true
       auto_granted: false
@@ -554,13 +564,13 @@ consent_model:
 
 O sistema impede que um unico usuario execute acoes que criem conflito de interesse:
 
-| Acao 1                          | Acao 2                          | Conflito                                | Controle                |
-|---------------------------------|---------------------------------|-----------------------------------------|-------------------------|
-| Prescrever medicamento          | Dispensar medicamento           | Medico nao pode dispensar o que prescreveu | Roles distintos obrigatorios |
-| Solicitar exame                 | Laudar exame                    | Solicitante nao pode laudar             | Verificacao de identidade |
-| Criar conta de usuario          | Atribuir role clinico           | Segregacao TI vs Diretoria Clinica      | Dual approval           |
-| Ativar break-glass              | Revisar proprio break-glass     | Auto-aprovacao proibida                 | Revisor independente    |
-| Aprovar alta medica             | Gerar faturamento da internacao | Medico nao influencia faturamento       | Roles distintos         |
+| Acao 1                 | Acao 2                          | Conflito                                   | Controle                     |
+| ---------------------- | ------------------------------- | ------------------------------------------ | ---------------------------- |
+| Prescrever medicamento | Dispensar medicamento           | Medico nao pode dispensar o que prescreveu | Roles distintos obrigatorios |
+| Solicitar exame        | Laudar exame                    | Solicitante nao pode laudar                | Verificacao de identidade    |
+| Criar conta de usuario | Atribuir role clinico           | Segregacao TI vs Diretoria Clinica         | Dual approval                |
+| Ativar break-glass     | Revisar proprio break-glass     | Auto-aprovacao proibida                    | Revisor independente         |
+| Aprovar alta medica    | Gerar faturamento da internacao | Medico nao influencia faturamento          | Roles distintos              |
 
 ### 8.2 Regra dos Quatro Olhos (Four-Eyes Principle)
 
@@ -573,12 +583,12 @@ interface FourEyesPolicy {
   secondApprover: RoleRequirement;
   cannotBeSamePerson: true;
   cannotBeSameTeam?: boolean;
-  timeLimit: Duration;  // Tempo para segunda aprovacao
+  timeLimit: Duration; // Tempo para segunda aprovacao
 }
 
 const highRiskPolicies: FourEyesPolicy[] = [
   {
-    action: 'discharge_patient_ama',  // Alta a pedido
+    action: 'discharge_patient_ama', // Alta a pedido
     firstApprover: { role: 'medical_staff_attending' },
     secondApprover: { role: 'nurse', minLevel: 'senior' },
     cannotBeSamePerson: true,
@@ -627,6 +637,7 @@ Camada 7: Monitoramento (SIEM, anomalias, ML)
 Conforme LGPD Art. 18, o paciente tem direito de saber quem acessou seus dados.
 
 O sistema mantém:
+
 - Registro de todos os acessos ao prontuario do paciente.
 - Portal do paciente com historico de acessos (quem, quando, por que).
 - Notificacao ao paciente em caso de acesso por break-glass.
@@ -650,36 +661,36 @@ Reconstruir:
 
 ## 11. Revisao e Governanca dos Principios
 
-| Atividade                                    | Frequencia    | Responsavel                |
-|----------------------------------------------|---------------|----------------------------|
-| Revisao dos principios de acesso             | Semestral     | Comite de Seguranca        |
-| Auditoria de aderencia aos principios        | Trimestral    | Compliance / Auditoria     |
-| Revisao de roles e permissoes                | Trimestral    | Diretoria Clinica + TI     |
-| Teste de penetracao do controle de acesso    | Anual         | Seguranca da Informacao    |
-| Treinamento de equipe sobre principios       | Semestral     | RH + Seguranca             |
-| Revisao de incidentes de acesso indevido     | Continua      | Security Operations Center |
-| Atualizacao por mudanca regulatoria          | Sob demanda   | Juridico + Compliance      |
+| Atividade                                 | Frequencia  | Responsavel                |
+| ----------------------------------------- | ----------- | -------------------------- |
+| Revisao dos principios de acesso          | Semestral   | Comite de Seguranca        |
+| Auditoria de aderencia aos principios     | Trimestral  | Compliance / Auditoria     |
+| Revisao de roles e permissoes             | Trimestral  | Diretoria Clinica + TI     |
+| Teste de penetracao do controle de acesso | Anual       | Seguranca da Informacao    |
+| Treinamento de equipe sobre principios    | Semestral   | RH + Seguranca             |
+| Revisao de incidentes de acesso indevido  | Continua    | Security Operations Center |
+| Atualizacao por mudanca regulatoria       | Sob demanda | Juridico + Compliance      |
 
 ---
 
 ## 12. Glossario
 
-| Termo     | Definicao                                                                         |
-|-----------|-----------------------------------------------------------------------------------|
-| RBAC      | Role-Based Access Control - controle baseado em papeis                             |
-| ABAC      | Attribute-Based Access Control - controle baseado em atributos contextuais         |
-| ReBAC     | Relationship-Based Access Control - controle baseado em relacoes                   |
-| PDP       | Policy Decision Point - componente que avalia e decide                             |
-| PEP       | Policy Enforcement Point - componente que aplica a decisao                         |
-| PIP       | Policy Information Point - componente que fornece informacoes para decisao         |
-| PAP       | Policy Administration Point - componente de gestao de politicas                    |
-| MFA       | Multi-Factor Authentication - autenticacao multifator                              |
-| Step-up   | Re-autenticacao para acao de risco elevado                                         |
-| Break-glass | Acesso de emergencia que contorna controles normais, com auditoria total         |
-| DPO       | Data Protection Officer - Encarregado de Protecao de Dados (LGPD)                 |
-| LGPD      | Lei Geral de Protecao de Dados (Lei 13.709/2018)                                  |
+| Termo       | Definicao                                                                  |
+| ----------- | -------------------------------------------------------------------------- |
+| RBAC        | Role-Based Access Control - controle baseado em papeis                     |
+| ABAC        | Attribute-Based Access Control - controle baseado em atributos contextuais |
+| ReBAC       | Relationship-Based Access Control - controle baseado em relacoes           |
+| PDP         | Policy Decision Point - componente que avalia e decide                     |
+| PEP         | Policy Enforcement Point - componente que aplica a decisao                 |
+| PIP         | Policy Information Point - componente que fornece informacoes para decisao |
+| PAP         | Policy Administration Point - componente de gestao de politicas            |
+| MFA         | Multi-Factor Authentication - autenticacao multifator                      |
+| Step-up     | Re-autenticacao para acao de risco elevado                                 |
+| Break-glass | Acesso de emergencia que contorna controles normais, com auditoria total   |
+| DPO         | Data Protection Officer - Encarregado de Protecao de Dados (LGPD)          |
+| LGPD        | Lei Geral de Protecao de Dados (Lei 13.709/2018)                           |
 
 ---
 
-*Documento mantido pela equipe de Arquitetura de Seguranca - Velya Platform.*
-*Proxima revisao programada: 2026-10-08.*
+_Documento mantido pela equipe de Arquitetura de Seguranca - Velya Platform._
+_Proxima revisao programada: 2026-10-08._

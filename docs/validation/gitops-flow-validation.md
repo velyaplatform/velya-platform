@@ -27,26 +27,26 @@ This is the most urgent non-business-logic gap in the platform.
 
 ### 1.1 Pod Status
 
-| Pod | Namespace | Expected | Status |
-|---|---|---|---|
-| argocd-server | argocd | Running | PASS |
-| argocd-application-controller | argocd | Running | PASS |
-| argocd-repo-server | argocd | Running | PASS |
-| argocd-dex-server | argocd | Running | PASS |
-| argocd-redis | argocd | Running | PASS |
-| argocd-applicationset-controller | argocd | Running | PASS |
-| argocd-notifications-controller | argocd | Running | PASS |
+| Pod                              | Namespace | Expected | Status |
+| -------------------------------- | --------- | -------- | ------ |
+| argocd-server                    | argocd    | Running  | PASS   |
+| argocd-application-controller    | argocd    | Running  | PASS   |
+| argocd-repo-server               | argocd    | Running  | PASS   |
+| argocd-dex-server                | argocd    | Running  | PASS   |
+| argocd-redis                     | argocd    | Running  | PASS   |
+| argocd-applicationset-controller | argocd    | Running  | PASS   |
+| argocd-notifications-controller  | argocd    | Running  | PASS   |
 
 **Total**: 7/7 pods running. ArgoCD installation is complete.
 
 ### 1.2 ArgoCD Accessibility
 
-| Check | Expected | Found | Status |
-|---|---|---|---|
-| UI accessible | HTTP 200 | HTTP 200 | PASS |
-| URL | http://argocd.172.19.0.6.nip.io | Working | PASS |
-| TLS | Should be HTTPS | HTTP only (no TLS) | NOT IMPLEMENTED |
-| Authentication | SSO or admin | admin account present | PASS (dev) |
+| Check          | Expected                        | Found                 | Status          |
+| -------------- | ------------------------------- | --------------------- | --------------- |
+| UI accessible  | HTTP 200                        | HTTP 200              | PASS            |
+| URL            | http://argocd.172.19.0.6.nip.io | Working               | PASS            |
+| TLS            | Should be HTTPS                 | HTTP only (no TLS)    | NOT IMPLEMENTED |
+| Authentication | SSO or admin                    | admin account present | PASS (dev)      |
 
 ---
 
@@ -54,24 +54,24 @@ This is the most urgent non-business-logic gap in the platform.
 
 ### 2.1 ArgoCD Applications
 
-| Check | Expected | Found | Status |
-|---|---|---|---|
-| Applications configured | One per service group | ZERO | BLOCKER |
-| App-of-Apps root app | Present | ABSENT | NOT IMPLEMENTED |
-| ApplicationSet resources | Present | NOT VERIFIED | NOT PROVABLE |
+| Check                    | Expected              | Found        | Status          |
+| ------------------------ | --------------------- | ------------ | --------------- |
+| Applications configured  | One per service group | ZERO         | BLOCKER         |
+| App-of-Apps root app     | Present               | ABSENT       | NOT IMPLEMENTED |
+| ApplicationSet resources | Present               | NOT VERIFIED | NOT PROVABLE    |
 
 **Evidence**: `argocd app list` returns empty. No Application CRD instances exist in the `argocd` namespace.
 
 ### 2.2 Git Repository Manifests
 
-| Path | Expected Content | Found | Status |
-|---|---|---|---|
-| `infra/argocd/` | Application manifests | ABSENT — directory not found | BLOCKER |
-| `infra/kubernetes/apps/` | Service manifests | EXISTS | PASS |
-| `infra/kubernetes/base/` | Base Kustomize | EXISTS | PASS |
-| `infra/kubernetes/overlays/` | Environment overlays | EXISTS | PASS |
-| `infra/kubernetes/platform/` | Platform manifests | EXISTS | PASS |
-| `infra/kubernetes/services/` | Service manifests | EXISTS | PASS |
+| Path                         | Expected Content      | Found                        | Status  |
+| ---------------------------- | --------------------- | ---------------------------- | ------- |
+| `infra/argocd/`              | Application manifests | ABSENT — directory not found | BLOCKER |
+| `infra/kubernetes/apps/`     | Service manifests     | EXISTS                       | PASS    |
+| `infra/kubernetes/base/`     | Base Kustomize        | EXISTS                       | PASS    |
+| `infra/kubernetes/overlays/` | Environment overlays  | EXISTS                       | PASS    |
+| `infra/kubernetes/platform/` | Platform manifests    | EXISTS                       | PASS    |
+| `infra/kubernetes/services/` | Service manifests     | EXISTS                       | PASS    |
 
 The Kubernetes manifests exist in the repository. The ArgoCD Application manifests that would point ArgoCD at those Kubernetes manifests do NOT exist.
 
@@ -103,10 +103,10 @@ ArgoCD watches root-app.yaml → discovers all child apps → syncs each
 ### 3.2 Sync Policies
 
 | Environment | Sync Policy | Prune | Self-Heal | Approval Required |
-|---|---|---|---|---|
-| dev | Automated | YES | YES | No |
-| staging | Manual | YES | NO | Team Lead |
-| prod | Manual | YES | NO | Two reviewers |
+| ----------- | ----------- | ----- | --------- | ----------------- |
+| dev         | Automated   | YES   | YES       | No                |
+| staging     | Manual      | YES   | NO        | Team Lead         |
+| prod        | Manual      | YES   | NO        | Two reviewers     |
 
 ### 3.3 Promotion Flow
 
@@ -197,12 +197,13 @@ spec:
     - group: apps
       kind: Deployment
       jsonPointers:
-        - /spec/replicas  # Allow KEDA to manage replicas
+        - /spec/replicas # Allow KEDA to manage replicas
 ```
 
 ### Step 4: Repeat for Each Namespace/Service Group
 
 Create similar Application manifests for:
+
 - `velya-dev-platform.yaml`
 - `velya-dev-agents.yaml`
 - `velya-dev-observability.yaml`
@@ -235,6 +236,7 @@ Drift detection is NOT POSSIBLE without Applications configured. Even if someone
 ### 5.2 After Implementation
 
 With ArgoCD Applications configured:
+
 - Self-heal: ArgoCD will automatically revert unauthorized cluster changes (in dev)
 - Drift alerts: ArgoCD will alert on out-of-sync resources (staging/prod)
 - Sync history: Every sync event is logged with operator, timestamp, and diff
@@ -248,18 +250,19 @@ Once ArgoCD Applications are configured, sync failures need a response procedure
 
 ### 6.1 Common Sync Failure Causes
 
-| Cause | Symptom | Resolution |
-|---|---|---|
-| Manifest syntax error | App shows OutOfSync + error | Fix YAML, push to git, re-sync |
-| Image not found | Deployment stuck | Fix image tag, push, re-sync |
-| Resource quota exceeded | Namespace quota hit | Increase quota or optimize resources |
-| NetworkPolicy blocking ArgoCD | App health degraded | Check ArgoCD egress rules |
-| CRD missing | Resource type unknown | Install CRD first, then sync app |
-| Secret not found | Pod in pending state | Verify ExternalSecret is synced |
+| Cause                         | Symptom                     | Resolution                           |
+| ----------------------------- | --------------------------- | ------------------------------------ |
+| Manifest syntax error         | App shows OutOfSync + error | Fix YAML, push to git, re-sync       |
+| Image not found               | Deployment stuck            | Fix image tag, push, re-sync         |
+| Resource quota exceeded       | Namespace quota hit         | Increase quota or optimize resources |
+| NetworkPolicy blocking ArgoCD | App health degraded         | Check ArgoCD egress rules            |
+| CRD missing                   | Resource type unknown       | Install CRD first, then sync app     |
+| Secret not found              | Pod in pending state        | Verify ExternalSecret is synced      |
 
 ### 6.2 Monitoring ArgoCD Sync Health
 
 After implementation, add:
+
 1. PrometheusRule for ArgoCD sync failure alerts
 2. Grafana dashboard for ArgoCD application health
 3. Slack/PagerDuty notification on sync failure
@@ -283,20 +286,20 @@ Use this checklist after ArgoCD Applications are created:
 
 ## 8. GitOps Validation Summary
 
-| Item | Status |
-|---|---|
-| ArgoCD installation | PASS |
-| ArgoCD accessibility | PASS |
-| ArgoCD pod health | PASS |
-| ArgoCD Application manifests in git | BLOCKER |
-| ArgoCD Applications deployed | BLOCKER |
-| App-of-Apps pattern | NOT IMPLEMENTED |
-| Auto-sync for dev | NOT IMPLEMENTED |
-| Manual sync for staging/prod | NOT IMPLEMENTED |
-| Drift detection | NOT IMPLEMENTED |
-| Sync failure alerting | NOT IMPLEMENTED |
-| Promotion flow | NOT IMPLEMENTED |
-| Rollback capability | NOT IMPLEMENTED |
+| Item                                | Status          |
+| ----------------------------------- | --------------- |
+| ArgoCD installation                 | PASS            |
+| ArgoCD accessibility                | PASS            |
+| ArgoCD pod health                   | PASS            |
+| ArgoCD Application manifests in git | BLOCKER         |
+| ArgoCD Applications deployed        | BLOCKER         |
+| App-of-Apps pattern                 | NOT IMPLEMENTED |
+| Auto-sync for dev                   | NOT IMPLEMENTED |
+| Manual sync for staging/prod        | NOT IMPLEMENTED |
+| Drift detection                     | NOT IMPLEMENTED |
+| Sync failure alerting               | NOT IMPLEMENTED |
+| Promotion flow                      | NOT IMPLEMENTED |
+| Rollback capability                 | NOT IMPLEMENTED |
 
 **Overall GitOps Score: 30/100**
 
@@ -304,4 +307,4 @@ The 30 points come entirely from ArgoCD being installed and accessible. The rema
 
 ---
 
-*GitOps validation owned by: GitOps Operator agent + Infrastructure Team. Priority: P1 — complete before end of next sprint.*
+_GitOps validation owned by: GitOps Operator agent + Infrastructure Team. Priority: P1 — complete before end of next sprint._

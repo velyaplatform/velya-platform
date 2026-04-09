@@ -28,13 +28,13 @@ Todo conteúdo gerado ou sugerido por IA deve ter marcação visual clara:
 
 ```tsx
 // components/domain/ai-badge.tsx
-import { Sparkles } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface AIBadgeProps {
-  size?: 'sm' | 'md'
-  label?: string
-  className?: string
+  size?: 'sm' | 'md';
+  label?: string;
+  className?: string;
 }
 
 export function AIBadge({ size = 'sm', label = 'Sugestão IA', className }: AIBadgeProps) {
@@ -51,20 +51,20 @@ export function AIBadge({ size = 'sm', label = 'Sugestão IA', className }: AIBa
       <Sparkles className={size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'} />
       {label}
     </span>
-  )
+  );
 }
 ```
 
 ### 2.2 Regras de Marcação
 
-| Cenário | Marcação |
-|---|---|
-| Card com sugestão de IA | AIBadge no header + borda violeta |
-| Texto gerado por IA | AIBadge inline + background violeta sutil |
-| Campo pré-preenchido por IA | AIBadge ao lado do label + tooltip |
-| Gráfico com insight de IA | AIBadge na legenda + callout explicativo |
-| Alerta gerado por IA | AIBadge + seção "Por que este alerta?" |
-| Sugestão em timeline | Ícone Sparkles + cor violeta no item |
+| Cenário                     | Marcação                                  |
+| --------------------------- | ----------------------------------------- |
+| Card com sugestão de IA     | AIBadge no header + borda violeta         |
+| Texto gerado por IA         | AIBadge inline + background violeta sutil |
+| Campo pré-preenchido por IA | AIBadge ao lado do label + tooltip        |
+| Gráfico com insight de IA   | AIBadge na legenda + callout explicativo  |
+| Alerta gerado por IA        | AIBadge + seção "Por que este alerta?"    |
+| Sugestão em timeline        | Ícone Sparkles + cor violeta no item      |
 
 ### 2.3 Estilo Visual Consistente
 
@@ -84,6 +84,7 @@ export function AIBadge({ size = 'sm', label = 'Sugestão IA', className }: AIBa
 ```
 
 Cores:
+
 - Background: `bg-violet-50 dark:bg-violet-950/30`
 - Borda: `border-violet-200 dark:border-violet-800`
 - Texto do badge: `text-violet-700 dark:text-violet-300`
@@ -97,16 +98,16 @@ Cores:
 
 ```tsx
 interface AIEvidenceProps {
-  summary: string
+  summary: string;
   dataPoints: {
-    label: string
-    value: string
-    source: string
-    timestamp: string
-  }[]
-  reasoning: string
-  limitations?: string[]
-  expandable?: boolean
+    label: string;
+    value: string;
+    source: string;
+    timestamp: string;
+  }[];
+  reasoning: string;
+  limitations?: string[];
+  expandable?: boolean;
 }
 
 function AIEvidence({
@@ -116,7 +117,7 @@ function AIEvidence({
   limitations,
   expandable = true,
 }: AIEvidenceProps) {
-  const [expanded, setExpanded] = useState(!expandable)
+  const [expanded, setExpanded] = useState(!expandable);
 
   return (
     <div className="rounded-lg border border-violet-200 bg-violet-50/50 dark:border-violet-800 dark:bg-violet-950/20 p-4">
@@ -134,10 +135,9 @@ function AIEvidence({
               className="mt-2 -ml-2 text-violet-600"
             >
               {expanded ? 'Menos detalhes' : 'Mais detalhes'}
-              <ChevronDown className={cn(
-                'ml-1 h-4 w-4 transition-transform',
-                expanded && 'rotate-180'
-              )} />
+              <ChevronDown
+                className={cn('ml-1 h-4 w-4 transition-transform', expanded && 'rotate-180')}
+              />
             </Button>
           )}
 
@@ -150,7 +150,9 @@ function AIEvidence({
                   {dataPoints.map((dp, i) => (
                     <li key={i} className="text-sm flex items-center gap-2">
                       <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
-                      <span>{dp.label}: <strong>{dp.value}</strong></span>
+                      <span>
+                        {dp.label}: <strong>{dp.value}</strong>
+                      </span>
                       <span className="text-xs text-muted-foreground">
                         ({dp.source}, {dp.timestamp})
                       </span>
@@ -184,7 +186,7 @@ function AIEvidence({
         </div>
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -205,35 +207,31 @@ function AIEvidence({
 
 ```tsx
 interface ConfidenceIndicatorProps {
-  value: number   // 0-100
-  size?: 'sm' | 'md'
-  showLabel?: boolean
+  value: number; // 0-100
+  size?: 'sm' | 'md';
+  showLabel?: boolean;
 }
 
-function ConfidenceIndicator({
-  value,
-  size = 'sm',
-  showLabel = true,
-}: ConfidenceIndicatorProps) {
-  const level = value >= 80 ? 'high' : value >= 50 ? 'medium' : 'low'
+function ConfidenceIndicator({ value, size = 'sm', showLabel = true }: ConfidenceIndicatorProps) {
+  const level = value >= 80 ? 'high' : value >= 50 ? 'medium' : 'low';
 
   const colors = {
     high: 'text-success',
     medium: 'text-warning',
     low: 'text-destructive',
-  }
+  };
 
   const labels = {
     high: 'Alta confiança',
     medium: 'Confiança moderada',
     low: 'Baixa confiança',
-  }
+  };
 
   const bgColors = {
     high: 'bg-success',
     medium: 'bg-warning',
     low: 'bg-destructive',
-  }
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -252,26 +250,22 @@ function ConfidenceIndicator({
       </div>
 
       {showLabel && (
-        <span className={cn(
-          'font-medium',
-          colors[level],
-          size === 'sm' ? 'text-xs' : 'text-sm',
-        )}>
+        <span className={cn('font-medium', colors[level], size === 'sm' ? 'text-xs' : 'text-sm')}>
           {value}% — {labels[level]}
         </span>
       )}
     </div>
-  )
+  );
 }
 ```
 
 ### 4.2 Regras de Exibição de Confiança
 
-| Confiança | Apresentação | Ação Default |
-|---|---|---|
-| 80-100% (Alta) | Verde, indicador cheio | "Aceitar" como primeiro botão |
-| 50-79% (Moderada) | Amarelo, indicador parcial | "Revisar" como primeiro botão |
-| 0-49% (Baixa) | Vermelho, indicador mínimo | "Revisar detalhes" obrigatório antes de aceitar |
+| Confiança         | Apresentação               | Ação Default                                    |
+| ----------------- | -------------------------- | ----------------------------------------------- |
+| 80-100% (Alta)    | Verde, indicador cheio     | "Aceitar" como primeiro botão                   |
+| 50-79% (Moderada) | Amarelo, indicador parcial | "Revisar" como primeiro botão                   |
+| 0-49% (Baixa)     | Vermelho, indicador mínimo | "Revisar detalhes" obrigatório antes de aceitar |
 
 ### 4.3 Tratamento de Baixa Confiança
 
@@ -279,7 +273,7 @@ Sugestões com confiança < 50% requerem passos adicionais:
 
 ```tsx
 function LowConfidenceSuggestion({ suggestion }: { suggestion: AISuggestion }) {
-  const [reviewed, setReviewed] = useState(false)
+  const [reviewed, setReviewed] = useState(false);
 
   return (
     <div className="border-l-4 border-warning bg-warning/5 p-4 rounded-r-lg">
@@ -317,7 +311,7 @@ function LowConfidenceSuggestion({ suggestion }: { suggestion: AISuggestion }) {
         )}
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -329,21 +323,21 @@ function LowConfidenceSuggestion({ suggestion }: { suggestion: AISuggestion }) {
 
 Toda sugestão de IA deve ter três ações possíveis:
 
-| Ação | Significado | Registra em Auditoria |
-|---|---|---|
-| **Aceitar** | Operador concorda e aplica | Sim — quem aceitou, quando |
+| Ação          | Significado                      | Registra em Auditoria              |
+| ------------- | -------------------------------- | ---------------------------------- |
+| **Aceitar**   | Operador concorda e aplica       | Sim — quem aceitou, quando         |
 | **Modificar** | Operador ajusta antes de aplicar | Sim — versão original e modificada |
-| **Rejeitar** | Operador descarta a sugestão | Sim — motivo opcional |
+| **Rejeitar**  | Operador descarta a sugestão     | Sim — motivo opcional              |
 
 ### 5.2 Componente de Ação
 
 ```tsx
 interface AISuggestionActionsProps {
-  suggestion: AISuggestion
-  onAccept: () => void
-  onModify: () => void
-  onReject: (reason?: string) => void
-  requireReview?: boolean
+  suggestion: AISuggestion;
+  onAccept: () => void;
+  onModify: () => void;
+  onReject: (reason?: string) => void;
+  requireReview?: boolean;
 }
 
 function AISuggestionActions({
@@ -353,16 +347,12 @@ function AISuggestionActions({
   onReject,
   requireReview = suggestion.confidence < 50,
 }: AISuggestionActionsProps) {
-  const [rejectReason, setRejectReason] = useState('')
-  const [showRejectDialog, setShowRejectDialog] = useState(false)
+  const [rejectReason, setRejectReason] = useState('');
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
 
   return (
     <div className="flex items-center gap-2 mt-4">
-      <Button
-        onClick={onAccept}
-        disabled={requireReview}
-        size="sm"
-      >
+      <Button onClick={onAccept} disabled={requireReview} size="sm">
         <Check className="mr-2 h-4 w-4" />
         Aceitar sugestão
       </Button>
@@ -372,11 +362,7 @@ function AISuggestionActions({
         Modificar
       </Button>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setShowRejectDialog(true)}
-      >
+      <Button variant="ghost" size="sm" onClick={() => setShowRejectDialog(true)}>
         <X className="mr-2 h-4 w-4" />
         Rejeitar
       </Button>
@@ -399,17 +385,19 @@ function AISuggestionActions({
             <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => {
-              onReject(rejectReason || undefined)
-              setShowRejectDialog(false)
-            }}>
+            <Button
+              onClick={() => {
+                onReject(rejectReason || undefined);
+                setShowRejectDialog(false);
+              }}
+            >
               Confirmar rejeição
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
 ```
 
@@ -434,25 +422,25 @@ UX "mágica" é quando o sistema age de forma autônoma sem que o operador enten
 
 **Proibido:**
 
-| Anti-pattern | Exemplo | Por que é perigoso |
-|---|---|---|
+| Anti-pattern                  | Exemplo                                   | Por que é perigoso                          |
+| ----------------------------- | ----------------------------------------- | ------------------------------------------- |
 | Auto-preenchimento silencioso | Campos aparecem preenchidos sem indicação | Operador pode não perceber dados incorretos |
-| Reordenação automática | Lista muda de ordem sem aviso | Operador pode medicar paciente errado |
-| Alerta que desaparece | Alerta de IA some após 3 segundos | Informação crítica perdida |
-| Ação por inferência | "Parece que você quer..." e executa | Ação não intencional |
-| Filtragem implícita | IA filtra resultados sem mostrar | Operador não vê dados relevantes |
-| Decisão delegada | "IA decidiu ajustar o horário" | Responsabilidade clínica é do humano |
+| Reordenação automática        | Lista muda de ordem sem aviso             | Operador pode medicar paciente errado       |
+| Alerta que desaparece         | Alerta de IA some após 3 segundos         | Informação crítica perdida                  |
+| Ação por inferência           | "Parece que você quer..." e executa       | Ação não intencional                        |
+| Filtragem implícita           | IA filtra resultados sem mostrar          | Operador não vê dados relevantes            |
+| Decisão delegada              | "IA decidiu ajustar o horário"            | Responsabilidade clínica é do humano        |
 
 ### 6.2 O que Fazer em Vez Disso
 
-| Proibido | Alternativa Correta |
-|---|---|
-| Auto-preenchimento silencioso | Campo com AIBadge + "Sugerido pela IA" + valor editável |
-| Reordenação automática | "IA sugere: ordenar por prioridade" + botão para aceitar |
-| Alerta que desaparece | Alerta persistente até o operador dismiss manualmente |
-| Ação por inferência | Sugestão com botão explícito de aceitação |
-| Filtragem implícita | "IA recomenda filtro: Críticos" + link para ver todos |
-| Decisão delegada | "IA sugere: ajustar horário para 14h" + Aceitar/Rejeitar |
+| Proibido                      | Alternativa Correta                                      |
+| ----------------------------- | -------------------------------------------------------- |
+| Auto-preenchimento silencioso | Campo com AIBadge + "Sugerido pela IA" + valor editável  |
+| Reordenação automática        | "IA sugere: ordenar por prioridade" + botão para aceitar |
+| Alerta que desaparece         | Alerta persistente até o operador dismiss manualmente    |
+| Ação por inferência           | Sugestão com botão explícito de aceitação                |
+| Filtragem implícita           | "IA recomenda filtro: Críticos" + link para ver todos    |
+| Decisão delegada              | "IA sugere: ajustar horário para 14h" + Aceitar/Rejeitar |
 
 ---
 
@@ -477,12 +465,12 @@ function AIReviewGate({
   children,
   criticalAction = false,
 }: {
-  suggestion: AISuggestion
-  children: (onProceed: () => void) => React.ReactNode
-  criticalAction?: boolean
+  suggestion: AISuggestion;
+  children: (onProceed: () => void) => React.ReactNode;
+  criticalAction?: boolean;
 }) {
-  const [reviewed, setReviewed] = useState(false)
-  const [acknowledged, setAcknowledged] = useState(false)
+  const [reviewed, setReviewed] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
 
   if (!reviewed) {
     return (
@@ -506,8 +494,8 @@ function AIReviewGate({
                 onCheckedChange={(v) => setAcknowledged(!!v)}
               />
               <Label htmlFor="ack-ai" className="text-sm">
-                Revisei a evidência e entendo que esta é uma sugestão de IA,
-                não uma recomendação clínica validada.
+                Revisei a evidência e entendo que esta é uma sugestão de IA, não uma recomendação
+                clínica validada.
               </Label>
             </div>
           )}
@@ -521,24 +509,30 @@ function AIReviewGate({
           </Button>
         </CardContent>
       </Card>
-    )
+    );
   }
 
-  return <>{children(() => {/* proceed */})}</>
+  return (
+    <>
+      {children(() => {
+        /* proceed */
+      })}
+    </>
+  );
 }
 ```
 
 ### 7.3 Cenários por Domínio
 
-| Domínio | Sugestão IA | Review Gate |
-|---|---|---|
-| Medicação | Ajuste de horário | Sim — critical action |
-| Medicação | Alerta de interação | Sim — evidence review obrigatório |
-| Dor | Tendência detectada | Não — informacional |
-| Handoff | Priorização de pacientes | Sim — review gate simples |
-| Workforce | Sugestão de escala | Sim — review gate simples |
-| Dashboard | Anomalia detectada | Não — informacional com detalhe |
-| Chamada | Priorização de atendimento | Sim — review gate simples |
+| Domínio   | Sugestão IA                | Review Gate                       |
+| --------- | -------------------------- | --------------------------------- |
+| Medicação | Ajuste de horário          | Sim — critical action             |
+| Medicação | Alerta de interação        | Sim — evidence review obrigatório |
+| Dor       | Tendência detectada        | Não — informacional               |
+| Handoff   | Priorização de pacientes   | Sim — review gate simples         |
+| Workforce | Sugestão de escala         | Sim — review gate simples         |
+| Dashboard | Anomalia detectada         | Não — informacional com detalhe   |
+| Chamada   | Priorização de atendimento | Sim — review gate simples         |
 
 ---
 
@@ -550,12 +544,12 @@ Após interagir com sugestão de IA, o operador pode fornecer feedback:
 
 ```tsx
 function AIFeedbackPrompt({ suggestionId, action }: AIFeedbackProps) {
-  const [feedback, setFeedback] = useState<'helpful' | 'not-helpful' | null>(null)
-  const [comment, setComment] = useState('')
+  const [feedback, setFeedback] = useState<'helpful' | 'not-helpful' | null>(null);
+  const [comment, setComment] = useState('');
 
   if (action === 'rejected') {
     // Já coletou motivo na rejeição
-    return null
+    return null;
   }
 
   return (
@@ -566,8 +560,8 @@ function AIFeedbackPrompt({ suggestionId, action }: AIFeedbackProps) {
         size="sm"
         className={cn(feedback === 'helpful' && 'text-success')}
         onClick={() => {
-          setFeedback('helpful')
-          submitFeedback(suggestionId, 'helpful')
+          setFeedback('helpful');
+          submitFeedback(suggestionId, 'helpful');
         }}
       >
         <ThumbsUp className="h-3 w-3 mr-1" />
@@ -578,15 +572,15 @@ function AIFeedbackPrompt({ suggestionId, action }: AIFeedbackProps) {
         size="sm"
         className={cn(feedback === 'not-helpful' && 'text-destructive')}
         onClick={() => {
-          setFeedback('not-helpful')
-          submitFeedback(suggestionId, 'not-helpful', comment)
+          setFeedback('not-helpful');
+          submitFeedback(suggestionId, 'not-helpful', comment);
         }}
       >
         <ThumbsDown className="h-3 w-3 mr-1" />
         Não
       </Button>
     </div>
-  )
+  );
 }
 ```
 
@@ -596,14 +590,14 @@ function AIFeedbackPrompt({ suggestionId, action }: AIFeedbackProps) {
 
 ### 9.1 Eventos Registrados
 
-| Evento | Dados Capturados |
-|---|---|
-| `ai.suggestion.shown` | ID, agente, tipo, confiança, contexto, timestamp |
-| `ai.suggestion.accepted` | ID, operador, timestamp, versão aceita |
+| Evento                   | Dados Capturados                                            |
+| ------------------------ | ----------------------------------------------------------- |
+| `ai.suggestion.shown`    | ID, agente, tipo, confiança, contexto, timestamp            |
+| `ai.suggestion.accepted` | ID, operador, timestamp, versão aceita                      |
 | `ai.suggestion.modified` | ID, operador, versão original, versão modificada, timestamp |
-| `ai.suggestion.rejected` | ID, operador, motivo (se fornecido), timestamp |
-| `ai.evidence.viewed` | ID da sugestão, operador, tempo de visualização |
-| `ai.feedback.submitted` | ID, operador, helpful/not-helpful, comentário |
+| `ai.suggestion.rejected` | ID, operador, motivo (se fornecido), timestamp              |
+| `ai.evidence.viewed`     | ID da sugestão, operador, tempo de visualização             |
+| `ai.feedback.submitted`  | ID, operador, helpful/not-helpful, comentário               |
 
 ### 9.2 Trilha de Auditoria Visível
 
@@ -612,7 +606,7 @@ function AIAuditTrail({ suggestionId }: { suggestionId: string }) {
   const { data: trail } = useQuery({
     queryKey: ['ai-audit', suggestionId],
     queryFn: () => getAIAuditTrail(suggestionId),
-  })
+  });
 
   return (
     <div className="space-y-2">
@@ -628,7 +622,7 @@ function AIAuditTrail({ suggestionId }: { suggestionId: string }) {
         ))}
       </Timeline>
     </div>
-  )
+  );
 }
 ```
 
@@ -642,10 +636,10 @@ Na primeira vez que o operador interage com uma sugestão de IA em uma sessão:
 
 ```tsx
 function AIDisclaimerDialog() {
-  const [acknowledged, setAcknowledged] = useState(false)
-  const hasSeenDisclaimer = useLocalStorage('ai-disclaimer-seen', false)
+  const [acknowledged, setAcknowledged] = useState(false);
+  const hasSeenDisclaimer = useLocalStorage('ai-disclaimer-seen', false);
 
-  if (hasSeenDisclaimer) return null
+  if (hasSeenDisclaimer) return null;
 
   return (
     <Dialog open={!hasSeenDisclaimer}>
@@ -658,8 +652,8 @@ function AIDisclaimerDialog() {
         </DialogHeader>
         <div className="space-y-3 text-sm">
           <p>
-            A plataforma Velya utiliza agentes de IA para fornecer sugestões
-            e insights. Estas sugestões:
+            A plataforma Velya utiliza agentes de IA para fornecer sugestões e insights. Estas
+            sugestões:
           </p>
           <ul className="list-disc pl-4 space-y-1">
             <li>Não substituem o julgamento clínico profissional</li>
@@ -668,25 +662,18 @@ function AIDisclaimerDialog() {
             <li>São registradas em auditoria para rastreabilidade</li>
           </ul>
           <p className="font-medium">
-            A responsabilidade por qualquer ação clínica é do profissional
-            de saúde que a executa.
+            A responsabilidade por qualquer ação clínica é do profissional de saúde que a executa.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Checkbox
-            id="ack"
-            checked={acknowledged}
-            onCheckedChange={(v) => setAcknowledged(!!v)}
-          />
-          <Label htmlFor="ack">
-            Entendo que sugestões de IA requerem revisão humana
-          </Label>
+          <Checkbox id="ack" checked={acknowledged} onCheckedChange={(v) => setAcknowledged(!!v)} />
+          <Label htmlFor="ack">Entendo que sugestões de IA requerem revisão humana</Label>
         </div>
         <DialogFooter>
           <Button
             disabled={!acknowledged}
             onClick={() => {
-              localStorage.setItem('ai-disclaimer-seen', 'true')
+              localStorage.setItem('ai-disclaimer-seen', 'true');
             }}
           >
             Continuar
@@ -694,7 +681,7 @@ function AIDisclaimerDialog() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 ```
 
@@ -707,7 +694,7 @@ function AIInlineDisclaimer() {
       <Info className="h-3 w-3" />
       Sugestão gerada por IA. Revise antes de aplicar. Não substitui avaliação clínica.
     </p>
-  )
+  );
 }
 ```
 
@@ -754,7 +741,7 @@ function AIPreferences() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 ```
 
@@ -762,15 +749,15 @@ function AIPreferences() {
 
 ## 12. Métricas de Governança
 
-| Métrica | Definição | Alerta |
-|---|---|---|
-| Acceptance rate | Sugestões aceitas / mostradas | Se > 95% (auto-accept suspeito) |
-| Review time | Tempo entre mostrar e ação | Se < 2s (não revisou) |
-| Modification rate | Sugestões modificadas / aceitas | Track (indica qualidade) |
-| Rejection rate | Sugestões rejeitadas / mostradas | Se > 70% (IA não útil) |
-| Evidence view rate | Evidência expandida / sugestões | Se < 20% (operadores ignorando) |
-| Feedback submission rate | Feedbacks / interações | Track |
-| Auto-accept attempts | Tentativas de bypass de revisão | Qualquer > 0 (bug ou UX issue) |
+| Métrica                  | Definição                        | Alerta                          |
+| ------------------------ | -------------------------------- | ------------------------------- |
+| Acceptance rate          | Sugestões aceitas / mostradas    | Se > 95% (auto-accept suspeito) |
+| Review time              | Tempo entre mostrar e ação       | Se < 2s (não revisou)           |
+| Modification rate        | Sugestões modificadas / aceitas  | Track (indica qualidade)        |
+| Rejection rate           | Sugestões rejeitadas / mostradas | Se > 70% (IA não útil)          |
+| Evidence view rate       | Evidência expandida / sugestões  | Se < 20% (operadores ignorando) |
+| Feedback submission rate | Feedbacks / interações           | Track                           |
+| Auto-accept attempts     | Tentativas de bypass de revisão  | Qualquer > 0 (bug ou UX issue)  |
 
 ---
 

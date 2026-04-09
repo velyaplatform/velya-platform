@@ -45,57 +45,57 @@ com base em seu perfil de risco e tipo de carga.
 ```yaml
 freeze_conditions:
   automatic_freeze:
-    - condition: "Incidente P1 ou P2 ativo"
+    - condition: 'Incidente P1 ou P2 ativo'
       check: |
         # Verificar via PagerDuty API ou flag no ConfigMap
         kubectl get configmap velya-deploy-control -n velya-dev-platform \
           -o jsonpath='{.data.incident_active}'
-      block_message: "Deploy bloqueado: incidente ativo"
+      block_message: 'Deploy bloqueado: incidente ativo'
 
-    - condition: "Horario de pico clinico"
+    - condition: 'Horario de pico clinico'
       schedule:
-        timezone: "America/Sao_Paulo"
+        timezone: 'America/Sao_Paulo'
         blocked_hours:
-          - start: "07:00"
-            end: "09:00"
-            reason: "Pico de admissao matinal"
-          - start: "13:00"
-            end: "14:00"
-            reason: "Troca de plantao"
-          - start: "19:00"
-            end: "20:00"
-            reason: "Troca de plantao noturno"
-      exceptions: "Hotfix P1 com aprovacao"
+          - start: '07:00'
+            end: '09:00'
+            reason: 'Pico de admissao matinal'
+          - start: '13:00'
+            end: '14:00'
+            reason: 'Troca de plantao'
+          - start: '19:00'
+            end: '20:00'
+            reason: 'Troca de plantao noturno'
+      exceptions: 'Hotfix P1 com aprovacao'
 
-    - condition: "SLO budget abaixo de 20%"
+    - condition: 'SLO budget abaixo de 20%'
       check: |
         # Se ja queimou mais de 80% do error budget do mes
         slo_remaining=$(curl -s prometheus:9090/api/v1/query \
           --data-urlencode 'query=velya_slo_budget_remaining_ratio{service="$SERVICE"}' \
           | jq '.data.result[0].value[1]' -r)
         [ "$(echo "$slo_remaining < 0.20" | bc)" -eq 1 ]
-      block_message: "Deploy bloqueado: error budget abaixo de 20%"
+      block_message: 'Deploy bloqueado: error budget abaixo de 20%'
 
-    - condition: "Mais de 2 rollbacks nas ultimas 24h para o mesmo servico"
+    - condition: 'Mais de 2 rollbacks nas ultimas 24h para o mesmo servico'
       check: |
         rollbacks=$(kubectl get analysisruns -n $NAMESPACE \
           -l rollout-name=$SERVICE \
           --sort-by=.metadata.creationTimestamp \
           -o jsonpath='{.items[*].status.phase}' | tr ' ' '\n' | grep -c Failed)
         [ "$rollbacks" -gt 2 ]
-      block_message: "Deploy bloqueado: excesso de rollbacks recentes"
+      block_message: 'Deploy bloqueado: excesso de rollbacks recentes'
 
   manual_freeze:
     how_to_activate: |
       kubectl patch configmap velya-deploy-control -n velya-dev-platform \
         --type merge -p '{"data":{"freeze":"true","freeze_reason":"Motivo","freeze_until":"2026-04-09T08:00:00Z"}}'
-    
+
     argocd_sync_window:
       kind: deny
-      schedule: "* * * * *"  # ativado dinamicamente
-      duration: "24h"
+      schedule: '* * * * *' # ativado dinamicamente
+      duration: '24h'
       namespaces:
-        - "velya-dev-*"
+        - 'velya-dev-*'
 ```
 
 ---
@@ -115,9 +115,9 @@ metadata:
     velya.io/team: squad-clinical
     velya.io/risk-level: critical
   annotations:
-    velya.io/owner: "squad-clinical@velya.health"
-    velya.io/oncall-channel: "#velya-oncall-clinical"
-    velya.io/runbook-url: "https://runbooks.velya.internal/patient-flow"
+    velya.io/owner: 'squad-clinical@velya.health'
+    velya.io/oncall-channel: '#velya-oncall-clinical'
+    velya.io/runbook-url: 'https://runbooks.velya.internal/patient-flow'
 spec:
   replicas: 3
   revisionHistoryLimit: 5
@@ -128,7 +128,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: patient-flow
-        app.kubernetes.io/version: "{{ .Values.image.tag }}"
+        app.kubernetes.io/version: '{{ .Values.image.tag }}'
         velya.io/team: squad-clinical
     spec:
       securityContext:
@@ -178,7 +178,7 @@ spec:
             - name: OTEL_SERVICE_NAME
               value: patient-flow
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://otel-collector.velya-dev-observability:4317"
+              value: 'http://otel-collector.velya-dev-observability:4317'
           envFrom:
             - secretRef:
                 name: patient-flow-secrets
@@ -191,7 +191,7 @@ spec:
           stableIngress: patient-flow-ingress
           additionalIngressAnnotations:
             canary-by-header: X-Canary
-            canary-by-header-value: "true"
+            canary-by-header-value: 'true'
       steps:
         # Step 1: 10% do trafego
         - setWeight: 10
@@ -403,9 +403,9 @@ metadata:
     velya.io/team: squad-ai
     velya.io/risk-level: high
   annotations:
-    velya.io/owner: "squad-ai@velya.health"
-    velya.io/oncall-channel: "#velya-oncall-ai"
-    velya.io/runbook-url: "https://runbooks.velya.internal/ai-gateway"
+    velya.io/owner: 'squad-ai@velya.health'
+    velya.io/oncall-channel: '#velya-oncall-ai'
+    velya.io/runbook-url: 'https://runbooks.velya.internal/ai-gateway'
 spec:
   replicas: 3
   revisionHistoryLimit: 3
@@ -456,7 +456,7 @@ spec:
     blueGreen:
       activeService: ai-gateway-active
       previewService: ai-gateway-preview
-      autoPromotionEnabled: false  # promocao MANUAL para servicos de IA
+      autoPromotionEnabled: false # promocao MANUAL para servicos de IA
       scaleDownDelaySeconds: 60
       prePromotionAnalysis:
         templates:
@@ -517,7 +517,7 @@ spec:
       interval: 60s
       count: 3
       successCondition: result[0] > 0
-      failureLimit: 0  # guardrails DEVEM estar ativos
+      failureLimit: 0 # guardrails DEVEM estar ativos
       provider:
         prometheus:
           address: http://prometheus.velya-dev-observability:9090
@@ -914,7 +914,7 @@ data:
   # Slack
   service.slack: |
     token: $slack-token
-  
+
   # Templates de mensagem
   template.rollout-started: |
     :rocket: *Rollout iniciado*
@@ -1045,9 +1045,9 @@ spec:
 
 ## 9. Documentos Relacionados
 
-| Documento | Descricao |
-|---|---|
-| `layered-assurance-model.md` | Modelo completo de assurance (L5 = Deployment) |
-| `runtime-integrity-model.md` | Monitoramento apos deploy |
-| `auto-remediation-safety-model.md` | Acoes de rollback automatico |
-| `kubernetes-policy-guardrails.md` | Politicas de admission pre-deploy |
+| Documento                          | Descricao                                      |
+| ---------------------------------- | ---------------------------------------------- |
+| `layered-assurance-model.md`       | Modelo completo de assurance (L5 = Deployment) |
+| `runtime-integrity-model.md`       | Monitoramento apos deploy                      |
+| `auto-remediation-safety-model.md` | Acoes de rollback automatico                   |
+| `kubernetes-policy-guardrails.md`  | Politicas de admission pre-deploy              |

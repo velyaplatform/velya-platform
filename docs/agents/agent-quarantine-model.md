@@ -22,32 +22,32 @@ Quarantine ranges from mild restriction (Level 1) to full isolation (Level 4), a
 
 The following conditions trigger automatic quarantine without requiring manager approval. The responsible Office Manager is notified immediately and must review within 4 hours.
 
-| Trigger | Quarantine Level | Triggered By |
-|---|---|---|
-| Agent silent > 60 minutes during active workflow | L1 | Watchdog |
-| Agent silent > 4 hours (all cycles) | L2 | Watchdog |
-| Action taken outside declared contract scope | L2 | Watchdog / Security |
-| Permission accessed outside declared set | L2 | Security Watchdog |
-| PHI access anomaly detected | L2 | Security / Data Governance Watchdog |
-| Evidence integrity failure (hash mismatch in own evidence) | L2 | Auditor / Watchdog |
-| Security policy violation | L2 | Security Office |
-| Validation override by manager without auditor | L1 | Compliance Auditor |
-| Third correction cycle on same issue | L1 | QA Manager |
-| Agent contract score critical threshold for 4 consecutive weeks | L1 | Scorecard Engine |
+| Trigger                                                         | Quarantine Level | Triggered By                        |
+| --------------------------------------------------------------- | ---------------- | ----------------------------------- |
+| Agent silent > 60 minutes during active workflow                | L1               | Watchdog                            |
+| Agent silent > 4 hours (all cycles)                             | L2               | Watchdog                            |
+| Action taken outside declared contract scope                    | L2               | Watchdog / Security                 |
+| Permission accessed outside declared set                        | L2               | Security Watchdog                   |
+| PHI access anomaly detected                                     | L2               | Security / Data Governance Watchdog |
+| Evidence integrity failure (hash mismatch in own evidence)      | L2               | Auditor / Watchdog                  |
+| Security policy violation                                       | L2               | Security Office                     |
+| Validation override by manager without auditor                  | L1               | Compliance Auditor                  |
+| Third correction cycle on same issue                            | L1               | QA Manager                          |
+| Agent contract score critical threshold for 4 consecutive weeks | L1               | Scorecard Engine                    |
 
 ### 2.2 Manual Quarantine Triggers
 
 The following require a human decision (manager or executive):
 
-| Trigger | Quarantine Level | Authorized By |
-|---|---|---|
-| Persistent behavioral drift | L1–L2 | Office Manager |
-| Suspected knowledge corruption | L2 | Office Manager + Executive |
-| Active security investigation implicating agent | L2–L3 | Executive + Security Manager |
-| Agent is subject of external regulatory inquiry | L3 | Executive |
-| Agent produced output with potential patient harm | L3–L4 | Executive + Governance Council notification |
-| Active exploitation of agent confirmed | L4 | Executive (immediate) |
-| Agent retirement pending (orderly wind-down) | L1 → transition to Deprecated lifecycle stage | Office Manager |
+| Trigger                                           | Quarantine Level                              | Authorized By                               |
+| ------------------------------------------------- | --------------------------------------------- | ------------------------------------------- |
+| Persistent behavioral drift                       | L1–L2                                         | Office Manager                              |
+| Suspected knowledge corruption                    | L2                                            | Office Manager + Executive                  |
+| Active security investigation implicating agent   | L2–L3                                         | Executive + Security Manager                |
+| Agent is subject of external regulatory inquiry   | L3                                            | Executive                                   |
+| Agent produced output with potential patient harm | L3–L4                                         | Executive + Governance Council notification |
+| Active exploitation of agent confirmed            | L4                                            | Executive (immediate)                       |
+| Agent retirement pending (orderly wind-down)      | L1 → transition to Deprecated lifecycle stage | Office Manager                              |
 
 ---
 
@@ -58,6 +58,7 @@ The following require a human decision (manager or executive):
 **State:** Agent continues to operate but with restricted capability.
 
 Restrictions applied:
+
 - Read-only access to external systems (no writes unless specifically authorized for current task)
 - No new task assignment (current tasks may continue with coordinator approval)
 - All outputs require validator review regardless of risk class
@@ -76,6 +77,7 @@ Restrictions applied:
 **State:** Agent may read and report but may not execute or produce primary work.
 
 Restrictions applied:
+
 - All write permissions revoked
 - No task execution (tasks redistributed to alternate agents by coordinator)
 - Agent may continue to file reports and respond to queries
@@ -95,6 +97,7 @@ Restrictions applied:
 **State:** Agent is fully suspended. No actions, no publications, no task participation.
 
 Restrictions applied:
+
 - All permissions revoked
 - All pending tasks immediately redistributed by coordinator
 - Agent may respond to direct investigation queries only through a supervised channel
@@ -113,6 +116,7 @@ Restrictions applied:
 **State:** Agent is completely isolated. No network access, no NATS, no API, no file system. The agent process itself is terminated or suspended.
 
 Restrictions applied:
+
 - All connections severed
 - Agent namespace isolated at Kubernetes network policy level
 - All credentials associated with the agent are rotated immediately
@@ -142,6 +146,7 @@ When an agent enters L2 or higher quarantine, all its pending tasks are redistri
 ### 4.2 Permission Revocation
 
 Permissions are revoked at the infrastructure level — not just at the agent level — to prevent circumvention:
+
 - NATS credentials invalidated
 - Kubernetes RBAC permissions removed
 - External API credentials rotated
@@ -156,7 +161,7 @@ Within 2 hours of quarantine initiation (L2+), a formal investigation must be op
 quarantine_investigation:
   investigation_id: string
   opened_at: datetime
-  opened_by: string           # Office Manager or Executive
+  opened_by: string # Office Manager or Executive
   quarantine_event_id: string
   quarantined_agent: string
   quarantine_level: int
@@ -182,18 +187,21 @@ quarantine_investigation:
 ### 5.1 Investigation Phases
 
 **Phase 1: Evidence Preservation (0–2 hours)**
+
 - Forensic snapshot of agent state
 - Collection of recent logs, status reports, and NATS messages
 - Hash verification of evidence to establish integrity baseline
 - No agent actions during this phase (even L1 agents have execution paused during snapshot)
 
 **Phase 2: Timeline Reconstruction (2–8 hours)**
+
 - Reconstruct the sequence of events leading to quarantine
 - Identify when behavior first deviated from expected
 - Map all tasks, handoffs, and outputs produced by the agent in the prior 7 days
 - Cross-reference with validation and audit records
 
 **Phase 3: Root Cause Analysis (8–48 hours, depending on level)**
+
 - Identify whether the cause is: knowledge gap, tool failure, contract deficiency, environmental, malicious, or unknown
 - Assess whether the cause is agent-specific or systemic
 - Determine whether other agents may be affected by the same cause
@@ -201,6 +209,7 @@ quarantine_investigation:
 **Phase 4: Recommendation (within 48 hours of quarantine for L1/L2; within 72 hours for L3/L4)**
 
 The investigation produces one of:
+
 - **Cleared:** Agent is returned to pre-quarantine state with documented findings
 - **Cleared with conditions:** Agent returned with contract amendments or capability requirements
 - **Quarantine maintained:** Investigation ongoing; quarantine level may be adjusted
@@ -245,16 +254,16 @@ L4 quarantine typically results in agent retirement unless investigation confirm
 
 ## 7. Evidence Required to Exit Quarantine
 
-| Evidence Item | L1 | L2 | L3 | L4 |
-|---|---|---|---|---|
-| Investigation report with root cause | Required | Required | Required | Required |
-| Root cause remediation evidence | Required | Required | Required | Required |
-| Manager approval | Required | Required | Required | Governance Council |
-| Executive approval | Not required | Required | Required | Required |
-| Contract amendment (if scope contributed) | If applicable | If applicable | Required review | Required review |
-| Requalification test results (if capability gap) | Optional | Required | Required | Required |
-| Watchdog clearance | Not required | Required | Required | Required |
-| Clean audit of quarantine period | Optional | Required | Required | Required |
+| Evidence Item                                    | L1            | L2            | L3              | L4                 |
+| ------------------------------------------------ | ------------- | ------------- | --------------- | ------------------ |
+| Investigation report with root cause             | Required      | Required      | Required        | Required           |
+| Root cause remediation evidence                  | Required      | Required      | Required        | Required           |
+| Manager approval                                 | Required      | Required      | Required        | Governance Council |
+| Executive approval                               | Not required  | Required      | Required        | Required           |
+| Contract amendment (if scope contributed)        | If applicable | If applicable | Required review | Required review    |
+| Requalification test results (if capability gap) | Optional      | Required      | Required        | Required           |
+| Watchdog clearance                               | Not required  | Required      | Required        | Required           |
+| Clean audit of quarantine period                 | Optional      | Required      | Required        | Required           |
 
 ---
 
@@ -262,12 +271,12 @@ L4 quarantine typically results in agent retirement unless investigation confirm
 
 Quarantine without resolution is not acceptable. The following limits apply:
 
-| Level | Maximum Duration Without Resolution Decision |
-|---|---|
-| L1 | 7 days before escalation to Executive |
-| L2 | 14 days before escalation to Governance Council |
-| L3 | 30 days before mandatory retirement recommendation |
-| L4 | 7 days before mandatory retirement (or Governance Council override) |
+| Level | Maximum Duration Without Resolution Decision                        |
+| ----- | ------------------------------------------------------------------- |
+| L1    | 7 days before escalation to Executive                               |
+| L2    | 14 days before escalation to Governance Council                     |
+| L3    | 30 days before mandatory retirement recommendation                  |
+| L4    | 7 days before mandatory retirement (or Governance Council override) |
 
 "Resolution" means an investigation finding is reached — not that the agent is restored. An agent can remain quarantined beyond these limits if the investigation finding is "quarantine maintained with reason."
 
@@ -275,16 +284,16 @@ Quarantine without resolution is not acceptable. The following limits apply:
 
 ## 9. Authorization Summary
 
-| Action | Authorization Required |
-|---|---|
-| Initiate L1 quarantine | Watchdog (automatic) or Office Manager |
-| Initiate L2 quarantine | Office Manager (automatic triggers) or Executive |
-| Initiate L3 quarantine | Executive |
-| Initiate L4 quarantine | Executive (Governance Council notification) |
-| Exit L1 | Office Manager |
-| Exit L2 | Office Manager + Executive |
-| Exit L3 | Executive + Governance Council review |
-| Exit L4 | Governance Council approval |
+| Action                             | Authorization Required                                  |
+| ---------------------------------- | ------------------------------------------------------- |
+| Initiate L1 quarantine             | Watchdog (automatic) or Office Manager                  |
+| Initiate L2 quarantine             | Office Manager (automatic triggers) or Executive        |
+| Initiate L3 quarantine             | Executive                                               |
+| Initiate L4 quarantine             | Executive (Governance Council notification)             |
+| Exit L1                            | Office Manager                                          |
+| Exit L2                            | Office Manager + Executive                              |
+| Exit L3                            | Executive + Governance Council review                   |
+| Exit L4                            | Governance Council approval                             |
 | Override quarantine recommendation | Executive (with documented rationale + mandatory audit) |
 
 ---
@@ -311,9 +320,9 @@ quarantine_record:
     resolved_at: datetime
     resolved_by: string
     evidence_refs: list<string>
-  task_redirections: list<string>      # list of task IDs redirected
+  task_redirections: list<string> # list of task IDs redirected
   permission_revocations: list<string> # credentials and permissions revoked
-  post_quarantine_conditions: list<string>  # if cleared_with_conditions
+  post_quarantine_conditions: list<string> # if cleared_with_conditions
   learning_report_id: string
 ```
 

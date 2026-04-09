@@ -14,42 +14,30 @@ export async function POST(request: NextRequest) {
   if (!email || !password || !nome || !role || !setor) {
     return NextResponse.json(
       { error: 'Campos obrigatorios: email, senha, nome completo, profissao e setor' },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return NextResponse.json(
-      { error: 'Formato de email invalido' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Formato de email invalido' }, { status: 400 });
   }
 
   // Validate password strength
   if (password.length < 6) {
-    return NextResponse.json(
-      { error: 'A senha deve ter no minimo 6 caracteres' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'A senha deve ter no minimo 6 caracteres' }, { status: 400 });
   }
 
   // Validate role
   if (!VALID_ROLES.includes(role)) {
-    return NextResponse.json(
-      { error: 'Profissao/funcao invalida' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Profissao/funcao invalida' }, { status: 400 });
   }
 
   // Check if user already exists
   const existing = findUserByEmail(email);
   if (existing) {
-    return NextResponse.json(
-      { error: 'Ja existe uma conta com este email' },
-      { status: 409 }
-    );
+    return NextResponse.json({ error: 'Ja existe uma conta com este email' }, { status: 409 });
   }
 
   // Create user
@@ -64,7 +52,9 @@ export async function POST(request: NextRequest) {
 
   // Enviar código por email (se Resend configurado) ou mostrar na tela
   const emailSent = await sendVerificationCode(email, verificationCode, nome);
-  console.log(`[VELYA-AUTH] Codigo para ${email}: ${verificationCode} (email: ${emailSent ? 'enviado' : 'não enviado — mostrar na tela'})`);
+  console.log(
+    `[VELYA-AUTH] Codigo para ${email}: ${verificationCode} (email: ${emailSent ? 'enviado' : 'não enviado — mostrar na tela'})`,
+  );
 
   audit({
     category: 'system',

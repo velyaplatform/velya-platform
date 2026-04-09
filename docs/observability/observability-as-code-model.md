@@ -10,16 +10,16 @@
 
 **Observabilidade como Código** (OaC) significa que:
 
-| Artefato | Estado atual | Estado alvo |
-|---------|-------------|------------|
-| Dashboards Grafana | Criados manualmente (inexistentes hoje) | JSON versionado em Git, aplicados via ConfigMap |
-| Regras Prometheus (PrometheusRule) | 1 CRD com 5 alertas básicos | Todos os 57 alertas como CRDs versionados |
-| ServiceMonitors | Nenhum | CRDs para todos os serviços, versionados |
-| Datasources Grafana | Configurados manualmente | YAML de provisioning no Git |
-| Contact Points Grafana | Não configurados | YAML de provisioning no Git |
-| Notification Policies | Não configuradas | YAML de provisioning no Git |
-| Configuração Loki | Parcial (via Helm values) | Pipeline completo versionado |
-| Configuração OTel Collector | Parcial | ConfigMap completo versionado |
+| Artefato                           | Estado atual                            | Estado alvo                                     |
+| ---------------------------------- | --------------------------------------- | ----------------------------------------------- |
+| Dashboards Grafana                 | Criados manualmente (inexistentes hoje) | JSON versionado em Git, aplicados via ConfigMap |
+| Regras Prometheus (PrometheusRule) | 1 CRD com 5 alertas básicos             | Todos os 57 alertas como CRDs versionados       |
+| ServiceMonitors                    | Nenhum                                  | CRDs para todos os serviços, versionados        |
+| Datasources Grafana                | Configurados manualmente                | YAML de provisioning no Git                     |
+| Contact Points Grafana             | Não configurados                        | YAML de provisioning no Git                     |
+| Notification Policies              | Não configuradas                        | YAML de provisioning no Git                     |
+| Configuração Loki                  | Parcial (via Helm values)               | Pipeline completo versionado                    |
+| Configuração OTel Collector        | Parcial                                 | ConfigMap completo versionado                   |
 
 ---
 
@@ -145,12 +145,12 @@ datasources:
     access: proxy
     isDefault: true
     jsonData:
-      timeInterval: "15s"
+      timeInterval: '15s'
       httpMethod: POST
       prometheusType: Prometheus
-      prometheusVersion: "2.50.0"
+      prometheusVersion: '2.50.0'
     version: 1
-    editable: false  # Impede edição manual — OaC enforced
+    editable: false # Impede edição manual — OaC enforced
 
   - name: Loki
     type: loki
@@ -162,8 +162,8 @@ datasources:
       derivedFields:
         - name: TraceID
           matcherRegex: '"trace_id":"([^"]+)"'
-          url: "$${__value.raw}"
-          datasourceUid: tempo-velya  # Link de log para trace
+          url: '$${__value.raw}'
+          datasourceUid: tempo-velya # Link de log para trace
     version: 1
     editable: false
 
@@ -186,9 +186,9 @@ datasources:
       tracesToMetrics:
         datasourceUid: prometheus-velya
         queries:
-          - name: "Error Rate"
+          - name: 'Error Rate'
             query: 'rate(http_requests_total{service="$${__tags.service.name}",status=~"5.."}[5m])'
-          - name: "Latência P99"
+          - name: 'Latência P99'
             query: 'histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{service="$${__tags.service.name}"}[5m]))'
       serviceMap:
         datasourceUid: prometheus-velya
@@ -211,18 +211,18 @@ apiVersion: 1
 providers:
   - name: velya-infrastructure
     orgId: 1
-    folder: "Infraestrutura"
+    folder: 'Infraestrutura'
     folderUid: velya-infra
     type: file
-    disableDeletion: true      # Não permitir exclusão via UI
-    updateIntervalSeconds: 30  # Re-carregar se o arquivo mudar
-    allowUiUpdates: false      # Não permitir edição via UI — deve ir para Git
+    disableDeletion: true # Não permitir exclusão via UI
+    updateIntervalSeconds: 30 # Re-carregar se o arquivo mudar
+    allowUiUpdates: false # Não permitir edição via UI — deve ir para Git
     options:
       path: /var/lib/grafana/dashboards/infrastructure
 
   - name: velya-backend
     orgId: 1
-    folder: "Backend"
+    folder: 'Backend'
     folderUid: velya-backend
     type: file
     disableDeletion: true
@@ -233,7 +233,7 @@ providers:
 
   - name: velya-frontend
     orgId: 1
-    folder: "Frontend"
+    folder: 'Frontend'
     folderUid: velya-frontend
     type: file
     disableDeletion: true
@@ -244,7 +244,7 @@ providers:
 
   - name: velya-agents
     orgId: 1
-    folder: "Agents e Empresa Digital"
+    folder: 'Agents e Empresa Digital'
     folderUid: velya-agents
     type: file
     disableDeletion: true
@@ -255,7 +255,7 @@ providers:
 
   - name: velya-clinical
     orgId: 1
-    folder: "Negócio Hospitalar"
+    folder: 'Negócio Hospitalar'
     folderUid: velya-clinical
     type: file
     disableDeletion: true
@@ -266,7 +266,7 @@ providers:
 
   - name: velya-security
     orgId: 1
-    folder: "Segurança e Compliance"
+    folder: 'Segurança e Compliance'
     folderUid: velya-security
     type: file
     disableDeletion: true
@@ -277,7 +277,7 @@ providers:
 
   - name: velya-cost
     orgId: 1
-    folder: "Custo"
+    folder: 'Custo'
     folderUid: velya-cost
     type: file
     disableDeletion: true
@@ -300,7 +300,7 @@ metadata:
   name: grafana-dashboards-backend
   namespace: velya-dev-observability
   labels:
-    grafana_dashboard: "1"  # Label para Grafana detectar automaticamente (se usando sidecar)
+    grafana_dashboard: '1' # Label para Grafana detectar automaticamente (se usando sidecar)
     app.kubernetes.io/part-of: velya-observability
 data:
   velya-backend-api-red.json: |
@@ -342,16 +342,16 @@ spec:
     namespace: velya-dev-observability
   syncPolicy:
     automated:
-      prune: true    # Remove recursos deletados do Git
+      prune: true # Remove recursos deletados do Git
       selfHeal: true # Reverte mudanças manuais no cluster
     syncOptions:
       - CreateNamespace=false
       - RespectIgnoreDifferences=true
   ignoreDifferences:
     # Não sobrescrever anotações adicionadas pelo Grafana no runtime
-    - group: ""
+    - group: ''
       kind: ConfigMap
-      name: "grafana-*"
+      name: 'grafana-*'
       jsonPointers:
         - /metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration
 ```
@@ -446,13 +446,13 @@ metadata:
   name: velya-backend-alerts
   namespace: velya-dev-observability
   labels:
-    prometheus: kube-prometheus-stack  # Label para o Prometheus encontrar esta rule
+    prometheus: kube-prometheus-stack # Label para o Prometheus encontrar esta rule
     role: alert-rules
     app.kubernetes.io/part-of: velya-observability
 spec:
   groups:
     - name: velya-backend
-      interval: 30s  # Frequência de avaliação
+      interval: 30s # Frequência de avaliação
       rules:
         # --- Adicionar novos alertas aqui ---
         - alert: NomeDoAlerta
@@ -461,18 +461,19 @@ spec:
             rate(http_requests_total{status=~"5.."}[5m]) > 0.05
           for: 5m
           labels:
-            severity: high      # critical | high | medium | low
-            domain: backend     # infrastructure | platform | backend | frontend | agents | clinical | cost
+            severity: high # critical | high | medium | low
+            domain: backend # infrastructure | platform | backend | frontend | agents | clinical | cost
             owner: backend-office
           annotations:
-            summary: "Descrição concisa do alerta"
-            impact: "O que vai falhar para o usuário final"
-            dashboard_url: "http://grafana/d/velya-backend-api-red"
-            runbook_url: "https://docs.velya/runbooks/nome-do-runbook"
-            initial_action: "Primeira ação a tomar ao receber este alerta"
+            summary: 'Descrição concisa do alerta'
+            impact: 'O que vai falhar para o usuário final'
+            dashboard_url: 'http://grafana/d/velya-backend-api-red'
+            runbook_url: 'https://docs.velya/runbooks/nome-do-runbook'
+            initial_action: 'Primeira ação a tomar ao receber este alerta'
 ```
 
 **Validar a rule antes de commitar**:
+
 ```bash
 # Instalar promtool
 go install github.com/prometheus/prometheus/cmd/promtool@latest
@@ -601,7 +602,7 @@ jobs:
   verify-prometheus-rules:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Install promtool
         run: |
@@ -638,10 +639,10 @@ contactPoints:
       - uid: velya-slack-critical
         type: slack
         settings:
-          url: "$SLACK_WEBHOOK_CRITICAL"   # Variável de ambiente — vem do Secret K8s
-          channel: "#velya-ops-critical"
-          title: "{{ template \"velya.slack.title\" . }}"
-          text: "{{ template \"velya.slack.message\" . }}"
+          url: '$SLACK_WEBHOOK_CRITICAL' # Variável de ambiente — vem do Secret K8s
+          channel: '#velya-ops-critical'
+          title: '{{ template "velya.slack.title" . }}'
+          text: '{{ template "velya.slack.message" . }}'
 ```
 
 ```yaml

@@ -50,13 +50,13 @@ via DNS-01 challenge usando Amazon Route53.
 
 ### 2.2 Por que DNS-01 e nao HTTP-01?
 
-| Criterio | HTTP-01 | DNS-01 |
-|---|---|---|
-| Wildcard certificates | Nao suporta | Suporta |
-| Requer porta 80 aberta | Sim | Nao |
-| Funciona com Load Balancer | Depende | Sim |
-| Complexidade | Menor | Maior |
-| Automacao completa | Parcial | Total |
+| Criterio                   | HTTP-01     | DNS-01  |
+| -------------------------- | ----------- | ------- |
+| Wildcard certificates      | Nao suporta | Suporta |
+| Requer porta 80 aberta     | Sim         | Nao     |
+| Funciona com Load Balancer | Depende     | Sim     |
+| Complexidade               | Menor       | Maior   |
+| Automacao completa         | Parcial     | Total   |
 
 **Decisao**: DNS-01 e obrigatorio porque a Velya Platform utiliza certificados
 wildcard (`*.velya.health`) e a infraestrutura pode nao ter porta 80 acessivel
@@ -141,7 +141,7 @@ serviceAccount:
   create: true
   name: cert-manager
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/cert-manager-route53"
+    eks.amazonaws.com/role-arn: 'arn:aws:iam::ACCOUNT_ID:role/cert-manager-route53'
 
 # Pod security
 podSecurityContext:
@@ -185,7 +185,7 @@ spec:
             hostedZoneID: HOSTED_ZONE_ID
         selector:
           dnsZones:
-            - "velya.health"
+            - 'velya.health'
 ```
 
 ### 4.2 Production ClusterIssuer
@@ -211,7 +211,7 @@ spec:
             hostedZoneID: HOSTED_ZONE_ID
         selector:
           dnsZones:
-            - "velya.health"
+            - 'velya.health'
 ```
 
 ---
@@ -232,9 +232,9 @@ spec:
     name: acme-production
     kind: ClusterIssuer
   dnsNames:
-    - "*.velya.health"
-  duration: 2160h    # 90 dias
-  renewBefore: 720h  # 30 dias antes
+    - '*.velya.health'
+  duration: 2160h # 90 dias
+  renewBefore: 720h # 30 dias antes
   privateKey:
     algorithm: ECDSA
     size: 256
@@ -254,7 +254,7 @@ spec:
     name: acme-production
     kind: ClusterIssuer
   dnsNames:
-    - "velya.health"
+    - 'velya.health'
   duration: 2160h
   renewBefore: 720h
   privateKey:
@@ -278,13 +278,13 @@ metadata:
   name: app-velya-health
   namespace: velya-app
   annotations:
-    cert-manager.io/cluster-issuer: "acme-production"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/hsts: "true"
-    nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
-    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
-    nginx.ingress.kubernetes.io/hsts-preload: "true"
+    cert-manager.io/cluster-issuer: 'acme-production'
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/hsts: 'true'
+    nginx.ingress.kubernetes.io/hsts-max-age: '31536000'
+    nginx.ingress.kubernetes.io/hsts-include-subdomains: 'true'
+    nginx.ingress.kubernetes.io/hsts-preload: 'true'
 spec:
   ingressClassName: nginx
   tls:
@@ -310,8 +310,8 @@ O redirect e obrigatorio para todos os hosts. A configuracao e feita via
 anotacoes do Ingress Controller NGINX:
 
 ```yaml
-nginx.ingress.kubernetes.io/ssl-redirect: "true"
-nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
 ```
 
 Isso garante que qualquer request HTTP na porta 80 receba um redirect 301
@@ -355,17 +355,17 @@ metadata:
   name: nginx-ingress-controller
   namespace: ingress-nginx
 data:
-  ssl-protocols: "TLSv1.2 TLSv1.3"
-  ssl-ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305"
-  ssl-prefer-server-ciphers: "true"
-  ssl-session-cache: "true"
-  ssl-session-cache-size: "10m"
-  ssl-session-timeout: "1h"
-  enable-ocsp-dynamic-stapling: "true"
-  hsts: "true"
-  hsts-max-age: "31536000"
-  hsts-include-subdomains: "true"
-  hsts-preload: "true"
+  ssl-protocols: 'TLSv1.2 TLSv1.3'
+  ssl-ciphers: 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305'
+  ssl-prefer-server-ciphers: 'true'
+  ssl-session-cache: 'true'
+  ssl-session-cache-size: '10m'
+  ssl-session-timeout: '1h'
+  enable-ocsp-dynamic-stapling: 'true'
+  hsts: 'true'
+  hsts-max-age: '31536000'
+  hsts-include-subdomains: 'true'
+  hsts-preload: 'true'
 ```
 
 ---
@@ -415,15 +415,15 @@ kubectl logs -n cert-manager -l app.kubernetes.io/name=cert-manager -f
 
 ### 10.1 Limites de Production
 
-| Limite | Valor |
-|---|---|
-| Certificados por dominio registrado | 50/semana |
-| Certificados duplicados | 5/semana |
-| Nomes por certificado | 100 |
-| Accounts por IP | 10/3 horas |
-| Pending authorizations | 300/account |
-| Failed validations | 5/hora/account/hostname |
-| New orders | 300/3 horas |
+| Limite                              | Valor                   |
+| ----------------------------------- | ----------------------- |
+| Certificados por dominio registrado | 50/semana               |
+| Certificados duplicados             | 5/semana                |
+| Nomes por certificado               | 100                     |
+| Accounts por IP                     | 10/3 horas              |
+| Pending authorizations              | 300/account             |
+| Failed validations                  | 5/hora/account/hostname |
+| New orders                          | 300/3 horas             |
 
 ### 10.2 Mitigacao
 
@@ -464,6 +464,7 @@ dig TXT _acme-challenge.velya.health
 ### 11.2 Challenge DNS-01 falhou
 
 Causas comuns:
+
 - Credenciais Route53 invalidas ou expiradas
 - Hosted Zone ID incorreto
 - Permissoes IAM insuficientes
@@ -541,10 +542,10 @@ ser auditados via:
 
 ## 15. Changelog
 
-| Data | Versao | Descricao |
-|---|---|---|
-| 2026-04-09 | 1.0 | Versao inicial da estrategia TLS publica |
+| Data       | Versao | Descricao                                |
+| ---------- | ------ | ---------------------------------------- |
+| 2026-04-09 | 1.0    | Versao inicial da estrategia TLS publica |
 
 ---
 
-*Documento mantido pelo Platform Team. Revisao trimestral obrigatoria.*
+_Documento mantido pelo Platform Team. Revisao trimestral obrigatoria._

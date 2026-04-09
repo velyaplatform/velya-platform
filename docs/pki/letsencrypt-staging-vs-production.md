@@ -19,19 +19,19 @@ e garantir operacao confiavel da PKI publica da Velya Platform.
 
 ### 2.1 Tabela Comparativa
 
-| Criterio | Staging | Production |
-|---|---|---|
-| URL ACME | acme-staging-v02.api.letsencrypt.org | acme-v02.api.letsencrypt.org |
-| Confianca | NAO confiado por browsers | Confiado por todos os browsers |
-| CA Root | Fake Root (staging) | ISRG Root X1 / X2 |
-| Rate Limits | Muito mais permissivos | Restritivos |
-| Certificados/dominio/semana | 30.000 | 50 |
-| Duplicatas/semana | 30.000 | 5 |
-| Failed validations/hora | 60 | 5 |
-| Validade | 90 dias | 90 dias |
-| Wildcard | Suporta | Suporta |
-| DNS-01 | Suporta | Suporta |
-| Certificate Transparency | Nao | Sim (obrigatorio) |
+| Criterio                    | Staging                              | Production                     |
+| --------------------------- | ------------------------------------ | ------------------------------ |
+| URL ACME                    | acme-staging-v02.api.letsencrypt.org | acme-v02.api.letsencrypt.org   |
+| Confianca                   | NAO confiado por browsers            | Confiado por todos os browsers |
+| CA Root                     | Fake Root (staging)                  | ISRG Root X1 / X2              |
+| Rate Limits                 | Muito mais permissivos               | Restritivos                    |
+| Certificados/dominio/semana | 30.000                               | 50                             |
+| Duplicatas/semana           | 30.000                               | 5                              |
+| Failed validations/hora     | 60                                   | 5                              |
+| Validade                    | 90 dias                              | 90 dias                        |
+| Wildcard                    | Suporta                              | Suporta                        |
+| DNS-01                      | Suporta                              | Suporta                        |
+| Certificate Transparency    | Nao                                  | Sim (obrigatorio)              |
 
 ### 2.2 Implicacao Pratica
 
@@ -83,12 +83,12 @@ e garantir operacao confiavel da PKI publica da Velya Platform.
 
 ### 4.2 Hosts de Production da Velya
 
-| Host | Certificado |
-|---|---|
-| velya.health | apex (dedicado, production) |
-| *.velya.health | wildcard (production) |
-| *.staging.velya.health | wildcard (staging issuer OK para staging env) |
-| *.dev.velya.health | wildcard (staging issuer obrigatorio) |
+| Host                    | Certificado                                   |
+| ----------------------- | --------------------------------------------- |
+| velya.health            | apex (dedicado, production)                   |
+| \*.velya.health         | wildcard (production)                         |
+| \*.staging.velya.health | wildcard (staging issuer OK para staging env) |
+| \*.dev.velya.health     | wildcard (staging issuer obrigatorio)         |
 
 ---
 
@@ -96,14 +96,14 @@ e garantir operacao confiavel da PKI publica da Velya Platform.
 
 ### 5.1 Limites Criticos
 
-| Limite | Valor | Periodo |
-|---|---|---|
-| Certificates per Registered Domain | 50 | 7 dias (rolling window) |
-| Duplicate Certificate | 5 | 7 dias |
-| Failed Validation | 5 | 1 hora |
-| New Orders | 300 | 3 horas |
-| Accounts per IP | 10 | 3 horas |
-| Pending Authorizations | 300 | por account |
+| Limite                             | Valor | Periodo                 |
+| ---------------------------------- | ----- | ----------------------- |
+| Certificates per Registered Domain | 50    | 7 dias (rolling window) |
+| Duplicate Certificate              | 5     | 7 dias                  |
+| Failed Validation                  | 5     | 1 hora                  |
+| New Orders                         | 300   | 3 horas                 |
+| Accounts per IP                    | 10    | 3 horas                 |
+| Pending Authorizations             | 300   | por account             |
 
 ### 5.2 Como Evitar Rate Limits
 
@@ -162,7 +162,7 @@ spec:
             #       name: cert-manager
         selector:
           dnsZones:
-            - "velya.health"
+            - 'velya.health'
 ```
 
 ### 6.2 Production
@@ -198,7 +198,7 @@ spec:
             hostedZoneID: HOSTED_ZONE_ID
         selector:
           dnsZones:
-            - "velya.health"
+            - 'velya.health'
 ```
 
 ---
@@ -345,8 +345,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Certificado staging em namespace de producao"
-            description: "O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }} esta usando o issuer staging."
+            summary: 'Certificado staging em namespace de producao'
+            description: 'O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }} esta usando o issuer staging.'
 ```
 
 ---
@@ -388,10 +388,10 @@ Preciso de certificado TLS?
 
 ## 13. Changelog
 
-| Data | Versao | Descricao |
-|---|---|---|
-| 2026-04-09 | 1.0 | Versao inicial do guia staging vs production |
+| Data       | Versao | Descricao                                    |
+| ---------- | ------ | -------------------------------------------- |
+| 2026-04-09 | 1.0    | Versao inicial do guia staging vs production |
 
 ---
 
-*Documento mantido pelo Platform Team. Revisao trimestral obrigatoria.*
+_Documento mantido pelo Platform Team. Revisao trimestral obrigatoria._

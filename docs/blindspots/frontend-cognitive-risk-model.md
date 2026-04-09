@@ -11,15 +11,15 @@ Antes de analisar riscos específicos de componentes, é essencial entender o co
 
 ### Perfil do Usuário Clínico
 
-| Característica | Implicação para UX |
-|---|---|
-| Turnos de 12 horas | Fadiga cognitiva no final do turno. Erros aumentam nas últimas horas. |
-| Múltiplas interrupções por hora | Perda de contexto frequente. A UI deve reorientar rapidamente. |
-| Alta carga emocional | Estresse aumenta propensão a erros de clique e leitura rápida sem verificação. |
-| Uso em movimento (enfermaria) | Leitura rápida, dispositivos variados, postura não-ideal. |
-| Pressão de tempo | Atalhos cognitivos e "satisficing" (primeira opção aceitável, não a melhor). |
-| Expertise variada | Residentes vs. médicos sêniors têm modelos mentais diferentes do fluxo. |
-| Uso em ambiente ruidoso e iluminação variável | Leitura prejudicada. Cores e contraste críticos. |
+| Característica                                | Implicação para UX                                                             |
+| --------------------------------------------- | ------------------------------------------------------------------------------ |
+| Turnos de 12 horas                            | Fadiga cognitiva no final do turno. Erros aumentam nas últimas horas.          |
+| Múltiplas interrupções por hora               | Perda de contexto frequente. A UI deve reorientar rapidamente.                 |
+| Alta carga emocional                          | Estresse aumenta propensão a erros de clique e leitura rápida sem verificação. |
+| Uso em movimento (enfermaria)                 | Leitura rápida, dispositivos variados, postura não-ideal.                      |
+| Pressão de tempo                              | Atalhos cognitivos e "satisficing" (primeira opção aceitável, não a melhor).   |
+| Expertise variada                             | Residentes vs. médicos sêniors têm modelos mentais diferentes do fluxo.        |
+| Uso em ambiente ruidoso e iluminação variável | Leitura prejudicada. Cores e contraste críticos.                               |
 
 ### Modos de Falha Cognitiva em Ambiente Hospitalar
 
@@ -48,6 +48,7 @@ A cognição humana tem capacidade limitada de atenção simultânea (George Mil
 **Impacto clínico potencial**: Clínico não percebe métrica crítica (ex: 3 altas urgentes bloqueadas) porque está processando as outras 5 simultaneamente. Atraso em alta medicalmente necessária.
 
 **Controle de design**:
+
 - Priorização hierárquica: mostrar 3 métricas críticas em destaque, 3 secundárias colapsadas
 - Modo de "foco" para situação de crise — UI simplificada com apenas 2-3 métricas prioritárias
 - Codificação visual de urgência que vai além de número: cor + tamanho + ícone
@@ -65,6 +66,7 @@ Badge "7 alertas" não informa se são 7 alertas críticos ou 7 avisos de rotina
 **Impacto clínico potencial**: Clínico ignora badge de "7 alertas" assumindo que são rotineiros. Dois deles são alertas críticos que precisavam de ação imediata.
 
 **Controle de design**:
+
 - Separar contagem por severidade: `🔴 2 críticos | 🟡 5 informativos`
 - Preview do alerta mais crítico ao hover/tap no badge
 - Som diferenciado para alertas críticos (com controle de volume/silêncio)
@@ -82,6 +84,7 @@ O Command Center mistura métricas operacionais (ocupação de leitos, tempo mé
 **Impacto clínico potencial**: Em situação de pressão, o clínico foca nas métricas operacionais (mais numéricas e objetivas) e não percebe bloqueadores clínicos que exigem julgamento.
 
 **Controle de design**:
+
 - Separação visual clara entre seção clínica e operacional
 - Seção clínica sempre no topo, seção operacional subordinada
 - Usuários com perfil clínico veem dashboard clínico-first; gestores veem operacional-first
@@ -104,6 +107,7 @@ Uma lista de 20 pacientes com múltiplos atributos visuais (status, bloqueadores
 **Impacto clínico potencial**: Paciente crítico na posição 15 da lista não é notado por clínico que para de ler após as primeiras 5-7 entradas (efeito primacy).
 
 **Controle de design**:
+
 - Ordenação inteligente padrão: pacientes com maior urgência de ação aparecem no topo
 - Filtro rápido de "ação necessária agora" como primeiro view, não como filtro adicional
 - Paginação com no máximo 10 pacientes por tela — scroll não é amigável em tablet clínico
@@ -121,6 +125,7 @@ Bloqueadores de alta são tags pequenas inline na linha do paciente. Sob pressã
 **Impacto clínico potencial**: Clínico assume que paciente está pronto para alta porque não percebeu o blocker tag "aguardando laudo de imagem". Alta iniciada prematuramente.
 
 **Controle de design**:
+
 - Blocker tags devem ter peso visual equivalente ao status — não subordinado
 - Blocker icon com tooltip de descrição no hover
 - Linha de paciente com bloqueador tem visual distinto (borda, background) — não apenas tag
@@ -138,6 +143,7 @@ A codificação de criticidade somente por cor (verde/amarelo/vermelho) tem dois
 **Impacto clínico potencial**: Médico com deuteranopia não distingue paciente amarelo de paciente verde. Clínico sem daltonismo interpreta "vermelho" como diferente do intencionado pelo designer.
 
 **Controle de design**:
+
 - Todo código de cor acompanhado de ícone semântico AND label de texto
 - Exemplo: `🔴 Bloqueado` vs. `🟢 Pronto` vs. `🟡 Em Andamento`
 - Nunca confiar apenas na cor para informação crítica (WCAG 2.1 §1.4.1)
@@ -159,6 +165,7 @@ Em uma lista de tarefas sem destaque visual para itens com SLA vencido, o clíni
 **Impacto clínico potencial**: Tarefa de confirmação de alta venceu SLA há 2 horas. O clínico não percebe porque está no meio da lista sem destaque. Alta atrasada, leito bloqueado.
 
 **Controle de design**:
+
 - Tarefas com SLA vencido sobem automaticamente para o topo da lista com badge de "VENCIDO há X horas"
 - Background vermelho/alaranjado para tarefas com SLA crítico
 - Contador regressivo visível para tarefas prestes a vencer (< 30 minutos)
@@ -176,6 +183,7 @@ Concluir uma tarefa de alta com um único clique é conveniente, mas elimina a b
 **Impacto clínico potencial**: Clínico clica "concluir" na tarefa de alta do leito 12 quando pretendia clicar no leito 13 (proximidade de targets, Fitts's Law). Alta registrada para paciente errado.
 
 **Controle de design**:
+
 - Para ações de alta: confirmar com toast "Concluindo alta do Paciente X. Cancelar (5s)"
 - Janela de desfazer de 5-10 segundos com countdown visível
 - Targets de clique com espaçamento mínimo de 44px (Apple HIG para touch)
@@ -197,6 +205,7 @@ O semáforo de prontidão para alta (vermelho/amarelo/verde) é o elemento visua
 **Impacto clínico potencial**: Médico com daltonismo não percebe que paciente está em estado "bloqueado" (vermelho) e inicia processo de alta para paciente que não está pronto.
 
 **Controle de design**:
+
 - Semáforo com ícone: `✗` para vermelho (bloqueado), `⚠` para amarelo (pendente), `✓` para verde (pronto)
 - Label de texto obrigatório além da cor: "Bloqueado", "Aguardando", "Pronto para Alta"
 - Teste com simulação de 3 tipos de daltonismo antes do lançamento
@@ -213,6 +222,7 @@ A funcionalidade de "alta em massa" permite selecionar múltiplos pacientes e in
 **Impacto clínico potencial**: Clínico seleciona 5 pacientes prontos para alta. Por erro de seleção (checkbox próximos, touch impreciso), inclui inadvertidamente um 6º paciente que não está pronto. Processo de alta iniciado para paciente sem critérios.
 
 **Controle de design**:
+
 - Ação em massa exibe lista de revisão: "Você vai iniciar alta para: [nome 1], [nome 2], [nome 3]. Confirmar?"
 - Checklist de revisão individual para cada paciente incluído
 - Contagem e validação: "5 de 5 pacientes com critérios de alta verificados. Prosseguir?"
@@ -231,6 +241,7 @@ A recomendação de AI de prontidão para alta é exibida com um indicador de co
 Viés de automação: clínico vê "AI recomenda alta — 92% confiança" e inicia alta sem verificar clinicamente. A AI pode ter alta confiança mas estar errada (especialmente para casos fora da distribuição de treino).
 
 **Controle de design**:
+
 - Card de recomendação sempre inclui:
   - Dados usados para a recomendação (lista de evidências)
   - Dados ausentes ou não considerados (campos faltantes)
@@ -245,19 +256,19 @@ Viés de automação: clínico vê "AI recomenda alta — 92% confiança" e inic
 
 ## Matriz de Risco Cognitivo Consolidada
 
-| ID | Componente | Risco | Impacto Clínico | Severidade | Controle | Status |
-|---|---|---|---|---|---|---|
-| CR-001 | Command Center | 6 métricas simultâneas — sobrecarga de atenção | Alerta crítico não percebido | Alta | Hierarquia visual + modo foco | Ausente |
-| CR-002 | Command Center | Alert badge sem contexto de urgência | Alerta crítico ignorado | Crítica | Badge com severidade + preview | Ausente |
-| CR-003 | Command Center | Mistura operacional/clínico | Prioridade clínica perdida | Alta | Separação visual por domínio | Ausente |
-| CR-004 | Pacientes | 20+ pacientes simultâneos | Paciente urgente não percebido | Alta | Ordenação por urgência + max 10 | Ausente |
-| CR-005 | Pacientes | Blocker tags inline pequenas | Alta prematura por blocker não visto | Crítica | Peso visual equivalente ao status | Ausente |
-| CR-006 | Pacientes | Somente cor para criticidade | Daltonismo — erro de interpretação | Alta | Ícone + label + cor | Ausente |
-| CR-007 | Task Inbox | SLA vencido sem destaque | Tarefa urgente não atendida | Alta | Destaque automático SLA vencido | Ausente |
-| CR-008 | Task Inbox | Ação de 1 clique sem confirmação | Clique acidental — ação irreversível | Crítica | Confirmação + undo window | Ausente |
-| CR-009 | Discharge | Semáforo sem suporte daltonismo | Alta de paciente não pronto | Crítica | Ícone + label + cor | Ausente |
-| CR-010 | Discharge | Alta em massa sem revisão | Alta de paciente errado incluído | Crítica | Checklist de revisão individual | Ausente |
-| CR-011 | Discharge | AI rec sem clareza de limitações | Automation bias — decisão sem verificação | Catastrófica | Evidências + disclaimer + override tracking | Ausente |
+| ID     | Componente     | Risco                                          | Impacto Clínico                           | Severidade   | Controle                                    | Status  |
+| ------ | -------------- | ---------------------------------------------- | ----------------------------------------- | ------------ | ------------------------------------------- | ------- |
+| CR-001 | Command Center | 6 métricas simultâneas — sobrecarga de atenção | Alerta crítico não percebido              | Alta         | Hierarquia visual + modo foco               | Ausente |
+| CR-002 | Command Center | Alert badge sem contexto de urgência           | Alerta crítico ignorado                   | Crítica      | Badge com severidade + preview              | Ausente |
+| CR-003 | Command Center | Mistura operacional/clínico                    | Prioridade clínica perdida                | Alta         | Separação visual por domínio                | Ausente |
+| CR-004 | Pacientes      | 20+ pacientes simultâneos                      | Paciente urgente não percebido            | Alta         | Ordenação por urgência + max 10             | Ausente |
+| CR-005 | Pacientes      | Blocker tags inline pequenas                   | Alta prematura por blocker não visto      | Crítica      | Peso visual equivalente ao status           | Ausente |
+| CR-006 | Pacientes      | Somente cor para criticidade                   | Daltonismo — erro de interpretação        | Alta         | Ícone + label + cor                         | Ausente |
+| CR-007 | Task Inbox     | SLA vencido sem destaque                       | Tarefa urgente não atendida               | Alta         | Destaque automático SLA vencido             | Ausente |
+| CR-008 | Task Inbox     | Ação de 1 clique sem confirmação               | Clique acidental — ação irreversível      | Crítica      | Confirmação + undo window                   | Ausente |
+| CR-009 | Discharge      | Semáforo sem suporte daltonismo                | Alta de paciente não pronto               | Crítica      | Ícone + label + cor                         | Ausente |
+| CR-010 | Discharge      | Alta em massa sem revisão                      | Alta de paciente errado incluído          | Crítica      | Checklist de revisão individual             | Ausente |
+| CR-011 | Discharge      | AI rec sem clareza de limitações               | Automation bias — decisão sem verificação | Catastrófica | Evidências + disclaimer + override tracking | Ausente |
 
 ---
 

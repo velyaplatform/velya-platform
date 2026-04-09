@@ -1,6 +1,7 @@
 # Velya Critical Fixes Backlog
 
 ## Data: 2026-04-09
+
 ## Classificacao: MANDATORIO antes de qualquer uso em ambiente hospitalar
 
 ---
@@ -8,6 +9,7 @@
 ## Formato
 
 Cada item segue o formato:
+
 - **ID**: Identificador unico
 - **Titulo**: Descricao curta
 - **Descricao**: O que precisa ser feito e por que
@@ -30,10 +32,12 @@ Cada item segue o formato:
 **Dependencias**: Nenhuma
 **Owner Sugerido**: DevOps/SRE
 **Evidencia**:
+
 - `apps/web/src/lib/audit-logger.ts` linha 5: `const AUDIT_DIR = process.env.VELYA_AUDIT_PATH || '/tmp/velya-audit'`
 - `apps/web/src/lib/event-store.ts` linha 4: `const STORE_DIR = process.env.VELYA_EVENT_STORE_PATH || '/tmp/velya-events'`
 
 **Tarefas**:
+
 1. Criar `infra/kubernetes/bootstrap/velya-data-pvcs.yaml` com PVCs de 10Gi
 2. Atualizar deployment da web app para montar volumes nos paths corretos
 3. Definir env vars `VELYA_AUDIT_PATH` e `VELYA_EVENT_STORE_PATH` apontando para o volume montado
@@ -50,9 +54,11 @@ Cada item segue o formato:
 **Dependencias**: Nenhuma
 **Owner Sugerido**: Backend developer
 **Evidencia**:
+
 - `apps/web/src/lib/access-control.ts` linha 711: `return UI_ROLE_MAP[uiRole] ?? 'admin_system'`
 
 **Tarefas**:
+
 1. Criar um role `unknown_denied` com accessLevel 0, zero allowedActions, zero allowedDataClasses
 2. Ou alterar o fallback para lancar erro/retornar null
 3. Adicionar teste unitario que verifica que role desconhecido nao ganha acesso
@@ -69,11 +75,13 @@ Cada item segue o formato:
 **Dependencias**: Nenhuma (pode ser iniciado imediatamente)
 **Owner Sugerido**: Security engineer + Backend developer
 **Evidencia**:
+
 - Nao existe nenhum arquivo de autenticacao em `apps/web/src/lib/`
 - Nao existe middleware de auth em nenhum service
 - `apps/web/src/app/layout.tsx` usa dropdown para selecao de role
 
 **Tarefas**:
+
 1. Escolher e deployar identity provider (Keycloak, Cognito, ou Auth0)
 2. Configurar OIDC/OAuth2 com o frontend Next.js (next-auth ou similar)
 3. Implementar middleware JWT em todos os NestJS services
@@ -94,15 +102,18 @@ Cada item segue o formato:
 **Dependencias**: FIX-003 (para solucao completa)
 **Owner Sugerido**: Backend developer
 **Evidencia**:
+
 - `apps/web/src/app/api/break-glass/route.ts` linhas 45-69: aceita role do body sem auth
 
 **Tarefas (mitigacao imediata)**:
+
 1. Adicionar API key basica para o endpoint (nao ideal, mas melhor que nada)
 2. Limitar break-glass a IPs internos da rede hospitalar
 3. Rate limit de 3 ativacoes por hora por IP
 4. Notificacao por email/SMS quando break-glass e ativado
 
 **Tarefas (solucao completa, apos FIX-003)**:
+
 1. Extrair role do JWT, nao do body
 2. Verificar que o usuario autenticado realmente tem o role declarado
 3. Registrar identidade real (nao auto-declarada) no audit log
@@ -118,10 +129,12 @@ Cada item segue o formato:
 **Dependencias**: FIX-003 (precisa de identidade para autorizar)
 **Owner Sugerido**: Backend developer
 **Evidencia**:
+
 - Zero imports de `access-control` em qualquer arquivo dentro de `services/`
 - Zero guards ou interceptors de autorizacao em NestJS modules
 
 **Tarefas**:
+
 1. Criar `packages/authorization/` com guard NestJS reutilizavel
 2. O guard extrai role do JWT, usa `isAllowed()` para verificar permissao
 3. Decorator `@RequiresAction('view_clinical_summary')` em cada endpoint
@@ -142,10 +155,12 @@ Cada item segue o formato:
 **Dependencias**: Nenhuma
 **Owner Sugerido**: Backend developer
 **Evidencia**:
+
 - Zero imports de qualquer ORM ou DB driver em `services/`
 - `temporal-values.yaml` referencia `postgresql.velya-dev-platform.svc.cluster.local` confirmando que DB existe
 
 **Tarefas**:
+
 1. Escolher ORM (Drizzle recomendado para TypeScript strict)
 2. Configurar conexao via External Secrets Operator (credenciais)
 3. Criar schemas/migrations para: encounters, blockers, tasks, audit_entries
@@ -164,9 +179,11 @@ Cada item segue o formato:
 **Dependencias**: FIX-006 (PostgreSQL)
 **Owner Sugerido**: Backend developer + domain expert
 **Evidencia**:
+
 - `services/discharge-orchestrator/src/api/discharge.controller.ts`: todos os metodos com TODO
 
 **Tarefas**:
+
 1. Criar `blocker.repository.ts` com CRUD no PostgreSQL
 2. Criar `blocker.service.ts` com logica de negocio (validacao de transicoes, SLA, escalacao)
 3. Implementar `createBlocker` com validacao e emissao de evento
@@ -186,9 +203,11 @@ Cada item segue o formato:
 **Dependencias**: FIX-006 (PostgreSQL)
 **Owner Sugerido**: Backend developer + domain expert
 **Evidencia**:
+
 - `services/patient-flow/src/api/patient-flow.controller.ts`: todos os metodos com TODO
 
 **Tarefas**:
+
 1. Criar `encounter.repository.ts` com CRUD
 2. Criar `bed-management.repository.ts` com census
 3. Implementar `listEncounters` com filtros reais
@@ -207,9 +226,11 @@ Cada item segue o formato:
 **Dependencias**: FIX-006 (PostgreSQL)
 **Owner Sugerido**: Backend developer
 **Evidencia**:
+
 - `services/task-inbox/src/api/task.controller.ts`: 8 endpoints, todos retornam stubs
 
 **Tarefas**:
+
 1. Criar `task.repository.ts` com CRUD
 2. Criar `task.service.ts` com logica de atribuicao, escalacao, SLA
 3. Implementar `createTask`, `updateTask`, `assignTask`
@@ -228,9 +249,11 @@ Cada item segue o formato:
 **Dependencias**: Nenhuma
 **Owner Sugerido**: DevOps/SRE
 **Evidencia**:
+
 - `find . -name Dockerfile` retorna apenas 3 resultados (web, api-gateway, .ministack)
 
 **Tarefas**:
+
 1. Criar Dockerfile multi-stage para cada service (base node:22-slim)
 2. Usar distroless ou slim image para runtime
 3. Configurar non-root user
@@ -249,9 +272,11 @@ Cada item segue o formato:
 **Dependencias**: Nenhuma
 **Owner Sugerido**: Backend developer
 **Evidencia**:
+
 - `tests/unit/platform.test.ts`: unico teste com 2 assertions triviais
 
 **Tarefas**:
+
 1. `access-control.test.ts`: testar isAllowed para cada role x action, break-glass, data classes, nav sections, resolveUiRole
 2. `audit-logger.test.ts`: testar hash chain, integridade, queryAudit com filtros, verifyIntegrity
 3. `event-store.test.ts`: testar appendEvent, getEvents com filtros, ackEvent, MAX_EVENTS_PER_FILE
@@ -268,11 +293,13 @@ Cada item segue o formato:
 **Dependencias**: Nenhuma
 **Owner Sugerido**: Backend developer + SRE
 **Evidencia**:
+
 - `packages/observability/src/tracer.ts` linha 279: `// In a real implementation, this would send to the OTel collector`
 - `packages/observability/src/metrics.ts`: Counter/Histogram/Gauge sao Map<string, number> in-memory
 - Zero imports de `@opentelemetry/*` em todo o codebase
 
 **Tarefas**:
+
 1. Adicionar dependencias: `@opentelemetry/sdk-node`, `@opentelemetry/exporter-otlp-*`, `@opentelemetry/instrumentation-*`
 2. Substituir Counter/Histogram/Gauge custom pelos equivalentes OTel
 3. Substituir Tracer custom por OTel TracerProvider
@@ -293,10 +320,12 @@ Cada item segue o formato:
 **Dependencias**: FIX-006 (services precisam de logica primeiro)
 **Owner Sugerido**: Backend developer
 **Evidencia**:
+
 - Zero imports de `nats` ou `@nats-io/*` em qualquer service
 - `packages/event-contracts/` define eventos que nunca sao publicados
 
 **Tarefas**:
+
 1. Adicionar NATS client a cada service
 2. Publicar eventos em operacoes de escrita (create, update, delete)
 3. Criar consumers para workflows inter-service
@@ -315,10 +344,12 @@ Cada item segue o formato:
 **Dependencias**: FIX-006, FIX-013
 **Owner Sugerido**: Backend developer + DevOps
 **Evidencia**:
+
 - `infra/kubernetes/bootstrap/temporal-values.yaml` existe mas nao e referenciado por ArgoCD
 - Zero imports de `@temporalio/*`
 
 **Tarefas**:
+
 1. Criar ArgoCD Application para Temporal
 2. Deploy Temporal com PostgreSQL existente
 3. Criar primeiro workflow: DischargeWorkflow
@@ -337,9 +368,11 @@ Cada item segue o formato:
 **Dependencias**: FIX-007, FIX-008, FIX-009 (services precisam funcionar)
 **Owner Sugerido**: Frontend developer
 **Evidencia**:
+
 - Dados mock hardcoded em componentes React
 
 **Tarefas**:
+
 1. Criar hooks/services de fetch para cada API
 2. Implementar loading states e error handling
 3. Remover dados mock dos componentes
@@ -357,14 +390,16 @@ Cada item segue o formato:
 **Dependencias**: Nenhuma
 **Owner Sugerido**: Backend developer
 **Evidencia**:
+
 - Zero configuracao de rate limiting em qualquer service ou API route
 
 **Tarefas**:
+
 1. Rate limiting no Next.js API routes (middleware)
 2. Rate limiting nos NestJS services (throttler module)
 3. Limites especificos para break-glass (3/hora por IP)
 4. Limites gerais (100 req/min por IP)
-5. Headers de rate limit na resposta (X-RateLimit-*)
+5. Headers de rate limit na resposta (X-RateLimit-\*)
 
 ---
 
@@ -377,9 +412,11 @@ Cada item segue o formato:
 **Dependencias**: Nenhuma
 **Owner Sugerido**: Backend developer
 **Evidencia**:
+
 - Zero configuracao de CORS em NestJS ou Next.js
 
 **Tarefas**:
+
 1. Configurar CORS no Next.js (next.config.js ou middleware)
 2. Configurar CORS no NestJS (app.enableCors com whitelist)
 3. Adicionar security headers: CSP, HSTS, X-Content-Type-Options, X-Frame-Options
@@ -396,9 +433,11 @@ Cada item segue o formato:
 **Dependencias**: FIX-006 (DB), FIX-013 (NATS)
 **Owner Sugerido**: Backend developer
 **Evidencia**:
+
 - `/api/health` retorna `{ status: 'ok' }` sem verificar nada
 
 **Tarefas**:
+
 1. Terminus module no NestJS para health checks
 2. Verificar PostgreSQL connectivity
 3. Verificar NATS connectivity (quando implementado)
@@ -418,9 +457,11 @@ Cada item segue o formato:
 **Dependencias**: FIX-006, FIX-003
 **Owner Sugerido**: Clinical informatics engineer
 **Evidencia**:
+
 - Zero imports de Medplum ou FHIR em todo o codebase
 
 **Tarefas**:
+
 1. Deploy Medplum server
 2. Definir FHIR profiles para Patient, Encounter, Condition, Medication
 3. Criar ACL (Anti-Corruption Layer) entre services e Medplum
@@ -438,9 +479,11 @@ Cada item segue o formato:
 **Dependencias**: FIX-010 (Dockerfiles)
 **Owner Sugerido**: DevOps/SRE
 **Evidencia**:
+
 - `infra/helm/charts/` nao existe
 
 **Tarefas**:
+
 1. Template de chart base para services NestJS
 2. Chart para cada service com values-{dev,staging,prod}.yaml
 3. Ingress, service, deployment, configmap, secrets
@@ -459,9 +502,11 @@ Cada item segue o formato:
 **Dependencias**: Nenhuma
 **Owner Sugerido**: Infrastructure engineer
 **Evidencia**:
+
 - `infra/tofu/` nao existe
 
 **Tarefas**:
+
 1. Estrutura de modulos: `infra/tofu/modules/` e `infra/tofu/envs/`
 2. Modulos: VPC, EKS, RDS, ECR, S3 (state), Route53, ACM
 3. State em S3 com DynamoDB locking
@@ -479,9 +524,11 @@ Cada item segue o formato:
 **Dependencias**: FIX-003, FIX-006
 **Owner Sugerido**: Privacy engineer + DPO
 **Evidencia**:
+
 - Nenhum modulo de consentimento, portabilidade ou exclusao
 
 **Tarefas**:
+
 1. Modulo de consentimento (coleta, revogacao, registro)
 2. Endpoint de portabilidade de dados do titular
 3. Endpoint de exclusao (com restricoes para dados clinicos obrigatorios)
@@ -500,10 +547,12 @@ Cada item segue o formato:
 **Dependencias**: FIX-012 (AI Gateway funcional)
 **Owner Sugerido**: AI engineer
 **Evidencia**:
+
 - `agents/` directory does not exist
 - Agent orchestrator has no agents to orchestrate
 
 **Tarefas**:
+
 1. Criar diretorio `agents/` com template
 2. Escolher primeiro caso de uso: discharge-planning-agent (sugere resolucao de blockers)
 3. Definir charter, scope, permissions, KPIs
@@ -523,9 +572,11 @@ Cada item segue o formato:
 **Dependencias**: FIX-003, FIX-015 (frontend com dados reais)
 **Owner Sugerido**: QA engineer
 **Evidencia**:
+
 - Nenhum arquivo Playwright ou Cypress
 
 **Tarefas**:
+
 1. Setup Playwright com Next.js
 2. Teste e2e: login -> dashboard -> ver pacientes
 3. Teste e2e: criar blocker de alta -> resolver -> confirmar resolucao
@@ -544,9 +595,11 @@ Cada item segue o formato:
 **Dependencias**: FIX-006 (DB com dados)
 **Owner Sugerido**: SRE
 **Evidencia**:
+
 - Nenhuma configuracao de backup
 
 **Tarefas**:
+
 1. Backup automatizado de PostgreSQL (pg_dump ou WAL archiving)
 2. Backup de PVCs (audit/event store)
 3. S3 bucket para armazenamento de backups
@@ -643,16 +696,16 @@ Semana 12-16: FIX-014 (Temporal)
 
 ## Metricas de Acompanhamento
 
-| Metrica | Valor Atual | Meta MVP | Meta Production |
-|---------|------------|----------|-----------------|
-| Services com logica real | 0/9 | 4/9 | 9/9 |
-| Endpoints retornando dados reais | 0/18+ | 12/18 | 18/18 |
-| Test coverage (logica de negocio) | 0% | 50% | 80% |
-| Autenticacao implementada | Nao | Sim | Sim + MFA |
-| Autorizacao no backend | Nao | Sim | Sim + ABAC |
-| Dados persistidos em DB | Nao | Sim | Sim + backup |
-| NATS conectado | Nao | Nao | Sim |
-| Temporal deployado | Nao | Nao | Sim |
-| FHIR/Medplum | Nao | Nao | Sim |
-| Audit trail persistente | Nao (tmp) | Sim (PV) | Sim (PV + backup) |
-| LGPD compliance | Nao | Parcial | Completo |
+| Metrica                           | Valor Atual | Meta MVP | Meta Production   |
+| --------------------------------- | ----------- | -------- | ----------------- |
+| Services com logica real          | 0/9         | 4/9      | 9/9               |
+| Endpoints retornando dados reais  | 0/18+       | 12/18    | 18/18             |
+| Test coverage (logica de negocio) | 0%          | 50%      | 80%               |
+| Autenticacao implementada         | Nao         | Sim      | Sim + MFA         |
+| Autorizacao no backend            | Nao         | Sim      | Sim + ABAC        |
+| Dados persistidos em DB           | Nao         | Sim      | Sim + backup      |
+| NATS conectado                    | Nao         | Nao      | Sim               |
+| Temporal deployado                | Nao         | Nao      | Sim               |
+| FHIR/Medplum                      | Nao         | Nao      | Sim               |
+| Audit trail persistente           | Nao (tmp)   | Sim (PV) | Sim (PV + backup) |
+| LGPD compliance                   | Nao         | Parcial  | Completo          |

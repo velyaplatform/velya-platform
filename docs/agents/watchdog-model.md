@@ -3,7 +3,7 @@
 **Versão:** 1.0  
 **Cluster:** kind-velya-local (simulando AWS EKS)  
 **Namespace:** velya-dev-agents  
-**Última revisão:** 2026-04-08  
+**Última revisão:** 2026-04-08
 
 ---
 
@@ -42,6 +42,7 @@ A Velya opera com um modelo de Watchdog em três camadas:
 **SLA de detecção:** 3 minutos (Workers/Sentinels), 15 minutos (Batch/Learning)
 
 **Critério formal:**
+
 ```
 silence_seconds = now() - last_heartbeat_timestamp
 threshold = agent_class_heartbeat_interval * 3
@@ -49,6 +50,7 @@ IS_SILENT = silence_seconds > threshold
 ```
 
 **Resposta automática:**
+
 1. Verificar estado do pod via Kubernetes API (Running/Pending/CrashLoopBackOff)
 2. Se pod Running: tentar coletar logs recentes via Loki (últimos 5 minutos)
 3. Se pod CrashLoopBackOff: registrar incidente S2 imediatamente
@@ -56,6 +58,7 @@ IS_SILENT = silence_seconds > threshold
 5. Publicar em `velya.agents.watchdog.anomaly-detected` com tipo `agent_silent`
 
 **Resolução automática:**
+
 - Se heartbeat retornar dentro de 5 minutos sem intervenção: registrar como falso alerta e continuar monitorando
 - Se silêncio persistir: tentar restart do pod (apenas se não for agent clínico em processamento ativo)
 
@@ -68,6 +71,7 @@ IS_SILENT = silence_seconds > threshold
 **SLA de detecção:** 5 minutos após início do buildup
 
 **Critério formal:**
+
 ```
 lag_growth_rate = (current_lag - lag_5min_ago) / 5  # mensagens por minuto
 processor_throughput = tasks_processed_last_5min / 5  # tasks por minuto
@@ -76,6 +80,7 @@ IS_BUILDUP = lag_growth_rate > processor_throughput * 2 AND current_lag > 20
 ```
 
 **Resposta automática:**
+
 1. Verificar se workers estão ativos (heartbeat recente)
 2. Verificar se KEDA ScaledObject está ativo e respondendo
 3. Se workers ativos mas letos: verificar se downstream service está degradado
@@ -100,12 +105,14 @@ IS_BUILDUP = lag_growth_rate > processor_throughput * 2 AND current_lag > 20
 **SLA de detecção:** 10 minutos após início do storm
 
 **Critério formal:**
+
 ```
 retry_rate = retries_last_10min / total_attempts_last_10min
 IS_RETRY_STORM = retry_rate > 0.30 AND total_attempts_last_10min > 20
 ```
 
 **Resposta automática:**
+
 1. Identificar o tipo de erro mais comum nos retries (via Loki)
 2. Se erro de timeout de tool: verificar saúde do serviço/tool
 3. Se erro de schema: bloquear novas tentativas, alertar Architecture Review
@@ -114,11 +121,12 @@ IS_RETRY_STORM = retry_rate > 0.30 AND total_attempts_last_10min > 20
 6. Publicar alerta em `velya.agents.watchdog.anomaly-detected`
 
 **Circuit Breaker automático:**
+
 ```yaml
 # Quando retry_rate > 50% por 5 minutos:
 action: pause_worker
 duration_minutes: 15
-reason: "retry_storm_circuit_breaker"
+reason: 'retry_storm_circuit_breaker'
 conditions_to_resume:
   - retry_rate_below: 0.10
   - downstream_healthy: true
@@ -134,6 +142,7 @@ conditions_to_resume:
 **SLA de detecção:** 15 minutos após início do acúmulo
 
 **Critério formal:**
+
 ```
 validation_queue_depth = messages_in("velya.agents.governance.validation-required")
 validation_throughput = validations_completed_last_15min / 15
@@ -143,6 +152,7 @@ IS_VALIDATION_BACKLOG = validation_queue_depth > 50 AND
 ```
 
 **Resposta automática:**
+
 1. Verificar disponibilidade do validation-worker
 2. Se validation-worker em crash: notificar imediatamente (tasks aguardando podem expirar)
 3. Se validation-worker lento: verificar custo de LLM (pode estar throttled)
@@ -158,12 +168,14 @@ IS_VALIDATION_BACKLOG = validation_queue_depth > 50 AND
 **SLA de detecção:** 30 minutos (auditoria é menos urgente que validação)
 
 **Critério formal:**
+
 ```
 audit_queue_depth = messages_in("velya.agents.governance.audit-required")
 IS_AUDIT_BACKLOG = audit_queue_depth > 200
 ```
 
 **Resposta automática:**
+
 1. Verificar disponibilidade do audit-recorder-agent
 2. Verificar capacidade de storage do Loki (pode estar cheio)
 3. Verificar conectividade com audit stream NATS
@@ -179,12 +191,14 @@ IS_AUDIT_BACKLOG = audit_queue_depth > 200
 **SLA de detecção:** 60 minutos de SLA violado consecutivo
 
 **Critério formal:**
+
 ```
 sla_violations_last_hour = tasks_exceeding_sla / total_tasks_last_hour
 IS_OVERLOADED = sla_violations_last_hour > 0.20 AND duration_minutes > 60
 ```
 
 **Resposta automática:**
+
 1. Analisar causa: volume excessivo, recursos insuficientes, ou agent lento
 2. Se volume excessivo: verificar se há spike anormal e se é esperado
 3. Se recursos insuficientes: solicitar aprovação para aumentar ResourceQuota
@@ -233,21 +247,21 @@ spec:
                   name: nats-credentials
                   key: url
             - name: PROMETHEUS_URL
-              value: "http://prometheus.velya-dev-observability.svc.cluster.local:9090"
+              value: 'http://prometheus.velya-dev-observability.svc.cluster.local:9090'
             - name: LOKI_URL
-              value: "http://loki.velya-dev-observability.svc.cluster.local:3100"
+              value: 'http://loki.velya-dev-observability.svc.cluster.local:3100'
             - name: KUBERNETES_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: CHECK_INTERVAL_SECONDS
-              value: "30"
+              value: '30'
             - name: AGENT_SILENT_THRESHOLD_SECONDS
-              value: "180"
+              value: '180'
             - name: QUEUE_BUILDUP_THRESHOLD
-              value: "20"
+              value: '20'
             - name: RETRY_STORM_THRESHOLD_PERCENT
-              value: "30"
+              value: '30'
           resources:
             requests:
               cpu: 100m
@@ -287,24 +301,24 @@ metadata:
   name: ops-watchdog-role
   namespace: velya-dev-agents
 rules:
-  - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["get", "list", "watch", "patch"]
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: [""]
-    resources: ["pods/log"]
-    verbs: ["get"]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: ["batch"]
-    resources: ["cronjobs", "jobs"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: ["keda.sh"]
-    resources: ["scaledobjects"]
-    verbs: ["get", "list", "watch"]
+  - apiGroups: ['apps']
+    resources: ['deployments']
+    verbs: ['get', 'list', 'watch', 'patch']
+  - apiGroups: ['']
+    resources: ['pods']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['']
+    resources: ['pods/log']
+    verbs: ['get']
+  - apiGroups: ['']
+    resources: ['events']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['batch']
+    resources: ['cronjobs', 'jobs']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['keda.sh']
+    resources: ['scaledobjects']
+    verbs: ['get', 'list', 'watch']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -344,11 +358,11 @@ spec:
           image: velya/meta-watchdog:1.0.0
           env:
             - name: MONITORED_WATCHDOGS
-              value: "ops-watchdog,clinical-watchdog,finops-watchdog"
+              value: 'ops-watchdog,clinical-watchdog,finops-watchdog'
             - name: WATCHDOG_SILENCE_THRESHOLD_SECONDS
-              value: "90"
+              value: '90'
             - name: ESCALATION_CHANNEL
-              value: "velya-ops-critical"
+              value: 'velya-ops-critical'
           resources:
             requests:
               cpu: 50m
@@ -366,23 +380,23 @@ class MetaWatchdog:
     Supervisiona todos os watchdogs registrados na plataforma.
     Se um watchdog fica silencioso, o Meta-Watchdog escalada imediatamente.
     """
-    
+
     MONITORED_WATCHDOGS = [
         WatchdogConfig("ops-watchdog", silence_threshold=90, criticality="critical"),
         WatchdogConfig("clinical-watchdog", silence_threshold=90, criticality="critical"),
         WatchdogConfig("finops-watchdog", silence_threshold=120, criticality="high"),
     ]
-    
+
     async def check_watchdog_health(self):
         for watchdog_config in self.MONITORED_WATCHDOGS:
             last_hb = await self.get_last_heartbeat(watchdog_config.name)
-            
+
             if last_hb is None:
                 await self.trigger_watchdog_missing_incident(watchdog_config)
                 continue
-            
+
             silence_seconds = time.time() - last_hb.timestamp
-            
+
             if silence_seconds > watchdog_config.silence_threshold:
                 incident = WatchdogDownIncident(
                     watchdog=watchdog_config.name,
@@ -391,11 +405,11 @@ class MetaWatchdog:
                     affected_agents=await self.list_agents_by_office(watchdog_config.office)
                 )
                 await self.trigger_incident(incident)
-                
+
                 # Meta-watchdog assume temporariamente as verificações críticas
                 if watchdog_config.criticality == "critical":
                     await self.assume_critical_checks(watchdog_config)
-    
+
     async def assume_critical_checks(self, failed_watchdog: WatchdogConfig):
         """
         Quando um watchdog crítico falha, o Meta-Watchdog assume
@@ -424,7 +438,6 @@ spec:
     - name: velya.watchdog
       interval: 30s
       rules:
-        
         - alert: WatchdogDetectedAgentSilent
           expr: |
             velya_watchdog_anomalies_total{type="agent_silent"} > 0
@@ -432,8 +445,8 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "Watchdog detectou agent silencioso: {{ $labels.agent_name }}"
-        
+            summary: 'Watchdog detectou agent silencioso: {{ $labels.agent_name }}'
+
         - alert: WatchdogDetectedQueueBuildup
           expr: |
             velya_watchdog_anomalies_total{type="queue_buildup"} > 0
@@ -441,8 +454,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Queue buildup detectado na fila: {{ $labels.queue_name }}"
-        
+            summary: 'Queue buildup detectado na fila: {{ $labels.queue_name }}'
+
         - alert: WatchdogDetectedRetryStorm
           expr: |
             velya_watchdog_anomalies_total{type="retry_storm"} > 0
@@ -450,19 +463,19 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Retry storm detectado no agent: {{ $labels.agent_name }}"
-        
+            summary: 'Retry storm detectado no agent: {{ $labels.agent_name }}'
+
         - alert: MetaWatchdogDetectedWatchdogDown
           expr: |
             velya_meta_watchdog_watchdogs_down > 0
           for: 0m
           labels:
             severity: critical
-            page: "true"
+            page: 'true'
           annotations:
-            summary: "CRÍTICO: Watchdog {{ $labels.watchdog_name }} está inativo"
-            description: "O sistema de supervisão está parcialmente cego. Ação humana imediata necessária."
-        
+            summary: 'CRÍTICO: Watchdog {{ $labels.watchdog_name }} está inativo'
+            description: 'O sistema de supervisão está parcialmente cego. Ação humana imediata necessária.'
+
         - alert: CircuitBreakerActivated
           expr: |
             velya_watchdog_circuit_breakers_active > 0
@@ -470,8 +483,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Circuit breaker ativado pelo watchdog para agent: {{ $labels.agent_name }}"
-            description: "Agent pausado por retry storm. Verificar causa raiz antes de retomar."
+            summary: 'Circuit breaker ativado pelo watchdog para agent: {{ $labels.agent_name }}'
+            description: 'Agent pausado por retry storm. Verificar causa raiz antes de retomar.'
 ```
 
 ---

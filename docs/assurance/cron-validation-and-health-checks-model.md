@@ -17,6 +17,7 @@ A Velya opera tres mecanismos distintos de verificacao recorrente, cada um adequ
 ### 2.1 Kubernetes CronJobs
 
 **Quando usar:**
+
 - Verificacoes simples e independentes (single-step)
 - Sem necessidade de estado entre execucoes
 - Resultado binario: sucesso ou falha
@@ -25,20 +26,21 @@ A Velya opera tres mecanismos distintos de verificacao recorrente, cada um adequ
 
 **Campos obrigatorios por padrao Velya:**
 
-| Campo | Descricao | Exemplo |
-|---|---|---|
-| `metadata.labels.velya.io/owner` | Time responsavel | `platform-sre` |
-| `metadata.labels.velya.io/check-type` | Categoria do check | `infra-health` |
-| `metadata.labels.velya.io/severity` | Severidade se falhar | `critical` |
-| `spec.jobTemplate.spec.activeDeadlineSeconds` | Timeout maximo | `300` |
-| `spec.successfulJobsHistoryLimit` | Historico de sucesso | `3` |
-| `spec.failedJobsHistoryLimit` | Historico de falha | `5` |
-| `spec.concurrencyPolicy` | Politica de sobreposicao | `Forbid` |
-| `spec.jobTemplate.spec.backoffLimit` | Retries antes de falha | `2` |
+| Campo                                         | Descricao                | Exemplo        |
+| --------------------------------------------- | ------------------------ | -------------- |
+| `metadata.labels.velya.io/owner`              | Time responsavel         | `platform-sre` |
+| `metadata.labels.velya.io/check-type`         | Categoria do check       | `infra-health` |
+| `metadata.labels.velya.io/severity`           | Severidade se falhar     | `critical`     |
+| `spec.jobTemplate.spec.activeDeadlineSeconds` | Timeout maximo           | `300`          |
+| `spec.successfulJobsHistoryLimit`             | Historico de sucesso     | `3`            |
+| `spec.failedJobsHistoryLimit`                 | Historico de falha       | `5`            |
+| `spec.concurrencyPolicy`                      | Politica de sobreposicao | `Forbid`       |
+| `spec.jobTemplate.spec.backoffLimit`          | Retries antes de falha   | `2`            |
 
 ### 2.2 Argo CronWorkflows
 
 **Quando usar:**
+
 - Pipelines multi-step com dependencias entre etapas
 - Necessidade de DAG (grafo de dependencias)
 - Artefatos intermediarios entre steps
@@ -47,19 +49,20 @@ A Velya opera tres mecanismos distintos de verificacao recorrente, cada um adequ
 
 **Campos obrigatorios por padrao Velya:**
 
-| Campo | Descricao | Exemplo |
-|---|---|---|
-| `metadata.labels.velya.io/owner` | Time responsavel | `platform-sre` |
-| `spec.workflowSpec.activeDeadlineSeconds` | Timeout global | `1800` |
-| `spec.successfulJobsHistoryLimit` | Historico de sucesso | `3` |
-| `spec.failedJobsHistoryLimit` | Historico de falha | `5` |
-| `spec.concurrencyPolicy` | Politica de sobreposicao | `Replace` |
-| `spec.workflowSpec.retryStrategy` | Estrategia de retry | ver exemplos |
-| `spec.workflowSpec.onExit` | Handler de saida | `notify-result` |
+| Campo                                     | Descricao                | Exemplo         |
+| ----------------------------------------- | ------------------------ | --------------- |
+| `metadata.labels.velya.io/owner`          | Time responsavel         | `platform-sre`  |
+| `spec.workflowSpec.activeDeadlineSeconds` | Timeout global           | `1800`          |
+| `spec.successfulJobsHistoryLimit`         | Historico de sucesso     | `3`             |
+| `spec.failedJobsHistoryLimit`             | Historico de falha       | `5`             |
+| `spec.concurrencyPolicy`                  | Politica de sobreposicao | `Replace`       |
+| `spec.workflowSpec.retryStrategy`         | Estrategia de retry      | ver exemplos    |
+| `spec.workflowSpec.onExit`                | Handler de saida         | `notify-result` |
 
 ### 2.3 Temporal Schedules
 
 **Quando usar:**
+
 - Verificacoes que precisam de estado duravel entre execucoes
 - Necessidade de pause/resume sem perda de contexto
 - Compensacao em caso de falha parcial
@@ -69,16 +72,16 @@ A Velya opera tres mecanismos distintos de verificacao recorrente, cada um adequ
 
 **Campos obrigatorios por padrao Velya:**
 
-| Campo | Descricao | Exemplo |
-|---|---|---|
-| `scheduleId` | ID unico do schedule | `velya-discharge-audit-daily` |
-| `action.workflowType` | Tipo do workflow | `DischargeAuditWorkflow` |
-| `spec.intervals[].every` | Intervalo | `24h` |
-| `policy.overlap` | Politica de sobreposicao | `SCHEDULE_OVERLAP_POLICY_SKIP` |
-| `policy.catchupWindow` | Janela de recuperacao | `1h` |
-| `state.paused` | Estado inicial | `false` |
-| `memo.owner` | Time responsavel | `clinical-ops` |
-| `searchAttributes.VelyaSeverity` | Severidade | `critical` |
+| Campo                            | Descricao                | Exemplo                        |
+| -------------------------------- | ------------------------ | ------------------------------ |
+| `scheduleId`                     | ID unico do schedule     | `velya-discharge-audit-daily`  |
+| `action.workflowType`            | Tipo do workflow         | `DischargeAuditWorkflow`       |
+| `spec.intervals[].every`         | Intervalo                | `24h`                          |
+| `policy.overlap`                 | Politica de sobreposicao | `SCHEDULE_OVERLAP_POLICY_SKIP` |
+| `policy.catchupWindow`           | Janela de recuperacao    | `1h`                           |
+| `state.paused`                   | Estado inicial           | `false`                        |
+| `memo.owner`                     | Time responsavel         | `clinical-ops`                 |
+| `searchAttributes.VelyaSeverity` | Severidade               | `critical`                     |
 
 ---
 
@@ -86,87 +89,87 @@ A Velya opera tres mecanismos distintos de verificacao recorrente, cada um adequ
 
 ### 3.1 Saude de Infraestrutura
 
-| Check | Tipo | Frequencia | Severidade | Owner |
-|---|---|---|---|---|
-| Node readiness e recursos | CronJob | 5min | critical | platform-sre |
-| PVC capacity e IOPS | CronJob | 15min | high | platform-sre |
-| Certificate expiry (< 30d) | CronJob | 6h | high | platform-sre |
-| DNS resolution latency | CronJob | 5min | critical | platform-sre |
-| NATS JetStream cluster health | CronJob | 2min | critical | platform-sre |
-| External Secrets sync status | CronJob | 10min | high | platform-sre |
-| OpenTofu state drift detection | CronWorkflow | 1h | high | platform-sre |
+| Check                          | Tipo         | Frequencia | Severidade | Owner        |
+| ------------------------------ | ------------ | ---------- | ---------- | ------------ |
+| Node readiness e recursos      | CronJob      | 5min       | critical   | platform-sre |
+| PVC capacity e IOPS            | CronJob      | 15min      | high       | platform-sre |
+| Certificate expiry (< 30d)     | CronJob      | 6h         | high       | platform-sre |
+| DNS resolution latency         | CronJob      | 5min       | critical   | platform-sre |
+| NATS JetStream cluster health  | CronJob      | 2min       | critical   | platform-sre |
+| External Secrets sync status   | CronJob      | 10min      | high       | platform-sre |
+| OpenTofu state drift detection | CronWorkflow | 1h         | high       | platform-sre |
 
 ### 3.2 Saude de Aplicacao
 
-| Check | Tipo | Frequencia | Severidade | Owner |
-|---|---|---|---|---|
-| Readiness probe aggregado | CronJob | 1min | critical | platform-sre |
-| patient-flow API contract | CronJob | 5min | critical | clinical-eng |
-| discharge-orchestrator idempotency | CronWorkflow | 30min | critical | clinical-eng |
-| task-inbox queue depth | CronJob | 2min | high | clinical-eng |
-| audit-service write path | CronJob | 5min | critical | compliance |
-| velya-web frontend health | CronJob | 3min | high | frontend |
-| ai-gateway model availability | CronJob | 2min | critical | ai-ops |
+| Check                              | Tipo         | Frequencia | Severidade | Owner        |
+| ---------------------------------- | ------------ | ---------- | ---------- | ------------ |
+| Readiness probe aggregado          | CronJob      | 1min       | critical   | platform-sre |
+| patient-flow API contract          | CronJob      | 5min       | critical   | clinical-eng |
+| discharge-orchestrator idempotency | CronWorkflow | 30min      | critical   | clinical-eng |
+| task-inbox queue depth             | CronJob      | 2min       | high       | clinical-eng |
+| audit-service write path           | CronJob      | 5min       | critical   | compliance   |
+| velya-web frontend health          | CronJob      | 3min       | high       | frontend     |
+| ai-gateway model availability      | CronJob      | 2min       | critical   | ai-ops       |
 
 ### 3.3 Saude de Agentes
 
-| Check | Tipo | Frequencia | Severidade | Owner |
-|---|---|---|---|---|
-| Agent heartbeat (Claude SDK) | CronJob | 1min | critical | ai-ops |
-| Agent decision quality sampling | Temporal | 1h | high | ai-ops |
-| Agent memory consistency | Temporal | 30min | high | ai-ops |
-| Agent policy compliance | CronWorkflow | 15min | critical | compliance |
-| Agent resource consumption | CronJob | 5min | high | ai-ops |
-| Agent quarantine status | CronJob | 5min | critical | ai-ops |
+| Check                           | Tipo         | Frequencia | Severidade | Owner      |
+| ------------------------------- | ------------ | ---------- | ---------- | ---------- |
+| Agent heartbeat (Claude SDK)    | CronJob      | 1min       | critical   | ai-ops     |
+| Agent decision quality sampling | Temporal     | 1h         | high       | ai-ops     |
+| Agent memory consistency        | Temporal     | 30min      | high       | ai-ops     |
+| Agent policy compliance         | CronWorkflow | 15min      | critical   | compliance |
+| Agent resource consumption      | CronJob      | 5min       | high       | ai-ops     |
+| Agent quarantine status         | CronJob      | 5min       | critical   | ai-ops     |
 
 ### 3.4 Saude de Workflows
 
-| Check | Tipo | Frequencia | Severidade | Owner |
-|---|---|---|---|---|
-| Temporal worker connectivity | CronJob | 1min | critical | platform-sre |
-| Workflow stuck detection (> SLA) | Temporal | 5min | critical | clinical-eng |
-| Workflow retry storm detection | CronJob | 2min | high | platform-sre |
-| ArgoCD sync status | CronJob | 3min | high | platform-sre |
-| Argo Rollouts stuck analysis | CronJob | 5min | high | platform-sre |
+| Check                            | Tipo     | Frequencia | Severidade | Owner        |
+| -------------------------------- | -------- | ---------- | ---------- | ------------ |
+| Temporal worker connectivity     | CronJob  | 1min       | critical   | platform-sre |
+| Workflow stuck detection (> SLA) | Temporal | 5min       | critical   | clinical-eng |
+| Workflow retry storm detection   | CronJob  | 2min       | high       | platform-sre |
+| ArgoCD sync status               | CronJob  | 3min       | high       | platform-sre |
+| Argo Rollouts stuck analysis     | CronJob  | 5min       | high       | platform-sre |
 
 ### 3.5 Crescimento de Filas e Estados Travados
 
-| Check | Tipo | Frequencia | Severidade | Owner |
-|---|---|---|---|---|
-| NATS JetStream consumer lag | CronJob | 1min | critical | platform-sre |
-| Dead letter queue growth | CronJob | 5min | high | platform-sre |
-| Stuck discharge processes | Temporal | 5min | critical | clinical-eng |
-| Pending task-inbox items > SLA | CronJob | 3min | high | clinical-eng |
-| Unprocessed audit events | CronJob | 5min | high | compliance |
+| Check                          | Tipo     | Frequencia | Severidade | Owner        |
+| ------------------------------ | -------- | ---------- | ---------- | ------------ |
+| NATS JetStream consumer lag    | CronJob  | 1min       | critical   | platform-sre |
+| Dead letter queue growth       | CronJob  | 5min       | high       | platform-sre |
+| Stuck discharge processes      | Temporal | 5min       | critical   | clinical-eng |
+| Pending task-inbox items > SLA | CronJob  | 3min       | high       | clinical-eng |
+| Unprocessed audit events       | CronJob  | 5min       | high       | compliance   |
 
 ### 3.6 Deteccao de Modo Degradado
 
-| Check | Tipo | Frequencia | Severidade | Owner |
-|---|---|---|---|---|
-| Circuit breaker state monitor | CronJob | 1min | high | platform-sre |
-| Fallback activation rate | CronJob | 5min | high | platform-sre |
-| Feature flag override detection | CronJob | 10min | medium | platform-sre |
-| Graceful degradation compliance | CronWorkflow | 15min | high | clinical-eng |
+| Check                           | Tipo         | Frequencia | Severidade | Owner        |
+| ------------------------------- | ------------ | ---------- | ---------- | ------------ |
+| Circuit breaker state monitor   | CronJob      | 1min       | high       | platform-sre |
+| Fallback activation rate        | CronJob      | 5min       | high       | platform-sre |
+| Feature flag override detection | CronJob      | 10min      | medium     | platform-sre |
+| Graceful degradation compliance | CronWorkflow | 15min      | high       | clinical-eng |
 
 ### 3.7 Conformidade e Drift
 
-| Check | Tipo | Frequencia | Severidade | Owner |
-|---|---|---|---|---|
-| Policy OPA/Gatekeeper compliance | CronJob | 10min | critical | compliance |
-| RBAC drift detection | CronWorkflow | 1h | high | security |
-| Network policy validation | CronJob | 15min | high | security |
-| Doc-reality drift (runbook accuracy) | Temporal | 24h | medium | platform-sre |
-| LGPD data retention compliance | Temporal | 24h | critical | compliance |
-| HIPAA audit log completeness | Temporal | 12h | critical | compliance |
+| Check                                | Tipo         | Frequencia | Severidade | Owner        |
+| ------------------------------------ | ------------ | ---------- | ---------- | ------------ |
+| Policy OPA/Gatekeeper compliance     | CronJob      | 10min      | critical   | compliance   |
+| RBAC drift detection                 | CronWorkflow | 1h         | high       | security     |
+| Network policy validation            | CronJob      | 15min      | high       | security     |
+| Doc-reality drift (runbook accuracy) | Temporal     | 24h        | medium     | platform-sre |
+| LGPD data retention compliance       | Temporal     | 24h        | critical   | compliance   |
+| HIPAA audit log completeness         | Temporal     | 12h        | critical   | compliance   |
 
 ### 3.8 Regressao e Padroes de Erro
 
-| Check | Tipo | Frequencia | Severidade | Owner |
-|---|---|---|---|---|
-| P99 latency regression detection | CronJob | 5min | high | platform-sre |
-| Error rate anomaly detection | CronJob | 3min | high | platform-sre |
-| Recurring error pattern matching | CronWorkflow | 15min | high | platform-sre |
-| Memory leak trend analysis | CronJob | 10min | high | platform-sre |
+| Check                            | Tipo         | Frequencia | Severidade | Owner        |
+| -------------------------------- | ------------ | ---------- | ---------- | ------------ |
+| P99 latency regression detection | CronJob      | 5min       | high       | platform-sre |
+| Error rate anomaly detection     | CronJob      | 3min       | high       | platform-sre |
+| Recurring error pattern matching | CronWorkflow | 15min      | high       | platform-sre |
+| Memory leak trend analysis       | CronJob      | 10min      | high       | platform-sre |
 
 ---
 
@@ -186,11 +189,11 @@ metadata:
     velya.io/severity: critical
     velya.io/component: nats-jetstream
   annotations:
-    velya.io/runbook: "https://wiki.velya.io/runbooks/nats-jetstream-recovery"
-    velya.io/escalation-channel: "#velya-infra-critical"
-    velya.io/dead-letter-topic: "velya.checks.dlq"
+    velya.io/runbook: 'https://wiki.velya.io/runbooks/nats-jetstream-recovery'
+    velya.io/escalation-channel: '#velya-infra-critical'
+    velya.io/dead-letter-topic: 'velya.checks.dlq'
 spec:
-  schedule: "*/2 * * * *"
+  schedule: '*/2 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 5
@@ -204,8 +207,8 @@ spec:
           labels:
             velya.io/check: nats-jetstream-health
           annotations:
-            prometheus.io/scrape: "true"
-            prometheus.io/port: "9090"
+            prometheus.io/scrape: 'true'
+            prometheus.io/port: '9090'
         spec:
           serviceAccountName: velya-health-checker
           restartPolicy: Never
@@ -219,15 +222,15 @@ spec:
                       name: nats-credentials
                       key: url
                 - name: CHECK_STREAMS
-                  value: "patient-events,task-events,audit-events,discharge-events"
+                  value: 'patient-events,task-events,audit-events,discharge-events'
                 - name: CHECK_CONSUMERS
-                  value: "true"
+                  value: 'true'
                 - name: MAX_CONSUMER_LAG_SECONDS
-                  value: "30"
+                  value: '30'
                 - name: CHECK_CLUSTER_QUORUM
-                  value: "true"
+                  value: 'true'
                 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-                  value: "http://otel-collector.observability:4317"
+                  value: 'http://otel-collector.observability:4317'
                 - name: ALERT_WEBHOOK
                   valueFrom:
                     secretKeyRef:
@@ -260,10 +263,10 @@ metadata:
     velya.io/severity: critical
     velya.io/component: patient-flow
   annotations:
-    velya.io/runbook: "https://wiki.velya.io/runbooks/patient-flow-contract"
-    velya.io/escalation-channel: "#velya-clinical-critical"
+    velya.io/runbook: 'https://wiki.velya.io/runbooks/patient-flow-contract'
+    velya.io/escalation-channel: '#velya-clinical-critical'
 spec:
-  schedule: "*/5 * * * *"
+  schedule: '*/5 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 5
@@ -284,11 +287,11 @@ spec:
               image: registry.velya.io/health-checks/api-contract:2.1.0
               env:
                 - name: TARGET_SERVICE
-                  value: "http://patient-flow.velya-clinical:8080"
+                  value: 'http://patient-flow.velya-clinical:8080'
                 - name: CONTRACT_SPEC_URL
-                  value: "http://patient-flow.velya-clinical:8080/openapi.json"
+                  value: 'http://patient-flow.velya-clinical:8080/openapi.json'
                 - name: VALIDATION_MODE
-                  value: "strict"
+                  value: 'strict'
                 - name: CHECK_ENDPOINTS
                   value: |
                     GET /api/v1/patients/{id}
@@ -297,13 +300,13 @@ spec:
                     GET /api/v1/beds/availability
                     GET /api/v1/flow/metrics
                 - name: EXPECTED_RESPONSE_TIME_MS
-                  value: "500"
+                  value: '500'
                 - name: CHECK_BACKWARD_COMPATIBILITY
-                  value: "true"
+                  value: 'true'
                 - name: PREVIOUS_SPEC_CONFIGMAP
-                  value: "patient-flow-api-spec-previous"
+                  value: 'patient-flow-api-spec-previous'
                 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-                  value: "http://otel-collector.observability:4317"
+                  value: 'http://otel-collector.observability:4317'
               resources:
                 requests:
                   cpu: 50m
@@ -331,10 +334,10 @@ metadata:
     velya.io/severity: critical
     velya.io/component: agent-orchestrator
   annotations:
-    velya.io/runbook: "https://wiki.velya.io/runbooks/agent-heartbeat-failure"
-    velya.io/escalation-channel: "#velya-ai-critical"
+    velya.io/runbook: 'https://wiki.velya.io/runbooks/agent-heartbeat-failure'
+    velya.io/escalation-channel: '#velya-ai-critical'
 spec:
-  schedule: "* * * * *"
+  schedule: '* * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 10
@@ -355,7 +358,7 @@ spec:
               image: registry.velya.io/health-checks/agent-heartbeat:1.2.0
               env:
                 - name: AGENT_ORCHESTRATOR_URL
-                  value: "http://agent-orchestrator.velya-ai:8080"
+                  value: 'http://agent-orchestrator.velya-ai:8080'
                 - name: CHECK_AGENTS
                   value: |
                     discharge-agent
@@ -364,21 +367,21 @@ spec:
                     audit-compliance-agent
                     medication-reconciliation-agent
                 - name: MAX_HEARTBEAT_AGE_SECONDS
-                  value: "60"
+                  value: '60'
                 - name: CHECK_LIFECYCLE_STATE
-                  value: "true"
+                  value: 'true'
                 - name: ALLOWED_STATES
-                  value: "active,warming,cooling"
+                  value: 'active,warming,cooling'
                 - name: QUARANTINE_ALERT
-                  value: "true"
+                  value: 'true'
                 - name: CHECK_MEMORY_SERVICE
-                  value: "true"
+                  value: 'true'
                 - name: MEMORY_SERVICE_URL
-                  value: "http://memory-service.velya-ai:8080"
+                  value: 'http://memory-service.velya-ai:8080'
                 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-                  value: "http://otel-collector.observability:4317"
+                  value: 'http://otel-collector.observability:4317'
                 - name: METRICS_PUSH_GATEWAY
-                  value: "http://prometheus-pushgateway.observability:9091"
+                  value: 'http://prometheus-pushgateway.observability:9091'
               resources:
                 requests:
                   cpu: 30m
@@ -406,11 +409,11 @@ metadata:
     velya.io/severity: high
     velya.io/component: nats-jetstream
   annotations:
-    velya.io/runbook: "https://wiki.velya.io/runbooks/dlq-triage"
-    velya.io/escalation-channel: "#velya-infra-high"
-    velya.io/budget-impact: "queue-processing-sli"
+    velya.io/runbook: 'https://wiki.velya.io/runbooks/dlq-triage'
+    velya.io/escalation-channel: '#velya-infra-high'
+    velya.io/budget-impact: 'queue-processing-sli'
 spec:
-  schedule: "*/5 * * * *"
+  schedule: '*/5 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 5
@@ -443,19 +446,19 @@ spec:
                     discharge-events.dlq
                     agent-decisions.dlq
                 - name: THRESHOLD_ABSOLUTE
-                  value: "100"
+                  value: '100'
                 - name: THRESHOLD_GROWTH_RATE_PER_MINUTE
-                  value: "10"
+                  value: '10'
                 - name: THRESHOLD_GROWTH_RATE_CRITICAL
-                  value: "50"
+                  value: '50'
                 - name: SAMPLE_FAILED_MESSAGES
-                  value: "5"
+                  value: '5'
                 - name: CLASSIFY_FAILURE_REASON
-                  value: "true"
+                  value: 'true'
                 - name: AUTO_REPLAY_TRANSIENT
-                  value: "false"
+                  value: 'false'
                 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-                  value: "http://otel-collector.observability:4317"
+                  value: 'http://otel-collector.observability:4317'
                 - name: ALERT_WEBHOOK
                   valueFrom:
                     secretKeyRef:
@@ -488,10 +491,10 @@ metadata:
     velya.io/severity: high
     velya.io/component: all-services
   annotations:
-    velya.io/runbook: "https://wiki.velya.io/runbooks/latency-regression"
-    velya.io/escalation-channel: "#velya-performance"
+    velya.io/runbook: 'https://wiki.velya.io/runbooks/latency-regression'
+    velya.io/escalation-channel: '#velya-performance'
 spec:
-  schedule: "*/5 * * * *"
+  schedule: '*/5 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 5
@@ -512,7 +515,7 @@ spec:
               image: registry.velya.io/health-checks/latency-regression:2.0.1
               env:
                 - name: PROMETHEUS_URL
-                  value: "http://prometheus.observability:9090"
+                  value: 'http://prometheus.observability:9090'
                 - name: SERVICES
                   value: |
                     patient-flow:500ms:1000ms
@@ -526,21 +529,21 @@ spec:
                     velya-web:300ms:800ms
                     agent-orchestrator:500ms:1500ms
                 - name: COMPARISON_WINDOW
-                  value: "1h"
+                  value: '1h'
                 - name: BASELINE_WINDOW
-                  value: "24h"
+                  value: '24h'
                 - name: REGRESSION_THRESHOLD_PERCENT
-                  value: "20"
+                  value: '20'
                 - name: CRITICAL_REGRESSION_PERCENT
-                  value: "50"
+                  value: '50'
                 - name: PERCENTILES
-                  value: "p50,p90,p95,p99"
+                  value: 'p50,p90,p95,p99'
                 - name: EXCLUDE_DEPLOY_WINDOWS
-                  value: "true"
+                  value: 'true'
                 - name: DEPLOY_ANNOTATION_QUERY
                   value: 'argocd_app_sync_total{namespace=~"velya-.*"}'
                 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-                  value: "http://otel-collector.observability:4317"
+                  value: 'http://otel-collector.observability:4317'
               resources:
                 requests:
                   cpu: 100m
@@ -571,8 +574,8 @@ metadata:
     velya.io/check-type: infra-drift
     velya.io/severity: high
 spec:
-  schedule: "0 * * * *"
-  timezone: "America/Sao_Paulo"
+  schedule: '0 * * * *'
+  timezone: 'America/Sao_Paulo'
   concurrencyPolicy: Replace
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 5
@@ -591,7 +594,7 @@ spec:
               arguments:
                 parameters:
                   - name: module
-                    value: "{{item}}"
+                    value: '{{item}}'
               withItems:
                 - eks-cluster
                 - networking
@@ -614,7 +617,7 @@ spec:
             - name: module
         container:
           image: registry.velya.io/infra-tools/tofu-drift:1.1.0
-          command: ["/bin/sh", "-c"]
+          command: ['/bin/sh', '-c']
           args:
             - |
               cd /tofu/modules/{{inputs.parameters.module}}
@@ -642,7 +645,7 @@ spec:
       - name: aggregate
         script:
           image: registry.velya.io/tools/jq:1.7
-          command: ["/bin/sh"]
+          command: ['/bin/sh']
           source: |
             echo "Aggregating drift results..."
             # Logica de agregacao dos artefatos
@@ -650,7 +653,7 @@ spec:
       - name: risk-eval
         script:
           image: registry.velya.io/health-checks/risk-evaluator:1.0.0
-          command: ["python3"]
+          command: ['python3']
           source: |
             import json
             import sys
@@ -668,7 +671,7 @@ spec:
                   name: alerting-webhooks
                   key: slack-infra-high
             - name: WORKFLOW_STATUS
-              value: "{{workflow.status}}"
+              value: '{{workflow.status}}'
 ```
 
 ---
@@ -696,20 +699,22 @@ async function createDischargeStuckSchedule() {
       type: 'startWorkflow',
       workflowType: 'DischargeStuckDetectionWorkflow',
       taskQueue: 'velya-health-checks',
-      args: [{
-        slaThresholds: {
-          initiatedToApproved: '2h',
-          approvedToMedicationReview: '1h',
-          medicationReviewToDischarge: '4h',
-          totalProcess: '24h',
+      args: [
+        {
+          slaThresholds: {
+            initiatedToApproved: '2h',
+            approvedToMedicationReview: '1h',
+            medicationReviewToDischarge: '4h',
+            totalProcess: '24h',
+          },
+          escalationTargets: {
+            warning: '#velya-clinical-ops',
+            critical: '#velya-clinical-critical',
+            breach: ['#velya-clinical-critical', 'pager:clinical-lead'],
+          },
+          autoRemediationEnabled: true,
         },
-        escalationTargets: {
-          warning: '#velya-clinical-ops',
-          critical: '#velya-clinical-critical',
-          breach: ['#velya-clinical-critical', 'pager:clinical-lead'],
-        },
-        autoRemediationEnabled: true,
-      }],
+      ],
       workflowExecutionTimeout: '10m',
       retryPolicy: {
         initialInterval: '10s',
@@ -800,10 +805,10 @@ spec:
           expr: velya_health_check_consecutive_failures > 3
           for: 0m
           labels:
-            severity: "{{ $labels.severity }}"
+            severity: '{{ $labels.severity }}'
           annotations:
-            summary: "Check {{ $labels.check }} falhou {{ $value }} vezes consecutivas"
-            runbook: "https://wiki.velya.io/runbooks/health-check-failure"
+            summary: 'Check {{ $labels.check }} falhou {{ $value }} vezes consecutivas'
+            runbook: 'https://wiki.velya.io/runbooks/health-check-failure'
 
         - alert: HealthCheckMissing
           expr: |
@@ -812,7 +817,7 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Check {{ $labels.check }} nao executou com sucesso nos ultimos 10 minutos"
+            summary: 'Check {{ $labels.check }} nao executou com sucesso nos ultimos 10 minutos'
 
         - alert: HealthCheckSlowExecution
           expr: |
@@ -823,7 +828,7 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Check {{ $labels.check }} esta demorando mais que 2x o esperado"
+            summary: 'Check {{ $labels.check }} esta demorando mais que 2x o esperado'
 ```
 
 ---
@@ -832,13 +837,13 @@ spec:
 
 ### 9.1 Limites de Recursos
 
-| Recurso | Limite por Check | Limite Agregado |
-|---|---|---|
-| CPU por CronJob | 100m | 2 cores total |
-| Memoria por CronJob | 128Mi | 4Gi total |
-| Execucoes simultaneas | 1 por check | 15 max global |
-| Armazenamento de historico | 5 failed + 3 success | - |
-| Network egress por check | 10MB | 500MB/hora total |
+| Recurso                    | Limite por Check     | Limite Agregado  |
+| -------------------------- | -------------------- | ---------------- |
+| CPU por CronJob            | 100m                 | 2 cores total    |
+| Memoria por CronJob        | 128Mi                | 4Gi total        |
+| Execucoes simultaneas      | 1 por check          | 15 max global    |
+| Armazenamento de historico | 5 failed + 3 success | -                |
+| Network egress por check   | 10MB                 | 500MB/hora total |
 
 ### 9.2 Politica de Custo
 

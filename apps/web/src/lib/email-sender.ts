@@ -1,8 +1,6 @@
 import { Resend } from 'resend';
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const FROM_EMAIL = process.env.VELYA_FROM_EMAIL || 'onboarding@resend.dev';
 const APP_NAME = 'Velya — Plataforma Hospitalar';
@@ -14,7 +12,7 @@ const APP_NAME = 'Velya — Plataforma Hospitalar';
 export async function sendVerificationCode(
   to: string,
   code: string,
-  userName: string
+  userName: string,
 ): Promise<boolean> {
   if (!resend) {
     console.log(`[EMAIL] Resend não configurado — código ${code} para ${to} (mostrar na tela)`);

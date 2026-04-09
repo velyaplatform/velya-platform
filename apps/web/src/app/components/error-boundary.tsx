@@ -48,7 +48,9 @@ export class ErrorBoundary extends React.Component<
           data: { message: error.message, stack: error.stack },
         });
         localStorage.setItem('velya_pending_errors', JSON.stringify(pending.slice(-50)));
-      } catch { /* localStorage indisponivel */ }
+      } catch {
+        /* localStorage indisponivel */
+      }
     });
   }
 
@@ -57,9 +59,7 @@ export class ErrorBoundary extends React.Component<
       return (
         <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center">
           <div className="text-5xl mb-4">&#x26A0;&#xFE0F;</div>
-          <h2 className="text-xl font-bold mb-2">
-            Erro Inesperado
-          </h2>
+          <h2 className="text-xl font-bold mb-2">Erro Inesperado</h2>
           <p className="text-[var(--text-secondary)] mb-4 max-w-[400px]">
             Um erro foi detectado e registrado automaticamente. A equipe sera notificada.
           </p>

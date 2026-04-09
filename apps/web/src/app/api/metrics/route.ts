@@ -8,12 +8,8 @@ export async function GET() {
 
   const eventMetrics: string[] = [];
   for (const [type, data] of Object.entries(stats)) {
-    eventMetrics.push(
-      `velya_web_events_total{type="${type}"} ${data.total}`,
-    );
-    eventMetrics.push(
-      `velya_web_events_unacked{type="${type}"} ${data.unacked}`,
-    );
+    eventMetrics.push(`velya_web_events_total{type="${type}"} ${data.total}`);
+    eventMetrics.push(`velya_web_events_unacked{type="${type}"} ${data.unacked}`);
   }
 
   const metrics = [

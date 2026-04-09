@@ -25,17 +25,17 @@ Dashboards e gráficos na plataforma Velya comunicam informações operacionais 
 
 ### 2.1 Matriz de Decisão
 
-| Pergunta | Chart | Tabela |
-|---|---|---|
-| Preciso ver tendência ao longo do tempo? | Line/Area chart | Não |
-| Preciso comparar categorias? | Bar chart | Se poucas categorias |
-| Preciso ver distribuição/proporção? | Pie/Donut chart | Não |
-| Preciso ver valores exatos? | Não | Tabela |
-| Preciso buscar/filtrar dados? | Não | Tabela |
-| Preciso exportar dados? | Tabela complementar | Tabela |
-| Dados têm mais de 7 categorias? | Bar horizontal | Tabela |
-| Usuário precisa agir nos dados? | Tabela | Tabela |
-| Leitor de tela precisa acessar? | Com tabela fallback | Tabela |
+| Pergunta                                 | Chart               | Tabela               |
+| ---------------------------------------- | ------------------- | -------------------- |
+| Preciso ver tendência ao longo do tempo? | Line/Area chart     | Não                  |
+| Preciso comparar categorias?             | Bar chart           | Se poucas categorias |
+| Preciso ver distribuição/proporção?      | Pie/Donut chart     | Não                  |
+| Preciso ver valores exatos?              | Não                 | Tabela               |
+| Preciso buscar/filtrar dados?            | Não                 | Tabela               |
+| Preciso exportar dados?                  | Tabela complementar | Tabela               |
+| Dados têm mais de 7 categorias?          | Bar horizontal      | Tabela               |
+| Usuário precisa agir nos dados?          | Tabela              | Tabela               |
+| Leitor de tela precisa acessar?          | Com tabela fallback | Tabela               |
 
 ### 2.2 Regra Geral
 
@@ -49,16 +49,16 @@ Dashboards e gráficos na plataforma Velya comunicam informações operacionais 
 
 ### 3.1 Catálogo de Visualizações
 
-| Tipo | Recharts Component | Caso de Uso Hospitalar |
-|---|---|---|
-| Line Chart | `<LineChart>` | Tendência de dor, temperatura, sinais vitais |
-| Area Chart | `<AreaChart>` | Volume de chamadas ao longo do dia |
-| Bar Chart | `<BarChart>` | Medicações por turno, chamadas por setor |
-| Stacked Bar | `<BarChart>` com stacking | Tipos de chamada por período |
-| Horizontal Bar | `<BarChart layout="vertical">` | Ranking de motivos de chamada |
-| Pie/Donut | `<PieChart>` | Distribuição de status de pacientes |
-| Radar | `<RadarChart>` | Score multidimensional de qualidade |
-| Composed | `<ComposedChart>` | Medicações + taxa de atraso sobrepostos |
+| Tipo           | Recharts Component             | Caso de Uso Hospitalar                       |
+| -------------- | ------------------------------ | -------------------------------------------- |
+| Line Chart     | `<LineChart>`                  | Tendência de dor, temperatura, sinais vitais |
+| Area Chart     | `<AreaChart>`                  | Volume de chamadas ao longo do dia           |
+| Bar Chart      | `<BarChart>`                   | Medicações por turno, chamadas por setor     |
+| Stacked Bar    | `<BarChart>` com stacking      | Tipos de chamada por período                 |
+| Horizontal Bar | `<BarChart layout="vertical">` | Ranking de motivos de chamada                |
+| Pie/Donut      | `<PieChart>`                   | Distribuição de status de pacientes          |
+| Radar          | `<RadarChart>`                 | Score multidimensional de qualidade          |
+| Composed       | `<ComposedChart>`              | Medicações + taxa de atraso sobrepostos      |
 
 ### 3.2 Visões por Domínio
 
@@ -111,7 +111,7 @@ Dashboards e gráficos na plataforma Velya comunicam informações operacionais 
 ### 4.1 Wrapper Base
 
 ```tsx
-'use client'
+'use client';
 
 import {
   ResponsiveContainer,
@@ -122,13 +122,13 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-} from 'recharts'
+} from 'recharts';
 
 interface ChartContainerProps {
-  children: React.ReactNode
-  height?: number
-  minHeight?: number
-  className?: string
+  children: React.ReactNode;
+  height?: number;
+  minHeight?: number;
+  className?: string;
 }
 
 function ChartContainer({
@@ -143,7 +143,7 @@ function ChartContainer({
         {children}
       </ResponsiveContainer>
     </div>
-  )
+  );
 }
 ```
 
@@ -151,22 +151,22 @@ function ChartContainer({
 
 ```tsx
 interface VelyaLineChartProps {
-  data: Record<string, any>[]
+  data: Record<string, any>[];
   lines: {
-    dataKey: string
-    label: string
-    color: string
-    strokeDasharray?: string
-  }[]
-  xAxisKey: string
-  xAxisFormatter?: (value: any) => string
-  yAxisFormatter?: (value: any) => string
-  height?: number
-  showGrid?: boolean
-  showLegend?: boolean
-  showTooltip?: boolean
-  thresholds?: { value: number; color: string; label: string }[]
-  animate?: boolean
+    dataKey: string;
+    label: string;
+    color: string;
+    strokeDasharray?: string;
+  }[];
+  xAxisKey: string;
+  xAxisFormatter?: (value: any) => string;
+  yAxisFormatter?: (value: any) => string;
+  height?: number;
+  showGrid?: boolean;
+  showLegend?: boolean;
+  showTooltip?: boolean;
+  thresholds?: { value: number; color: string; label: string }[];
+  animate?: boolean;
 }
 
 function VelyaLineChart({
@@ -186,11 +186,7 @@ function VelyaLineChart({
     <ChartContainer height={height}>
       <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
         {showGrid && (
-          <CartesianGrid
-            strokeDasharray="3 3"
-            className="stroke-border"
-            vertical={false}
-          />
+          <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
         )}
 
         <XAxis
@@ -210,19 +206,10 @@ function VelyaLineChart({
         />
 
         {showTooltip && (
-          <Tooltip
-            content={<CustomTooltip />}
-            cursor={{ stroke: 'hsl(var(--border))' }}
-          />
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--border))' }} />
         )}
 
-        {showLegend && (
-          <Legend
-            content={<CustomLegend />}
-            verticalAlign="top"
-            height={36}
-          />
-        )}
+        {showLegend && <Legend content={<CustomLegend />} verticalAlign="top" height={36} />}
 
         {/* Threshold lines */}
         {thresholds.map((threshold) => (
@@ -256,7 +243,7 @@ function VelyaLineChart({
         ))}
       </LineChart>
     </ChartContainer>
-  )
+  );
 }
 ```
 
@@ -264,7 +251,7 @@ function VelyaLineChart({
 
 ```tsx
 function CustomTooltip({ active, payload, label }: TooltipProps<any, any>) {
-  if (!active || !payload) return null
+  if (!active || !payload) return null;
 
   return (
     <div className="rounded-lg border bg-background p-3 shadow-lg">
@@ -273,10 +260,7 @@ function CustomTooltip({ active, payload, label }: TooltipProps<any, any>) {
         {payload.map((entry: any) => (
           <div key={entry.name} className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: entry.color }}
-              />
+              <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
               <span className="text-sm text-muted-foreground">{entry.name}</span>
             </div>
             <span className="text-sm font-medium">{entry.value}</span>
@@ -284,7 +268,7 @@ function CustomTooltip({ active, payload, label }: TooltipProps<any, any>) {
         ))}
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -292,21 +276,18 @@ function CustomTooltip({ active, payload, label }: TooltipProps<any, any>) {
 
 ```tsx
 function CustomLegend({ payload }: LegendProps) {
-  if (!payload) return null
+  if (!payload) return null;
 
   return (
     <div className="flex flex-wrap justify-center gap-4 mb-2">
       {payload.map((entry: any) => (
         <div key={entry.value} className="flex items-center gap-1.5">
-          <div
-            className="h-2 w-4 rounded-sm"
-            style={{ backgroundColor: entry.color }}
-          />
+          <div className="h-2 w-4 rounded-sm" style={{ backgroundColor: entry.color }} />
           <span className="text-xs text-muted-foreground">{entry.value}</span>
         </div>
       ))}
     </div>
-  )
+  );
 }
 ```
 
@@ -318,16 +299,16 @@ function CustomLegend({ payload }: LegendProps) {
 
 ```tsx
 interface MetricCardProps {
-  title: string
-  value: number | string
+  title: string;
+  value: number | string;
   change?: {
-    value: number
-    direction: 'up' | 'down' | 'neutral'
-    period: string
-  }
-  icon?: LucideIcon
-  variant?: 'default' | 'success' | 'warning' | 'critical'
-  isLoading?: boolean
+    value: number;
+    direction: 'up' | 'down' | 'neutral';
+    period: string;
+  };
+  icon?: LucideIcon;
+  variant?: 'default' | 'success' | 'warning' | 'critical';
+  isLoading?: boolean;
 }
 
 function MetricCard({
@@ -347,29 +328,31 @@ function MetricCard({
           <Skeleton className="h-3 w-24" />
         </CardContent>
       </Card>
-    )
+    );
   }
 
   const changeColor = {
     up: 'text-destructive',
     down: 'text-success',
     neutral: 'text-muted-foreground',
-  }
+  };
 
   const changeIcon = {
     up: TrendingUp,
     down: TrendingDown,
     neutral: Minus,
-  }
+  };
 
-  const ChangeIcon = change ? changeIcon[change.direction] : null
+  const ChangeIcon = change ? changeIcon[change.direction] : null;
 
   return (
-    <Card className={cn(
-      variant === 'critical' && 'border-critical/50 bg-critical/5',
-      variant === 'warning' && 'border-warning/50 bg-warning/5',
-      variant === 'success' && 'border-success/50 bg-success/5',
-    )}>
+    <Card
+      className={cn(
+        variant === 'critical' && 'border-critical/50 bg-critical/5',
+        variant === 'warning' && 'border-warning/50 bg-warning/5',
+        variant === 'success' && 'border-success/50 bg-success/5',
+      )}
+    >
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">{title}</p>
@@ -380,14 +363,15 @@ function MetricCard({
           <div className={cn('flex items-center gap-1 mt-1', changeColor[change.direction])}>
             {ChangeIcon && <ChangeIcon className="h-3 w-3" />}
             <span className="text-xs font-medium">
-              {change.value > 0 ? '+' : ''}{change.value}%
+              {change.value > 0 ? '+' : ''}
+              {change.value}%
             </span>
             <span className="text-xs text-muted-foreground">{change.period}</span>
           </div>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
 ```
 
@@ -406,20 +390,17 @@ function MetricCard({
 ### 6.2 Tabela Alternativa
 
 ```tsx
-function ChartWithTable<T>({
-  chart,
-  data,
-  columns,
-  showTable = false,
-}: ChartWithTableProps<T>) {
-  const [viewMode, setViewMode] = useState<'chart' | 'table'>(
-    showTable ? 'table' : 'chart'
-  )
+function ChartWithTable<T>({ chart, data, columns, showTable = false }: ChartWithTableProps<T>) {
+  const [viewMode, setViewMode] = useState<'chart' | 'table'>(showTable ? 'table' : 'chart');
 
   return (
     <div>
       <div className="flex justify-end mb-2">
-        <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as any)}>
+        <ToggleGroup
+          type="single"
+          value={viewMode}
+          onValueChange={(v) => v && setViewMode(v as any)}
+        >
           <ToggleGroupItem value="chart" aria-label="Ver gráfico">
             <BarChart3 className="h-4 w-4" />
           </ToggleGroupItem>
@@ -437,7 +418,7 @@ function ChartWithTable<T>({
         <DataTable data={data} columns={columns} />
       )}
     </div>
-  )
+  );
 }
 ```
 
@@ -446,13 +427,13 @@ function ChartWithTable<T>({
 ```tsx
 // Paleta que funciona para daltonismo (deuteranopia, protanopia)
 const CHART_COLORS = {
-  primary: 'hsl(221, 83%, 53%)',      // Azul
-  secondary: 'hsl(142, 76%, 36%)',    // Verde
-  tertiary: 'hsl(38, 92%, 50%)',      // Amarelo
-  quaternary: 'hsl(280, 67%, 50%)',   // Roxo
-  quinary: 'hsl(16, 85%, 55%)',       // Laranja
-  senary: 'hsl(340, 75%, 55%)',       // Rosa
-}
+  primary: 'hsl(221, 83%, 53%)', // Azul
+  secondary: 'hsl(142, 76%, 36%)', // Verde
+  tertiary: 'hsl(38, 92%, 50%)', // Amarelo
+  quaternary: 'hsl(280, 67%, 50%)', // Roxo
+  quinary: 'hsl(16, 85%, 55%)', // Laranja
+  senary: 'hsl(340, 75%, 55%)', // Rosa
+};
 
 // Com padrões para distinção adicional
 const LINE_PATTERNS = {
@@ -460,7 +441,7 @@ const LINE_PATTERNS = {
   dashed: '8 4',
   dotted: '2 4',
   dashDot: '8 4 2 4',
-}
+};
 ```
 
 ---
@@ -491,30 +472,19 @@ const LINE_PATTERNS = {
 
 ```tsx
 function AnomalyDot(props: any) {
-  const { cx, cy, value, threshold } = props
+  const { cx, cy, value, threshold } = props;
 
   if (value > threshold) {
     return (
-      <circle
-        cx={cx}
-        cy={cy}
-        r={6}
-        fill="hsl(var(--destructive))"
-        stroke="white"
-        strokeWidth={2}
-      />
-    )
+      <circle cx={cx} cy={cy} r={6} fill="hsl(var(--destructive))" stroke="white" strokeWidth={2} />
+    );
   }
 
-  return null // Dot normal (ou sem dot)
+  return null; // Dot normal (ou sem dot)
 }
 
 // Uso
-<Line
-  dataKey="painLevel"
-  dot={<AnomalyDot threshold={7} />}
-  activeDot={{ r: 4 }}
-/>
+<Line dataKey="painLevel" dot={<AnomalyDot threshold={7} />} activeDot={{ r: 4 }} />;
 ```
 
 ### 7.3 Áreas de Alerta
@@ -543,17 +513,17 @@ function AnomalyDot(props: any) {
 
 ### 8.1 Estratégia por Breakpoint
 
-| Breakpoint | Comportamento |
-|---|---|
+| Breakpoint    | Comportamento                               |
+| ------------- | ------------------------------------------- |
 | Desktop (lg+) | Gráficos em grid 2-3 colunas, altura padrão |
-| Tablet (md) | Grid 1-2 colunas, altura reduzida |
-| Mobile (sm) | Uma coluna, gráfico simplificado ou tabela |
+| Tablet (md)   | Grid 1-2 colunas, altura reduzida           |
+| Mobile (sm)   | Uma coluna, gráfico simplificado ou tabela  |
 
 ### 8.2 Simplificação para Mobile
 
 ```tsx
 function ResponsiveChart({ data, fullConfig, mobileConfig }: ResponsiveChartProps) {
-  const isMobile = useMediaQuery('(max-width: 768px)')
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   if (isMobile) {
     return (
@@ -571,10 +541,10 @@ function ResponsiveChart({ data, fullConfig, mobileConfig }: ResponsiveChartProp
           <Tooltip content={<SimpleTooltip />} />
         </LineChart>
       </ChartContainer>
-    )
+    );
   }
 
-  return <FullChart data={data} config={fullConfig} />
+  return <FullChart data={data} config={fullConfig} />;
 }
 ```
 
@@ -591,7 +561,7 @@ Quando o gráfico fica ilegível em tela pequena:
 
 ```tsx
 function ChartOrTable({ data, chart, columns }: ChartOrTableProps) {
-  const isMobile = useMediaQuery('(max-width: 640px)')
+  const isMobile = useMediaQuery('(max-width: 640px)');
 
   if (isMobile) {
     return (
@@ -601,10 +571,10 @@ function ChartOrTable({ data, chart, columns }: ChartOrTableProps) {
         </p>
         <SimpleTable data={data} columns={columns} />
       </div>
-    )
+    );
   }
 
-  return chart
+  return chart;
 }
 ```
 
@@ -616,11 +586,7 @@ function ChartOrTable({ data, chart, columns }: ChartOrTableProps) {
 
 ```tsx
 function DashboardGrid({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {children}
-    </div>
-  )
+  return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{children}</div>;
 }
 
 // Metric cards: 4 colunas em desktop, 2 em tablet, 1 em mobile
@@ -631,20 +597,14 @@ function DashboardGrid({ children }: { children: React.ReactNode }) {
 ### 9.2 Seletor de Período
 
 ```tsx
-function PeriodSelector({
-  value,
-  onChange,
-}: {
-  value: string
-  onChange: (v: string) => void
-}) {
+function PeriodSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const periods = [
     { value: '24h', label: 'Últimas 24h' },
     { value: '7d', label: 'Últimos 7 dias' },
     { value: '30d', label: 'Últimos 30 dias' },
     { value: '90d', label: 'Últimos 90 dias' },
     { value: 'custom', label: 'Personalizado' },
-  ]
+  ];
 
   return (
     <ToggleGroup type="single" value={value} onValueChange={onChange}>
@@ -654,7 +614,7 @@ function PeriodSelector({
         </ToggleGroupItem>
       ))}
     </ToggleGroup>
-  )
+  );
 }
 ```
 
@@ -662,7 +622,7 @@ function PeriodSelector({
 
 ```tsx
 function DashboardAutoRefresh() {
-  const [interval, setInterval] = useState<number | null>(60000) // 1 min
+  const [interval, setInterval] = useState<number | null>(60000); // 1 min
 
   return (
     <div className="flex items-center gap-2">
@@ -681,12 +641,15 @@ function DashboardAutoRefresh() {
         </SelectContent>
       </Select>
       {interval && (
-        <RefreshCw className="h-3 w-3 text-muted-foreground animate-spin" style={{
-          animationDuration: `${interval}ms`,
-        }} />
+        <RefreshCw
+          className="h-3 w-3 text-muted-foreground animate-spin"
+          style={{
+            animationDuration: `${interval}ms`,
+          }}
+        />
       )}
     </div>
-  )
+  );
 }
 ```
 
@@ -706,26 +669,26 @@ function DashboardAutoRefresh() {
 ### 10.2 Lazy Loading de Charts
 
 ```tsx
-import dynamic from 'next/dynamic'
+import dynamic from 'next/dynamic';
 
 const PainTrendChart = dynamic(
   () => import('@/features/calls-and-pain/components/pain-trend-chart'),
   {
     loading: () => <Skeleton className="h-[300px] w-full rounded-lg" />,
     ssr: false,
-  }
-)
+  },
+);
 ```
 
 ### 10.3 Métricas de Performance
 
-| Métrica | Target |
-|---|---|
-| Render de chart (300 pontos) | < 100ms |
-| Resize recalculation | < 50ms |
-| Tooltip response time | < 16ms (60fps) |
-| Bundle size (Recharts) | < 50kb gzipped |
-| Memory por chart instance | < 5MB |
+| Métrica                      | Target         |
+| ---------------------------- | -------------- |
+| Render de chart (300 pontos) | < 100ms        |
+| Resize recalculation         | < 50ms         |
+| Tooltip response time        | < 16ms (60fps) |
+| Bundle size (Recharts)       | < 50kb gzipped |
+| Memory por chart instance    | < 5MB          |
 
 ---
 

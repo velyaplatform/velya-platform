@@ -37,7 +37,8 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     owner: 'James Okafor',
     consultant: 'Dr. Mbeki',
     diagnosis: 'IAM — pós-ICP',
-    notes: 'Paciente liberada clinicamente. Família contatada. Transporte deve ser providenciado com urgência.',
+    notes:
+      'Paciente liberada clinicamente. Família contatada. Transporte deve ser providenciado com urgência.',
   },
   {
     mrn: 'MRN-007',
@@ -65,11 +66,17 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     los: 14,
     targetDischarge: '2026-04-08 12:00',
     status: 'blocked',
-    blockers: ['Vaga em casa de repouso', 'Liberação do serviço social', 'Avaliação DOLS', 'Consentimento familiar'],
+    blockers: [
+      'Vaga em casa de repouso',
+      'Liberação do serviço social',
+      'Avaliação DOLS',
+      'Consentimento familiar',
+    ],
     owner: 'Equipe de Serviço Social',
     consultant: 'Dr. Osei',
     diagnosis: 'Sepse — recuperação',
-    notes: 'Situação social complexa. 3 casas de repouso contatadas, 1 confirmada aguardando documentação.',
+    notes:
+      'Situação social complexa. 3 casas de repouso contatadas, 1 confirmada aguardando documentação.',
   },
   {
     mrn: 'MRN-006',
@@ -81,11 +88,16 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     los: 10,
     targetDischarge: '2026-04-08 14:00',
     status: 'blocked',
-    blockers: ['Avaliação de reabilitação', 'Pacote de cuidado domiciliar', 'Entrega de equipamentos'],
+    blockers: [
+      'Avaliação de reabilitação',
+      'Pacote de cuidado domiciliar',
+      'Entrega de equipamentos',
+    ],
     owner: 'Equipe de TO',
     consultant: 'Dr. Osei',
     diagnosis: 'AVC isquêmico',
-    notes: 'Avaliação de TO agendada para 13:00 hoje. Solicitação de cuidado domiciliar enviada. Equipamentos com prazo de 2 dias.',
+    notes:
+      'Avaliação de TO agendada para 13:00 hoje. Solicitação de cuidado domiciliar enviada. Equipamentos com prazo de 2 dias.',
   },
   {
     mrn: 'MRN-019',
@@ -101,7 +113,8 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     owner: 'Equipe de Serviço Social',
     consultant: 'Dr. Osei',
     diagnosis: 'Fratura de fêmur — conservadora',
-    notes: 'Reunião com família agendada para 15:00 hoje. Vaga em casa de repouso confirmada para amanhã.',
+    notes:
+      'Reunião com família agendada para 15:00 hoje. Vaga em casa de repouso confirmada para amanhã.',
   },
   {
     mrn: 'MRN-011',
@@ -117,7 +130,8 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     owner: 'Farmacêutico da Ala',
     consultant: 'Dr. Patel',
     diagnosis: 'Artroplastia de joelho',
-    notes: 'Kit da farmácia pronto até 09:00 amanhã. Fisioterapia liberada. Carta para o clínico pendente.',
+    notes:
+      'Kit da farmácia pronto até 09:00 amanhã. Fisioterapia liberada. Carta para o clínico pendente.',
   },
   {
     mrn: 'MRN-016',
@@ -133,7 +147,8 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     owner: 'Equipe de Fisioterapia',
     consultant: 'Dr. Patel',
     diagnosis: 'Prótese total de quadril',
-    notes: 'Última sessão de fisioterapia amanhã cedo. Relatório da visita domiciliar de TO esperado até 12:00.',
+    notes:
+      'Última sessão de fisioterapia amanhã cedo. Relatório da visita domiciliar de TO esperado até 12:00.',
   },
   {
     mrn: 'MRN-003',
@@ -149,7 +164,8 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     owner: 'Equipe de Serviço Social',
     consultant: 'Dr. Ibrahim',
     diagnosis: 'Exacerbação de DPOC',
-    notes: 'Encaminhamento para suporte comunitário enviado. Consulta de retorno agendada com equipe respiratória.',
+    notes:
+      'Encaminhamento para suporte comunitário enviado. Consulta de retorno agendada com equipe respiratória.',
   },
   {
     mrn: 'MRN-002',
@@ -181,7 +197,8 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     owner: 'Dr. Chen',
     consultant: 'Dr. Chen',
     diagnosis: 'Hernioplastia',
-    notes: 'Alta simples. Carta para o clínico enviada. Paciente orientado sobre cuidados pós-alta.',
+    notes:
+      'Alta simples. Carta para o clínico enviada. Paciente orientado sobre cuidados pós-alta.',
   },
   {
     mrn: 'MRN-008',
@@ -213,15 +230,34 @@ const DISCHARGE_PATIENTS: DischargePatient[] = [
     owner: 'Dr. Chen',
     consultant: 'Dr. Chen',
     diagnosis: 'Apendicectomia',
-    notes: 'Sumário de alta em elaboração. Paciente deambulando bem. Aguardando avaliação da ferida.',
+    notes:
+      'Sumário de alta em elaboração. Paciente deambulando bem. Aguardando avaliação da ferida.',
   },
 ];
 
-const STATUS_CONFIG: Record<DischargeStatus, { badge: string; label: string; dot: string; rowClass: string }> = {
+const STATUS_CONFIG: Record<
+  DischargeStatus,
+  { badge: string; label: string; dot: string; rowClass: string }
+> = {
   ready: { badge: 'badge-success', label: 'Pronto', dot: 'status-dot-green', rowClass: '' },
-  blocked: { badge: 'badge-critical', label: 'Bloqueado', dot: 'status-dot-red status-dot-pulse', rowClass: 'row-critical' },
-  pending: { badge: 'badge-warning', label: 'Pendente', dot: 'status-dot-amber', rowClass: 'row-warning' },
-  'in-progress': { badge: 'badge-info', label: 'Em Andamento', dot: 'status-dot-green status-dot-pulse', rowClass: '' },
+  blocked: {
+    badge: 'badge-critical',
+    label: 'Bloqueado',
+    dot: 'status-dot-red status-dot-pulse',
+    rowClass: 'row-critical',
+  },
+  pending: {
+    badge: 'badge-warning',
+    label: 'Pendente',
+    dot: 'status-dot-amber',
+    rowClass: 'row-warning',
+  },
+  'in-progress': {
+    badge: 'badge-info',
+    label: 'Em Andamento',
+    dot: 'status-dot-green status-dot-pulse',
+    rowClass: '',
+  },
 };
 
 const STATUS_ORDER: Record<DischargeStatus, number> = {
@@ -239,7 +275,7 @@ export default function DischargePage() {
 
   const wards = useMemo(
     () => Array.from(new Set(DISCHARGE_PATIENTS.map((p) => p.ward))).sort(),
-    []
+    [],
   );
 
   const sorted = useMemo(() => {
@@ -286,7 +322,9 @@ export default function DischargePage() {
         <div className="alert-banner alert-banner-critical">
           <span>🚨</span>
           <strong>{blockedCount} pacientes bloqueados</strong>
-          <span style={{ fontWeight: 400 }}>— intervenção imediata necessária para evitar excesso de TMI</span>
+          <span style={{ fontWeight: 400 }}>
+            — intervenção imediata necessária para evitar excesso de TMI
+          </span>
         </div>
       )}
 
@@ -294,22 +332,30 @@ export default function DischargePage() {
       <div className="grid-metrics">
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-critical)' }}>
           <div className="metric-label">Bloqueados</div>
-          <div className="metric-value" style={{ color: 'var(--color-critical)' }}>{blockedCount}</div>
+          <div className="metric-value" style={{ color: 'var(--color-critical)' }}>
+            {blockedCount}
+          </div>
           <div className="metric-sub">Ação imediata necessária</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-warning)' }}>
           <div className="metric-label">Pendentes</div>
-          <div className="metric-value" style={{ color: 'var(--color-warning)' }}>{pendingCount}</div>
+          <div className="metric-value" style={{ color: 'var(--color-warning)' }}>
+            {pendingCount}
+          </div>
           <div className="metric-sub">Aguardando resolução</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-info)' }}>
           <div className="metric-label">Em Andamento</div>
-          <div className="metric-value" style={{ color: 'var(--color-info)' }}>{inProgressCount}</div>
+          <div className="metric-value" style={{ color: 'var(--color-info)' }}>
+            {inProgressCount}
+          </div>
           <div className="metric-sub">Alta em curso</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-success)' }}>
           <div className="metric-label">Prontos</div>
-          <div className="metric-value" style={{ color: 'var(--color-success)' }}>{readyCount}</div>
+          <div className="metric-value" style={{ color: 'var(--color-success)' }}>
+            {readyCount}
+          </div>
           <div className="metric-sub">Aguardando transporte / alta</div>
         </div>
       </div>
@@ -380,7 +426,9 @@ export default function DischargePage() {
                   <td colSpan={9}>
                     <div className="empty-state">
                       <div className="empty-state-icon">🏠</div>
-                      <div className="empty-state-title">Nenhum paciente corresponde aos filtros</div>
+                      <div className="empty-state-title">
+                        Nenhum paciente corresponde aos filtros
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -472,11 +520,16 @@ export default function DischargePage() {
                         </td>
                       </tr>
                       {isExpanded && (
-                        <tr key={`${patient.mrn}-notes`} style={{ background: 'var(--color-surface-subtle)' }}>
+                        <tr
+                          key={`${patient.mrn}-notes`}
+                          style={{ background: 'var(--color-surface-subtle)' }}
+                        >
                           <td colSpan={9}>
                             <div style={{ padding: '0.75rem 1rem', fontSize: '0.875rem' }}>
                               <strong>Notas Clínicas:</strong>{' '}
-                              <span style={{ color: 'var(--text-secondary)' }}>{patient.notes}</span>
+                              <span style={{ color: 'var(--text-secondary)' }}>
+                                {patient.notes}
+                              </span>
                               <span style={{ marginLeft: '2rem', color: 'var(--text-tertiary)' }}>
                                 Médico: {patient.consultant}
                               </span>
@@ -494,7 +547,8 @@ export default function DischargePage() {
       </div>
 
       <div className="text-xs text-tertiary mt-2" style={{ textAlign: 'right' }}>
-        {sorted.length} de {DISCHARGE_PATIENTS.length} pacientes · Clique em uma linha para expandir as notas
+        {sorted.length} de {DISCHARGE_PATIENTS.length} pacientes · Clique em uma linha para expandir
+        as notas
       </div>
     </AppShell>
   );

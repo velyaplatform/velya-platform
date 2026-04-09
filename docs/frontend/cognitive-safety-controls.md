@@ -1,4 +1,5 @@
 # Cognitive Safety Controls
+
 **Velya Hospital AI Platform — Clinical UI**
 **Document Type:** UI/UX Safety Design Specification
 **Date:** 2026-04-08
@@ -30,6 +31,7 @@ The task inbox and patient dashboard use a three-layer disclosure model:
 AI recommendations are Layer 2 by default. Their full explanation and supporting evidence are Layer 3. A clinician reviewing a patient quickly gets a summary; a clinician doing a thorough assessment gets the full detail without navigating away.
 
 **Validation Method:**
+
 - Heuristic evaluation: count the number of distinct data elements visible on a fresh patient list view for a user who has never interacted with it. Target: ≤ 5 elements visible before any interaction.
 - User testing: give a nurse 6 patients with mixed severity. Measure time-to-identify the most critical patient. Target: < 10 seconds.
 - Audit: no critical information should be hidden behind Layer 3. Verify by listing all clinical safety-critical fields and checking their disclosure layer.
@@ -53,6 +55,7 @@ Critical alerts in velya-web use all five visual channels simultaneously — nev
 For life-threatening conditions (as defined by policy-engine), a full-screen modal interrupt is triggered — the interface cannot be used until the alert is acknowledged or escalated. Full-screen interrupt criteria include: critical lab value unacknowledged for > 5 minutes, patient deterioration score crossing a threshold, discharge workflow attempted for a patient with a physician hold.
 
 **Validation Method:**
+
 - Accessibility audit: verify all critical/warning/informational states are distinguishable without color by a user with full color blindness simulation enabled in the browser
 - Contrast check: all text in critical alert cards meets WCAG AA contrast ratio (4.5:1 minimum)
 - Eye-tracking study (or 5-user hallway test): show a task inbox with 30 informational items and 1 critical item. Measure time-to-first-fixation on the critical item. Target: < 3 seconds
@@ -67,11 +70,13 @@ For life-threatening conditions (as defined by policy-engine), a full-screen mod
 **How It's Implemented in Velya's Design:**
 
 velya-web maintains a service health state derived from:
+
 1. API responses (4xx/5xx errors or timeout from any backend service)
 2. A `/health` endpoint polled every 30 seconds that returns the health of each downstream service
 3. A `data_freshness_seconds` field returned by each API response
 
 The degraded mode status banner:
+
 - **Renders at the top of the viewport**, above all navigation and content — not in a corner, not as a toast notification, not as a badge
 - **Is non-dismissable** without a deliberate override action that is logged to audit-service
 - **Specifies which services are affected** in plain language: "Patient Flow data is unavailable. Showing patient list from 14:23 (12 minutes ago). Discharge system is operating normally."
@@ -83,6 +88,7 @@ The degraded mode status banner:
 When a clinical action is attempted that depends on unavailable data, the action button is disabled and a tooltip explains: "This action requires Patient Flow data, which is currently unavailable. Last known data is from 14:23."
 
 **Validation Method:**
+
 - Integration test: stop patient-flow-service pod; verify banner appears within 60 seconds
 - Integration test: verify that a discharge initiation attempt while discharge-orchestrator is unavailable is blocked with the correct explanation
 - UI review: verify banner is visible at 320px, 375px, 768px, and 1440px viewports
@@ -98,20 +104,21 @@ When a clinical action is attempted that depends on unavailable data, the action
 
 Every AI recommendation rendered in velya-web includes all of the following, without exception:
 
-| Element | Display | Example |
-|---|---|---|
-| Confidence level | Visual badge: High (green) / Medium (yellow) / Low (grey) | "Medium confidence" |
-| Data basis | Bullet list of the specific data points the recommendation is based on, with timestamps | "Based on: Vitals from 13:45, Lab panel from 11:20, Discharge history from admission" |
-| Rationale | One plain-language sentence explaining the recommendation | "Length of stay is within expected range for this DRG and vital signs are stable." |
-| Staleness flag | If any data basis item is > 30 minutes old, it is flagged individually | "⚠ Vitals: last updated 47 minutes ago" |
-| Recommendation type | Explicit label: AI Suggestion (not a decision, not an order) | "AI Suggestion — requires clinical review" |
-| Source identifier | Which agent produced this recommendation | "Discharge Assessment Agent v1.2" |
+| Element             | Display                                                                                 | Example                                                                               |
+| ------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Confidence level    | Visual badge: High (green) / Medium (yellow) / Low (grey)                               | "Medium confidence"                                                                   |
+| Data basis          | Bullet list of the specific data points the recommendation is based on, with timestamps | "Based on: Vitals from 13:45, Lab panel from 11:20, Discharge history from admission" |
+| Rationale           | One plain-language sentence explaining the recommendation                               | "Length of stay is within expected range for this DRG and vital signs are stable."    |
+| Staleness flag      | If any data basis item is > 30 minutes old, it is flagged individually                  | "⚠ Vitals: last updated 47 minutes ago"                                               |
+| Recommendation type | Explicit label: AI Suggestion (not a decision, not an order)                            | "AI Suggestion — requires clinical review"                                            |
+| Source identifier   | Which agent produced this recommendation                                                | "Discharge Assessment Agent v1.2"                                                     |
 
 Recommendations with Low confidence are displayed in a reduced visual style (no color fill, dotted border) and include: "This recommendation is based on incomplete information. Independent clinical assessment is required before taking action."
 
 Recommendations that cannot be explained (no rationale field returned by ai-gateway) are not rendered to clinical staff. They are logged to decision-log-service as "unexplainable output — suppressed" and an alert fires to governance.
 
 **Validation Method:**
+
 - Visual regression test: assert that every AI recommendation component in Storybook renders with confidence badge, rationale, and data basis present
 - API contract test: if ai-gateway returns a recommendation without a confidence field, assert that velya-web does not render the recommendation to the user
 - User testing: show clinicians recommendations with high vs. low confidence indicators. Measure override rate difference. Low confidence recommendations should have higher override rate.
@@ -127,27 +134,30 @@ Recommendations that cannot be explained (no rationale field returned by ai-gate
 
 Every data element in velya-web that is fetched from a backend service carries a timestamp. The frontend maintains a staleness threshold configuration:
 
-| Data Type | Warning Threshold | Critical Threshold |
-|---|---|---|
-| Vital signs | 15 minutes | 30 minutes |
-| Lab results | 30 minutes | 60 minutes |
-| Medication list | 60 minutes | 4 hours |
-| Patient admission status | 5 minutes | 15 minutes |
-| Discharge blocker status | 2 minutes | 5 minutes |
-| Task assignments | 5 minutes | 15 minutes |
-| AI recommendations | 10 minutes | 20 minutes |
+| Data Type                | Warning Threshold | Critical Threshold |
+| ------------------------ | ----------------- | ------------------ |
+| Vital signs              | 15 minutes        | 30 minutes         |
+| Lab results              | 30 minutes        | 60 minutes         |
+| Medication list          | 60 minutes        | 4 hours            |
+| Patient admission status | 5 minutes         | 15 minutes         |
+| Discharge blocker status | 2 minutes         | 5 minutes          |
+| Task assignments         | 5 minutes         | 15 minutes         |
+| AI recommendations       | 10 minutes        | 20 minutes         |
 
 When a data element exceeds the warning threshold, its display changes:
+
 - Value is shown with a `⚠ [timestamp]` label next to it
 - Value text color shifts to match the staleness severity (grey for warning, red for critical)
 - Tooltip on the timestamp label shows: "Data last refreshed at [time]. May not reflect current patient state."
 
 When a data element exceeds the critical threshold, it enters a "must verify" state:
+
 - Value is shown with a strikethrough
 - A "Verify data" button appears that triggers a manual refresh
 - Clinical actions that depend on this element are blocked until the data is refreshed or the clinician explicitly overrides with an audit-logged attestation
 
 **Validation Method:**
+
 - Unit test: assert that a data element with a timestamp 16 minutes in the past renders with a staleness warning
 - Integration test: stop patient-flow-service; verify that vital sign displays enter stale state within 16 minutes
 - Accessibility: staleness warning is not communicated by color alone; verify icon and text label are present
@@ -164,6 +174,7 @@ When a data element exceeds the critical threshold, it enters a "must verify" st
 The shift handoff workflow in velya-web is a structured two-party process:
 
 **Departing Clinician Side:**
+
 - Checklist is auto-populated by velya-web from live patient data: outstanding tasks, pending lab results, medication changes in last 4 hours, pending specialist visits, AI flags on any patient
 - Each checklist item must be explicitly addressed: "Confirmed and communicated," "Not applicable," or "Cannot complete — requires incoming clinician attention"
 - Items marked "Cannot complete" generate an automatic high-priority task in the incoming clinician's inbox
@@ -171,16 +182,19 @@ The shift handoff workflow in velya-web is a structured two-party process:
 - Free-text "shift notes" field is required (minimum 20 characters) — cannot be skipped
 
 **Incoming Clinician Side:**
+
 - Handoff briefing screen is the first screen shown after shift start (before access to regular dashboard)
 - Briefing shows the departing clinician's notes and all flagged items
 - Incoming clinician must confirm review of each patient before the briefing screen can be dismissed
 - If incoming clinician has not reviewed all patients within 15 minutes of shift start, a reminder fires
 
 **Completion Gate:**
+
 - Handoff is not marked "complete" in audit-service until both sides have completed their steps
 - Any gap in the two-party process is logged as an incomplete handoff and escalated to the ward coordinator
 
 **Validation Method:**
+
 - Functional test: attempt to confirm handoff with a critical unaddressed item — verify it is blocked
 - Functional test: attempt to dismiss briefing screen without reviewing all patients — verify it is blocked
 - Integration test: verify that audit-service records a complete handoff event with both clinician IDs and completion timestamps
@@ -196,16 +210,17 @@ The shift handoff workflow in velya-web is a structured two-party process:
 
 velya-web implements role-based view scoping at the routing and component level. Roles defined:
 
-| Role | Scope |
-|---|---|
-| Ward Nurse | Their ward's patients, assigned tasks, shift handoff, clinical alerts for their patients |
-| Physician | All patients (filtered by service), AI recommendations requiring physician action, discharge approvals |
-| Ward Coordinator | All patients in ward, aggregate queue status, handoff oversight, escalations |
-| Clinical Supervisor | All wards, patient safety alerts, governance flags, clinician performance indicators |
-| Platform Engineer | Service health dashboards, infrastructure alerts, deployment status — NO patient data |
-| Agent Governance | Agent behavior dashboards, policy violations, agent scoring — NO patient data |
+| Role                | Scope                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------ |
+| Ward Nurse          | Their ward's patients, assigned tasks, shift handoff, clinical alerts for their patients               |
+| Physician           | All patients (filtered by service), AI recommendations requiring physician action, discharge approvals |
+| Ward Coordinator    | All patients in ward, aggregate queue status, handoff oversight, escalations                           |
+| Clinical Supervisor | All wards, patient safety alerts, governance flags, clinician performance indicators                   |
+| Platform Engineer   | Service health dashboards, infrastructure alerts, deployment status — NO patient data                  |
+| Agent Governance    | Agent behavior dashboards, policy violations, agent scoring — NO patient data                          |
 
 Implementation:
+
 - Role is determined at login from the user's JWT claims
 - velya-web's Next.js middleware validates role on every route access
 - Navigation is rendered based on role — items the user cannot access are not rendered, not just disabled
@@ -213,6 +228,7 @@ Implementation:
 - Role scope is enforced server-side; client-side scoping is a UX enhancement, not a security control
 
 **Validation Method:**
+
 - RBAC test: attempt to access a physician route as a ward nurse — verify 403
 - UI test: verify that a ward nurse's navigation does not include agent governance or infrastructure links
 - Penetration test: modify JWT role claim client-side and attempt privileged operations — verify server-side rejection
@@ -228,15 +244,16 @@ Implementation:
 
 The following actions are classified as emergency actions and require one click from any screen:
 
-| Action | Access Point |
-|---|---|
+| Action                              | Access Point                                                |
+| ----------------------------------- | ----------------------------------------------------------- |
 | Escalate patient to critical status | Global toolbar button (always visible, red, fixed position) |
-| Alert care team for patient | Patient card — always visible action button |
-| Block discharge immediately | Patient card — visible when discharge workflow is active |
-| Acknowledge critical alert | Alert card — primary action button at top of card |
-| Request physician review | Any task card — secondary action button |
+| Alert care team for patient         | Patient card — always visible action button                 |
+| Block discharge immediately         | Patient card — visible when discharge workflow is active    |
+| Acknowledge critical alert          | Alert card — primary action button at top of card           |
+| Request physician review            | Any task card — secondary action button                     |
 
 Design principles for one-click critical actions:
+
 - The action button is visible without any required preceding navigation
 - The button renders at 64px minimum touch target on mobile
 - For actions with patient safety impact (escalate, block discharge), a single confirmation dialog appears — just the patient name and "Confirm [Action]?" — no additional forms
@@ -244,6 +261,7 @@ Design principles for one-click critical actions:
 - One-click actions are logged to audit-service regardless of whether they complete successfully
 
 **Validation Method:**
+
 - Time-task test: give a tester an unfamiliar scenario requiring a critical escalation. Measure clicks and time from screen load to completed action. Target: ≤ 2 clicks, ≤ 15 seconds.
 - Mobile test: complete all emergency actions on a 375px viewport with touch input only
 - Load test: verify one-click actions complete within 2 seconds even when backend is under load (Prometheus histogram p99)
@@ -259,6 +277,7 @@ Design principles for one-click critical actions:
 All actions in velya-web are classified:
 
 **Reversible actions** (allow undo within a time window):
+
 - Task assignment
 - Task status change
 - Handoff note edit
@@ -267,6 +286,7 @@ All actions in velya-web are classified:
 For reversible actions, an undo toast notification appears for 15 seconds: "[Action] — Undo." The undo is available for 30 seconds after the action. Both the action and the undo are logged separately to audit-service.
 
 **Non-reversible actions** (require confirmation, cannot be undone):
+
 - Discharge confirmation
 - Patient status critical escalation
 - Task deletion
@@ -275,11 +295,13 @@ For reversible actions, an undo toast notification appears for 15 seconds: "[Act
 For non-reversible actions, a confirmation dialog explicitly states: "This action cannot be undone. [Plain language description of what will happen]. Confirm?"
 
 **Audit trail behavior:**
+
 - Every action (including undo) generates an audit event with: user ID, role, timestamp (UTC), patient ID if relevant, action type, action result, and session ID
 - Audit events are written to audit-service synchronously before the UI confirms success to the user
 - If the audit write fails, the action is rolled back and the user sees an error — a clinical action that cannot be audited is not recorded as successful
 
 **Validation Method:**
+
 - Functional test: perform a task assignment, then undo. Verify audit-service records two events: the assignment and the reversal, with correct timestamps and user IDs
 - Functional test: attempt to proceed past the discharge confirmation dialog in < 3 seconds — verify the confirm button has a 3-second activation delay for high-consequence actions
 - Integration test: stop audit-service; attempt a clinical action; verify the action is rolled back and the user receives an error
@@ -302,6 +324,7 @@ In the 30 minutes before a scheduled shift end, velya-web displays a persistent 
 When 15 minutes remain, if any critical items are outstanding, the indicator expands to a modal checklist: "Before your shift ends, the following items require attention:" with direct links to each outstanding item.
 
 The indicator uses a traffic light system:
+
 - **Green:** All handoff items addressed, no outstanding critical tasks
 - **Yellow:** Outstanding tasks exist but no immediate safety risk
 - **Red:** Outstanding critical items that should be addressed before handoff
@@ -309,6 +332,7 @@ The indicator uses a traffic light system:
 Shift-end confirmation is blocked (requires explicit override) if the indicator is Red. Override is logged to audit-service and escalated to the ward coordinator.
 
 **Validation Method:**
+
 - Functional test: create 2 unacknowledged critical tasks with 10 minutes to shift end; verify indicator turns Red and modal appears
 - Functional test: attempt to confirm shift end with Red indicator — verify confirmation is blocked
 - Integration test: verify override is logged to audit-service with timestamp and user ID
@@ -324,27 +348,29 @@ Shift-end confirmation is blocked (requires explicit override) if the indicator 
 
 Exception highlighting is applied automatically based on defined rules. Clinical data fields that cross a threshold are highlighted at the field level, not just in a separate alert section:
 
-| Data Type | Exception Condition | Highlight |
-|---|---|---|
-| Heart rate | < 50 or > 120 bpm | Red bold value |
-| SpO₂ | < 92% | Red bold value |
-| Blood pressure systolic | < 90 or > 180 mmHg | Red bold value |
-| Temperature | < 36.0°C or > 38.5°C | Yellow bold value |
-| Blood glucose | < 3.0 or > 15.0 mmol/L | Red bold value |
-| Serum potassium | < 3.0 or > 5.5 mEq/L | Red bold value |
-| Serum sodium | < 130 or > 150 mEq/L | Yellow bold value |
-| Pain score | ≥ 8/10 (not recently reassessed) | Yellow bold value |
-| Length of stay | > expected by > 2 days | Yellow flag on patient card |
+| Data Type               | Exception Condition                          | Highlight                     |
+| ----------------------- | -------------------------------------------- | ----------------------------- |
+| Heart rate              | < 50 or > 120 bpm                            | Red bold value                |
+| SpO₂                    | < 92%                                        | Red bold value                |
+| Blood pressure systolic | < 90 or > 180 mmHg                           | Red bold value                |
+| Temperature             | < 36.0°C or > 38.5°C                         | Yellow bold value             |
+| Blood glucose           | < 3.0 or > 15.0 mmol/L                       | Red bold value                |
+| Serum potassium         | < 3.0 or > 5.5 mEq/L                         | Red bold value                |
+| Serum sodium            | < 130 or > 150 mEq/L                         | Yellow bold value             |
+| Pain score              | ≥ 8/10 (not recently reassessed)             | Yellow bold value             |
+| Length of stay          | > expected by > 2 days                       | Yellow flag on patient card   |
 | Discharge blocker count | ≥ 1 active blocker during discharge workflow | Red banner on discharge panel |
-| Unacknowledged task age | > 2 hours (critical), > 8 hours (warning) | Age badge on task card |
+| Unacknowledged task age | > 2 hours (critical), > 8 hours (warning)    | Age badge on task card        |
 
 Exception highlighting rules are:
+
 - Applied to raw data values, not derived summaries — clinicians see the highlighted value in context
 - Never color-only — always accompanied by bold text weight and, for critical conditions, an icon
 - Configurable per deployment (different hospitals have different normal ranges for some parameters)
 - Suppressed if the clinician has explicitly noted "patient baseline is outside normal range" — preventing habituated alerts for patients with chronic conditions
 
 **Validation Method:**
+
 - Unit test: assert that a heart rate value of 125 renders with the red exception style and that 75 renders in the normal style
 - Parameterized test suite: for each defined exception rule, verify the rendering changes at the threshold boundary
 - Accessibility test: verify exception highlighting is perceivable without color (bold text + icon present)
@@ -361,26 +387,31 @@ Exception highlighting rules are:
 velya-web tracks continuous session duration per user. Cognitive break indicators are passive (informational only) — they do not interrupt clinical workflows.
 
 **Session tracking:**
+
 - Session duration is measured from last login or last explicit "back from break" confirmation
 - Duration is visible as a small indicator in the navigation bar: a clock icon + hours/minutes
 
 **Break suggestion rules:**
+
 - After 3 hours of continuous session: soft indicator appears — "You've been active for 3 hours. Consider a break."
 - After 4.5 hours: indicator becomes more prominent (yellow) with the same message
 - After 6 hours: indicator turns red; break suggestion is more explicit — "Extended session detected. If safe to do so, a break is recommended."
 
 **Non-interrupting design:**
+
 - Break suggestions are never full-screen interrupts. They are dismissable toasts that do not block any clinical action.
 - The suggestion includes a "I'm on break" button that pauses the counter
 - When the clinician returns, "Back from break" resets the session counter
 - Break suggestions are suppressed during active critical alerts — no break suggestion fires while the user is in an active emergency response flow
 
 **Governance integration:**
+
 - Session duration data (anonymized) is reported to the clinical governance dashboard
 - Shifts with consistently extended sessions (> 10 hours without a break) are flagged for ward coordinator review
 - Data is used to identify systemic staffing issues, not for individual performance management
 
 **Validation Method:**
+
 - Functional test: advance the system clock by 3 hours of simulated session time; verify the break suggestion indicator appears
 - UX test: verify that the break indicator does not appear during an active full-screen critical alert
 - Privacy review: confirm that session duration data is stored with role and ward granularity only, not individual user identifiers in the governance dashboard

@@ -64,7 +64,7 @@ spec:
             #   key: secret-access-key
         selector:
           dnsZones:
-            - "velya.health"
+            - 'velya.health'
 
 ---
 # =============================================================================
@@ -107,7 +107,7 @@ spec:
             hostedZoneID: ZXXXXXXXXXXXXX
         selector:
           dnsZones:
-            - "velya.health"
+            - 'velya.health'
 
 ---
 # =============================================================================
@@ -126,7 +126,7 @@ metadata:
     app.kubernetes.io/component: pki
     app.kubernetes.io/managed-by: platform-team
   annotations:
-    description: "Self-signed issuer for bootstrapping internal CA"
+    description: 'Self-signed issuer for bootstrapping internal CA'
 spec:
   selfSigned: {}
 
@@ -153,14 +153,14 @@ spec:
   issuerRef:
     name: selfsigned-bootstrap
     kind: ClusterIssuer
-  commonName: "Velya Internal Root CA"
+  commonName: 'Velya Internal Root CA'
   subject:
     organizations:
-      - "Velya Health"
+      - 'Velya Health'
     organizationalUnits:
-      - "Platform Engineering"
-  duration: 87600h    # 10 years
-  renewBefore: 8760h  # 1 year before expiry
+      - 'Platform Engineering'
+  duration: 87600h # 10 years
+  renewBefore: 8760h # 1 year before expiry
   privateKey:
     algorithm: ECDSA
     size: 256
@@ -181,7 +181,7 @@ metadata:
     app.kubernetes.io/component: pki
     app.kubernetes.io/managed-by: platform-team
   annotations:
-    description: "Internal CA for mTLS service certificates"
+    description: 'Internal CA for mTLS service certificates'
 spec:
   ca:
     secretName: internal-ca-root-secret

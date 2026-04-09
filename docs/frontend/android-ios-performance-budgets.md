@@ -23,37 +23,37 @@ Performance budgets definem limites máximos para métricas de performance em ca
 
 ### 2.1 Tabela de Budgets
 
-| Rota | JS Bundle (gz) | CSS (gz) | Total Transfer | LCP | FID/INP | CLS | TTI |
-|---|---|---|---|---|---|---|---|
-| **Mobile** | | | | | | | |
-| `/login` | 80kb | 15kb | 120kb | 1.5s | 50ms | 0.05 | 2.0s |
-| `/dashboard` | 120kb | 20kb | 200kb | 2.5s | 100ms | 0.1 | 3.5s |
-| `/patients` | 100kb | 18kb | 180kb | 2.0s | 100ms | 0.1 | 3.0s |
-| `/patients/[id]` | 110kb | 18kb | 190kb | 2.5s | 100ms | 0.1 | 3.5s |
-| `/medication` | 100kb | 18kb | 170kb | 2.0s | 80ms | 0.05 | 2.5s |
-| `/calls` | 90kb | 15kb | 150kb | 1.5s | 50ms | 0.05 | 2.0s |
-| `/handoff` | 120kb | 20kb | 200kb | 2.5s | 100ms | 0.1 | 3.5s |
-| `/command-center` | 130kb | 22kb | 220kb | 3.0s | 100ms | 0.1 | 4.0s |
-| **Desktop** | | | | | | | |
-| `/login` | 100kb | 18kb | 150kb | 1.2s | 40ms | 0.05 | 1.5s |
-| `/dashboard` | 180kb | 25kb | 280kb | 2.0s | 80ms | 0.1 | 2.5s |
-| `/patients` | 150kb | 22kb | 250kb | 1.5s | 80ms | 0.1 | 2.0s |
-| `/patients/[id]` | 160kb | 22kb | 260kb | 2.0s | 80ms | 0.1 | 2.5s |
-| `/medication` | 150kb | 22kb | 240kb | 1.5s | 60ms | 0.05 | 2.0s |
-| `/calls` | 120kb | 18kb | 200kb | 1.2s | 40ms | 0.05 | 1.5s |
-| `/handoff` | 180kb | 25kb | 280kb | 2.0s | 80ms | 0.1 | 2.5s |
-| `/command-center` | 200kb | 28kb | 320kb | 2.5s | 80ms | 0.1 | 3.0s |
+| Rota              | JS Bundle (gz) | CSS (gz) | Total Transfer | LCP  | FID/INP | CLS  | TTI  |
+| ----------------- | -------------- | -------- | -------------- | ---- | ------- | ---- | ---- |
+| **Mobile**        |                |          |                |      |         |      |      |
+| `/login`          | 80kb           | 15kb     | 120kb          | 1.5s | 50ms    | 0.05 | 2.0s |
+| `/dashboard`      | 120kb          | 20kb     | 200kb          | 2.5s | 100ms   | 0.1  | 3.5s |
+| `/patients`       | 100kb          | 18kb     | 180kb          | 2.0s | 100ms   | 0.1  | 3.0s |
+| `/patients/[id]`  | 110kb          | 18kb     | 190kb          | 2.5s | 100ms   | 0.1  | 3.5s |
+| `/medication`     | 100kb          | 18kb     | 170kb          | 2.0s | 80ms    | 0.05 | 2.5s |
+| `/calls`          | 90kb           | 15kb     | 150kb          | 1.5s | 50ms    | 0.05 | 2.0s |
+| `/handoff`        | 120kb          | 20kb     | 200kb          | 2.5s | 100ms   | 0.1  | 3.5s |
+| `/command-center` | 130kb          | 22kb     | 220kb          | 3.0s | 100ms   | 0.1  | 4.0s |
+| **Desktop**       |                |          |                |      |         |      |      |
+| `/login`          | 100kb          | 18kb     | 150kb          | 1.2s | 40ms    | 0.05 | 1.5s |
+| `/dashboard`      | 180kb          | 25kb     | 280kb          | 2.0s | 80ms    | 0.1  | 2.5s |
+| `/patients`       | 150kb          | 22kb     | 250kb          | 1.5s | 80ms    | 0.1  | 2.0s |
+| `/patients/[id]`  | 160kb          | 22kb     | 260kb          | 2.0s | 80ms    | 0.1  | 2.5s |
+| `/medication`     | 150kb          | 22kb     | 240kb          | 1.5s | 60ms    | 0.05 | 2.0s |
+| `/calls`          | 120kb          | 18kb     | 200kb          | 1.2s | 40ms    | 0.05 | 1.5s |
+| `/handoff`        | 180kb          | 25kb     | 280kb          | 2.0s | 80ms    | 0.1  | 2.5s |
+| `/command-center` | 200kb          | 28kb     | 320kb          | 2.5s | 80ms    | 0.1  | 3.0s |
 
 ### 2.2 Budget Global (Toda a Aplicação)
 
-| Métrica | Mobile | Desktop |
-|---|---|---|
-| Total JS (first load, gz) | < 200kb | < 300kb |
-| Total CSS (gz) | < 30kb | < 40kb |
-| Total transfer (first load) | < 350kb | < 500kb |
-| Number of requests (initial) | < 20 | < 25 |
-| Font files | < 100kb | < 150kb |
-| Images (above fold) | < 100kb | < 200kb |
+| Métrica                      | Mobile  | Desktop |
+| ---------------------------- | ------- | ------- |
+| Total JS (first load, gz)    | < 200kb | < 300kb |
+| Total CSS (gz)               | < 30kb  | < 40kb  |
+| Total transfer (first load)  | < 350kb | < 500kb |
+| Number of requests (initial) | < 20    | < 25    |
+| Font files                   | < 100kb | < 150kb |
+| Images (above fold)          | < 100kb | < 200kb |
 
 ---
 
@@ -61,29 +61,29 @@ Performance budgets definem limites máximos para métricas de performance em ca
 
 ### 3.1 LCP (Largest Contentful Paint)
 
-| Target | Mobile | Desktop | Significado |
-|---|---|---|---|
-| Good | < 2.5s | < 2.0s | Experiência boa |
+| Target            | Mobile   | Desktop  | Significado                    |
+| ----------------- | -------- | -------- | ------------------------------ |
+| Good              | < 2.5s   | < 2.0s   | Experiência boa                |
 | Needs Improvement | 2.5-4.0s | 2.0-3.0s | Aceitável mas precisa melhorar |
-| Poor | > 4.0s | > 3.0s | Inaceitável — bloqueia deploy |
+| Poor              | > 4.0s   | > 3.0s   | Inaceitável — bloqueia deploy  |
 
 **Elementos LCP típicos por rota:**
 
-| Rota | Elemento LCP | Otimização |
-|---|---|---|
-| Login | Logo + formulário | Font preload, inline critical CSS |
-| Dashboard | Primeiro metric card | Server Component, streaming |
-| Pacientes | Primeira row da tabela | SSR, skeleton during hydration |
-| Medicação | Painel de medicação | Server fetch + streaming |
-| Chamadas | Lista de chamadas ativas | SSR, TanStack Query hydration |
+| Rota      | Elemento LCP             | Otimização                        |
+| --------- | ------------------------ | --------------------------------- |
+| Login     | Logo + formulário        | Font preload, inline critical CSS |
+| Dashboard | Primeiro metric card     | Server Component, streaming       |
+| Pacientes | Primeira row da tabela   | SSR, skeleton during hydration    |
+| Medicação | Painel de medicação      | Server fetch + streaming          |
+| Chamadas  | Lista de chamadas ativas | SSR, TanStack Query hydration     |
 
 ### 3.2 FID / INP (First Input Delay / Interaction to Next Paint)
 
-| Target | Mobile | Desktop | Significado |
-|---|---|---|---|
-| Good | < 100ms | < 80ms | Resposta instantânea |
-| Needs Improvement | 100-300ms | 80-200ms | Lag perceptível |
-| Poor | > 300ms | > 200ms | Frustração do usuário |
+| Target            | Mobile    | Desktop  | Significado           |
+| ----------------- | --------- | -------- | --------------------- |
+| Good              | < 100ms   | < 80ms   | Resposta instantânea  |
+| Needs Improvement | 100-300ms | 80-200ms | Lag perceptível       |
+| Poor              | > 300ms   | > 200ms  | Frustração do usuário |
 
 **Otimizações para FID/INP:**
 
@@ -96,22 +96,22 @@ Performance budgets definem limites máximos para métricas de performance em ca
 
 ### 3.3 CLS (Cumulative Layout Shift)
 
-| Target | Mobile | Desktop | Significado |
-|---|---|---|---|
-| Good | < 0.1 | < 0.1 | Estável |
+| Target            | Mobile   | Desktop  | Significado         |
+| ----------------- | -------- | -------- | ------------------- |
+| Good              | < 0.1    | < 0.1    | Estável             |
 | Needs Improvement | 0.1-0.25 | 0.1-0.25 | Shifts perceptíveis |
-| Poor | > 0.25 | > 0.25 | Layout quebrado |
+| Poor              | > 0.25   | > 0.25   | Layout quebrado     |
 
 **Causas comuns de CLS e prevenção:**
 
-| Causa | Prevenção |
-|---|---|
-| Imagens sem dimensão | Sempre definir `width` e `height` ou `aspect-ratio` |
-| Fontes flash (FOUT) | `font-display: swap` + preload |
-| Conteúdo dinâmico inserido | Reservar espaço com skeleton/placeholder |
-| Ads/banners carregando | Espaço reservado fixo |
-| Tabelas de dados | Skeleton com dimensões fixas |
-| Status chips mudando de tamanho | Largura mínima fixa |
+| Causa                           | Prevenção                                           |
+| ------------------------------- | --------------------------------------------------- |
+| Imagens sem dimensão            | Sempre definir `width` e `height` ou `aspect-ratio` |
+| Fontes flash (FOUT)             | `font-display: swap` + preload                      |
+| Conteúdo dinâmico inserido      | Reservar espaço com skeleton/placeholder            |
+| Ads/banners carregando          | Espaço reservado fixo                               |
+| Tabelas de dados                | Skeleton com dimensões fixas                        |
+| Status chips mudando de tamanho | Largura mínima fixa                                 |
 
 ---
 
@@ -171,27 +171,28 @@ Budget total fontes:     < 100kb
 
 ### 5.1 Perfis de Throttle
 
-| Perfil | Download | Upload | Latency | Dispositivo Representativo |
-|---|---|---|---|---|
-| 4G Fast | 12 Mbps | 2 Mbps | 50ms | iPhone 15, flagship Android |
-| 4G Regular | 4 Mbps | 750 kbps | 100ms | iPhone 12, mid-range Android |
-| 4G Slow | 1.5 Mbps | 400 kbps | 150ms | Em elevador, subsolo |
-| 3G | 750 kbps | 250 kbps | 300ms | Zona rural, cobertura ruim |
-| Wi-Fi Hospital | 10 Mbps | 5 Mbps | 20ms | Wi-Fi corporativo |
-| Wi-Fi Degradado | 2 Mbps | 1 Mbps | 100ms | Muitos devices no AP |
+| Perfil          | Download | Upload   | Latency | Dispositivo Representativo   |
+| --------------- | -------- | -------- | ------- | ---------------------------- |
+| 4G Fast         | 12 Mbps  | 2 Mbps   | 50ms    | iPhone 15, flagship Android  |
+| 4G Regular      | 4 Mbps   | 750 kbps | 100ms   | iPhone 12, mid-range Android |
+| 4G Slow         | 1.5 Mbps | 400 kbps | 150ms   | Em elevador, subsolo         |
+| 3G              | 750 kbps | 250 kbps | 300ms   | Zona rural, cobertura ruim   |
+| Wi-Fi Hospital  | 10 Mbps  | 5 Mbps   | 20ms    | Wi-Fi corporativo            |
+| Wi-Fi Degradado | 2 Mbps   | 1 Mbps   | 100ms   | Muitos devices no AP         |
 
 ### 5.2 Dispositivos de Referência
 
-| Tier | Device | CPU | RAM | Onde Testar |
-|---|---|---|---|---|
-| High-end | iPhone 15 Pro | A17 Pro | 8GB | Lighthouse, Playwright |
-| Mid-range | iPhone 12 | A14 | 4GB | **Referência principal** |
-| Budget | Samsung Galaxy A14 | MediaTek | 4GB | Worst case testing |
-| Tablet | iPad Air | M1 | 8GB | Playwright iPad profile |
+| Tier      | Device             | CPU      | RAM | Onde Testar              |
+| --------- | ------------------ | -------- | --- | ------------------------ |
+| High-end  | iPhone 15 Pro      | A17 Pro  | 8GB | Lighthouse, Playwright   |
+| Mid-range | iPhone 12          | A14      | 4GB | **Referência principal** |
+| Budget    | Samsung Galaxy A14 | MediaTek | 4GB | Worst case testing       |
+| Tablet    | iPad Air           | M1       | 8GB | Playwright iPad profile  |
 
 ### 5.3 Condição de Referência para Budgets
 
 Os budgets mobile são medidos em:
+
 - **Device**: iPhone 12 (ou CPU throttle 4x em Lighthouse)
 - **Rede**: 4G Regular (4 Mbps / 100ms)
 - **Orientação**: Portrait
@@ -307,55 +308,57 @@ jobs:
 
 ```tsx
 // scripts/check-bundle-size.ts
-import { readFileSync, readdirSync, statSync } from 'fs'
-import { join } from 'path'
-import { gzipSync } from 'zlib'
+import { readFileSync, readdirSync, statSync } from 'fs';
+import { join } from 'path';
+import { gzipSync } from 'zlib';
 
-const BUILD_DIR = '.next'
-const MAX_FIRST_LOAD_JS = 200 * 1024 // 200kb gz for mobile
+const BUILD_DIR = '.next';
+const MAX_FIRST_LOAD_JS = 200 * 1024; // 200kb gz for mobile
 
 function getGzipSize(filePath: string): number {
-  const content = readFileSync(filePath)
-  return gzipSync(content).length
+  const content = readFileSync(filePath);
+  return gzipSync(content).length;
 }
 
 function checkBundleSizes() {
   // Check page bundles
-  const pagesDir = join(BUILD_DIR, 'static', 'chunks', 'pages')
-  const entries = readdirSync(pagesDir)
+  const pagesDir = join(BUILD_DIR, 'static', 'chunks', 'pages');
+  const entries = readdirSync(pagesDir);
 
-  let totalFirstLoad = 0
-  const violations: string[] = []
+  let totalFirstLoad = 0;
+  const violations: string[] = [];
 
   for (const entry of entries) {
-    const filePath = join(pagesDir, entry)
-    const stat = statSync(filePath)
+    const filePath = join(pagesDir, entry);
+    const stat = statSync(filePath);
     if (stat.isFile() && entry.endsWith('.js')) {
-      const gzSize = getGzipSize(filePath)
-      totalFirstLoad += gzSize
+      const gzSize = getGzipSize(filePath);
+      totalFirstLoad += gzSize;
 
       if (gzSize > 50 * 1024) {
-        violations.push(`${entry}: ${(gzSize / 1024).toFixed(1)}kb gz (max 50kb per chunk)`)
+        violations.push(`${entry}: ${(gzSize / 1024).toFixed(1)}kb gz (max 50kb per chunk)`);
       }
     }
   }
 
   if (totalFirstLoad > MAX_FIRST_LOAD_JS) {
     violations.push(
-      `Total first load JS: ${(totalFirstLoad / 1024).toFixed(1)}kb gz (max ${MAX_FIRST_LOAD_JS / 1024}kb)`
-    )
+      `Total first load JS: ${(totalFirstLoad / 1024).toFixed(1)}kb gz (max ${MAX_FIRST_LOAD_JS / 1024}kb)`,
+    );
   }
 
   if (violations.length > 0) {
-    console.error('Bundle size violations:')
-    violations.forEach((v) => console.error(`  - ${v}`))
-    process.exit(1)
+    console.error('Bundle size violations:');
+    violations.forEach((v) => console.error(`  - ${v}`));
+    process.exit(1);
   }
 
-  console.log(`Bundle size check passed. Total first load: ${(totalFirstLoad / 1024).toFixed(1)}kb gz`)
+  console.log(
+    `Bundle size check passed. Total first load: ${(totalFirstLoad / 1024).toFixed(1)}kb gz`,
+  );
 }
 
-checkBundleSizes()
+checkBundleSizes();
 ```
 
 ---
@@ -368,18 +371,17 @@ checkBundleSizes()
 // Dynamic imports para componentes pesados
 const PatientTimeline = dynamic(
   () => import('@/features/patient-journey/components/patient-timeline'),
-  { loading: () => <TimelineSkeleton /> }
-)
+  { loading: () => <TimelineSkeleton /> },
+);
 
 const PainTrendChart = dynamic(
   () => import('@/features/calls-and-pain/components/pain-trend-chart'),
-  { loading: () => <ChartSkeleton />, ssr: false }
-)
+  { loading: () => <ChartSkeleton />, ssr: false },
+);
 
-const AuditLogTable = dynamic(
-  () => import('@/features/audit/components/audit-log-table'),
-  { loading: () => <TableSkeleton /> }
-)
+const AuditLogTable = dynamic(() => import('@/features/audit/components/audit-log-table'), {
+  loading: () => <TableSkeleton />,
+});
 ```
 
 ### 7.2 Preloading e Prefetching
@@ -427,22 +429,22 @@ router.prefetch('/patients') // Prefetch quando dashboard carrega
 
 ```tsx
 // Memoizar componentes estáveis
-const MemoizedPatientCard = memo(PatientCard)
+const MemoizedPatientCard = memo(PatientCard);
 
 // Memoizar colunas de tabela
-const columns = useMemo(() => createPatientColumns(), [])
+const columns = useMemo(() => createPatientColumns(), []);
 
 // Callback estável para handlers
 const handleSort = useCallback((column: string) => {
-  setSortBy(column)
-}, [])
+  setSortBy(column);
+}, []);
 
 // Transition para updates não-urgentes
-const [isPending, startTransition] = useTransition()
+const [isPending, startTransition] = useTransition();
 function handleFilter(value: string) {
   startTransition(() => {
-    setFilter(value)
-  })
+    setFilter(value);
+  });
 }
 ```
 
@@ -456,17 +458,17 @@ function handleFilter(value: string) {
 // Coletar métricas reais dos usuários
 function initRUM() {
   // Web Vitals
-  onLCP((metric) => reportMetric('lcp', metric))
-  onFID((metric) => reportMetric('fid', metric))
-  onCLS((metric) => reportMetric('cls', metric))
-  onINP((metric) => reportMetric('inp', metric))
+  onLCP((metric) => reportMetric('lcp', metric));
+  onFID((metric) => reportMetric('fid', metric));
+  onCLS((metric) => reportMetric('cls', metric));
+  onINP((metric) => reportMetric('inp', metric));
 
   // Navigation timing
   if (performance.getEntriesByType) {
-    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
-    reportMetric('ttfb', { value: nav.responseStart - nav.requestStart })
-    reportMetric('dom-interactive', { value: nav.domInteractive })
-    reportMetric('dom-complete', { value: nav.domComplete })
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    reportMetric('ttfb', { value: nav.responseStart - nav.requestStart });
+    reportMetric('dom-interactive', { value: nav.domInteractive });
+    reportMetric('dom-complete', { value: nav.domComplete });
   }
 }
 ```
@@ -475,24 +477,24 @@ function initRUM() {
 
 Os budgets se aplicam ao P75 (75% dos usuários):
 
-| Métrica | P50 Target | P75 Target (Budget) | P95 Alert |
-|---|---|---|---|
-| LCP (mobile) | < 1.5s | < 2.5s | > 4.0s |
-| FID (mobile) | < 50ms | < 100ms | > 300ms |
-| CLS (mobile) | < 0.05 | < 0.1 | > 0.25 |
-| INP (mobile) | < 100ms | < 200ms | > 500ms |
-| TTFB (mobile) | < 200ms | < 500ms | > 1000ms |
+| Métrica       | P50 Target | P75 Target (Budget) | P95 Alert |
+| ------------- | ---------- | ------------------- | --------- |
+| LCP (mobile)  | < 1.5s     | < 2.5s              | > 4.0s    |
+| FID (mobile)  | < 50ms     | < 100ms             | > 300ms   |
+| CLS (mobile)  | < 0.05     | < 0.1               | > 0.25    |
+| INP (mobile)  | < 100ms    | < 200ms             | > 500ms   |
+| TTFB (mobile) | < 200ms    | < 500ms             | > 1000ms  |
 
 ### 8.3 Alertas
 
-| Condição | Severidade | Ação |
-|---|---|---|
-| LCP P75 > 2.5s por 15min | Warning | Investigar |
-| LCP P75 > 4.0s por 5min | Critical | Rollback se recente |
-| FID P75 > 100ms por 15min | Warning | Investigar |
-| CLS P75 > 0.1 por 15min | Warning | Investigar |
-| Bundle size > budget | Blocking | PR não pode ser merged |
-| JS error rate > 1% | Critical | Rollback |
+| Condição                  | Severidade | Ação                   |
+| ------------------------- | ---------- | ---------------------- |
+| LCP P75 > 2.5s por 15min  | Warning    | Investigar             |
+| LCP P75 > 4.0s por 5min   | Critical   | Rollback se recente    |
+| FID P75 > 100ms por 15min | Warning    | Investigar             |
+| CLS P75 > 0.1 por 15min   | Warning    | Investigar             |
+| Bundle size > budget      | Blocking   | PR não pode ser merged |
+| JS error rate > 1%        | Critical   | Rollback               |
 
 ---
 
@@ -500,27 +502,30 @@ Os budgets se aplicam ao P75 (75% dos usuários):
 
 ### 9.1 Adaptações por Velocidade de Rede
 
-| Rede | Adaptação |
-|---|---|
-| 4G Fast | Experiência completa |
-| 4G Regular | Animações reduzidas, prefetch limitado |
-| 4G Slow | Imagens em qualidade baixa, sem prefetch |
-| 3G | Imagens desabilitadas (placeholders), animações off, page size mínimo |
+| Rede       | Adaptação                                                             |
+| ---------- | --------------------------------------------------------------------- |
+| 4G Fast    | Experiência completa                                                  |
+| 4G Regular | Animações reduzidas, prefetch limitado                                |
+| 4G Slow    | Imagens em qualidade baixa, sem prefetch                              |
+| 3G         | Imagens desabilitadas (placeholders), animações off, page size mínimo |
 
 ### 9.2 Implementação
 
 ```tsx
 function useAdaptivePerformance() {
-  const connection = useConnectionType()
+  const connection = useConnectionType();
 
-  return useMemo(() => ({
-    imageQuality: connection?.effectiveType === '3g' ? 20 :
-                  connection?.effectiveType === 'slow-2g' ? 0 : 80,
-    enableAnimations: connection?.effectiveType !== '3g',
-    enablePrefetch: connection?.effectiveType === '4g',
-    chartDataPoints: connection?.effectiveType === '3g' ? 50 : 300,
-    tablePageSize: connection?.effectiveType === '3g' ? 10 : 20,
-  }), [connection?.effectiveType])
+  return useMemo(
+    () => ({
+      imageQuality:
+        connection?.effectiveType === '3g' ? 20 : connection?.effectiveType === 'slow-2g' ? 0 : 80,
+      enableAnimations: connection?.effectiveType !== '3g',
+      enablePrefetch: connection?.effectiveType === '4g',
+      chartDataPoints: connection?.effectiveType === '3g' ? 50 : 300,
+      tablePageSize: connection?.effectiveType === '3g' ? 10 : 20,
+    }),
+    [connection?.effectiveType],
+  );
 }
 ```
 

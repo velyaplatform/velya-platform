@@ -41,19 +41,19 @@ src/
 
 ### 2.1 Responsabilidade de Cada Camada
 
-| Pasta | Responsabilidade | Exemplos |
-|---|---|---|
-| `app/` | Rotas, layouts, loading, error boundaries | `page.tsx`, `layout.tsx`, `loading.tsx` |
-| `components/` | UI primitives reutilizáveis, design system | `Button`, `Card`, `DataTable`, `StatusChip` |
-| `features/` | Lógica e UI de domínio específico | `PatientTable`, `MedicationForm`, `HandoffWizard` |
-| `lib/` | Utilitários puros, configurações de libs | `auth.ts`, `utils.ts`, `query-client.ts` |
-| `hooks/` | Hooks compartilhados entre features | `useDebounce`, `useMediaQuery`, `useLocalStorage` |
-| `types/` | Tipos e interfaces globais | `User`, `Session`, `ApiResponse`, `PaginatedResult` |
-| `schemas/` | Zod schemas compartilhados | `paginationSchema`, `dateRangeSchema` |
-| `services/` | Funções de fetch, API abstraction | `api.ts`, `patients.ts`, `medications.ts` |
-| `providers/` | Context providers globais | `QueryProvider`, `ThemeProvider`, `SessionProvider` |
-| `styles/` | CSS global e tokens | `globals.css`, `tokens.css` |
-| `config/` | Constantes e configuração | `routes.ts`, `permissions.ts`, `feature-flags.ts` |
+| Pasta         | Responsabilidade                           | Exemplos                                            |
+| ------------- | ------------------------------------------ | --------------------------------------------------- |
+| `app/`        | Rotas, layouts, loading, error boundaries  | `page.tsx`, `layout.tsx`, `loading.tsx`             |
+| `components/` | UI primitives reutilizáveis, design system | `Button`, `Card`, `DataTable`, `StatusChip`         |
+| `features/`   | Lógica e UI de domínio específico          | `PatientTable`, `MedicationForm`, `HandoffWizard`   |
+| `lib/`        | Utilitários puros, configurações de libs   | `auth.ts`, `utils.ts`, `query-client.ts`            |
+| `hooks/`      | Hooks compartilhados entre features        | `useDebounce`, `useMediaQuery`, `useLocalStorage`   |
+| `types/`      | Tipos e interfaces globais                 | `User`, `Session`, `ApiResponse`, `PaginatedResult` |
+| `schemas/`    | Zod schemas compartilhados                 | `paginationSchema`, `dateRangeSchema`               |
+| `services/`   | Funções de fetch, API abstraction          | `api.ts`, `patients.ts`, `medications.ts`           |
+| `providers/`  | Context providers globais                  | `QueryProvider`, `ThemeProvider`, `SessionProvider` |
+| `styles/`     | CSS global e tokens                        | `globals.css`, `tokens.css`                         |
+| `config/`     | Constantes e configuração                  | `routes.ts`, `permissions.ts`, `feature-flags.ts`   |
 
 ---
 
@@ -733,27 +733,27 @@ app/ ──────────────► features/
 
 ### 13.1 Arquivos
 
-| Tipo | Convenção | Exemplo |
-|---|---|---|
-| Componente React | kebab-case | `patient-list.tsx` |
-| Hook | kebab-case com `use-` | `use-patients-query.ts` |
-| Schema Zod | kebab-case com `-schema` | `admission-schema.ts` |
-| Tipo/Interface | kebab-case | `index.ts` (dentro de `types/`) |
-| Utilitário | kebab-case | `formatters.ts` |
-| Server Action | kebab-case com verbo | `admit-patient.ts` |
-| Constante | kebab-case | `routes.ts` |
-| Teste | `*.test.ts` ou `*.test.tsx` | `patient-list.test.tsx` |
+| Tipo             | Convenção                   | Exemplo                         |
+| ---------------- | --------------------------- | ------------------------------- |
+| Componente React | kebab-case                  | `patient-list.tsx`              |
+| Hook             | kebab-case com `use-`       | `use-patients-query.ts`         |
+| Schema Zod       | kebab-case com `-schema`    | `admission-schema.ts`           |
+| Tipo/Interface   | kebab-case                  | `index.ts` (dentro de `types/`) |
+| Utilitário       | kebab-case                  | `formatters.ts`                 |
+| Server Action    | kebab-case com verbo        | `admit-patient.ts`              |
+| Constante        | kebab-case                  | `routes.ts`                     |
+| Teste            | `*.test.ts` ou `*.test.tsx` | `patient-list.test.tsx`         |
 
 ### 13.2 Exports
 
-| Tipo | Convenção | Exemplo |
-|---|---|---|
-| Componente | PascalCase | `export function PatientList()` |
-| Hook | camelCase com `use` | `export function usePatientsQuery()` |
-| Schema | camelCase com `Schema` | `export const admissionSchema = z.object(...)` |
-| Tipo | PascalCase | `export interface Patient { ... }` |
-| Constante | UPPER_SNAKE_CASE | `export const MAX_PATIENTS_PER_PAGE = 50` |
-| Utilitário | camelCase | `export function formatDate()` |
+| Tipo       | Convenção              | Exemplo                                        |
+| ---------- | ---------------------- | ---------------------------------------------- |
+| Componente | PascalCase             | `export function PatientList()`                |
+| Hook       | camelCase com `use`    | `export function usePatientsQuery()`           |
+| Schema     | camelCase com `Schema` | `export const admissionSchema = z.object(...)` |
+| Tipo       | PascalCase             | `export interface Patient { ... }`             |
+| Constante  | UPPER_SNAKE_CASE       | `export const MAX_PATIENTS_PER_PAGE = 50`      |
+| Utilitário | camelCase              | `export function formatDate()`                 |
 
 ---
 

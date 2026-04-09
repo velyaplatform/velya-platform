@@ -4,7 +4,7 @@
 **Cluster:** kind-velya-local (simulando AWS EKS)  
 **Namespace de mensageria:** velya-dev-platform (NATS JetStream)  
 **Namespace de agents:** velya-dev-agents  
-**Última revisão:** 2026-04-08  
+**Última revisão:** 2026-04-08
 
 ---
 
@@ -28,15 +28,15 @@ O modelo de filas, leases e DLQ da Velya é construído sobre quatro princípios
 
 A Velya escolheu NATS JetStream como backbone de mensageria por:
 
-| Critério | NATS JetStream | Alternativas rejeitadas |
-|---|---|---|
-| Custo | OSS gratuito | AWS SQS ($0.40/million), Kafka (infra complexa) |
-| Operação em K8s | StatefulSet simples, baixo footprint | Kafka: ZooKeeper + Brokers complexos |
-| At-least-once delivery | Nativo com ack explícito | SQS: suportado mas vendor lock-in |
-| Pull consumers | Nativo — ideal para KEDA | RabbitMQ: push por default |
-| Replay de mensagens | Nativo (seek by time/sequence) | SQS: não suportado |
-| Multi-tenancy | Accounts + JetStream por account | Kafka: topics complexos |
-| Latência | Sub-milissegundo | Kafka: ~5ms+ para casos simples |
+| Critério               | NATS JetStream                       | Alternativas rejeitadas                         |
+| ---------------------- | ------------------------------------ | ----------------------------------------------- |
+| Custo                  | OSS gratuito                         | AWS SQS ($0.40/million), Kafka (infra complexa) |
+| Operação em K8s        | StatefulSet simples, baixo footprint | Kafka: ZooKeeper + Brokers complexos            |
+| At-least-once delivery | Nativo com ack explícito             | SQS: suportado mas vendor lock-in               |
+| Pull consumers         | Nativo — ideal para KEDA             | RabbitMQ: push por default                      |
+| Replay de mensagens    | Nativo (seek by time/sequence)       | SQS: não suportado                              |
+| Multi-tenancy          | Accounts + JetStream por account     | Kafka: topics complexos                         |
+| Latência               | Sub-milissegundo                     | Kafka: ~5ms+ para casos simples                 |
 
 ### 2.2 Deployment no Cluster
 
@@ -49,7 +49,7 @@ metadata:
   namespace: velya-dev-platform
 spec:
   serviceName: nats
-  replicas: 1   # kind local: 1 réplica. EKS: 3 réplicas
+  replicas: 1 # kind local: 1 réplica. EKS: 3 réplicas
   selector:
     matchLabels:
       app: nats
@@ -63,12 +63,12 @@ spec:
         - name: nats
           image: nats:2.10-alpine
           ports:
-            - containerPort: 4222   # Client
-            - containerPort: 8222   # Monitoring HTTP
-            - containerPort: 6222   # Cluster (para futuro clustering)
+            - containerPort: 4222 # Client
+            - containerPort: 8222 # Monitoring HTTP
+            - containerPort: 6222 # Cluster (para futuro clustering)
           args:
-            - "--config"
-            - "/etc/nats/nats.conf"
+            - '--config'
+            - '/etc/nats/nats.conf'
           volumeMounts:
             - name: config
               mountPath: /etc/nats
@@ -89,7 +89,7 @@ spec:
     - metadata:
         name: data
       spec:
-        accessModes: ["ReadWriteOnce"]
+        accessModes: ['ReadWriteOnce']
         resources:
           requests:
             storage: 20Gi
@@ -104,13 +104,13 @@ data:
   nats.conf: |
     port: 4222
     http_port: 8222
-    
+
     jetstream {
       store_dir: /data/nats
       max_memory_store: 512MB
       max_file_store: 18GB
     }
-    
+
     accounts {
       velya {
         users: [
@@ -251,6 +251,7 @@ deny_purge: true
 ### 4.1 Conceito de Lease
 
 Um lease é uma reserva de processamento com tempo de vida (TTL). Antes de começar a processar qualquer tarefa de fila, o worker deve adquirir um lease. O lease garante que:
+
 - Apenas um worker processa a tarefa por vez
 - Se o worker falhar, o lease expira e outro worker pode assumir
 - A mensagem NATS não recebe ack até o processamento ser concluído
@@ -286,9 +287,9 @@ Os leases são armazenados no NATS Key-Value Store (KV bucket):
 ```yaml
 # KV Bucket para leases
 bucket: VELYA_LEASES
-ttl: 600s        # TTL máximo de qualquer lease
-storage: memory  # Leases em memória para baixa latência
-history: 1       # Apenas versão atual
+ttl: 600s # TTL máximo de qualquer lease
+storage: memory # Leases em memória para baixa latência
+history: 1 # Apenas versão atual
 replicas: 1
 ```
 
@@ -332,13 +333,13 @@ async def process_with_lease_renewal(task: Task, lease: Lease):
     while not task.is_complete():
         # Processar próximo chunk
         result = await process_chunk(task)
-        
+
         # Renovar lease antes de expirar
         if lease.seconds_until_expiry() < 60:
             await renew_lease(lease, extend_ttl_seconds=300)
-            
+
         await asyncio.sleep(lease.heartbeat_interval_seconds)
-    
+
     # Tarefa concluída: ack e delete lease
     await nats_msg.ack()
     await delete_lease(lease.lease_id)
@@ -350,15 +351,15 @@ async def process_with_lease_renewal(task: Task, lease: Lease):
 
 ### 5.1 Tipos de DLQ e Owners
 
-| DLQ Subject | Tipo de Falha | Owner (Office) | SLA de Investigação |
-|---|---|---|---|
-| `velya.agents.dlq.validation-failed` | Output não passou no validator | Validation Office | 4 horas |
-| `velya.agents.dlq.max-retries-exceeded` | Máximo de retries atingido | Office do agent que falhou | 2 horas |
-| `velya.agents.dlq.tool-schema-violation` | Tool retornou schema inválido | Architecture Review Office | 8 horas |
-| `velya.agents.dlq.no-owner` | Mensagem sem consumer group | Platform Health Office | 1 hora |
-| `velya.agents.dlq.timeout` | TTL de processamento expirado | Office do agent que falhou | 4 horas |
-| `velya.agents.dlq.permanent-error` | Erro classificado como permanente | Architecture Review Office | 24 horas |
-| `velya.agents.dlq.clinical-escalation` | Requer revisão clínica humana | Clinical Operations Office | 30 minutos |
+| DLQ Subject                              | Tipo de Falha                     | Owner (Office)             | SLA de Investigação |
+| ---------------------------------------- | --------------------------------- | -------------------------- | ------------------- |
+| `velya.agents.dlq.validation-failed`     | Output não passou no validator    | Validation Office          | 4 horas             |
+| `velya.agents.dlq.max-retries-exceeded`  | Máximo de retries atingido        | Office do agent que falhou | 2 horas             |
+| `velya.agents.dlq.tool-schema-violation` | Tool retornou schema inválido     | Architecture Review Office | 8 horas             |
+| `velya.agents.dlq.no-owner`              | Mensagem sem consumer group       | Platform Health Office     | 1 hora              |
+| `velya.agents.dlq.timeout`               | TTL de processamento expirado     | Office do agent que falhou | 4 horas             |
+| `velya.agents.dlq.permanent-error`       | Erro classificado como permanente | Architecture Review Office | 24 horas            |
+| `velya.agents.dlq.clinical-escalation`   | Requer revisão clínica humana     | Clinical Operations Office | 30 minutos          |
 
 ### 5.2 Schema de Mensagem na DLQ
 
@@ -420,9 +421,9 @@ async def process_with_lease_renewal(task: Task, lease: Lease):
     severity: critical
     team: platform-health
   annotations:
-    summary: "DLQ no-owner contém mensagens há mais de 5 minutos"
-    description: "Mensagens em velya.agents.dlq.no-owner: {{ $value }}. Investigar imediatamente."
-    runbook: "https://velya-docs/runbooks/dlq-no-owner"
+    summary: 'DLQ no-owner contém mensagens há mais de 5 minutos'
+    description: 'Mensagens em velya.agents.dlq.no-owner: {{ $value }}. Investigar imediatamente.'
+    runbook: 'https://velya-docs/runbooks/dlq-no-owner'
 
 - alert: DLQSLABreach
   expr: |
@@ -431,7 +432,7 @@ async def process_with_lease_renewal(task: Task, lease: Lease):
   labels:
     severity: warning
   annotations:
-    summary: "SLA de investigação de DLQ violado"
+    summary: 'SLA de investigação de DLQ violado'
 ```
 
 ### 5.4 Workflow de Resolução de DLQ
@@ -473,15 +474,15 @@ DLQ Watchdog classifica o tipo de falha
 
 ### 6.1 Tabela de Retry Policy por Subject
 
-| Subject Pattern | Max Retries | Backoff Inicial | Backoff Máx | DLQ após |
-|---|---|---|---|---|
-| `*.clinical-ops.task-classification` | 5 | 10s | 5min | retry 5 |
-| `*.clinical-ops.discharge-trigger` | 3 | 30s | 10min | retry 3 |
-| `*.clinical-ops.escalation-required` | 2 | 5s | 1min | retry 2 |
-| `*.platform.health-check-result` | 10 | 5s | 2min | retry 10 |
-| `*.governance.validation-required` | 5 | 10s | 5min | retry 5 |
-| `*.watchdog.anomaly-detected` | 3 | 10s | 3min | retry 3 |
-| `*.finops.cost-alert` | 5 | 30s | 10min | retry 5 |
+| Subject Pattern                      | Max Retries | Backoff Inicial | Backoff Máx | DLQ após |
+| ------------------------------------ | ----------- | --------------- | ----------- | -------- |
+| `*.clinical-ops.task-classification` | 5           | 10s             | 5min        | retry 5  |
+| `*.clinical-ops.discharge-trigger`   | 3           | 30s             | 10min       | retry 3  |
+| `*.clinical-ops.escalation-required` | 2           | 5s              | 1min        | retry 2  |
+| `*.platform.health-check-result`     | 10          | 5s              | 2min        | retry 10 |
+| `*.governance.validation-required`   | 5           | 10s             | 5min        | retry 5  |
+| `*.watchdog.anomaly-detected`        | 3           | 10s             | 3min        | retry 3  |
+| `*.finops.cost-alert`                | 5           | 30s             | 10min       | retry 5  |
 
 ### 6.2 Fórmula de Backoff
 
@@ -489,11 +490,11 @@ DLQ Watchdog classifica o tipo de falha
 def calculate_backoff(attempt: int, base_seconds: int, max_seconds: int) -> float:
     """
     Backoff exponencial com jitter completo.
-    
+
     attempt: número da tentativa atual (0-indexed)
     base_seconds: intervalo base (ex: 10)
     max_seconds: intervalo máximo (ex: 300)
-    
+
     Fórmula: min(base * 2^attempt, max) + random(0, base)
     """
     import random
@@ -552,9 +553,9 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Fila NATS com >50 mensagens pendentes por 5 minutos"
-          description: "Consumer {{ $labels.consumer_name }} com lag {{ $value }}"
-      
+          summary: 'Fila NATS com >50 mensagens pendentes por 5 minutos'
+          description: 'Consumer {{ $labels.consumer_name }} com lag {{ $value }}'
+
       - alert: QueueDepthCritical
         expr: |
           nats_consumer_num_pending{stream="VELYA_AGENTS"} > 200
@@ -562,8 +563,8 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Fila NATS crítica: >200 mensagens pendentes"
-      
+          summary: 'Fila NATS crítica: >200 mensagens pendentes'
+
       - alert: DLQGrowthRate
         expr: |
           rate(nats_stream_total_messages{stream="VELYA_DLQ"}[10m]) > 0.5
@@ -571,8 +572,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "DLQ crescendo mais de 3 mensagens por minuto"
-      
+          summary: 'DLQ crescendo mais de 3 mensagens por minuto'
+
       - alert: DLQAccumulationCritical
         expr: |
           nats_stream_total_messages{stream="VELYA_DLQ"} > 1000
@@ -580,8 +581,8 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "DLQ acumulou mais de 1000 mensagens — investigação urgente"
-      
+          summary: 'DLQ acumulou mais de 1000 mensagens — investigação urgente'
+
       - alert: NoConsumerActivity
         expr: |
           increase(nats_consumer_num_ack_pending[15m]) == 0 AND
@@ -590,7 +591,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Fila com mensagens mas sem consumer ativo por 15 minutos"
+          summary: 'Fila com mensagens mas sem consumer ativo por 15 minutos'
 ```
 
 ---

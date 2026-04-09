@@ -42,11 +42,13 @@ kubectl port-forward -n velya-dev-platform service/temporal-ui 8088:8080 &
 **Objetivo:** Validar que HPA escala api-gateway durante burst e mantém SLO de latência
 
 **Pré-condições:**
+
 - api-gateway com HPA configurado (min: 3, max: 30)
 - Prometheus scraping api-gateway
 - Baseline de tráfego em 0 RPS
 
 **Passos de Execução:**
+
 ```bash
 # Script k6 — burst repentino
 cat > /tmp/burst-test.js << 'EOF'
@@ -81,12 +83,14 @@ k6 run --env VELYA_API_URL=$VELYA_API_URL /tmp/burst-test.js
 ```
 
 **Métricas Observadas:**
+
 - HPA replica count timeline durante o teste
 - Latência P99 durante scale-up
 - Tempo para HPA iniciar scale-up (target: < 60s após trigger)
 - Tempo para novos pods ficarem ready
 
 **Critérios de Sucesso:**
+
 - [ ] P99 latência < 500ms durante burst (tolerância de 60s de degradação durante scale-up)
 - [ ] Error rate < 1% durante todo o teste
 - [ ] HPA escala para > 5 réplicas dentro de 60s do início do burst
@@ -104,11 +108,13 @@ Alta. Burst real de admissões hospitalares pode derrubar o api-gateway se HPA n
 **Objetivo:** Validar KEDA scaling de workers quando fila cresce rapidamente
 
 **Pré-condições:**
+
 - patient-flow-worker com KEDA ScaledObject (lagThreshold: 50)
 - NATS JetStream com stream velya.clinical.events
 - Workers em minReplicaCount (1 ou 2)
 
 **Passos de Execução:**
+
 ```bash
 # Publicar 1000 eventos de admissão de uma vez
 cat > /tmp/publish-burst.sh << 'EOF'
@@ -120,7 +126,7 @@ for i in $(seq 1 $MSGS); do
   nats pub velya.clinical.events \
     "{\"type\":\"patient.admitted\",\"patient_id\":\"test-$(uuidgen)\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
     --server $NATS_URL &
-  
+
   if [ $((i % 50)) -eq 0 ]; then
     echo "Publicados $i de $MSGS eventos"
     sleep 0.1   # Pequena pausa para não sobrecarregar NATS
@@ -141,6 +147,7 @@ watch -n 5 'nats stream info velya.clinical.events --server $NATS_URL | grep Mes
 ```
 
 **Métricas Observadas:**
+
 ```bash
 # Prometheus queries durante o teste
 # KEDA metrics value (lag do consumer)
@@ -155,6 +162,7 @@ curl -s "$PROMETHEUS_URL/api/v1/query" \
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] KEDA inicia scale-up dentro de 30s do burst (pollingInterval + latência)
 - [ ] Workers escalam para > 10 réplicas com 1000 mensagens na fila
 - [ ] 95% das mensagens processadas em < 5 minutos
@@ -172,10 +180,12 @@ Médio. Eventos clínicos processados com atraso → tarefas aparecem tarde no i
 **Objetivo:** Medir latência de startup de pods partindo do zero replicas
 
 **Pré-condições:**
+
 - ai-gateway-async-worker em minReplicaCount=0 (KEDA scale-to-zero)
 - KEDA configurado com activationLagThreshold
 
 **Passos de Execução:**
+
 ```bash
 # 1. Garantir que workers estão em zero
 kubectl scale deployment ai-gateway-async-worker -n velya-dev-agents --replicas=0
@@ -204,10 +214,12 @@ done
 ```
 
 **Métricas Observadas:**
+
 - Tempo total de cold start (publicação → pod Ready)
 - Decomposição: scheduling time + image pull + container startup + readiness probe
 
 **Critérios de Sucesso:**
+
 - [ ] Cold start total < 60 segundos
 - [ ] Pod ready < 45 segundos após scheduling
 - [ ] Primeira mensagem processada < 90 segundos após publicação
@@ -223,6 +235,7 @@ Baixo. ai-gateway-async é um serviço assíncrono — latência de cold start �
 **Objetivo:** Verificar que anti-affinity não bloqueia scaling no ambiente kind (3 nós)
 
 **Passos de Execução:**
+
 ```bash
 # Escalar api-gateway além do número de nós disponíveis
 kubectl scale deployment api-gateway -n velya-dev-core --replicas=5
@@ -236,6 +249,7 @@ kubectl get events -n velya-dev-core --field-selector reason=FailedScheduling
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Com anti-affinity SOFT (preferred): pods schedulados mesmo com nós compartilhados
 - [ ] Com anti-affinity HARD (required): documentar quantos pods ficam pendentes e por quê
 
@@ -250,6 +264,7 @@ Alto em prod se anti-affinity hard bloquear scaling durante pico.
 **Objetivo:** Validar detecção e resposta a acúmulo gradual de fila (não burst)
 
 **Passos de Execução:**
+
 ```bash
 # Publicar 10 mensagens por minuto por 20 minutos (200 total)
 # Simula chegada contínua de casos de discharge
@@ -257,7 +272,7 @@ for i in $(seq 1 200); do
   nats pub velya.discharge.queue \
     "{\"patient_id\":\"test-$i\",\"priority\":\"normal\",\"requested_at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
     --server $NATS_URL
-  
+
   if [ $((i % 10)) -eq 0 ]; then
     echo "Mensagem $i publicada. Aguardando 60s..."
     sleep 60
@@ -266,11 +281,13 @@ done
 ```
 
 **Métricas Observadas:**
+
 - Queue depth ao longo do tempo
 - KEDA scaling response (quando inicia o scale-up?)
 - Clearance time após publicações cessarem
 
 **Critérios de Sucesso:**
+
 - [ ] KEDA inicia scale-up quando lag ultrapassa lagThreshold
 - [ ] Backlog não cresce indefinidamente — workers acompanham a taxa
 - [ ] Alerta de `NATSQueueDepthHigh` dispara antes de 500 mensagens
@@ -284,6 +301,7 @@ done
 **Objetivo:** Validar que retry storm não explode workers e DLQ
 
 **Passos de Execução:**
+
 ```bash
 # Simular instabilidade do HIS (sistema externo)
 # Injetar falha nas respostas do endpoint do HIS mock
@@ -304,6 +322,7 @@ watch -n 10 'nats stream info velya.discharge.queue --server $NATS_URL | grep -E
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] DLQ recebe mensagens após 5 retries (max_deliver configurado)
 - [ ] Workers não crasham sob retry storm
 - [ ] Alerta `RetryBudgetExhausted` dispara quando taxa de retry está alta
@@ -311,6 +330,7 @@ watch -n 10 'nats stream info velya.discharge.queue --server $NATS_URL | grep -E
 - [ ] Workers não fazem retry infinito (max_deliver = 5 respeitado)
 
 **Comandos:**
+
 ```bash
 # Restaurar HIS mock
 kubectl patch deployment his-mock -n velya-dev-platform \
@@ -331,6 +351,7 @@ nats stream info velya.discharge.dlq --server $NATS_URL
 **Objetivo:** Verificar que stabilizationWindowSeconds previne flapping
 
 **Passos de Execução:**
+
 ```bash
 # Script k6 com carga em dente de serra (borderline de 60% CPU)
 cat > /tmp/sawtooth-load.js << 'EOF'
@@ -362,6 +383,7 @@ kubectl get events -n velya-dev-core --field-selector reason=SuccessfulRescale -
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Com `stabilizationWindowSeconds: 300`, máximo 2 scale-downs em 8 minutos
 - [ ] Nenhum "flapping" visível (réplicas subindo e descendo a cada minuto)
 - [ ] Alerta `HPAFlapping` NÃO dispara (confirma que prevenção funciona)
@@ -374,6 +396,7 @@ kubectl get events -n velya-dev-core --field-selector reason=SuccessfulRescale -
 **Objetivo:** Validar comportamento quando médicos não aprovam workflows rapidamente
 
 **Passos de Execução:**
+
 ```bash
 # Criar 20 workflows de discharge que requerem aprovação médica
 temporal workflow start \
@@ -393,6 +416,7 @@ temporal workflow list \
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Workflows ficam em RUNNING aguardando aprovação (não timeout prematuramente)
 - [ ] Alerta `TemporalWorkflowBacklogHigh` dispara quando > 10 workflows pendentes
 - [ ] Após 2h sem aprovação, workflow escala para supervisor (se implementado)
@@ -406,6 +430,7 @@ temporal workflow list \
 **Objetivo:** Validar modo degradado quando integração externa fica offline
 
 **Passos de Execução:**
+
 ```bash
 # Tornar HIS inacessível (simular via network policy)
 kubectl apply -f - << 'EOF'
@@ -443,11 +468,13 @@ curl -X POST $VELYA_API_URL/api/v1/platform/operation-mode \
 ```
 
 **Restauração:**
+
 ```bash
 kubectl delete networkpolicy block-his-access -n velya-dev-core
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Circuit breaker abre em < 5 tentativas falhas
 - [ ] Sistema continua funcionando para funcionalidades que não dependem do HIS
 - [ ] Alerta disparado para equipe de operações
@@ -462,6 +489,7 @@ kubectl delete networkpolicy block-his-access -n velya-dev-core
 **Objetivo:** Validar que lentidão no banco não colapsa os serviços
 
 **Passos de Execução:**
+
 ```bash
 # Injetar lentidão no PostgreSQL via extensão pg_sleep
 kubectl exec -n velya-dev-platform postgresql-0 -- \
@@ -477,6 +505,7 @@ kubectl logs -n velya-dev-core deployment/api-gateway --since=5m | grep -i "slow
 ```
 
 **Restauração:**
+
 ```bash
 kubectl exec -n velya-dev-platform postgresql-0 -- \
   psql -U velya -c "ALTER SYSTEM RESET max_connections;"
@@ -485,6 +514,7 @@ kubectl exec -n velya-dev-platform postgresql-0 -- \
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Circuit breaker abre após N falhas de conexão
 - [ ] Timeout de conexão configurado corretamente (não espera indefinidamente)
 - [ ] Escalar api-gateway não resolve (adicionar réplicas quando o problema é o DB é contraproducente)
@@ -498,6 +528,7 @@ kubectl exec -n velya-dev-platform postgresql-0 -- \
 **Objetivo:** Validar guardrails de budget LLM quando consumo dispara
 
 **Passos de Execução:**
+
 ```bash
 # Simular consumo acelerado de tokens
 # Enviar 1000 requests ao ai-gateway em 5 minutos
@@ -509,7 +540,7 @@ for i in $(seq 1 1000); do
     -H "X-Office-Id: clinical-office" \
     -H "X-Priority: low" \
     -d '{"prompt":"Summarize: patient admitted with fever","max_tokens":100}' &
-  
+
   if [ $((i % 50)) -eq 0 ]; then
     echo "$i requests enviados"
     sleep 1
@@ -528,6 +559,7 @@ watch -n 10 'curl -s "$PROMETHEUS_URL/api/v1/query" \
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Budget enforcer bloqueia requests low-priority quando utilização > 70%
 - [ ] Budget enforcer bloqueia requests normal-priority quando > 85%
 - [ ] Apenas requests critical passam quando > 95%
@@ -544,6 +576,7 @@ watch -n 10 'curl -s "$PROMETHEUS_URL/api/v1/query" \
 **Nota:** Este cenário é executado em EKS staging, não em kind-velya-local.
 
 **Passos de Execução (EKS Staging):**
+
 ```bash
 # Verificar quantos nós disponíveis no NodePool alvo
 kubectl get nodes -l velya.io/node-pool=realtime-app
@@ -567,6 +600,7 @@ done
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Novo nó disponível em < 3 minutos
 - [ ] Pods schedulados no novo nó em < 4 minutos total
 - [ ] Nenhum SLO violado durante o período de provisionamento
@@ -580,6 +614,7 @@ done
 **Objetivo:** Detectar quando scaling está acontecendo mas não há benefício de performance
 
 **Passos de Execução:**
+
 ```bash
 # Simular situação onde CPU está alta por memory pressure (GC)
 # Não por carga real de requests
@@ -600,6 +635,7 @@ curl -s "$PROMETHEUS_URL/api/v1/query" \
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Identificar: escalar não melhora latência quando problema é GC/memory
 - [ ] VPA recommendation reflete necessidade de mais memória, não mais réplicas
 - [ ] Documentar: regra de não escalar quando causa é memory leak
@@ -612,6 +648,7 @@ curl -s "$PROMETHEUS_URL/api/v1/query" \
 **Objetivo:** Validar que HPA e KEDA coexistem sem conflito em Deployments diferentes
 
 **Passos de Execução:**
+
 ```bash
 # Verificar estado inicial
 kubectl get hpa -n velya-dev-core
@@ -634,6 +671,7 @@ kubectl describe scaledobject patient-flow-worker-so -n velya-dev-core
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] HPA e KEDA escalam deployments diferentes sem interferência
 - [ ] Nenhum conflito de ownership nos events
 - [ ] ResourceQuota do namespace não é violada durante scaling simultâneo
@@ -647,6 +685,7 @@ kubectl describe scaledobject patient-flow-worker-so -n velya-dev-core
 **Objetivo:** Validar que PDB impede drain de nó quando viola disponibilidade
 
 **Passos de Execução:**
+
 ```bash
 # Verificar PDB configurado
 kubectl get pdb -n velya-dev-core
@@ -663,6 +702,7 @@ kubectl drain $NODE --ignore-daemonsets --pod-selector=app=api-gateway --timeout
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Drain é bloqueado pelo PDB quando violaria `maxUnavailable`
 - [ ] Mensagem de erro clara explica o bloqueio
 - [ ] Com `--force` (NUNCA em prod), drain é permitido
@@ -676,6 +716,7 @@ kubectl drain $NODE --ignore-daemonsets --pod-selector=app=api-gateway --timeout
 **Objetivo:** Validar que workflows Temporal sobrevivem ao crash de workers
 
 **Passos de Execução:**
+
 ```bash
 # Iniciar alguns workflows de discharge
 for i in $(seq 1 5); do
@@ -702,6 +743,7 @@ temporal workflow list --query 'ExecutionStatus="Failed"' --namespace velya-dev
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Nenhum workflow falhou pelo crash dos workers
 - [ ] Workflows retomaram do último checkpoint (última atividade completada)
 - [ ] Novo set de workers pegou os workflows pendentes em < 60s
@@ -717,6 +759,7 @@ temporal workflow list --query 'ExecutionStatus="Failed"' --namespace velya-dev
 **Nota:** Simular em kind-velya-local deletando um nó.
 
 **Passos de Execução:**
+
 ```bash
 # Ver nós disponíveis
 kubectl get nodes
@@ -737,6 +780,7 @@ nats stream info velya.clinical.events --server $NATS_URL | grep Messages
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Pods relocalizados para nós restantes em < 60s
 - [ ] NATS JetStream não perdeu mensagens pendentes
 - [ ] Mensagens em processamento no momento da evição foram re-entregues pelo NATS (ack_wait)
@@ -750,6 +794,7 @@ nats stream info velya.clinical.events --server $NATS_URL | grep Messages
 **Objetivo:** Validar comportamento quando namespace atinge o limit da ResourceQuota
 
 **Passos de Execução:**
+
 ```bash
 # Verificar quota atual
 kubectl describe resourcequota velya-core-quota -n velya-dev-core
@@ -763,6 +808,7 @@ kubectl get events -n velya-dev-core | grep -i quota
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Kubernetes recusa criação de pods acima da quota (não cria parcialmente)
 - [ ] Evento de `ExceededQuota` está no namespace
 - [ ] HPA não trava quando não consegue criar pods (retorna erro graceful)
@@ -776,6 +822,7 @@ kubectl get events -n velya-dev-core | grep -i quota
 **Objetivo:** Validar que falha de liveness probe não causa cascade de restarts
 
 **Passos de Execução:**
+
 ```bash
 # Verificar configuração atual de liveness probe
 kubectl get deployment api-gateway -n velya-dev-core \
@@ -795,6 +842,7 @@ kubectl patch deployment api-gateway -n velya-dev-core \
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Com timeout correto (10s), liveness probe não mata pods durante operação normal
 - [ ] Com timeout muito baixo, identificar o sintoma de cascade
 - [ ] PDB limita quantos pods podem ser removidos simultaneamente
@@ -807,10 +855,12 @@ kubectl patch deployment api-gateway -n velya-dev-core \
 **Objetivo:** Validar recuperação quando múltiplos componentes falham ao mesmo tempo
 
 **Pré-condições:**
+
 - Ambiente de staging EKS (não rodar em kind com dados de dev reais)
 - Time de operações notificado
 
 **Passos de Execução:**
+
 ```bash
 # Falha 1: HIS integration down
 kubectl apply -f /tmp/block-his-network-policy.yaml
@@ -832,6 +882,7 @@ kubectl delete networkpolicy block-his-access -n velya-dev-core
 ```
 
 **Critérios de Sucesso:**
+
 - [ ] Sistema continua servindo tráfego HTTP (degradado, mas disponível)
 - [ ] Alertas disparam para CADA falha separadamente
 - [ ] Recuperação é automática para todos os 3 cenários
@@ -842,29 +893,29 @@ kubectl delete networkpolicy block-his-access -n velya-dev-core
 
 ## Matriz de Cenários
 
-| # | Cenário | Ambiente | Duração | Frequência |
-|---|---|---|---|---|
-| 1 | HTTP Traffic Burst | kind/staging | 5 min | Por mudança no HPA |
-| 2 | NATS Queue Burst | kind/staging | 15 min | Por mudança no KEDA |
-| 3 | Cold Start Latency | kind/staging | 5 min | Por mudança em scale-to-zero |
-| 4 | Anti-Affinity Scheduling | kind | 5 min | Por mudança em affinity |
-| 5 | Queue Buildup Gradual | kind | 30 min | Mensal |
-| 6 | Retry Storm | kind | 20 min | Por mudança em retry policy |
-| 7 | HPA Flapping | staging | 10 min | Por mudança em HPA behavior |
-| 8 | Validation Queue | kind | 60 min | Trimestral |
-| 9 | Integration Failure | staging | 30 min | Mensal |
-| 10 | Slow Database | staging | 20 min | Trimestral |
-| 11 | Cost Spike LLM | kind | 15 min | Por mudança em budget |
-| 12 | Node Provisioning | EKS staging | 15 min | Por mudança em NodePool |
-| 13 | Over-Scaling | staging | 20 min | Semestral |
-| 14 | Multi-Scaler Coexistence | kind | 20 min | Por mudança em qualquer scaler |
-| 15 | PDB Blocking Drain | kind | 10 min | Por mudança em PDB |
-| 16 | Temporal Worker Crash | kind | 15 min | Por mudança em Temporal |
-| 17 | Spot Eviction | kind (simulado) | 10 min | Por mudança em workloads Spot |
-| 18 | Quota Exhaustion | kind | 5 min | Por mudança em ResourceQuota |
-| 19 | Liveness Cascade | kind/staging | 10 min | Por mudança em liveness probes |
-| 20 | Multi-Failure Chaos | EKS staging | 60 min | Semestral |
+| #   | Cenário                  | Ambiente        | Duração | Frequência                     |
+| --- | ------------------------ | --------------- | ------- | ------------------------------ |
+| 1   | HTTP Traffic Burst       | kind/staging    | 5 min   | Por mudança no HPA             |
+| 2   | NATS Queue Burst         | kind/staging    | 15 min  | Por mudança no KEDA            |
+| 3   | Cold Start Latency       | kind/staging    | 5 min   | Por mudança em scale-to-zero   |
+| 4   | Anti-Affinity Scheduling | kind            | 5 min   | Por mudança em affinity        |
+| 5   | Queue Buildup Gradual    | kind            | 30 min  | Mensal                         |
+| 6   | Retry Storm              | kind            | 20 min  | Por mudança em retry policy    |
+| 7   | HPA Flapping             | staging         | 10 min  | Por mudança em HPA behavior    |
+| 8   | Validation Queue         | kind            | 60 min  | Trimestral                     |
+| 9   | Integration Failure      | staging         | 30 min  | Mensal                         |
+| 10  | Slow Database            | staging         | 20 min  | Trimestral                     |
+| 11  | Cost Spike LLM           | kind            | 15 min  | Por mudança em budget          |
+| 12  | Node Provisioning        | EKS staging     | 15 min  | Por mudança em NodePool        |
+| 13  | Over-Scaling             | staging         | 20 min  | Semestral                      |
+| 14  | Multi-Scaler Coexistence | kind            | 20 min  | Por mudança em qualquer scaler |
+| 15  | PDB Blocking Drain       | kind            | 10 min  | Por mudança em PDB             |
+| 16  | Temporal Worker Crash    | kind            | 15 min  | Por mudança em Temporal        |
+| 17  | Spot Eviction            | kind (simulado) | 10 min  | Por mudança em workloads Spot  |
+| 18  | Quota Exhaustion         | kind            | 5 min   | Por mudança em ResourceQuota   |
+| 19  | Liveness Cascade         | kind/staging    | 10 min  | Por mudança em liveness probes |
+| 20  | Multi-Failure Chaos      | EKS staging     | 60 min  | Semestral                      |
 
 ---
 
-*Todos os cenários devem ser executados em kind-velya-local antes de promover mudanças para staging.*
+_Todos os cenários devem ser executados em kind-velya-local antes de promover mudanças para staging._

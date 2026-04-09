@@ -41,7 +41,7 @@ metadata:
     velya.health/cert-type: wildcard
     velya.health/cert-scope: public
   annotations:
-    description: "Wildcard certificate covering all *.velya.health subdomains"
+    description: 'Wildcard certificate covering all *.velya.health subdomains'
 spec:
   # Secret name where the certificate will be stored
   secretName: velya-health-wildcard-tls
@@ -53,17 +53,17 @@ spec:
 
   # DNS names covered by this certificate
   dnsNames:
-    - "*.velya.health"
+    - '*.velya.health'
 
   # Certificate lifetime and renewal
-  duration: 2160h    # 90 days
-  renewBefore: 720h  # 30 days before expiry
+  duration: 2160h # 90 days
+  renewBefore: 720h # 30 days before expiry
 
   # Private key configuration
   privateKey:
     algorithm: ECDSA
     size: 256
-    rotationPolicy: Always  # New key on every renewal
+    rotationPolicy: Always # New key on every renewal
 
   # Key usages
   usages:
@@ -77,9 +77,9 @@ spec:
       app.kubernetes.io/part-of: velya-platform
       velya.health/cert-type: wildcard
     annotations:
-      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "velya-app,velya-auth,monitoring,ingress-nginx"
-      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed: 'true'
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: 'velya-app,velya-auth,monitoring,ingress-nginx'
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: 'true'
 
 ---
 # =============================================================================
@@ -100,7 +100,7 @@ metadata:
     velya.health/cert-type: apex
     velya.health/cert-scope: public
   annotations:
-    description: "Apex certificate for velya.health (naked domain)"
+    description: 'Apex certificate for velya.health (naked domain)'
 spec:
   secretName: velya-health-apex-tls
 
@@ -109,7 +109,7 @@ spec:
     kind: ClusterIssuer
 
   dnsNames:
-    - "velya.health"
+    - 'velya.health'
 
   duration: 2160h
   renewBefore: 720h
@@ -149,7 +149,7 @@ metadata:
     velya.health/cert-scope: public
     velya.health/service: grafana
   annotations:
-    description: "TLS certificate for grafana.velya.health"
+    description: 'TLS certificate for grafana.velya.health'
 spec:
   secretName: grafana-velya-health-tls
 
@@ -158,7 +158,7 @@ spec:
     kind: ClusterIssuer
 
   dnsNames:
-    - "grafana.velya.health"
+    - 'grafana.velya.health'
 
   duration: 2160h
   renewBefore: 720h
@@ -197,7 +197,7 @@ metadata:
     velya.health/cert-scope: public
     velya.health/service: api
   annotations:
-    description: "TLS certificate for api.velya.health"
+    description: 'TLS certificate for api.velya.health'
 spec:
   secretName: api-velya-health-tls
 
@@ -206,7 +206,7 @@ spec:
     kind: ClusterIssuer
 
   dnsNames:
-    - "api.velya.health"
+    - 'api.velya.health'
 
   duration: 2160h
   renewBefore: 720h
@@ -245,7 +245,7 @@ metadata:
     velya.health/cert-scope: public
     velya.health/service: app
   annotations:
-    description: "TLS certificate for app.velya.health"
+    description: 'TLS certificate for app.velya.health'
 spec:
   secretName: app-velya-health-tls
 
@@ -254,7 +254,7 @@ spec:
     kind: ClusterIssuer
 
   dnsNames:
-    - "app.velya.health"
+    - 'app.velya.health'
 
   duration: 2160h
   renewBefore: 720h
@@ -293,7 +293,7 @@ metadata:
     velya.health/cert-scope: public
     velya.health/service: auth
   annotations:
-    description: "TLS certificate for auth.velya.health (Keycloak)"
+    description: 'TLS certificate for auth.velya.health (Keycloak)'
 spec:
   secretName: auth-velya-health-tls
 
@@ -302,7 +302,7 @@ spec:
     kind: ClusterIssuer
 
   dnsNames:
-    - "auth.velya.health"
+    - 'auth.velya.health'
 
   duration: 2160h
   renewBefore: 720h
@@ -342,7 +342,7 @@ spec:
     name: acme-production
     kind: ClusterIssuer
   dnsNames:
-    - "ops.velya.health"
+    - 'ops.velya.health'
   duration: 2160h
   renewBefore: 720h
   privateKey:
@@ -370,7 +370,7 @@ spec:
     name: acme-production
     kind: ClusterIssuer
   dnsNames:
-    - "status.velya.health"
+    - 'status.velya.health'
   duration: 2160h
   renewBefore: 720h
   privateKey:
@@ -398,7 +398,7 @@ spec:
     name: acme-production
     kind: ClusterIssuer
   dnsNames:
-    - "docs.velya.health"
+    - 'docs.velya.health'
   duration: 2160h
   renewBefore: 720h
   privateKey:

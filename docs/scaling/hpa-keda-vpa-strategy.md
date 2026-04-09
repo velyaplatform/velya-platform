@@ -18,6 +18,7 @@ VPA  ─── Vertical Pod Autoscaler ─── Para right-sizing de requests/l
 ```
 
 **Regra fundamental de não-conflito:**
+
 - HPA e KEDA **nunca** controlam o mesmo Deployment simultaneamente
 - VPA em modo `Auto` **nunca** coexiste com HPA (dimensão CPU)
 - VPA em modo `Initial` pode coexistir com HPA (apenas define requests na criação)
@@ -29,23 +30,23 @@ VPA  ─── Vertical Pod Autoscaler ─── Para right-sizing de requests/l
 
 ### Quando usar HPA na Velya
 
-| Condição | HPA |
-|---|---|
-| Serviço serve HTTP/gRPC diretamente | Sim |
-| Carga é baseada em RPS ou CPU | Sim |
-| Scaling deve ser smooth (sem saltos bruscos) | Sim |
-| Workload é event-driven (fila, mensagem) | Não — usar KEDA |
-| Workload escala para zero | Não — HPA tem minReplicas ≥ 1 |
+| Condição                                     | HPA                           |
+| -------------------------------------------- | ----------------------------- |
+| Serviço serve HTTP/gRPC diretamente          | Sim                           |
+| Carga é baseada em RPS ou CPU                | Sim                           |
+| Scaling deve ser smooth (sem saltos bruscos) | Sim                           |
+| Workload é event-driven (fila, mensagem)     | Não — usar KEDA               |
+| Workload escala para zero                    | Não — HPA tem minReplicas ≥ 1 |
 
 ### Serviços Velya com HPA
 
-| Serviço | Namespace | Métrica Primária | Min | Max |
-|---|---|---|---|---|
-| api-gateway | velya-dev-core | CPU 60% + RPS | 3 | 30 |
-| patient-flow-service | velya-dev-core | CPU 60% | 2 | 20 |
-| task-inbox-service | velya-dev-core | CPU 60% + Latência P99 | 2 | 15 |
-| velya-web | velya-dev-web | CPU 50% | 2 | 10 |
-| ai-gateway (sync) | velya-dev-agents | Latência P99 | 2 | 10 |
+| Serviço              | Namespace        | Métrica Primária       | Min | Max |
+| -------------------- | ---------------- | ---------------------- | --- | --- |
+| api-gateway          | velya-dev-core   | CPU 60% + RPS          | 3   | 30  |
+| patient-flow-service | velya-dev-core   | CPU 60%                | 2   | 20  |
+| task-inbox-service   | velya-dev-core   | CPU 60% + Latência P99 | 2   | 15  |
+| velya-web            | velya-dev-web    | CPU 50%                | 2   | 10  |
+| ai-gateway (sync)    | velya-dev-agents | Latência P99           | 2   | 10  |
 
 ### HPA: api-gateway (Configuração Completa)
 
@@ -63,58 +64,58 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: api-gateway
-  
-  minReplicas: 3   # Nunca menos de 3 para HA e spreading por AZ
+
+  minReplicas: 3 # Nunca menos de 3 para HA e spreading por AZ
   maxReplicas: 30
-  
+
   behavior:
     scaleUp:
-      stabilizationWindowSeconds: 30    # Subir rápido em picos
+      stabilizationWindowSeconds: 30 # Subir rápido em picos
       policies:
-      - type: Pods
-        value: 4                         # Até 4 pods por vez
-        periodSeconds: 60
-      - type: Percent
-        value: 100                       # Ou dobrar
-        periodSeconds: 60
-      selectPolicy: Max                  # Pegar o maior dos dois
-    
+        - type: Pods
+          value: 4 # Até 4 pods por vez
+          periodSeconds: 60
+        - type: Percent
+          value: 100 # Ou dobrar
+          periodSeconds: 60
+      selectPolicy: Max # Pegar o maior dos dois
+
     scaleDown:
-      stabilizationWindowSeconds: 300   # 5 min para scale-down (evitar flapping)
+      stabilizationWindowSeconds: 300 # 5 min para scale-down (evitar flapping)
       policies:
-      - type: Percent
-        value: 10                        # Máx 10% por vez no scale-down
-        periodSeconds: 60
-      - type: Pods
-        value: 2                         # Ou máx 2 pods
-        periodSeconds: 60
-      selectPolicy: Min                  # Pegar o mais conservador
-  
+        - type: Percent
+          value: 10 # Máx 10% por vez no scale-down
+          periodSeconds: 60
+        - type: Pods
+          value: 2 # Ou máx 2 pods
+          periodSeconds: 60
+      selectPolicy: Min # Pegar o mais conservador
+
   metrics:
-  # Métrica 1: CPU — trigger primário
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 60    # Target 60% CPU média nos pods
-  
-  # Métrica 2: RPS via NGINX ingress (requer adapter de métricas custom)
-  - type: Pods
-    pods:
-      metric:
-        name: nginx_ingress_controller_requests_per_second
-      target:
-        type: AverageValue
-        averageValue: "100"       # 100 RPS por pod
-  
-  # Métrica 3: Memória (preventivo — não é trigger primário)
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80    # Scale apenas se memória > 80%
+    # Métrica 1: CPU — trigger primário
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60 # Target 60% CPU média nos pods
+
+    # Métrica 2: RPS via NGINX ingress (requer adapter de métricas custom)
+    - type: Pods
+      pods:
+        metric:
+          name: nginx_ingress_controller_requests_per_second
+        target:
+          type: AverageValue
+          averageValue: '100' # 100 RPS por pod
+
+    # Métrica 3: Memória (preventivo — não é trigger primário)
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80 # Scale apenas se memória > 80%
 ```
 
 ### HPA: patient-flow-service
@@ -130,31 +131,31 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: patient-flow-service
-  
+
   minReplicas: 2
   maxReplicas: 20
-  
+
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 60
       policies:
-      - type: Pods
-        value: 3
-        periodSeconds: 60
+        - type: Pods
+          value: 3
+          periodSeconds: 60
     scaleDown:
       stabilizationWindowSeconds: 300
       policies:
-      - type: Pods
-        value: 1
-        periodSeconds: 120
-  
+        - type: Pods
+          value: 1
+          periodSeconds: 120
+
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 60
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
 ```
 
 ### HPA: task-inbox-service com Latência P99
@@ -170,44 +171,44 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: task-inbox-service
-  
+
   minReplicas: 2
   maxReplicas: 15
-  
+
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 30
       policies:
-      - type: Pods
-        value: 3
-        periodSeconds: 60
+        - type: Pods
+          value: 3
+          periodSeconds: 60
     scaleDown:
       stabilizationWindowSeconds: 300
       policies:
-      - type: Pods
-        value: 1
-        periodSeconds: 60
-  
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 60
-  
-  # Latência P99 via Prometheus Adapter (custom metric)
-  - type: Object
-    object:
-      metric:
-        name: task_inbox_latency_p99_ms
-      describedObject:
-        apiVersion: apps/v1
-        kind: Deployment
-        name: task-inbox-service
-      target:
-        type: Value
-        value: "200"    # Escalar se P99 > 200ms
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+
+    # Latência P99 via Prometheus Adapter (custom metric)
+    - type: Object
+      object:
+        metric:
+          name: task_inbox_latency_p99_ms
+        describedObject:
+          apiVersion: apps/v1
+          kind: Deployment
+          name: task-inbox-service
+        target:
+          type: Value
+          value: '200' # Escalar se P99 > 200ms
 ```
 
 ---
@@ -216,14 +217,14 @@ spec:
 
 ### Quando usar KEDA na Velya
 
-| Condição | KEDA |
-|---|---|
-| Workload processa fila/stream | Sim |
-| Trigger é evento externo | Sim |
-| Precisa escalar para zero | Sim |
-| Trigger é métrica Prometheus | Sim |
-| Workload é worker assíncrono | Sim |
-| Serve HTTP diretamente | Não — usar HPA |
+| Condição                      | KEDA           |
+| ----------------------------- | -------------- |
+| Workload processa fila/stream | Sim            |
+| Trigger é evento externo      | Sim            |
+| Precisa escalar para zero     | Sim            |
+| Trigger é métrica Prometheus  | Sim            |
+| Workload é worker assíncrono  | Sim            |
+| Serve HTTP diretamente        | Não — usar HPA |
 
 ### ScaledObject: patient-flow-worker (NATS JetStream)
 
@@ -241,38 +242,38 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: patient-flow-worker
-  
-  minReplicaCount: 1      # Manter 1 ativo para latência baixa
-  maxReplicaCount: 30     # Guardrail de custo
-  pollingInterval: 15     # Verificar a cada 15s
-  cooldownPeriod: 120     # Aguardar 2min antes de scale-down
-  
+
+  minReplicaCount: 1 # Manter 1 ativo para latência baixa
+  maxReplicaCount: 30 # Guardrail de custo
+  pollingInterval: 15 # Verificar a cada 15s
+  cooldownPeriod: 120 # Aguardar 2min antes de scale-down
+
   advanced:
-    restoreToOriginalReplicaCount: false   # Não voltar para 0 após scale-down
+    restoreToOriginalReplicaCount: false # Não voltar para 0 após scale-down
     horizontalPodAutoscalerConfig:
       behavior:
         scaleDown:
-          stabilizationWindowSeconds: 180  # 3 min para scale-down
+          stabilizationWindowSeconds: 180 # 3 min para scale-down
           policies:
-          - type: Pods
-            value: 2
-            periodSeconds: 60
+            - type: Pods
+              value: 2
+              periodSeconds: 60
         scaleUp:
-          stabilizationWindowSeconds: 0    # Scale-up imediato
+          stabilizationWindowSeconds: 0 # Scale-up imediato
           policies:
-          - type: Pods
-            value: 5
-            periodSeconds: 30
-  
+            - type: Pods
+              value: 5
+              periodSeconds: 30
+
   triggers:
-  - type: nats-jetstream
-    metadata:
-      natsServerMonitoringEndpoint: "nats-monitoring.velya-dev-platform.svc.cluster.local:8222"
-      account: "$G"
-      stream: velya.clinical.events
-      consumer: patient-flow-routing-consumer
-      lagThreshold: "50"           # 1 pod por 50 msgs de lag
-      activationLagThreshold: "5"  # Ativar com pelo menos 5 msgs
+    - type: nats-jetstream
+      metadata:
+        natsServerMonitoringEndpoint: 'nats-monitoring.velya-dev-platform.svc.cluster.local:8222'
+        account: '$G'
+        stream: velya.clinical.events
+        consumer: patient-flow-routing-consumer
+        lagThreshold: '50' # 1 pod por 50 msgs de lag
+        activationLagThreshold: '5' # Ativar com pelo menos 5 msgs
 ```
 
 ### ScaledObject: discharge-orchestrator-worker (NATS + Prometheus)
@@ -291,43 +292,43 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: discharge-orchestrator-worker
-  
-  minReplicaCount: 2    # Alta disponibilidade para processo crítico
+
+  minReplicaCount: 2 # Alta disponibilidade para processo crítico
   maxReplicaCount: 20
-  pollingInterval: 30   # Polling mais lento — workflows são longos
-  cooldownPeriod: 300   # 5 min cooldown — não fazer churn em workflows longos
-  
+  pollingInterval: 30 # Polling mais lento — workflows são longos
+  cooldownPeriod: 300 # 5 min cooldown — não fazer churn em workflows longos
+
   advanced:
     horizontalPodAutoscalerConfig:
       behavior:
         scaleDown:
-          stabilizationWindowSeconds: 600  # 10 min para scale-down (workflows em execução)
+          stabilizationWindowSeconds: 600 # 10 min para scale-down (workflows em execução)
         scaleUp:
           stabilizationWindowSeconds: 30
-  
+
   triggers:
-  # Trigger 1: Fila de discharge no NATS
-  - type: nats-jetstream
-    metadata:
-      natsServerMonitoringEndpoint: "nats-monitoring.velya-dev-platform.svc.cluster.local:8222"
-      account: "$G"
-      stream: velya.discharge.queue
-      consumer: discharge-orchestrator-consumer
-      lagThreshold: "5"            # 1 worker por 5 workflows pendentes
-      activationLagThreshold: "1"
-  
-  # Trigger 2: Workflows Temporal pendentes (Prometheus)
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus-operated.velya-dev-observability.svc:9090
-      metricName: temporal_workflow_pending_discharge
-      threshold: "5"
-      activationThreshold: "1"
-      query: >
-        sum(temporal_workflow_pending_count{
-          task_queue="discharge-orchestration",
-          namespace="velya-dev"
-        })
+    # Trigger 1: Fila de discharge no NATS
+    - type: nats-jetstream
+      metadata:
+        natsServerMonitoringEndpoint: 'nats-monitoring.velya-dev-platform.svc.cluster.local:8222'
+        account: '$G'
+        stream: velya.discharge.queue
+        consumer: discharge-orchestrator-consumer
+        lagThreshold: '5' # 1 worker por 5 workflows pendentes
+        activationLagThreshold: '1'
+
+    # Trigger 2: Workflows Temporal pendentes (Prometheus)
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-operated.velya-dev-observability.svc:9090
+        metricName: temporal_workflow_pending_discharge
+        threshold: '5'
+        activationThreshold: '1'
+        query: >
+          sum(temporal_workflow_pending_count{
+            task_queue="discharge-orchestration",
+            namespace="velya-dev"
+          })
 ```
 
 ### ScaledObject: ai-gateway-async-worker (Prometheus)
@@ -346,29 +347,29 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: ai-gateway-async-worker
-  
-  minReplicaCount: 0    # Escalar para zero quando sem trabalho
-  maxReplicaCount: 10   # Guardrail de custo LLM (cada worker = tokens)
+
+  minReplicaCount: 0 # Escalar para zero quando sem trabalho
+  maxReplicaCount: 10 # Guardrail de custo LLM (cada worker = tokens)
   pollingInterval: 30
   cooldownPeriod: 300
-  
+
   triggers:
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus-operated.velya-dev-observability.svc:9090
-      metricName: velya_ai_queue_depth
-      threshold: "3"               # 1 worker por 3 requests na fila
-      activationThreshold: "1"
-      query: velya_ai_requests_pending_total
-  
-  # Guardrail: Desativar scaling quando budget de tokens quase esgotado
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus-operated.velya-dev-observability.svc:9090
-      metricName: velya_ai_token_budget_remaining_ratio
-      threshold: "0.1"             # Parar de escalar se < 10% do budget restante
-      query: >
-        velya_ai_tokens_remaining_today / velya_ai_tokens_budget_daily
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-operated.velya-dev-observability.svc:9090
+        metricName: velya_ai_queue_depth
+        threshold: '3' # 1 worker por 3 requests na fila
+        activationThreshold: '1'
+        query: velya_ai_requests_pending_total
+
+    # Guardrail: Desativar scaling quando budget de tokens quase esgotado
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-operated.velya-dev-observability.svc:9090
+        metricName: velya_ai_token_budget_remaining_ratio
+        threshold: '0.1' # Parar de escalar se < 10% do budget restante
+        query: >
+          velya_ai_tokens_remaining_today / velya_ai_tokens_budget_daily
 ```
 
 ### ScaledObject: Notification Worker com HTTP Trigger
@@ -382,21 +383,21 @@ metadata:
 spec:
   scaleTargetRef:
     name: notification-worker
-  
+
   minReplicaCount: 1
   maxReplicaCount: 20
   pollingInterval: 15
   cooldownPeriod: 60
-  
+
   triggers:
-  - type: nats-jetstream
-    metadata:
-      natsServerMonitoringEndpoint: "nats-monitoring.velya-dev-platform.svc.cluster.local:8222"
-      account: "$G"
-      stream: velya.tasks.notifications
-      consumer: notification-consumer
-      lagThreshold: "100"
-      activationLagThreshold: "10"
+    - type: nats-jetstream
+      metadata:
+        natsServerMonitoringEndpoint: 'nats-monitoring.velya-dev-platform.svc.cluster.local:8222'
+        account: '$G'
+        stream: velya.tasks.notifications
+        consumer: notification-consumer
+        lagThreshold: '100'
+        activationLagThreshold: '10'
 ```
 
 ### ScaledJob: Para Jobs de Processamento Único
@@ -419,27 +420,27 @@ spec:
         priorityClassName: velya-batch
         restartPolicy: OnFailure
         containers:
-        - name: report-generator
-          image: velya/report-generator:latest
-          resources:
-            requests:
-              cpu: 500m
-              memory: 512Mi
-            limits:
-              cpu: 2000m
-              memory: 2Gi
-  
+          - name: report-generator
+            image: velya/report-generator:latest
+            resources:
+              requests:
+                cpu: 500m
+                memory: 512Mi
+              limits:
+                cpu: 2000m
+                memory: 2Gi
+
   pollingInterval: 30
   maxReplicaCount: 5
-  
+
   triggers:
-  - type: nats-jetstream
-    metadata:
-      natsServerMonitoringEndpoint: "nats-monitoring.velya-dev-platform.svc.cluster.local:8222"
-      account: "$G"
-      stream: velya.reports.queue
-      consumer: report-generator-consumer
-      lagThreshold: "1"    # 1 Job por 1 report na fila
+    - type: nats-jetstream
+      metadata:
+        natsServerMonitoringEndpoint: 'nats-monitoring.velya-dev-platform.svc.cluster.local:8222'
+        account: '$G'
+        stream: velya.reports.queue
+        consumer: report-generator-consumer
+        lagThreshold: '1' # 1 Job por 1 report na fila
 ```
 
 ---
@@ -448,12 +449,12 @@ spec:
 
 ### Quando usar VPA na Velya
 
-| Uso | Modo | Workloads |
-|---|---|---|
-| Right-sizing inicial | `Initial` | Todos os serviços novos |
-| Recomendações contínuas | `Off` (Goldilocks) | Todos os serviços em prod |
-| Ajuste automático | `Auto` | CronJobs, jobs batch (não HPA) |
-| Coexistência com HPA | `Initial` | Permite HPA controlar replicas |
+| Uso                     | Modo               | Workloads                      |
+| ----------------------- | ------------------ | ------------------------------ |
+| Right-sizing inicial    | `Initial`          | Todos os serviços novos        |
+| Recomendações contínuas | `Off` (Goldilocks) | Todos os serviços em prod      |
+| Ajuste automático       | `Auto`             | CronJobs, jobs batch (não HPA) |
+| Coexistência com HPA    | `Initial`          | Permite HPA controlar replicas |
 
 ### Modos VPA
 
@@ -478,21 +479,21 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: api-gateway
-  
+
   updatePolicy:
-    updateMode: "Initial"   # Aplica apenas em pods novos
-  
+    updateMode: 'Initial' # Aplica apenas em pods novos
+
   resourcePolicy:
     containerPolicies:
-    - containerName: api-gateway
-      minAllowed:
-        cpu: 100m
-        memory: 128Mi
-      maxAllowed:
-        cpu: 2000m
-        memory: 1Gi
-      controlledResources: ["memory"]  # VPA controla apenas memória (CPU é do HPA)
-      controlledValues: RequestsAndLimits
+      - containerName: api-gateway
+        minAllowed:
+          cpu: 100m
+          memory: 128Mi
+        maxAllowed:
+          cpu: 2000m
+          memory: 1Gi
+        controlledResources: ['memory'] # VPA controla apenas memória (CPU é do HPA)
+        controlledValues: RequestsAndLimits
 ```
 
 ### VPA: discharge-orchestrator-worker (modo Auto — sem HPA)
@@ -508,22 +509,22 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: discharge-orchestrator-worker
-  
+
   updatePolicy:
-    updateMode: "Auto"      # Aplica recomendações e pode restartar
-    minReplicas: 2          # VPA nunca reduz abaixo de 2 replicas para aplicar
-  
+    updateMode: 'Auto' # Aplica recomendações e pode restartar
+    minReplicas: 2 # VPA nunca reduz abaixo de 2 replicas para aplicar
+
   resourcePolicy:
     containerPolicies:
-    - containerName: discharge-worker
-      minAllowed:
-        cpu: 100m
-        memory: 256Mi
-      maxAllowed:
-        cpu: 4000m
-        memory: 8Gi
-      controlledResources: ["cpu", "memory"]
-      controlledValues: RequestsAndLimits
+      - containerName: discharge-worker
+        minAllowed:
+          cpu: 100m
+          memory: 256Mi
+        maxAllowed:
+          cpu: 4000m
+          memory: 8Gi
+        controlledResources: ['cpu', 'memory']
+        controlledValues: RequestsAndLimits
 ```
 
 ### VPA: CronJob cost-sweep (modo Auto)
@@ -539,19 +540,19 @@ spec:
     apiVersion: batch/v1
     kind: CronJob
     name: cost-sweep
-  
+
   updatePolicy:
-    updateMode: "Auto"
-  
+    updateMode: 'Auto'
+
   resourcePolicy:
     containerPolicies:
-    - containerName: cost-sweep
-      minAllowed:
-        cpu: 50m
-        memory: 64Mi
-      maxAllowed:
-        cpu: 1000m
-        memory: 512Mi
+      - containerName: cost-sweep
+        minAllowed:
+          cpu: 50m
+          memory: 64Mi
+        maxAllowed:
+          cpu: 1000m
+          memory: 512Mi
 ```
 
 ---
@@ -596,14 +597,14 @@ kubectl get vpa -n velya-dev-core -o json | jq '.items[].status.recommendation.c
 
 ### Matriz de Compatibilidade
 
-| Combinação | Compatível | Notas |
-|---|---|---|
-| HPA (CPU) + VPA (Auto CPU) | NÃO | Loop de decisões conflitantes |
-| HPA (CPU) + VPA (Initial, apenas memory) | SIM | VPA controla memory, HPA controla CPU/replicas |
-| HPA (CPU) + VPA (Off) | SIM | VPA apenas recomenda |
-| KEDA + VPA (Auto) | SIM | KEDA controla replicas, VPA controla resources |
-| KEDA + HPA | NÃO | Dois controladores de replicas no mesmo Deployment |
-| HPA + KEDA (em Deployments diferentes) | SIM | Diferentes targets |
+| Combinação                               | Compatível | Notas                                              |
+| ---------------------------------------- | ---------- | -------------------------------------------------- |
+| HPA (CPU) + VPA (Auto CPU)               | NÃO        | Loop de decisões conflitantes                      |
+| HPA (CPU) + VPA (Initial, apenas memory) | SIM        | VPA controla memory, HPA controla CPU/replicas     |
+| HPA (CPU) + VPA (Off)                    | SIM        | VPA apenas recomenda                               |
+| KEDA + VPA (Auto)                        | SIM        | KEDA controla replicas, VPA controla resources     |
+| KEDA + HPA                               | NÃO        | Dois controladores de replicas no mesmo Deployment |
+| HPA + KEDA (em Deployments diferentes)   | SIM        | Diferentes targets                                 |
 
 ### Verificação de Conflitos
 
@@ -611,15 +612,15 @@ kubectl get vpa -n velya-dev-core -o json | jq '.items[].status.recommendation.c
 # Script de verificação de conflitos em velya-dev-*
 for ns in velya-dev-core velya-dev-agents velya-dev-platform; do
   echo "=== Namespace: $ns ==="
-  
+
   # HPAs ativos
   echo "HPAs:"
   kubectl get hpa -n $ns -o jsonpath='{.items[*].spec.scaleTargetRef.name}' | tr ' ' '\n'
-  
+
   # KEDA ScaledObjects ativos
   echo "KEDA ScaledObjects:"
   kubectl get scaledobject -n $ns -o jsonpath='{.items[*].spec.scaleTargetRef.name}' | tr ' ' '\n'
-  
+
   # VPA com modo Auto
   echo "VPA Auto:"
   kubectl get vpa -n $ns -o json | jq -r '.items[] | select(.spec.updatePolicy.updateMode == "Auto") | .metadata.name'
@@ -687,58 +688,57 @@ metadata:
   namespace: velya-dev-observability
 spec:
   groups:
-  - name: autoscaling
-    rules:
-    
-    - alert: HPAAtMaxReplicas
-      expr: |
-        kube_horizontalpodautoscaler_status_current_replicas ==
-        kube_horizontalpodautoscaler_spec_max_replicas
-      for: 10m
-      labels:
-        severity: warning
-      annotations:
-        summary: "HPA {{ $labels.namespace }}/{{ $labels.horizontalpodautoscaler }} no máximo"
-        description: "HPA atingiu maxReplicas por 10min — considerar aumentar o limite"
-    
-    - alert: HPAFlapping
-      expr: |
-        changes(kube_horizontalpodautoscaler_status_current_replicas[30m]) > 8
-      for: 5m
-      labels:
-        severity: warning
-      annotations:
-        summary: "HPA {{ $labels.namespace }}/{{ $labels.horizontalpodautoscaler }} com scale churn"
-        description: "Mais de 8 mudanças de replica em 30 minutos — possível flapping"
-    
-    - alert: KEDAScalerError
-      expr: keda_scaler_errors_total > 0
-      for: 5m
-      labels:
-        severity: warning
-      annotations:
-        summary: "KEDA scaler com erros: {{ $labels.scaler }}"
-    
-    - alert: KEDAScaledObjectAtMax
-      expr: |
-        keda_scaler_metrics_value / on(scaledObject)
-        keda_scaled_object_spec_max_replica_count >= 0.9
-      for: 10m
-      labels:
-        severity: warning
-      annotations:
-        summary: "KEDA ScaledObject {{ $labels.scaledObject }} próximo do máximo"
-    
-    - alert: VPARecommendationNotApplied
-      expr: |
-        (vpa_status_recommendation_containerrecommendations_target{resource="cpu"} /
-        on(namespace, pod, container) kube_pod_container_resource_requests{resource="cpu"}) > 2
-      for: 1h
-      labels:
-        severity: info
-      annotations:
-        summary: "VPA recomenda 2x mais CPU para {{ $labels.container }}"
-        description: "Considerar atualizar requests no Deployment"
+    - name: autoscaling
+      rules:
+        - alert: HPAAtMaxReplicas
+          expr: |
+            kube_horizontalpodautoscaler_status_current_replicas ==
+            kube_horizontalpodautoscaler_spec_max_replicas
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'HPA {{ $labels.namespace }}/{{ $labels.horizontalpodautoscaler }} no máximo'
+            description: 'HPA atingiu maxReplicas por 10min — considerar aumentar o limite'
+
+        - alert: HPAFlapping
+          expr: |
+            changes(kube_horizontalpodautoscaler_status_current_replicas[30m]) > 8
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'HPA {{ $labels.namespace }}/{{ $labels.horizontalpodautoscaler }} com scale churn'
+            description: 'Mais de 8 mudanças de replica em 30 minutos — possível flapping'
+
+        - alert: KEDAScalerError
+          expr: keda_scaler_errors_total > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'KEDA scaler com erros: {{ $labels.scaler }}'
+
+        - alert: KEDAScaledObjectAtMax
+          expr: |
+            keda_scaler_metrics_value / on(scaledObject)
+            keda_scaled_object_spec_max_replica_count >= 0.9
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'KEDA ScaledObject {{ $labels.scaledObject }} próximo do máximo'
+
+        - alert: VPARecommendationNotApplied
+          expr: |
+            (vpa_status_recommendation_containerrecommendations_target{resource="cpu"} /
+            on(namespace, pod, container) kube_pod_container_resource_requests{resource="cpu"}) > 2
+          for: 1h
+          labels:
+            severity: info
+          annotations:
+            summary: 'VPA recomenda 2x mais CPU para {{ $labels.container }}'
+            description: 'Considerar atualizar requests no Deployment'
 ```
 
 ---
@@ -747,14 +747,14 @@ spec:
 
 ### Dashboard Grafana — Autoscaling Health
 
-| Panel | Query | Threshold |
-|---|---|---|
-| HPA current replicas | `kube_horizontalpodautoscaler_status_current_replicas` | — |
-| HPA at max % | `hpa_current/hpa_max * 100` | Alerta > 90% |
-| KEDA scaler lag | `keda_scaler_metrics_value` | Dependente do scaler |
-| Scale events rate | `rate(kube_horizontalpodautoscaler_status_current_replicas[5m])` | — |
-| VPA recommendations | `vpa_status_recommendation_containerrecommendations_target` | — |
-| Scale-to-zero count | `keda_scaled_object_paused == 0` | — |
+| Panel                | Query                                                            | Threshold            |
+| -------------------- | ---------------------------------------------------------------- | -------------------- |
+| HPA current replicas | `kube_horizontalpodautoscaler_status_current_replicas`           | —                    |
+| HPA at max %         | `hpa_current/hpa_max * 100`                                      | Alerta > 90%         |
+| KEDA scaler lag      | `keda_scaler_metrics_value`                                      | Dependente do scaler |
+| Scale events rate    | `rate(kube_horizontalpodautoscaler_status_current_replicas[5m])` | —                    |
+| VPA recommendations  | `vpa_status_recommendation_containerrecommendations_target`      | —                    |
+| Scale-to-zero count  | `keda_scaled_object_paused == 0`                                 | —                    |
 
 ---
 
@@ -781,4 +781,4 @@ kubectl get hpa -A
 
 ---
 
-*Este documento é atualizado sempre que um novo serviço recebe configuração de autoscaling.*
+_Este documento é atualizado sempre que um novo serviço recebe configuração de autoscaling._

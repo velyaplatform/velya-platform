@@ -7,29 +7,29 @@
 
 ## 1. Princípios de Alerting
 
-| # | Princípio | Consequência prática |
-|---|-----------|---------------------|
-| 1 | **Todo alerta é acionável** | Se não há ação a tomar, não é alerta — é métrica de dashboard |
-| 2 | **Todo alerta tem dono** | Owner = office responsável por investigar e resolver |
-| 3 | **Todo alerta tem severidade** | Severidade determina canal de notificação e SLA de resposta |
-| 4 | **Todo alerta tem runbook** | Link obrigatório para documentação de diagnóstico e resolução |
-| 5 | **Alertas clínicos nunca são silenciados** | Domínio `clinical` é excluído de todos os Mute Timings |
-| 6 | **Alert fatigue é um risco de segurança** | Alertas ruidosos são desativados ou corrigidos — não tolerados |
-| 7 | **Thresholds baseados em evidência** | Definir threshold a partir de dados históricos, não intuição |
-| 8 | **Janela temporal adequada** | Janelas muito curtas geram falsos positivos; muito longas, detecção tardia |
-| 9 | **Pending period antes de disparar** | `for: 5m` evita alertas de flap. Críticos: `for: 2m`. Informativos: `for: 15m` |
-| 10 | **Revisão a cada 90 dias** | Alertas que nunca disparam ou sempre disparam são revisados |
+| #   | Princípio                                  | Consequência prática                                                           |
+| --- | ------------------------------------------ | ------------------------------------------------------------------------------ |
+| 1   | **Todo alerta é acionável**                | Se não há ação a tomar, não é alerta — é métrica de dashboard                  |
+| 2   | **Todo alerta tem dono**                   | Owner = office responsável por investigar e resolver                           |
+| 3   | **Todo alerta tem severidade**             | Severidade determina canal de notificação e SLA de resposta                    |
+| 4   | **Todo alerta tem runbook**                | Link obrigatório para documentação de diagnóstico e resolução                  |
+| 5   | **Alertas clínicos nunca são silenciados** | Domínio `clinical` é excluído de todos os Mute Timings                         |
+| 6   | **Alert fatigue é um risco de segurança**  | Alertas ruidosos são desativados ou corrigidos — não tolerados                 |
+| 7   | **Thresholds baseados em evidência**       | Definir threshold a partir de dados históricos, não intuição                   |
+| 8   | **Janela temporal adequada**               | Janelas muito curtas geram falsos positivos; muito longas, detecção tardia     |
+| 9   | **Pending period antes de disparar**       | `for: 5m` evita alertas de flap. Críticos: `for: 2m`. Informativos: `for: 15m` |
+| 10  | **Revisão a cada 90 dias**                 | Alertas que nunca disparam ou sempre disparam são revisados                    |
 
 ---
 
 ## 2. Matriz de Severidade
 
-| Severidade | Impacto | Canal | SLA de Resposta | Exemplos |
-|-----------|---------|-------|----------------|---------|
-| **Crítico** | Impacto imediato na segurança do paciente ou perda de dados clínicos | PagerDuty + Slack #velya-ops-critical | Resposta em 5 minutos | patient-flow down, discharge-orchestrator crash, perda de decisões clínicas |
-| **Alto** | Impacto na operação clínica, degradação significativa de serviço | Slack #velya-ops-high | Resposta em 30 minutos | API gateway error rate > 5%, latência P99 > 5s, agent silencioso > 60min |
-| **Médio** | Degradação de qualidade, indicador de problema futuro | Slack #velya-ops-info | Resposta em 4 horas | Error rate elevada mas abaixo de SLO, PVC > 70%, backlog crescendo |
-| **Baixo** | Indicador preventivo, tendência negativa | Slack #velya-ops-info | Próximo dia útil | Certificado expira em 30 dias, over-provisioning detectado |
+| Severidade  | Impacto                                                              | Canal                                 | SLA de Resposta        | Exemplos                                                                    |
+| ----------- | -------------------------------------------------------------------- | ------------------------------------- | ---------------------- | --------------------------------------------------------------------------- |
+| **Crítico** | Impacto imediato na segurança do paciente ou perda de dados clínicos | PagerDuty + Slack #velya-ops-critical | Resposta em 5 minutos  | patient-flow down, discharge-orchestrator crash, perda de decisões clínicas |
+| **Alto**    | Impacto na operação clínica, degradação significativa de serviço     | Slack #velya-ops-high                 | Resposta em 30 minutos | API gateway error rate > 5%, latência P99 > 5s, agent silencioso > 60min    |
+| **Médio**   | Degradação de qualidade, indicador de problema futuro                | Slack #velya-ops-info                 | Resposta em 4 horas    | Error rate elevada mas abaixo de SLO, PVC > 70%, backlog crescendo          |
+| **Baixo**   | Indicador preventivo, tendência negativa                             | Slack #velya-ops-info                 | Próximo dia útil       | Certificado expira em 30 dias, over-provisioning detectado                  |
 
 ---
 
@@ -48,11 +48,11 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "Nó {{ $labels.node }} com pressão de memória"
-  impact: "Pods podem ser evicted, serviços críticos afetados"
-  dashboard_url: "http://grafana/d/velya-infra-node-nodepool"
-  runbook_url: "https://docs.velya/runbooks/node-memory-pressure"
-  initial_action: "Verificar pods com maior consumo de memória no nó: kubectl top pods --all-namespaces --sort-by=memory | grep <nó>"
+  summary: 'Nó {{ $labels.node }} com pressão de memória'
+  impact: 'Pods podem ser evicted, serviços críticos afetados'
+  dashboard_url: 'http://grafana/d/velya-infra-node-nodepool'
+  runbook_url: 'https://docs.velya/runbooks/node-memory-pressure'
+  initial_action: 'Verificar pods com maior consumo de memória no nó: kubectl top pods --all-namespaces --sort-by=memory | grep <nó>'
 ```
 
 ---
@@ -68,10 +68,10 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "Nó {{ $labels.node }} com pressão de disco"
-  impact: "Pods novos não serão agendados no nó. Risco de perda de logs."
-  runbook_url: "https://docs.velya/runbooks/node-disk-pressure"
-  initial_action: "Verificar uso de disco: kubectl describe node <nó>. Limpar imagens não utilizadas: kubectl delete pods --field-selector=status.phase=Failed -A"
+  summary: 'Nó {{ $labels.node }} com pressão de disco'
+  impact: 'Pods novos não serão agendados no nó. Risco de perda de logs.'
+  runbook_url: 'https://docs.velya/runbooks/node-disk-pressure'
+  initial_action: 'Verificar uso de disco: kubectl describe node <nó>. Limpar imagens não utilizadas: kubectl delete pods --field-selector=status.phase=Failed -A'
 ```
 
 ---
@@ -88,11 +88,11 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "Pod {{ $labels.pod }} em CrashLoopBackOff no namespace {{ $labels.namespace }}"
-  impact: "Serviço {{ $labels.pod }} indisponível ou com capacidade reduzida"
-  dashboard_url: "http://grafana/d/velya-infra-namespace-health"
-  runbook_url: "https://docs.velya/runbooks/pod-crashloop"
-  initial_action: "Ver logs: kubectl logs {{ $labels.pod }} -n {{ $labels.namespace }} --previous"
+  summary: 'Pod {{ $labels.pod }} em CrashLoopBackOff no namespace {{ $labels.namespace }}'
+  impact: 'Serviço {{ $labels.pod }} indisponível ou com capacidade reduzida'
+  dashboard_url: 'http://grafana/d/velya-infra-namespace-health'
+  runbook_url: 'https://docs.velya/runbooks/pod-crashloop'
+  initial_action: 'Ver logs: kubectl logs {{ $labels.pod }} -n {{ $labels.namespace }} --previous'
 ```
 
 ---
@@ -109,10 +109,10 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "Pod {{ $labels.pod }} em Pending por mais de 15 minutos"
-  impact: "Capacidade do serviço reduzida ou serviço não iniciando"
-  runbook_url: "https://docs.velya/runbooks/pod-pending"
-  initial_action: "Verificar eventos: kubectl describe pod {{ $labels.pod }} -n {{ $labels.namespace }}"
+  summary: 'Pod {{ $labels.pod }} em Pending por mais de 15 minutos'
+  impact: 'Capacidade do serviço reduzida ou serviço não iniciando'
+  runbook_url: 'https://docs.velya/runbooks/pod-pending'
+  initial_action: 'Verificar eventos: kubectl describe pod {{ $labels.pod }} -n {{ $labels.namespace }}'
 ```
 
 ---
@@ -129,10 +129,10 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "PVC {{ $labels.persistentvolumeclaim }} com {{ $value | humanizePercentage }} de uso"
-  impact: "Quando cheio, o serviço pode parar de escrever dados e crashar"
-  runbook_url: "https://docs.velya/runbooks/pvc-full"
-  initial_action: "Identificar grandes consumidores: kubectl exec -n {{ $labels.namespace }} <pod> -- du -sh /data/*"
+  summary: 'PVC {{ $labels.persistentvolumeclaim }} com {{ $value | humanizePercentage }} de uso'
+  impact: 'Quando cheio, o serviço pode parar de escrever dados e crashar'
+  runbook_url: 'https://docs.velya/runbooks/pvc-full'
+  initial_action: 'Identificar grandes consumidores: kubectl exec -n {{ $labels.namespace }} <pod> -- du -sh /data/*'
 ```
 
 ---
@@ -149,10 +149,10 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "PVC {{ $labels.persistentvolumeclaim }} com {{ $value | humanizePercentage }} de uso — CRÍTICO"
-  impact: "Iminente perda de capacidade de escrita. Serviço pode crashar a qualquer momento."
-  runbook_url: "https://docs.velya/runbooks/pvc-full"
-  initial_action: "Escalar PVC imediatamente ou liberar espaço"
+  summary: 'PVC {{ $labels.persistentvolumeclaim }} com {{ $value | humanizePercentage }} de uso — CRÍTICO'
+  impact: 'Iminente perda de capacidade de escrita. Serviço pode crashar a qualquer momento.'
+  runbook_url: 'https://docs.velya/runbooks/pvc-full'
+  initial_action: 'Escalar PVC imediatamente ou liberar espaço'
 ```
 
 ---
@@ -169,10 +169,10 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "Nó {{ $labels.instance }} com CPU > 90% por mais de 15 minutos"
-  impact: "Throttling de pods, latência elevada em todos os serviços do nó"
-  runbook_url: "https://docs.velya/runbooks/node-high-cpu"
-  initial_action: "kubectl top pods -A --sort-by=cpu | head -20"
+  summary: 'Nó {{ $labels.instance }} com CPU > 90% por mais de 15 minutos'
+  impact: 'Throttling de pods, latência elevada em todos os serviços do nó'
+  runbook_url: 'https://docs.velya/runbooks/node-high-cpu'
+  initial_action: 'kubectl top pods -A --sort-by=cpu | head -20'
 ```
 
 ---
@@ -188,10 +188,10 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "Nó {{ $labels.node }} com status NotReady"
-  impact: "Pods no nó podem ser removidos e reagendados. Perda de capacidade do cluster."
-  runbook_url: "https://docs.velya/runbooks/node-not-ready"
-  initial_action: "kubectl describe node {{ $labels.node }} | grep -A 10 Conditions"
+  summary: 'Nó {{ $labels.node }} com status NotReady'
+  impact: 'Pods no nó podem ser removidos e reagendados. Perda de capacidade do cluster.'
+  runbook_url: 'https://docs.velya/runbooks/node-not-ready'
+  initial_action: 'kubectl describe node {{ $labels.node }} | grep -A 10 Conditions'
 ```
 
 ---
@@ -208,9 +208,9 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "Taxa anormal de pod evictions detectada"
-  impact: "Pods sendo evicted indica pressão de recursos. Possível cascata de falhas."
-  runbook_url: "https://docs.velya/runbooks/pod-eviction"
+  summary: 'Taxa anormal de pod evictions detectada'
+  impact: 'Pods sendo evicted indica pressão de recursos. Possível cascata de falhas.'
+  runbook_url: 'https://docs.velya/runbooks/pod-eviction'
 ```
 
 ---
@@ -227,9 +227,9 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "Container {{ $labels.container }} reiniciando mais de 5 vezes em 15 minutos"
-  impact: "Serviço instável, possível CrashLoop iminente"
-  runbook_url: "https://docs.velya/runbooks/container-restarts"
+  summary: 'Container {{ $labels.container }} reiniciando mais de 5 vezes em 15 minutos'
+  impact: 'Serviço instável, possível CrashLoop iminente'
+  runbook_url: 'https://docs.velya/runbooks/container-restarts'
 ```
 
 ---
@@ -245,9 +245,9 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "Kubernetes API Server inacessível"
-  impact: "Nenhum deploy, scale ou operação de controle funciona. Cluster em modo de falha."
-  runbook_url: "https://docs.velya/runbooks/apiserver-down"
+  summary: 'Kubernetes API Server inacessível'
+  impact: 'Nenhum deploy, scale ou operação de controle funciona. Cluster em modo de falha.'
+  runbook_url: 'https://docs.velya/runbooks/apiserver-down'
 ```
 
 ---
@@ -263,9 +263,9 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "Target Prometheus {{ $labels.job }}/{{ $labels.instance }} inacessível"
-  impact: "Métricas deste target não estão sendo coletadas. Alertas baseados nelas podem não disparar."
-  runbook_url: "https://docs.velya/runbooks/prometheus-target-down"
+  summary: 'Target Prometheus {{ $labels.job }}/{{ $labels.instance }} inacessível'
+  impact: 'Métricas deste target não estão sendo coletadas. Alertas baseados nelas podem não disparar.'
+  runbook_url: 'https://docs.velya/runbooks/prometheus-target-down'
 ```
 
 ---
@@ -282,9 +282,9 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "Erros de rede elevados no nó {{ $labels.instance }}"
-  impact: "Possível degradação de comunicação entre pods. Latência e timeouts podem aumentar."
-  runbook_url: "https://docs.velya/runbooks/network-errors"
+  summary: 'Erros de rede elevados no nó {{ $labels.instance }}'
+  impact: 'Possível degradação de comunicação entre pods. Latência e timeouts podem aumentar.'
+  runbook_url: 'https://docs.velya/runbooks/network-errors'
 ```
 
 ---
@@ -300,9 +300,9 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "PersistentVolume {{ $labels.persistentvolume }} não está em Bound"
-  impact: "Pods que dependem deste PV não conseguem iniciar"
-  runbook_url: "https://docs.velya/runbooks/pv-not-bound"
+  summary: 'PersistentVolume {{ $labels.persistentvolume }} não está em Bound'
+  impact: 'Pods que dependem deste PV não conseguem iniciar'
+  runbook_url: 'https://docs.velya/runbooks/pv-not-bound'
 ```
 
 ---
@@ -319,9 +319,9 @@ labels:
   domain: infrastructure
   owner: platform-office
 annotations:
-  summary: "Namespace {{ $labels.namespace }} usando {{ $value | humanizePercentage }} da quota de {{ $labels.resource }}"
-  impact: "Novos pods podem ser rejeitados quando quota for excedida"
-  runbook_url: "https://docs.velya/runbooks/resource-quota"
+  summary: 'Namespace {{ $labels.namespace }} usando {{ $value | humanizePercentage }} da quota de {{ $labels.resource }}'
+  impact: 'Novos pods podem ser rejeitados quando quota for excedida'
+  runbook_url: 'https://docs.velya/runbooks/resource-quota'
 ```
 
 ---
@@ -339,10 +339,10 @@ labels:
   domain: platform
   owner: platform-office
 annotations:
-  summary: "Application ArgoCD {{ $labels.name }} fora de sync por mais de 15 minutos"
-  impact: "Configuração aplicada pode não refletir o estado do Git. GitOps drift."
-  runbook_url: "https://docs.velya/runbooks/argocd-out-of-sync"
-  initial_action: "argocd app sync {{ $labels.name }}"
+  summary: 'Application ArgoCD {{ $labels.name }} fora de sync por mais de 15 minutos'
+  impact: 'Configuração aplicada pode não refletir o estado do Git. GitOps drift.'
+  runbook_url: 'https://docs.velya/runbooks/argocd-out-of-sync'
+  initial_action: 'argocd app sync {{ $labels.name }}'
 ```
 
 ---
@@ -358,9 +358,9 @@ labels:
   domain: platform
   owner: platform-office
 annotations:
-  summary: "Application ArgoCD {{ $labels.name }} com health status Degraded"
-  impact: "Deploy falhou ou rollout causou degradação"
-  runbook_url: "https://docs.velya/runbooks/argocd-degraded"
+  summary: 'Application ArgoCD {{ $labels.name }} com health status Degraded'
+  impact: 'Deploy falhou ou rollout causou degradação'
+  runbook_url: 'https://docs.velya/runbooks/argocd-degraded'
 ```
 
 ---
@@ -377,11 +377,11 @@ labels:
   domain: platform
   owner: platform-office
 annotations:
-  summary: "ScaledObject {{ $labels.deployment }} em thrash: mais de 6 mudanças de réplicas em 30 minutos"
-  impact: "Serviço instável com pods sendo criados e destruídos repetidamente. Latência elevada."
-  dashboard_url: "http://grafana/d/velya-keda-scaling-monitor"
-  runbook_url: "https://docs.velya/runbooks/keda-thrash"
-  initial_action: "Revisar cooldownPeriod e stabilizationWindowSeconds do ScaledObject"
+  summary: 'ScaledObject {{ $labels.deployment }} em thrash: mais de 6 mudanças de réplicas em 30 minutos'
+  impact: 'Serviço instável com pods sendo criados e destruídos repetidamente. Latência elevada.'
+  dashboard_url: 'http://grafana/d/velya-keda-scaling-monitor'
+  runbook_url: 'https://docs.velya/runbooks/keda-thrash'
+  initial_action: 'Revisar cooldownPeriod e stabilizationWindowSeconds do ScaledObject'
 ```
 
 ---
@@ -398,9 +398,9 @@ labels:
   domain: platform
   owner: platform-office
 annotations:
-  summary: "KEDA não consegue acessar Prometheus para trigger de scaling"
-  impact: "ScaledObjects usarão minReplicaCount silenciosamente. Scaling automático inativo."
-  runbook_url: "https://docs.velya/runbooks/keda-prometheus-source"
+  summary: 'KEDA não consegue acessar Prometheus para trigger de scaling'
+  impact: 'ScaledObjects usarão minReplicaCount silenciosamente. Scaling automático inativo.'
+  runbook_url: 'https://docs.velya/runbooks/keda-prometheus-source'
 ```
 
 ---
@@ -417,9 +417,9 @@ labels:
   domain: platform
   owner: security-office
 annotations:
-  summary: "Falha ao recuperar secret no serviço {{ $labels.service }}"
-  impact: "Serviço pode não conseguir conectar ao banco de dados ou APIs externas"
-  runbook_url: "https://docs.velya/runbooks/secret-retrieval-failure"
+  summary: 'Falha ao recuperar secret no serviço {{ $labels.service }}'
+  impact: 'Serviço pode não conseguir conectar ao banco de dados ou APIs externas'
+  runbook_url: 'https://docs.velya/runbooks/secret-retrieval-failure'
 ```
 
 ---
@@ -436,9 +436,9 @@ labels:
   domain: platform
   owner: security-office
 annotations:
-  summary: "Certificado {{ $labels.name }} expira em menos de 30 dias"
-  impact: "Conexões TLS falharão após expiração"
-  runbook_url: "https://docs.velya/runbooks/certificate-renewal"
+  summary: 'Certificado {{ $labels.name }} expira em menos de 30 dias'
+  impact: 'Conexões TLS falharão após expiração'
+  runbook_url: 'https://docs.velya/runbooks/certificate-renewal'
 ```
 
 ---
@@ -455,9 +455,9 @@ labels:
   domain: platform
   owner: security-office
 annotations:
-  summary: "Certificado {{ $labels.name }} expira em menos de 7 dias — CRÍTICO"
-  impact: "Conexões TLS falharão em menos de 7 dias. Serviços podem se tornar inacessíveis."
-  runbook_url: "https://docs.velya/runbooks/certificate-renewal"
+  summary: 'Certificado {{ $labels.name }} expira em menos de 7 dias — CRÍTICO'
+  impact: 'Conexões TLS falharão em menos de 7 dias. Serviços podem se tornar inacessíveis.'
+  runbook_url: 'https://docs.velya/runbooks/certificate-renewal'
 ```
 
 ---
@@ -473,9 +473,9 @@ labels:
   domain: platform
   owner: platform-office
 annotations:
-  summary: "Drift de GitOps detectado: {{ $labels.name }} fora de sync por mais de 1 hora"
-  impact: "Configuração em produção divergiu do estado desejado no Git"
-  runbook_url: "https://docs.velya/runbooks/gitops-drift"
+  summary: 'Drift de GitOps detectado: {{ $labels.name }} fora de sync por mais de 1 hora'
+  impact: 'Configuração em produção divergiu do estado desejado no Git'
+  runbook_url: 'https://docs.velya/runbooks/gitops-drift'
 ```
 
 ---
@@ -495,10 +495,10 @@ labels:
   domain: backend
   owner: backend-office
 annotations:
-  summary: "Serviço {{ $labels.service }} com taxa de erros > 5%"
-  impact: "{{ $value | humanizePercentage }} das requisições estão falhando. Experiência do usuário degradada."
-  dashboard_url: "http://grafana/d/velya-backend-api-red"
-  runbook_url: "https://docs.velya/runbooks/high-error-rate"
+  summary: 'Serviço {{ $labels.service }} com taxa de erros > 5%'
+  impact: '{{ $value | humanizePercentage }} das requisições estão falhando. Experiência do usuário degradada.'
+  dashboard_url: 'http://grafana/d/velya-backend-api-red'
+  runbook_url: 'https://docs.velya/runbooks/high-error-rate'
   initial_action: "Ver logs de erro: {service='{{ $labels.service }}'} |= 'ERROR' | json"
 ```
 
@@ -517,10 +517,10 @@ labels:
   domain: backend
   owner: backend-office
 annotations:
-  summary: "Serviço {{ $labels.service }} com taxa de erros CRÍTICA > 20%"
-  impact: "Serviço essencialmente não funcional. Impacto direto em usuários clínicos."
-  dashboard_url: "http://grafana/d/velya-backend-api-red"
-  runbook_url: "https://docs.velya/runbooks/critical-error-rate"
+  summary: 'Serviço {{ $labels.service }} com taxa de erros CRÍTICA > 20%'
+  impact: 'Serviço essencialmente não funcional. Impacto direto em usuários clínicos.'
+  dashboard_url: 'http://grafana/d/velya-backend-api-red'
+  runbook_url: 'https://docs.velya/runbooks/critical-error-rate'
 ```
 
 ---
@@ -539,10 +539,10 @@ labels:
   domain: backend
   owner: backend-office
 annotations:
-  summary: "Serviço {{ $labels.service }} com P99 de latência > 2 segundos"
-  impact: "1% dos usuários está esperando mais de 2s por resposta. Possível timeout em cascata."
-  dashboard_url: "http://grafana/d/velya-backend-api-red"
-  runbook_url: "https://docs.velya/runbooks/high-latency"
+  summary: 'Serviço {{ $labels.service }} com P99 de latência > 2 segundos'
+  impact: '1% dos usuários está esperando mais de 2s por resposta. Possível timeout em cascata.'
+  dashboard_url: 'http://grafana/d/velya-backend-api-red'
+  runbook_url: 'https://docs.velya/runbooks/high-latency'
 ```
 
 ---
@@ -559,9 +559,9 @@ labels:
   domain: backend
   owner: backend-office
 annotations:
-  summary: "Serviço {{ $labels.job }} inacessível — Prometheus não consegue fazer scrape"
-  impact: "Serviço pode estar down ou endpoint /metrics não responde"
-  runbook_url: "https://docs.velya/runbooks/service-down"
+  summary: 'Serviço {{ $labels.job }} inacessível — Prometheus não consegue fazer scrape'
+  impact: 'Serviço pode estar down ou endpoint /metrics não responde'
+  runbook_url: 'https://docs.velya/runbooks/service-down'
 ```
 
 ---
@@ -578,10 +578,10 @@ labels:
   domain: backend
   owner: backend-office
 annotations:
-  summary: "Fila NATS {{ $labels.consumer }} acumulando: {{ $value }} mensagens pendentes"
-  impact: "Workers não estão processando na velocidade de produção. Risco de timeout e dead letters."
-  dashboard_url: "http://grafana/d/velya-backend-queue-worker-health"
-  runbook_url: "https://docs.velya/runbooks/queue-buildup"
+  summary: 'Fila NATS {{ $labels.consumer }} acumulando: {{ $value }} mensagens pendentes'
+  impact: 'Workers não estão processando na velocidade de produção. Risco de timeout e dead letters.'
+  dashboard_url: 'http://grafana/d/velya-backend-queue-worker-health'
+  runbook_url: 'https://docs.velya/runbooks/queue-buildup'
 ```
 
 ---
@@ -598,9 +598,9 @@ labels:
   domain: backend
   owner: backend-office
 annotations:
-  summary: "Dead letter queue com {{ $value }} mensagens no serviço {{ $labels.service }}"
-  impact: "Mensagens perdidas permanentemente. Possível perda de dados de workflow clínico."
-  runbook_url: "https://docs.velya/runbooks/dead-letter-queue"
+  summary: 'Dead letter queue com {{ $value }} mensagens no serviço {{ $labels.service }}'
+  impact: 'Mensagens perdidas permanentemente. Possível perda de dados de workflow clínico.'
+  runbook_url: 'https://docs.velya/runbooks/dead-letter-queue'
 ```
 
 ---
@@ -617,9 +617,9 @@ labels:
   domain: backend
   owner: backend-office
 annotations:
-  summary: "Pool de conexões do banco de dados de {{ $labels.service }} está {{ $value | humanizePercentage }} utilizado"
-  impact: "Novas operações de banco de dados podem ficar em espera, causando timeout"
-  runbook_url: "https://docs.velya/runbooks/db-pool-exhausted"
+  summary: 'Pool de conexões do banco de dados de {{ $labels.service }} está {{ $value | humanizePercentage }} utilizado'
+  impact: 'Novas operações de banco de dados podem ficar em espera, causando timeout'
+  runbook_url: 'https://docs.velya/runbooks/db-pool-exhausted'
 ```
 
 ---
@@ -636,9 +636,9 @@ labels:
   domain: backend
   owner: backend-office
 annotations:
-  summary: "Circuit breaker aberto em {{ $labels.service }} → {{ $labels.dependency }}"
-  impact: "{{ $labels.service }} não está fazendo chamadas para {{ $labels.dependency }}. Modo degradado ativo."
-  runbook_url: "https://docs.velya/runbooks/circuit-breaker-open"
+  summary: 'Circuit breaker aberto em {{ $labels.service }} → {{ $labels.dependency }}'
+  impact: '{{ $labels.service }} não está fazendo chamadas para {{ $labels.dependency }}. Modo degradado ativo.'
+  runbook_url: 'https://docs.velya/runbooks/circuit-breaker-open'
 ```
 
 ---
@@ -655,10 +655,10 @@ labels:
   domain: backend
   owner: backend-office
 annotations:
-  summary: "API Gateway inacessível — todos os clientes afetados"
-  impact: "CRÍTICO: Nenhum cliente (web ou mobile) consegue acessar nenhum serviço Velya"
-  dashboard_url: "http://grafana/d/velya-backend-api-red"
-  runbook_url: "https://docs.velya/runbooks/api-gateway-down"
+  summary: 'API Gateway inacessível — todos os clientes afetados'
+  impact: 'CRÍTICO: Nenhum cliente (web ou mobile) consegue acessar nenhum serviço Velya'
+  dashboard_url: 'http://grafana/d/velya-backend-api-red'
+  runbook_url: 'https://docs.velya/runbooks/api-gateway-down'
 ```
 
 ---
@@ -675,10 +675,10 @@ labels:
   domain: backend
   owner: agents-office
 annotations:
-  summary: "AI Gateway recebendo erros de rate-limit do provedor de AI"
-  impact: "Agents não conseguem obter respostas de AI. Decisões clínicas podem ser atrasadas."
-  dashboard_url: "http://grafana/d/velya-backend-ai-gateway-performance"
-  runbook_url: "https://docs.velya/runbooks/ai-rate-limit"
+  summary: 'AI Gateway recebendo erros de rate-limit do provedor de AI'
+  impact: 'Agents não conseguem obter respostas de AI. Decisões clínicas podem ser atrasadas.'
+  dashboard_url: 'http://grafana/d/velya-backend-ai-gateway-performance'
+  runbook_url: 'https://docs.velya/runbooks/ai-rate-limit'
 ```
 
 ---
@@ -697,10 +697,10 @@ labels:
   domain: frontend
   owner: frontend-office
 annotations:
-  summary: "Spike de erros JavaScript no velya-web: {{ $value | humanize }} erros/segundo"
-  impact: "Usuários podem estar vendo telas brancas ou funcionalidades quebradas"
-  dashboard_url: "http://grafana/d/velya-frontend-action-failure-board"
-  runbook_url: "https://docs.velya/runbooks/frontend-js-errors"
+  summary: 'Spike de erros JavaScript no velya-web: {{ $value | humanize }} erros/segundo'
+  impact: 'Usuários podem estar vendo telas brancas ou funcionalidades quebradas'
+  dashboard_url: 'http://grafana/d/velya-frontend-action-failure-board'
+  runbook_url: 'https://docs.velya/runbooks/frontend-js-errors'
 ```
 
 ---
@@ -717,9 +717,9 @@ labels:
   domain: frontend
   owner: frontend-office
 annotations:
-  summary: "Rota {{ $labels.route }} com LCP P95 > 4 segundos"
-  impact: "Carregamento lento de página afeta resposta clínica. Core Web Vital fora do limite aceitável."
-  runbook_url: "https://docs.velya/runbooks/frontend-slow-lcp"
+  summary: 'Rota {{ $labels.route }} com LCP P95 > 4 segundos'
+  impact: 'Carregamento lento de página afeta resposta clínica. Core Web Vital fora do limite aceitável.'
+  runbook_url: 'https://docs.velya/runbooks/frontend-slow-lcp'
 ```
 
 ---
@@ -736,10 +736,10 @@ labels:
   domain: frontend
   owner: frontend-office
 annotations:
-  summary: "velya-web está em modo degradado"
-  impact: "Usuários clínicos podem estar vendo dados em cache ou com funcionalidades limitadas"
-  dashboard_url: "http://grafana/d/velya-frontend-degraded-mode-board"
-  runbook_url: "https://docs.velya/runbooks/frontend-degraded-mode"
+  summary: 'velya-web está em modo degradado'
+  impact: 'Usuários clínicos podem estar vendo dados em cache ou com funcionalidades limitadas'
+  dashboard_url: 'http://grafana/d/velya-frontend-degraded-mode-board'
+  runbook_url: 'https://docs.velya/runbooks/frontend-degraded-mode'
 ```
 
 ---
@@ -756,9 +756,9 @@ labels:
   domain: frontend
   owner: frontend-office
 annotations:
-  summary: "Frontend com taxa de falha de API > 10% do ponto de vista do usuário"
-  impact: "Usuários estão vendo erros ao tentar realizar ações clínicas"
-  runbook_url: "https://docs.velya/runbooks/frontend-api-failures"
+  summary: 'Frontend com taxa de falha de API > 10% do ponto de vista do usuário'
+  impact: 'Usuários estão vendo erros ao tentar realizar ações clínicas'
+  runbook_url: 'https://docs.velya/runbooks/frontend-api-failures'
 ```
 
 ---
@@ -775,9 +775,9 @@ labels:
   domain: frontend
   owner: frontend-office
 annotations:
-  summary: "Taxa de abandono de fluxo {{ $labels.flow }} > 30% na última meia hora"
-  impact: "Usuários estão saindo de fluxos clínicos críticos no meio — possível problema de UX ou erro"
-  runbook_url: "https://docs.velya/runbooks/frontend-flow-abandonment"
+  summary: 'Taxa de abandono de fluxo {{ $labels.flow }} > 30% na última meia hora'
+  impact: 'Usuários estão saindo de fluxos clínicos críticos no meio — possível problema de UX ou erro'
+  runbook_url: 'https://docs.velya/runbooks/frontend-flow-abandonment'
 ```
 
 ---
@@ -796,10 +796,10 @@ labels:
   domain: agents
   owner: agents-office
 annotations:
-  summary: "Agent {{ $labels.agent_name }} silencioso por mais de 30 minutos"
-  impact: "Agent pode estar preso, em deadlock ou com worker parado"
-  dashboard_url: "http://grafana/d/velya-agents-oversight-console"
-  runbook_url: "https://docs.velya/runbooks/agent-silent"
+  summary: 'Agent {{ $labels.agent_name }} silencioso por mais de 30 minutos'
+  impact: 'Agent pode estar preso, em deadlock ou com worker parado'
+  dashboard_url: 'http://grafana/d/velya-agents-oversight-console'
+  runbook_url: 'https://docs.velya/runbooks/agent-silent'
 ```
 
 ---
@@ -816,10 +816,10 @@ labels:
   domain: agents
   owner: agents-office
 annotations:
-  summary: "Agent {{ $labels.agent_name }} silencioso por mais de 60 minutos — CRÍTICO"
-  impact: "Agent completamente parado. Tarefas do office {{ $labels.office }} não estão sendo processadas."
-  dashboard_url: "http://grafana/d/velya-agents-oversight-console"
-  runbook_url: "https://docs.velya/runbooks/agent-silent"
+  summary: 'Agent {{ $labels.agent_name }} silencioso por mais de 60 minutos — CRÍTICO'
+  impact: 'Agent completamente parado. Tarefas do office {{ $labels.office }} não estão sendo processadas.'
+  dashboard_url: 'http://grafana/d/velya-agents-oversight-console'
+  runbook_url: 'https://docs.velya/runbooks/agent-silent'
 ```
 
 ---
@@ -837,10 +837,10 @@ labels:
   domain: agents
   owner: agents-office
 annotations:
-  summary: "Agent {{ $labels.agent_name }} com taxa de rejeição de validação > 30%"
-  impact: "Agent produzindo saídas com baixa qualidade. Retrabalho aumentado. Risco clínico se agent afeta decisões."
-  dashboard_url: "http://grafana/d/velya-agents-validation-board"
-  runbook_url: "https://docs.velya/runbooks/agent-validation-rejection"
+  summary: 'Agent {{ $labels.agent_name }} com taxa de rejeição de validação > 30%'
+  impact: 'Agent produzindo saídas com baixa qualidade. Retrabalho aumentado. Risco clínico se agent afeta decisões.'
+  dashboard_url: 'http://grafana/d/velya-agents-validation-board'
+  runbook_url: 'https://docs.velya/runbooks/agent-validation-rejection'
 ```
 
 ---
@@ -857,9 +857,9 @@ labels:
   domain: agents
   owner: agents-office
 annotations:
-  summary: "Agent {{ $labels.agent_name }} em loop de correção: {{ $value }} iterações"
-  impact: "Agent não está convergindo para solução correta. Consumo elevado de tokens e latência aumentada."
-  runbook_url: "https://docs.velya/runbooks/agent-correction-loop"
+  summary: 'Agent {{ $labels.agent_name }} em loop de correção: {{ $value }} iterações'
+  impact: 'Agent não está convergindo para solução correta. Consumo elevado de tokens e latência aumentada.'
+  runbook_url: 'https://docs.velya/runbooks/agent-correction-loop'
 ```
 
 ---
@@ -876,10 +876,10 @@ labels:
   domain: agents
   owner: agents-office
 annotations:
-  summary: "Agent {{ $labels.agent_name }} foi colocado em quarentena"
-  impact: "CRÍTICO: Agent removido de operação. Tarefas de {{ $labels.office }} podem acumular."
-  dashboard_url: "http://grafana/d/velya-agents-quarantine-center"
-  runbook_url: "https://docs.velya/runbooks/agent-quarantine"
+  summary: 'Agent {{ $labels.agent_name }} foi colocado em quarentena'
+  impact: 'CRÍTICO: Agent removido de operação. Tarefas de {{ $labels.office }} podem acumular.'
+  dashboard_url: 'http://grafana/d/velya-agents-quarantine-center'
+  runbook_url: 'https://docs.velya/runbooks/agent-quarantine'
 ```
 
 ---
@@ -896,9 +896,9 @@ labels:
   domain: agents
   owner: agents-office
 annotations:
-  summary: "Watchdog detectou incidente em agent {{ $labels.agent_name }}"
-  impact: "Comportamento anômalo detectado. Agent pode estar em estado inconsistente."
-  runbook_url: "https://docs.velya/runbooks/agent-watchdog-incident"
+  summary: 'Watchdog detectou incidente em agent {{ $labels.agent_name }}'
+  impact: 'Comportamento anômalo detectado. Agent pode estar em estado inconsistente.'
+  runbook_url: 'https://docs.velya/runbooks/agent-watchdog-incident'
 ```
 
 ---
@@ -915,9 +915,9 @@ labels:
   domain: agents
   owner: agents-office
 annotations:
-  summary: "Agent {{ $labels.agent_name }} com evidência incompleta: {{ $value | humanizePercentage }}"
-  impact: "Decisões do agent baseadas em contexto incompleto. Qualidade das saídas pode ser inferior."
-  runbook_url: "https://docs.velya/runbooks/agent-evidence-completeness"
+  summary: 'Agent {{ $labels.agent_name }} com evidência incompleta: {{ $value | humanizePercentage }}'
+  impact: 'Decisões do agent baseadas em contexto incompleto. Qualidade das saídas pode ser inferior.'
+  runbook_url: 'https://docs.velya/runbooks/agent-evidence-completeness'
 ```
 
 ---
@@ -934,10 +934,10 @@ labels:
   domain: agents
   owner: agents-office
 annotations:
-  summary: "Agent {{ $labels.agent_name }} consumindo mais de 100K tokens/hora"
-  impact: "Custo de inferência anormalmente alto. Possível loop ou prompt sem truncamento."
-  dashboard_url: "http://grafana/d/velya-backend-ai-gateway-performance"
-  runbook_url: "https://docs.velya/runbooks/agent-token-cost"
+  summary: 'Agent {{ $labels.agent_name }} consumindo mais de 100K tokens/hora'
+  impact: 'Custo de inferência anormalmente alto. Possível loop ou prompt sem truncamento.'
+  dashboard_url: 'http://grafana/d/velya-backend-ai-gateway-performance'
+  runbook_url: 'https://docs.velya/runbooks/agent-token-cost'
 ```
 
 ---
@@ -956,10 +956,10 @@ labels:
   domain: clinical
   owner: clinical-office
 annotations:
-  summary: "Bloqueador de alta tipo {{ $labels.blocker_type }} na unidade {{ $labels.unit }} sem resolução há mais de 4 horas"
-  impact: "CLÍNICO: Paciente aguardando alta por mais de 4h com bloqueador ativo. Risco de leito desnecessariamente ocupado e sobrecarga."
-  dashboard_url: "http://grafana/d/velya-clinical-discharge-control-board"
-  runbook_url: "https://docs.velya/runbooks/discharge-blocker-aged"
+  summary: 'Bloqueador de alta tipo {{ $labels.blocker_type }} na unidade {{ $labels.unit }} sem resolução há mais de 4 horas'
+  impact: 'CLÍNICO: Paciente aguardando alta por mais de 4h com bloqueador ativo. Risco de leito desnecessariamente ocupado e sobrecarga.'
+  dashboard_url: 'http://grafana/d/velya-clinical-discharge-control-board'
+  runbook_url: 'https://docs.velya/runbooks/discharge-blocker-aged'
 ```
 
 ---
@@ -976,10 +976,10 @@ labels:
   domain: clinical
   owner: clinical-office
 annotations:
-  summary: "Inbox clínico com {{ $value }} tarefas críticas acumuladas"
-  impact: "CLÍNICO: Volume anormal de tarefas críticas sem atendimento. Risco de atraso em cuidados urgentes."
-  dashboard_url: "http://grafana/d/velya-clinical-inbox-intelligence-board"
-  runbook_url: "https://docs.velya/runbooks/inbox-overload"
+  summary: 'Inbox clínico com {{ $value }} tarefas críticas acumuladas'
+  impact: 'CLÍNICO: Volume anormal de tarefas críticas sem atendimento. Risco de atraso em cuidados urgentes.'
+  dashboard_url: 'http://grafana/d/velya-clinical-inbox-intelligence-board'
+  runbook_url: 'https://docs.velya/runbooks/inbox-overload'
 ```
 
 ---
@@ -996,9 +996,9 @@ labels:
   domain: clinical
   owner: clinical-office
 annotations:
-  summary: "{{ $value }} tarefas de alta prioridade sem dono na inbox clínica"
-  impact: "Tarefas críticas aguardando atribuição. Risco de SLA clínico não atendido."
-  runbook_url: "https://docs.velya/runbooks/no-next-action"
+  summary: '{{ $value }} tarefas de alta prioridade sem dono na inbox clínica'
+  impact: 'Tarefas críticas aguardando atribuição. Risco de SLA clínico não atendido.'
+  runbook_url: 'https://docs.velya/runbooks/no-next-action'
 ```
 
 ---
@@ -1015,10 +1015,10 @@ labels:
   domain: clinical
   owner: agents-office
 annotations:
-  summary: "Handoff de agent parado por mais de 15 minutos"
-  impact: "Processo clínico interrompido. Tasks do workflow podem estar bloqueadas aguardando handoff."
-  dashboard_url: "http://grafana/d/velya-agents-handoff-monitor"
-  runbook_url: "https://docs.velya/runbooks/handoff-stuck"
+  summary: 'Handoff de agent parado por mais de 15 minutos'
+  impact: 'Processo clínico interrompido. Tasks do workflow podem estar bloqueadas aguardando handoff.'
+  dashboard_url: 'http://grafana/d/velya-agents-handoff-monitor'
+  runbook_url: 'https://docs.velya/runbooks/handoff-stuck'
 ```
 
 ---
@@ -1035,9 +1035,9 @@ labels:
   domain: clinical
   owner: backend-office
 annotations:
-  summary: "Alertas clínicos com P95 de latência de entrega > 30 segundos"
-  impact: "CRÍTICO: Alertas clínicos chegando com atraso > 30s para profissionais de saúde. Risco direto ao paciente."
-  runbook_url: "https://docs.velya/runbooks/clinical-alert-delivery-latency"
+  summary: 'Alertas clínicos com P95 de latência de entrega > 30 segundos'
+  impact: 'CRÍTICO: Alertas clínicos chegando com atraso > 30s para profissionais de saúde. Risco direto ao paciente.'
+  runbook_url: 'https://docs.velya/runbooks/clinical-alert-delivery-latency'
 ```
 
 ---
@@ -1054,10 +1054,10 @@ labels:
   domain: clinical
   owner: clinical-office
 annotations:
-  summary: "Backlog de altas crescendo continuamente há 20 minutos"
-  impact: "Tendência negativa: mais altas sendo criadas do que resolvidas. Pressão de leitos iminente."
-  dashboard_url: "http://grafana/d/velya-clinical-discharge-control-board"
-  runbook_url: "https://docs.velya/runbooks/discharge-backlog"
+  summary: 'Backlog de altas crescendo continuamente há 20 minutos'
+  impact: 'Tendência negativa: mais altas sendo criadas do que resolvidas. Pressão de leitos iminente.'
+  dashboard_url: 'http://grafana/d/velya-clinical-discharge-control-board'
+  runbook_url: 'https://docs.velya/runbooks/discharge-backlog'
 ```
 
 ---
@@ -1075,10 +1075,10 @@ labels:
   domain: cost
   owner: platform-office
 annotations:
-  summary: "Prometheus com {{ $value | humanize }} time series — acima de 800K"
-  impact: "Risco de degradação de performance e custo elevado de storage. Investigar explosão de cardinalidade."
-  dashboard_url: "http://grafana/d/velya-cost-observability-board"
-  runbook_url: "https://docs.velya/runbooks/prometheus-high-cardinality"
+  summary: 'Prometheus com {{ $value | humanize }} time series — acima de 800K'
+  impact: 'Risco de degradação de performance e custo elevado de storage. Investigar explosão de cardinalidade.'
+  dashboard_url: 'http://grafana/d/velya-cost-observability-board'
+  runbook_url: 'https://docs.velya/runbooks/prometheus-high-cardinality'
   initial_action: "Identificar top labels por cardinalidade: topk(10, count by (__name__) ({__name__=~'.+'}))"
 ```
 
@@ -1096,10 +1096,10 @@ labels:
   domain: cost
   owner: platform-office
 annotations:
-  summary: "Loki ingerindo acima de 15GB/dia"
-  impact: "Custo de storage elevado e possível degradação de Loki"
-  dashboard_url: "http://grafana/d/velya-cost-observability-board"
-  runbook_url: "https://docs.velya/runbooks/loki-ingestion-spike"
+  summary: 'Loki ingerindo acima de 15GB/dia'
+  impact: 'Custo de storage elevado e possível degradação de Loki'
+  dashboard_url: 'http://grafana/d/velya-cost-observability-board'
+  runbook_url: 'https://docs.velya/runbooks/loki-ingestion-spike'
 ```
 
 ---
@@ -1116,9 +1116,9 @@ labels:
   domain: cost
   owner: platform-office
 annotations:
-  summary: "Deployment {{ $labels.deployment }} com mais de 20 eventos de scaling em 1 hora (thrash de custo)"
-  impact: "Scaling thrash gera custo computacional desnecessário e instabilidade"
-  runbook_url: "https://docs.velya/runbooks/keda-thrash"
+  summary: 'Deployment {{ $labels.deployment }} com mais de 20 eventos de scaling em 1 hora (thrash de custo)'
+  impact: 'Scaling thrash gera custo computacional desnecessário e instabilidade'
+  runbook_url: 'https://docs.velya/runbooks/keda-thrash'
 ```
 
 ---
@@ -1135,9 +1135,9 @@ labels:
   domain: cost
   owner: agents-office
 annotations:
-  summary: "Agent {{ $labels.agent_name }} consumindo mais de 100K tokens/hora"
-  impact: "Custo de inferência anormalmente alto. Revisar prompts e possíveis loops."
-  runbook_url: "https://docs.velya/runbooks/ai-token-cost"
+  summary: 'Agent {{ $labels.agent_name }} consumindo mais de 100K tokens/hora'
+  impact: 'Custo de inferência anormalmente alto. Revisar prompts e possíveis loops.'
+  runbook_url: 'https://docs.velya/runbooks/ai-token-cost'
 ```
 
 ---
@@ -1155,37 +1155,38 @@ labels:
   domain: cost
   owner: platform-office
 annotations:
-  summary: "Storage do Prometheus acima de 50GB e crescendo"
-  impact: "PVC do Prometheus pode encher. Revisar retenção e compactação."
-  runbook_url: "https://docs.velya/runbooks/prometheus-storage"
+  summary: 'Storage do Prometheus acima de 50GB e crescendo'
+  impact: 'PVC do Prometheus pode encher. Revisar retenção e compactação.'
+  runbook_url: 'https://docs.velya/runbooks/prometheus-storage'
 ```
 
 ---
 
 ## 4. Resumo do Catálogo de Alertas
 
-| Domínio | Total | Crítico | Alto | Médio | Baixo |
-|---------|-------|---------|------|-------|-------|
-| Infraestrutura | 15 | 5 | 5 | 4 | 1 |
-| Plataforma | 8 | 2 | 3 | 2 | 1 |
-| Backend | 10 | 3 | 5 | 1 | 1 |
-| Frontend | 5 | 0 | 3 | 2 | 0 |
-| Agents | 8 | 2 | 4 | 2 | 0 |
-| Negócio Clínico | 6 | 3 | 2 | 1 | 0 |
-| Custo | 5 | 0 | 1 | 3 | 1 |
-| **Total** | **57** | **15** | **23** | **15** | **4** |
+| Domínio         | Total  | Crítico | Alto   | Médio  | Baixo |
+| --------------- | ------ | ------- | ------ | ------ | ----- |
+| Infraestrutura  | 15     | 5       | 5      | 4      | 1     |
+| Plataforma      | 8      | 2       | 3      | 2      | 1     |
+| Backend         | 10     | 3       | 5      | 1      | 1     |
+| Frontend        | 5      | 0       | 3      | 2      | 0     |
+| Agents          | 8      | 2       | 4      | 2      | 0     |
+| Negócio Clínico | 6      | 3       | 2      | 1      | 0     |
+| Custo           | 5      | 0       | 1      | 3      | 1     |
+| **Total**       | **57** | **15**  | **23** | **15** | **4** |
 
 ---
 
 ## 5. Estado Atual dos Alertas
 
-| Alerta Existente | Estado | Problema |
-|-----------------|--------|---------|
+| Alerta Existente                         | Estado                       | Problema                                                                |
+| ---------------------------------------- | ---------------------------- | ----------------------------------------------------------------------- |
 | velya-service-alerts (5 alertas básicos) | Definido como PrometheusRule | Sem contact points reais. Alertmanager sem Slack/PagerDuty configurado. |
-| 52 alertas neste catálogo | Não implementado | Aguardando ServiceMonitors e métricas customizadas |
+| 52 alertas neste catálogo                | Não implementado             | Aguardando ServiceMonitors e métricas customizadas                      |
 
 **Ação imediata necessária**:
+
 1. Configurar Alertmanager com Slack webhook
 2. Implementar ServiceMonitors para todos os serviços
-3. Implementar métricas customizadas velya_* nos serviços NestJS
+3. Implementar métricas customizadas velya\_\* nos serviços NestJS
 4. Adicionar runbooks para os 5 alertas existentes

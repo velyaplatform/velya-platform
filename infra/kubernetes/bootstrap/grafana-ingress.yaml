@@ -9,7 +9,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: velya-platform
   annotations:
-    nginx.ingress.kubernetes.io/service-upstream: "true"
+    nginx.ingress.kubernetes.io/service-upstream: 'true'
 spec:
   ingressClassName: nginx
   rules:

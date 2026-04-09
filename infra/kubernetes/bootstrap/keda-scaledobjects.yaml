@@ -14,7 +14,7 @@ spec:
       metadata:
         serverAddress: http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090
         metricName: container_cpu_usage_seconds_total
-        threshold: "0.5"
+        threshold: '0.5'
         query: sum(rate(container_cpu_usage_seconds_total{namespace="velya-dev-core",pod=~"patient-flow-.*"}[2m]))
 ---
 apiVersion: keda.sh/v1alpha1
@@ -33,7 +33,7 @@ spec:
       metadata:
         serverAddress: http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090
         metricName: container_cpu_usage_seconds_total
-        threshold: "0.5"
+        threshold: '0.5'
         query: sum(rate(container_cpu_usage_seconds_total{namespace="velya-dev-core",pod=~"discharge-orchestrator-.*"}[2m]))
 ---
 apiVersion: keda.sh/v1alpha1
@@ -52,7 +52,7 @@ spec:
       metadata:
         serverAddress: http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090
         metricName: container_cpu_usage_seconds_total
-        threshold: "0.5"
+        threshold: '0.5'
         query: sum(rate(container_cpu_usage_seconds_total{namespace="velya-dev-core",pod=~"task-inbox-.*"}[2m]))
 ---
 apiVersion: keda.sh/v1alpha1
@@ -71,7 +71,7 @@ spec:
       metadata:
         serverAddress: http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090
         metricName: container_cpu_usage_seconds_total
-        threshold: "0.6"
+        threshold: '0.6'
         query: sum(rate(container_cpu_usage_seconds_total{namespace="velya-dev-platform",pod=~"ai-gateway-.*"}[2m]))
 ---
 apiVersion: keda.sh/v1alpha1
@@ -90,5 +90,5 @@ spec:
       metadata:
         serverAddress: http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090
         metricName: container_cpu_usage_seconds_total
-        threshold: "0.7"
+        threshold: '0.7'
         query: sum(rate(container_cpu_usage_seconds_total{namespace="velya-dev-agents",pod=~"agent-orchestrator-.*"}[2m]))

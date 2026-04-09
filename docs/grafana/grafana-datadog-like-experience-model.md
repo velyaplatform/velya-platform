@@ -10,15 +10,15 @@ O principio central e: **correlacao instantanea entre metricas, logs, traces e p
 
 ## Principios da Experiencia Datadog-like
 
-| Principio                  | Datadog                          | Grafana OSS Equivalente                       |
-|---------------------------|----------------------------------|------------------------------------------------|
-| Visao unificada           | Single pane of glass             | Dashboard com mixed datasources + Explore      |
-| Correlacao de sinais      | Metricas <-> Logs <-> Traces     | Data links + Correlations + Exemplars          |
-| Navegacao contextual      | Click-through em qualquer sinal  | Data links com variaveis de contexto           |
-| Service-centric           | Service Map + APM                | Service Graph (Tempo) + dashboard por servico  |
-| Drilldown rapido          | Faceted search                   | Variable filters + ad-hoc filters + Explore    |
-| Actionable dashboards     | Runbooks inline                  | Annotations + links para runbooks              |
-| Profiles integrados       | Continuous profiling              | Pyroscope datasource + flame graph panel       |
+| Principio             | Datadog                         | Grafana OSS Equivalente                       |
+| --------------------- | ------------------------------- | --------------------------------------------- |
+| Visao unificada       | Single pane of glass            | Dashboard com mixed datasources + Explore     |
+| Correlacao de sinais  | Metricas <-> Logs <-> Traces    | Data links + Correlations + Exemplars         |
+| Navegacao contextual  | Click-through em qualquer sinal | Data links com variaveis de contexto          |
+| Service-centric       | Service Map + APM               | Service Graph (Tempo) + dashboard por servico |
+| Drilldown rapido      | Faceted search                  | Variable filters + ad-hoc filters + Explore   |
+| Actionable dashboards | Runbooks inline                 | Annotations + links para runbooks             |
+| Profiles integrados   | Continuous profiling            | Pyroscope datasource + flame graph panel      |
 
 ---
 
@@ -58,14 +58,14 @@ As correlations do Grafana permitem navegar entre datasources automaticamente.
 correlation:
   source_datasource: prometheus
   target_datasource: loki
-  label: "Ver Logs"
-  description: "Abrir logs do servico no periodo selecionado"
+  label: 'Ver Logs'
+  description: 'Abrir logs do servico no periodo selecionado'
   config:
-    type: "query"
+    type: 'query'
     target:
       query: '{namespace="${__data.fields.namespace}", pod=~"${__data.fields.pod}.*"}'
     transformations:
-      - type: "logfmt"
+      - type: 'logfmt'
 ```
 
 ### Loki -> Tempo (Logs para Traces)
@@ -80,9 +80,9 @@ datasources:
       derivedFields:
         - name: TraceID
           matcherRegex: '"traceID":"([a-f0-9]+)"'
-          url: "${__value.raw}"
+          url: '${__value.raw}'
           datasourceUid: tempo
-          matcherType: "regex"
+          matcherType: 'regex'
 ```
 
 ### Tempo -> Pyroscope (Traces para Profiles)
@@ -96,10 +96,10 @@ datasources:
     jsonData:
       tracesToProfiles:
         datasourceUid: pyroscope
-        profileTypeId: "process_cpu:cpu:nanoseconds:cpu:nanoseconds"
+        profileTypeId: 'process_cpu:cpu:nanoseconds:cpu:nanoseconds'
         tags:
-          - key: "service.name"
-            value: "service_name"
+          - key: 'service.name'
+            value: 'service_name'
 ```
 
 ### Prometheus -> Tempo (Metricas para Traces via Exemplars)
@@ -213,7 +213,7 @@ Cada servico Velya tem um dashboard dedicado com visao 360 graus.
         "type": "query",
         "datasource": "Prometheus",
         "query": "label_values(up{job=~\"velya-.*\"}, namespace)",
-        "current": {"text": "velya", "value": "velya"},
+        "current": { "text": "velya", "value": "velya" },
         "refresh": 2
       },
       {
@@ -236,10 +236,10 @@ Cada servico Velya tem um dashboard dedicado com visao 360 graus.
         "name": "environment",
         "type": "custom",
         "options": [
-          {"text": "production", "value": "production"},
-          {"text": "staging", "value": "staging"}
+          { "text": "production", "value": "production" },
+          { "text": "staging", "value": "staging" }
         ],
-        "current": {"text": "production", "value": "production"}
+        "current": { "text": "production", "value": "production" }
       }
     ]
   }
@@ -313,19 +313,19 @@ overrides:
       service_graphs:
         enabled: true
         dimensions:
-          - "service.namespace"
-          - "http.method"
-          - "http.status_code"
+          - 'service.namespace'
+          - 'http.method'
+          - 'http.status_code'
         enable_client_server_prefix: true
         peer_attributes:
-          - "db.system"
-          - "messaging.system"
+          - 'db.system'
+          - 'messaging.system'
       span_metrics:
         enabled: true
         dimensions:
-          - "http.method"
-          - "http.status_code"
-          - "http.route"
+          - 'http.method'
+          - 'http.status_code'
+          - 'http.route'
 ```
 
 ### Painel de Node Graph
@@ -363,16 +363,16 @@ Library Panels garantem que componentes visuais reutilizaveis sejam consistentes
 
 ### Library Panels Padrao Velya
 
-| Library Panel               | Tipo          | Uso                                              |
-|-----------------------------|---------------|--------------------------------------------------|
-| `velya-golden-signals`      | Row           | Golden signals (rate, errors, latency, saturation)|
-| `velya-slo-status`          | Stat + Gauge  | Status atual do SLO com error budget              |
-| `velya-pod-resources`       | Time series   | CPU, memoria, network por pod                     |
-| `velya-log-volume`          | Bar chart     | Volume de logs por nivel                          |
-| `velya-error-log-stream`    | Logs          | Stream de logs de erro                            |
-| `velya-trace-duration-hist` | Histogram     | Distribuicao de duracao de traces                  |
-| `velya-cpu-profile`         | Flame graph   | Profile de CPU do Pyroscope                        |
-| `velya-alert-status`        | State timeline | Status dos alertas do servico                     |
+| Library Panel               | Tipo           | Uso                                                |
+| --------------------------- | -------------- | -------------------------------------------------- |
+| `velya-golden-signals`      | Row            | Golden signals (rate, errors, latency, saturation) |
+| `velya-slo-status`          | Stat + Gauge   | Status atual do SLO com error budget               |
+| `velya-pod-resources`       | Time series    | CPU, memoria, network por pod                      |
+| `velya-log-volume`          | Bar chart      | Volume de logs por nivel                           |
+| `velya-error-log-stream`    | Logs           | Stream de logs de erro                             |
+| `velya-trace-duration-hist` | Histogram      | Distribuicao de duracao de traces                  |
+| `velya-cpu-profile`         | Flame graph    | Profile de CPU do Pyroscope                        |
+| `velya-alert-status`        | State timeline | Status dos alertas do servico                      |
 
 ### Exemplo de Library Panel: Golden Signals
 
@@ -398,9 +398,9 @@ Library Panels garantem que componentes visuais reutilizaveis sejam consistentes
             "unit": "reqps",
             "thresholds": {
               "steps": [
-                {"color": "green", "value": null},
-                {"color": "yellow", "value": 1000},
-                {"color": "red", "value": 5000}
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1000 },
+                { "color": "red", "value": 5000 }
               ]
             }
           }
@@ -421,9 +421,9 @@ Library Panels garantem que componentes visuais reutilizaveis sejam consistentes
             "unit": "percent",
             "thresholds": {
               "steps": [
-                {"color": "green", "value": null},
-                {"color": "yellow", "value": 1},
-                {"color": "red", "value": 5}
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 5 }
               ]
             }
           }
@@ -444,9 +444,9 @@ Library Panels garantem que componentes visuais reutilizaveis sejam consistentes
             "unit": "s",
             "thresholds": {
               "steps": [
-                {"color": "green", "value": null},
-                {"color": "yellow", "value": 0.5},
-                {"color": "red", "value": 2}
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 0.5 },
+                { "color": "red", "value": 2 }
               ]
             }
           }
@@ -469,9 +469,9 @@ Library Panels garantem que componentes visuais reutilizaveis sejam consistentes
             "max": 100,
             "thresholds": {
               "steps": [
-                {"color": "green", "value": null},
-                {"color": "yellow", "value": 70},
-                {"color": "red", "value": 90}
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 70 },
+                { "color": "red", "value": 90 }
               ]
             }
           }
@@ -547,7 +547,7 @@ Annotations fornecem contexto temporal nos dashboards.
 ## 9. Checklist de Implementacao
 
 | Item                                          | Status | Prioridade |
-|-----------------------------------------------|--------|------------|
+| --------------------------------------------- | ------ | ---------- |
 | Correlations Prometheus -> Loki configuradas  | [ ]    | P0         |
 | Derived fields Loki -> Tempo configurados     | [ ]    | P0         |
 | Exemplars Prometheus -> Tempo configurados    | [ ]    | P0         |
@@ -561,20 +561,20 @@ Annotations fornecem contexto temporal nos dashboards.
 | Ad-hoc filters em dashboards de investigacao  | [ ]    | P2         |
 | Links para runbooks em paineis criticos       | [ ]    | P2         |
 | Logs/Traces/Metrics Drilldown apps instalados | [ ]    | P1         |
-| Treinamento da equipe no workflow Explore      | [ ]    | P1         |
+| Treinamento da equipe no workflow Explore     | [ ]    | P1         |
 
 ---
 
 ## 10. Comparativo Final
 
-| Capacidade              | Datadog           | Grafana OSS Velya         | Gap           |
-|------------------------|-------------------|---------------------------|---------------|
-| Correlacao automatica  | Nativo            | Correlations + Data Links | Minimo        |
-| Service Map            | APM nativo        | Tempo Service Graph       | Funcional     |
-| Log to Trace           | Nativo            | Derived Fields            | Equivalente   |
-| Trace to Profile       | Nativo            | Tempo -> Pyroscope        | Equivalente   |
-| Metric to Trace        | Nativo            | Exemplars                 | Equivalente   |
-| Investigacao unificada | Investigation Mode| Explore com split view    | Funcional     |
-| Dashboard templates    | Out-of-the-box    | Library Panels + mixins   | Requer esforco|
-| Continuous profiling   | Nativo            | Pyroscope                 | Equivalente   |
-| Custo                  | Alto (por host)   | Zero (licenca)            | Vantagem OSS  |
+| Capacidade             | Datadog            | Grafana OSS Velya         | Gap            |
+| ---------------------- | ------------------ | ------------------------- | -------------- |
+| Correlacao automatica  | Nativo             | Correlations + Data Links | Minimo         |
+| Service Map            | APM nativo         | Tempo Service Graph       | Funcional      |
+| Log to Trace           | Nativo             | Derived Fields            | Equivalente    |
+| Trace to Profile       | Nativo             | Tempo -> Pyroscope        | Equivalente    |
+| Metric to Trace        | Nativo             | Exemplars                 | Equivalente    |
+| Investigacao unificada | Investigation Mode | Explore com split view    | Funcional      |
+| Dashboard templates    | Out-of-the-box     | Library Panels + mixins   | Requer esforco |
+| Continuous profiling   | Nativo             | Pyroscope                 | Equivalente    |
+| Custo                  | Alto (por host)    | Zero (licenca)            | Vantagem OSS   |

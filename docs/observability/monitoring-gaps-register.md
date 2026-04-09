@@ -20,6 +20,7 @@ Lacunas que impedem operação segura em ambiente clínico. Devem ser resolvidas
 **O que está faltando**: Nenhum dos 8 serviços Velya possui ServiceMonitor configurado. O Prometheus não scrapeou nenhum endpoint `/metrics` de serviços da plataforma.
 
 **O que falha sem isso**:
+
 - Alertas de error rate, latência e saturation não funcionam
 - Nenhum dado de performance de API disponível no Grafana
 - KEDA não tem dados de métricas de negócio para scaling de aplicação (apenas de infraestrutura via kube-state-metrics)
@@ -28,6 +29,7 @@ Lacunas que impedem operação segura em ambiente clínico. Devem ser resolvidas
 **Serviços afetados**: patient-flow-service, task-inbox-service, discharge-orchestrator, api-gateway, ai-gateway, decision-log, memory-service, policy-engine
 
 **Implementação necessária**:
+
 1. Verificar que `/metrics` existe em cada serviço (adicionar prom-client se não existir)
 2. Criar `ServiceMonitor` CRD para cada serviço
 3. Adicionar label no `Service` K8s para o seletor do ServiceMonitor
@@ -46,12 +48,14 @@ Lacunas que impedem operação segura em ambiente clínico. Devem ser resolvidas
 **O que está faltando**: OTel Collector está instalado mas sem exportador de traces. Grafana Tempo não está instalado. Nenhum trace é coletado.
 
 **O que falha sem isso**:
+
 - Impossível diagnosticar latência alta end-to-end (qual serviço na cadeia está lento?)
 - Impossível rastrear o caminho completo de uma decisão de alta médica
 - O campo `trace_id` está nos logs mas não há traces correspondentes no backend
 - Erros em fluxos distribuídos são difíceis de diagnosticar (saber que erro ocorreu vs. saber ONDE)
 
 **Implementação necessária**:
+
 1. Instalar Grafana Tempo via Helm em velya-dev-observability
 2. Configurar OTel Collector para exportar traces para Tempo (OTLP → Tempo)
 3. Configurar datasource Tempo no Grafana com correlação Loki
@@ -72,12 +76,14 @@ Lacunas que impedem operação segura em ambiente clínico. Devem ser resolvidas
 **O que está faltando**: Nenhuma das métricas do namespace `velya_*` está implementada. As métricas de domínio (`velya_discharge_pending_total`, `velya_task_inbox_depth`, etc.) não existem.
 
 **O que falha sem isso**:
+
 - Impossível saber quantos pacientes estão aguardando alta agora
 - Impossível detectar acúmulo de bloqueadores de alta antes de virar crise
 - Impossível monitorar profundidade de inbox clínica
 - O Patient Flow Command Board e Discharge Control Board não têm dados
 
 **Implementação necessária**:
+
 1. Implementar métricas em patient-flow-service: `velya_patient_flow_active_count`, `velya_patient_admission_duration_seconds`
 2. Implementar métricas em discharge-orchestrator: `velya_discharge_pending_total`, `velya_discharge_blocker_age_seconds`, `velya_discharge_decision_to_discharge_seconds`
 3. Implementar métricas em task-inbox-service: `velya_task_inbox_depth`, `velya_task_overdue_total`, `velya_task_inbox_unowned_total`
@@ -96,6 +102,7 @@ Lacunas que impedem operação segura em ambiente clínico. Devem ser resolvidas
 **O que está faltando**: Nenhuma instrumentação no velya-web (Next.js). Core Web Vitals, erros JavaScript, falhas de API e UX friction são completamente invisíveis.
 
 **O que falha sem isso**:
+
 - Impossível detectar degradação de UX antes que clínicos reportem problema
 - Impossível medir impacto de deploys na experiência do usuário
 - Não há diferenciação entre "serviço OK no backend" e "usuário tem experiência ruim"
@@ -104,6 +111,7 @@ Lacunas que impedem operação segura em ambiente clínico. Devem ser resolvidas
 **Impacto clínico**: Clínicos com UX degradada demoram mais para completar tarefas → atraso em cuidados → risco ao paciente.
 
 **Implementação necessária**:
+
 1. Instalar `web-vitals` library no velya-web
 2. Criar `src/lib/metrics.ts` com envio OTLP
 3. Implementar Web Vitals reporting (LCP, INP, CLS)
@@ -124,12 +132,14 @@ Lacunas que impedem operação segura em ambiente clínico. Devem ser resolvidas
 **O que está faltando**: Grafana está acessível apenas via `kubectl port-forward`. Não há Ingress ou NodePort configurado.
 
 **O que falha sem isso**:
+
 - Durante incidente, tempo para acessar dashboard aumenta (precisa de kubectl + port-forward)
 - Impossível compartilhar links de dashboard (link usa localhost:3000)
 - NOC não consegue ter tela de dashboard sempre aberta sem dependência de sessão kubectl
 - Não é possível receber links de alertas que abram o dashboard diretamente
 
 **Implementação necessária** (para kind-velya-local):
+
 ```yaml
 # Opção 1: NodePort (mais simples para kind)
 apiVersion: v1
@@ -164,11 +174,13 @@ spec:
 **O que está faltando**: Os 5 alertas existentes em `velya-service-alerts` disparam internamente no Prometheus mas não chegam a nenhum canal externo. Alertmanager não tem Slack webhook ou PagerDuty configurados.
 
 **O que falha sem isso**:
+
 - Todos os alertas atuais são silenciosos — disparam mas ninguém é notificado
 - Alertas críticos não chegam a nenhuma pessoa
 - Sistema de alerting existe mas não funciona operacionalmente
 
 **Implementação necessária**:
+
 1. Criar Secret K8s com Slack webhook URL (via ExternalSecret)
 2. Configurar Alertmanager receivers (Slack, PagerDuty)
 3. Configurar route (severidade → canal)
@@ -193,6 +205,7 @@ Lacunas que impactam significativamente a operação, mas não impedem operaçã
 **O que está faltando**: Nenhum worker Temporal ou agente da empresa digital expõe métricas Prometheus. A observabilidade dos agents é zero.
 
 **O que falha sem isso**:
+
 - Impossível detectar agent silencioso até que alguém perceba manualmente
 - Impossível monitorar qualidade de saídas (validation pass rate)
 - Impossível detectar loop de correção
@@ -213,6 +226,7 @@ Lacunas que impactam significativamente a operação, mas não impedem operaçã
 **O que está faltando**: Os 5 alertas em `velya-service-alerts` existem mas não têm `runbook_url` nas annotations. Qualquer alerta que disparasse seria difícil de investigar.
 
 **Alertas afetados**:
+
 - VelyaServiceHighErrorRate (sem runbook)
 - VelyaServiceHighLatency (sem runbook)
 - VelyaServiceDown (sem runbook)
@@ -220,6 +234,7 @@ Lacunas que impactam significativamente a operação, mas não impedem operaçã
 - VelyaJobFailed (sem runbook)
 
 **Implementação necessária**:
+
 1. Criar runbooks em `docs/observability/runbooks/` para cada alerta
 2. Adicionar `runbook_url` nas annotations de cada alerta
 3. Adicionar `initial_action` nas annotations
@@ -270,13 +285,14 @@ Lacunas que impactam significativamente a operação, mas não impedem operaçã
 **Risco**: PVC do Loki encher sem aviso. Em ambiente dev com PVCs de tamanho limitado, isso pode quebrar a coleta de logs.
 
 **Implementação necessária**:
+
 ```yaml
 # Em loki-values.yaml
 loki:
   storage:
     type: filesystem
   limits_config:
-    retention_period: 168h  # 7 dias em dev
+    retention_period: 168h # 7 dias em dev
     max_query_length: 721h
   compactor:
     retention_enabled: true
@@ -324,6 +340,7 @@ loki:
 **O que está faltando**: Deploys não são marcados como annotations nos dashboards. Impossível correlacionar visualmente "esse spike de erros começou logo após o deploy das 14h".
 
 **Implementação necessária**:
+
 ```yaml
 # Em .github/workflows/deploy.yaml — adicionar step após deploy
 - name: Annotate Grafana deploy
@@ -347,33 +364,33 @@ loki:
 
 Lista ordenada de todos os itens de observabilidade a implementar.
 
-| # | Item | Esforço | Bloqueia | Owner | Prioridade |
-|---|------|---------|---------|-------|-----------|
-| 1 | ServiceMonitors para todos os serviços | 2 dias | Todos os dashboards de backend | Eng. Platform | P0 |
-| 2 | prom-client em todos os serviços NestJS | 1 dia | Item 1 | Eng. Backend | P0 |
-| 3 | Alertmanager com Slack webhook | 1 dia | GAP-006 | Eng. Platform | P0 |
-| 4 | Grafana NodePort (acesso sem port-forward) | 0.5 dia | GAP-005 | Eng. Platform | P0 |
-| 5 | Dashboard velya-backend-api-red | 1 dia | Item 1 | Eng. Observabilidade | P0 |
-| 6 | Dashboard velya-infra-cluster-overview | 0.5 dia | — | Eng. Observabilidade | P0 |
-| 7 | Instalar Grafana Tempo | 1 dia | GAP-002 | Eng. Platform | P1 |
-| 8 | Configurar OTel Collector → Tempo + sampling | 0.5 dia | Item 7 | Eng. Platform | P1 |
-| 9 | Loki retenção configurada | 0.5 dia | GAP-011 | Eng. Platform | P1 |
-| 10 | Métricas de workflow clínico (discharge, patient-flow) | 3 dias | GAP-003 | Eng. Backend | P1 |
-| 11 | Métricas de Task Inbox | 2 dias | GAP-003 | Eng. Backend | P1 |
-| 12 | Runbooks para 5 alertas existentes | 1 dia | GAP-008 | Eng. Observabilidade | P1 |
-| 13 | Instrumentação OTel em serviços NestJS | 3 dias | Item 7 | Eng. Backend | P1 |
-| 14 | Propagação de trace_id via NATS | 1 dia | Item 13 | Eng. Backend | P1 |
-| 15 | Instrumentação Next.js (instrumentation.ts) | 1 dia | Item 7 | Eng. Frontend | P1 |
-| 16 | Métricas de agents (workers Temporal) | 3 dias | GAP-007 | Eng. Agents | P1 |
-| 17 | Dashboard Patient Flow Command Board | 2 dias | Item 10 | Eng. Observabilidade | P1 |
-| 18 | Dashboard Agent Oversight Console | 2 dias | Item 16 | Eng. Observabilidade | P1 |
-| 19 | Web Vitals + JS errors (frontend RUM) | 3 dias | GAP-004 | Eng. Frontend | P2 |
-| 20 | PrometheusRules completas (57 alertas) | 3 dias | ServiceMonitors | Eng. Observabilidade | P2 |
-| 21 | SLOs definidos para serviços clínicos | 2 dias | Item 1 | Eng. Platform + Produto | P2 |
-| 22 | Todos os 35 dashboards do catálogo | 5 dias | Todos os items acima | Eng. Observabilidade | P2 |
-| 23 | Library panels padronizados | 1 dia | GAP-013 | Eng. Observabilidade | P2 |
-| 24 | Annotation de deploys no Grafana | 0.5 dia | GAP-014 | Eng. Platform | P2 |
-| 25 | Migração OTel+Promtail → Grafana Alloy | 3 dias | — | Eng. Platform | P3 |
+| #   | Item                                                   | Esforço | Bloqueia                       | Owner                   | Prioridade |
+| --- | ------------------------------------------------------ | ------- | ------------------------------ | ----------------------- | ---------- |
+| 1   | ServiceMonitors para todos os serviços                 | 2 dias  | Todos os dashboards de backend | Eng. Platform           | P0         |
+| 2   | prom-client em todos os serviços NestJS                | 1 dia   | Item 1                         | Eng. Backend            | P0         |
+| 3   | Alertmanager com Slack webhook                         | 1 dia   | GAP-006                        | Eng. Platform           | P0         |
+| 4   | Grafana NodePort (acesso sem port-forward)             | 0.5 dia | GAP-005                        | Eng. Platform           | P0         |
+| 5   | Dashboard velya-backend-api-red                        | 1 dia   | Item 1                         | Eng. Observabilidade    | P0         |
+| 6   | Dashboard velya-infra-cluster-overview                 | 0.5 dia | —                              | Eng. Observabilidade    | P0         |
+| 7   | Instalar Grafana Tempo                                 | 1 dia   | GAP-002                        | Eng. Platform           | P1         |
+| 8   | Configurar OTel Collector → Tempo + sampling           | 0.5 dia | Item 7                         | Eng. Platform           | P1         |
+| 9   | Loki retenção configurada                              | 0.5 dia | GAP-011                        | Eng. Platform           | P1         |
+| 10  | Métricas de workflow clínico (discharge, patient-flow) | 3 dias  | GAP-003                        | Eng. Backend            | P1         |
+| 11  | Métricas de Task Inbox                                 | 2 dias  | GAP-003                        | Eng. Backend            | P1         |
+| 12  | Runbooks para 5 alertas existentes                     | 1 dia   | GAP-008                        | Eng. Observabilidade    | P1         |
+| 13  | Instrumentação OTel em serviços NestJS                 | 3 dias  | Item 7                         | Eng. Backend            | P1         |
+| 14  | Propagação de trace_id via NATS                        | 1 dia   | Item 13                        | Eng. Backend            | P1         |
+| 15  | Instrumentação Next.js (instrumentation.ts)            | 1 dia   | Item 7                         | Eng. Frontend           | P1         |
+| 16  | Métricas de agents (workers Temporal)                  | 3 dias  | GAP-007                        | Eng. Agents             | P1         |
+| 17  | Dashboard Patient Flow Command Board                   | 2 dias  | Item 10                        | Eng. Observabilidade    | P1         |
+| 18  | Dashboard Agent Oversight Console                      | 2 dias  | Item 16                        | Eng. Observabilidade    | P1         |
+| 19  | Web Vitals + JS errors (frontend RUM)                  | 3 dias  | GAP-004                        | Eng. Frontend           | P2         |
+| 20  | PrometheusRules completas (57 alertas)                 | 3 dias  | ServiceMonitors                | Eng. Observabilidade    | P2         |
+| 21  | SLOs definidos para serviços clínicos                  | 2 dias  | Item 1                         | Eng. Platform + Produto | P2         |
+| 22  | Todos os 35 dashboards do catálogo                     | 5 dias  | Todos os items acima           | Eng. Observabilidade    | P2         |
+| 23  | Library panels padronizados                            | 1 dia   | GAP-013                        | Eng. Observabilidade    | P2         |
+| 24  | Annotation de deploys no Grafana                       | 0.5 dia | GAP-014                        | Eng. Platform           | P2         |
+| 25  | Migração OTel+Promtail → Grafana Alloy                 | 3 dias  | —                              | Eng. Platform           | P3         |
 
 **Estimativa total para P0**: ~6 dias
 **Estimativa total para P0+P1**: ~25 dias

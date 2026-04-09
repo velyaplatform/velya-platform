@@ -34,61 +34,61 @@ interface RoleAccessProfile {
 }
 
 enum AccessLevel {
-  NENHUM = 0,           // Sem acesso
-  MINIMO = 1,           // Apenas identificadores operacionais (leito, sala)
-  BASICO = 2,           // Dados demograficos basicos
-  OPERACIONAL = 3,      // Dados operacionais (agenda, fila, status)
+  NENHUM = 0, // Sem acesso
+  MINIMO = 1, // Apenas identificadores operacionais (leito, sala)
+  BASICO = 2, // Dados demograficos basicos
+  OPERACIONAL = 3, // Dados operacionais (agenda, fila, status)
   CLINICO_RESTRITO = 4, // Dados clinicos do paciente sob cuidado direto
-  CLINICO_AMPLO = 5,    // Dados clinicos da unidade
-  CLINICO_TOTAL = 6,    // Acesso clinico completo (com justificativa)
-  ADMINISTRATIVO = 7,   // Dados administrativos e financeiros
-  AUDITORIA = 8,        // Acesso de auditoria (leitura ampla, sem edicao clinica)
-  GESTAO = 9,           // Acesso gerencial agregado
-  DIRECAO = 10,         // Acesso total institucional
+  CLINICO_AMPLO = 5, // Dados clinicos da unidade
+  CLINICO_TOTAL = 6, // Acesso clinico completo (com justificativa)
+  ADMINISTRATIVO = 7, // Dados administrativos e financeiros
+  AUDITORIA = 8, // Acesso de auditoria (leitura ampla, sem edicao clinica)
+  GESTAO = 9, // Acesso gerencial agregado
+  DIRECAO = 10, // Acesso total institucional
 }
 
 enum AuthorshipLevel {
   NENHUM = 'nenhum',
-  REGISTRO_OPERACIONAL = 'registro_operacional',     // Registra atividade operacional
-  REGISTRO_ASSISTENCIAL = 'registro_assistencial',    // Registra atividade assistencial
-  EVOLUCAO = 'evolucao',                             // Evolui paciente
-  PRESCRICAO = 'prescricao',                         // Prescreve
-  LAUDO = 'laudo',                                   // Emite laudo
-  PARECER = 'parecer',                               // Emite parecer
-  ATESTADO = 'atestado',                             // Emite atestado
-  DECLARACAO = 'declaracao',                         // Emite declaracao de obito/nascimento
+  REGISTRO_OPERACIONAL = 'registro_operacional', // Registra atividade operacional
+  REGISTRO_ASSISTENCIAL = 'registro_assistencial', // Registra atividade assistencial
+  EVOLUCAO = 'evolucao', // Evolui paciente
+  PRESCRICAO = 'prescricao', // Prescreve
+  LAUDO = 'laudo', // Emite laudo
+  PARECER = 'parecer', // Emite parecer
+  ATESTADO = 'atestado', // Emite atestado
+  DECLARACAO = 'declaracao', // Emite declaracao de obito/nascimento
 }
 
 enum ValidationLevel {
   NENHUM = 'nenhum',
-  CONFERENCIA = 'conferencia',                       // Confere dados
-  DUPLA_CHECAGEM = 'dupla_checagem',                 // Dupla checagem obrigatoria
-  VALIDACAO_TECNICA = 'validacao_tecnica',           // Valida tecnicamente
-  VALIDACAO_CLINICA = 'validacao_clinica',           // Valida clinicamente
-  APROVACAO = 'aprovacao',                           // Aprova (gestao)
+  CONFERENCIA = 'conferencia', // Confere dados
+  DUPLA_CHECAGEM = 'dupla_checagem', // Dupla checagem obrigatoria
+  VALIDACAO_TECNICA = 'validacao_tecnica', // Valida tecnicamente
+  VALIDACAO_CLINICA = 'validacao_clinica', // Valida clinicamente
+  APROVACAO = 'aprovacao', // Aprova (gestao)
 }
 
 enum SignatureLevel {
   NENHUM = 'nenhum',
-  ASSINATURA_SIMPLES = 'assinatura_simples',         // Assinatura de registro operacional
-  ASSINATURA_DIGITAL = 'assinatura_digital',         // Assinatura digital (ICP-Brasil)
-  CO_ASSINATURA = 'co_assinatura',                   // Co-assinatura (supervisao)
+  ASSINATURA_SIMPLES = 'assinatura_simples', // Assinatura de registro operacional
+  ASSINATURA_DIGITAL = 'assinatura_digital', // Assinatura digital (ICP-Brasil)
+  CO_ASSINATURA = 'co_assinatura', // Co-assinatura (supervisao)
   ASSINATURA_RESPONSAVEL = 'assinatura_responsavel', // Assinatura como responsavel tecnico
 }
 
 enum AuditLevel {
   NENHUM = 'nenhum',
-  AUDITADO = 'auditado',                             // Apenas auditado (passivo)
-  AUDITOR_OPERACIONAL = 'auditor_operacional',       // Audita operacoes
-  AUDITOR_CLINICO = 'auditor_clinico',               // Audita registros clinicos
-  AUDITOR_TOTAL = 'auditor_total',                   // Audita tudo
+  AUDITADO = 'auditado', // Apenas auditado (passivo)
+  AUDITOR_OPERACIONAL = 'auditor_operacional', // Audita operacoes
+  AUDITOR_CLINICO = 'auditor_clinico', // Audita registros clinicos
+  AUDITOR_TOTAL = 'auditor_total', // Audita tudo
 }
 
 enum EscalationLevel {
   NENHUM = 'nenhum',
-  PODE_ESCALAR = 'pode_escalar',                     // Pode escalar para superior
-  RECEBE_ESCALACAO = 'recebe_escalacao',             // Recebe escalacoes
-  RESOLVE_ESCALACAO = 'resolve_escalacao',           // Resolve escalacoes
+  PODE_ESCALAR = 'pode_escalar', // Pode escalar para superior
+  RECEBE_ESCALACAO = 'recebe_escalacao', // Recebe escalacoes
+  RESOLVE_ESCALACAO = 'resolve_escalacao', // Resolve escalacoes
   ESCALACAO_INSTITUCIONAL = 'escalacao_institucional', // Escalacao nivel institucional
 }
 
@@ -112,11 +112,11 @@ enum EncounterRole {
 }
 
 enum DataScope {
-  PROPRIO = 'proprio',           // Apenas seus proprios registros
-  PACIENTE = 'paciente',         // Pacientes sob seu cuidado
-  UNIDADE = 'unidade',           // Toda a unidade
+  PROPRIO = 'proprio', // Apenas seus proprios registros
+  PACIENTE = 'paciente', // Pacientes sob seu cuidado
+  UNIDADE = 'unidade', // Toda a unidade
   DEPARTAMENTO = 'departamento', // Todo o departamento
-  INSTITUICAO = 'instituicao',   // Toda a instituicao
+  INSTITUICAO = 'instituicao', // Toda a instituicao
 }
 ```
 
@@ -126,48 +126,48 @@ enum DataScope {
 
 ### 2.1 Corpo Medico
 
-| Papel | Profissao | Funcao | Turno | Encounter | Clinico | Operacional | Autoria | Validacao | Assinatura | Auditoria | Escalacao |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Medico Plantonista | Medico | Assistencia direta | Plantonista | Responsavel | 6 (total) | 3 (operacional) | Prescricao | Validacao clinica | Digital | Auditado | Recebe escalacao |
-| Medico Diarista | Medico | Acompanhamento | Diarista | Responsavel | 5 (amplo) | 3 (operacional) | Prescricao | Validacao clinica | Digital | Auditado | Recebe escalacao |
-| Medico Residente | Medico | Formacao supervisionada | Rotativo | Assistente | 4 (restrito) | 2 (basico) | Evolucao | Conferencia | Co-assinatura | Auditado | Pode escalar |
-| Medico Interconsultor | Medico | Parecer especializado | Flexivel | Consultor | 4 (restrito) | 2 (basico) | Parecer | Validacao clinica | Digital | Auditado | Pode escalar |
-| Anestesista | Medico | Anestesia | Plantonista | Responsavel | 5 (amplo) | 3 (operacional) | Prescricao | Validacao clinica | Digital | Auditado | Recebe escalacao |
-| Cirurgiao | Medico | Cirurgia | Flexivel | Responsavel | 5 (amplo) | 3 (operacional) | Evolucao | Validacao clinica | Digital | Auditado | Recebe escalacao |
-| Intensivista | Medico | Terapia intensiva | Plantonista | Responsavel | 6 (total) | 3 (operacional) | Prescricao | Validacao clinica | Digital | Auditado | Resolve escalacao |
-| Emergencista | Medico | Pronto atendimento | Plantonista | Responsavel | 6 (total) | 3 (operacional) | Prescricao | Validacao clinica | Digital | Auditado | Resolve escalacao |
-| Regulador | Medico | Regulacao medica | Diarista | Consultor | 5 (amplo) | 5 (amplo) | Parecer | Aprovacao | Digital | Auditado | Escalacao institucional |
-| Paliativista | Medico | Cuidados paliativos/dor | Diarista | Responsavel | 5 (amplo) | 3 (operacional) | Prescricao | Validacao clinica | Digital | Auditado | Recebe escalacao |
+| Papel                 | Profissao | Funcao                  | Turno       | Encounter   | Clinico      | Operacional     | Autoria    | Validacao         | Assinatura    | Auditoria | Escalacao               |
+| --------------------- | --------- | ----------------------- | ----------- | ----------- | ------------ | --------------- | ---------- | ----------------- | ------------- | --------- | ----------------------- |
+| Medico Plantonista    | Medico    | Assistencia direta      | Plantonista | Responsavel | 6 (total)    | 3 (operacional) | Prescricao | Validacao clinica | Digital       | Auditado  | Recebe escalacao        |
+| Medico Diarista       | Medico    | Acompanhamento          | Diarista    | Responsavel | 5 (amplo)    | 3 (operacional) | Prescricao | Validacao clinica | Digital       | Auditado  | Recebe escalacao        |
+| Medico Residente      | Medico    | Formacao supervisionada | Rotativo    | Assistente  | 4 (restrito) | 2 (basico)      | Evolucao   | Conferencia       | Co-assinatura | Auditado  | Pode escalar            |
+| Medico Interconsultor | Medico    | Parecer especializado   | Flexivel    | Consultor   | 4 (restrito) | 2 (basico)      | Parecer    | Validacao clinica | Digital       | Auditado  | Pode escalar            |
+| Anestesista           | Medico    | Anestesia               | Plantonista | Responsavel | 5 (amplo)    | 3 (operacional) | Prescricao | Validacao clinica | Digital       | Auditado  | Recebe escalacao        |
+| Cirurgiao             | Medico    | Cirurgia                | Flexivel    | Responsavel | 5 (amplo)    | 3 (operacional) | Evolucao   | Validacao clinica | Digital       | Auditado  | Recebe escalacao        |
+| Intensivista          | Medico    | Terapia intensiva       | Plantonista | Responsavel | 6 (total)    | 3 (operacional) | Prescricao | Validacao clinica | Digital       | Auditado  | Resolve escalacao       |
+| Emergencista          | Medico    | Pronto atendimento      | Plantonista | Responsavel | 6 (total)    | 3 (operacional) | Prescricao | Validacao clinica | Digital       | Auditado  | Resolve escalacao       |
+| Regulador             | Medico    | Regulacao medica        | Diarista    | Consultor   | 5 (amplo)    | 5 (amplo)       | Parecer    | Aprovacao         | Digital       | Auditado  | Escalacao institucional |
+| Paliativista          | Medico    | Cuidados paliativos/dor | Diarista    | Responsavel | 5 (amplo)    | 3 (operacional) | Prescricao | Validacao clinica | Digital       | Auditado  | Recebe escalacao        |
 
 ### 2.2 Enfermagem
 
-| Papel | Profissao | Funcao | Turno | Encounter | Clinico | Operacional | Autoria | Validacao | Assinatura | Auditoria | Escalacao |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Enfermeiro Assistencial | Enfermeiro | Assistencia direta | Plantonista | Responsavel | 5 (amplo) | 4 (restrito) | Evolucao | Validacao clinica | Digital | Auditado | Pode escalar |
-| Enfermeiro Lider | Enfermeiro | Coordenacao turno | Plantonista | Responsavel | 5 (amplo) | 5 (amplo) | Evolucao | Aprovacao | Digital | Auditor operacional | Recebe escalacao |
-| Enfermeiro SCIH | Enfermeiro | Controle infeccao | Diarista | Consultor | 5 (amplo) | 4 (restrito) | Parecer | Validacao clinica | Digital | Auditor clinico | Recebe escalacao |
-| Tecnico Enfermagem | Tecnico | Execucao assistencial | Plantonista | Executor | 4 (restrito) | 3 (operacional) | Registro assistencial | Dupla checagem | Simples | Auditado | Pode escalar |
+| Papel                   | Profissao  | Funcao                | Turno       | Encounter   | Clinico      | Operacional     | Autoria               | Validacao         | Assinatura | Auditoria           | Escalacao        |
+| ----------------------- | ---------- | --------------------- | ----------- | ----------- | ------------ | --------------- | --------------------- | ----------------- | ---------- | ------------------- | ---------------- |
+| Enfermeiro Assistencial | Enfermeiro | Assistencia direta    | Plantonista | Responsavel | 5 (amplo)    | 4 (restrito)    | Evolucao              | Validacao clinica | Digital    | Auditado            | Pode escalar     |
+| Enfermeiro Lider        | Enfermeiro | Coordenacao turno     | Plantonista | Responsavel | 5 (amplo)    | 5 (amplo)       | Evolucao              | Aprovacao         | Digital    | Auditor operacional | Recebe escalacao |
+| Enfermeiro SCIH         | Enfermeiro | Controle infeccao     | Diarista    | Consultor   | 5 (amplo)    | 4 (restrito)    | Parecer               | Validacao clinica | Digital    | Auditor clinico     | Recebe escalacao |
+| Tecnico Enfermagem      | Tecnico    | Execucao assistencial | Plantonista | Executor    | 4 (restrito) | 3 (operacional) | Registro assistencial | Dupla checagem    | Simples    | Auditado            | Pode escalar     |
 
 ### 2.3 Equipe Multiprofissional
 
-| Papel | Profissao | Funcao | Turno | Encounter | Clinico | Operacional | Autoria | Validacao | Assinatura | Auditoria | Escalacao |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Fisioterapeuta | Fisioterapeuta | Reabilitacao | Diarista | Assistente | 4 (restrito) | 3 (operacional) | Evolucao | Validacao tecnica | Digital | Auditado | Pode escalar |
-| Farmaceutico Clinico | Farmaceutico | Farmacia clinica | Diarista | Consultor | 4 (restrito) | 4 (restrito) | Parecer | Validacao clinica | Digital | Auditado | Pode escalar |
-| Nutricionista Clinico | Nutricionista | Terapia nutricional | Diarista | Assistente | 4 (restrito) | 3 (operacional) | Prescricao | Validacao tecnica | Digital | Auditado | Pode escalar |
-| Psicologo | Psicologo | Apoio psicologico | Diarista | Assistente | 4 (restrito) | 2 (basico) | Evolucao | Validacao tecnica | Digital | Auditado | Pode escalar |
-| Assistente Social | Assistente Social | Servico social | Diarista | Assistente | 3 (operacional) | 3 (operacional) | Evolucao | Validacao tecnica | Digital | Auditado | Pode escalar |
-| Fonoaudiologo | Fonoaudiologo | Fonoaudiologia | Diarista | Assistente | 4 (restrito) | 2 (basico) | Evolucao | Validacao tecnica | Digital | Auditado | Pode escalar |
-| Terapeuta Ocupacional | TO | Terapia ocupacional | Diarista | Assistente | 4 (restrito) | 2 (basico) | Evolucao | Validacao tecnica | Digital | Auditado | Pode escalar |
+| Papel                 | Profissao         | Funcao              | Turno    | Encounter  | Clinico         | Operacional     | Autoria    | Validacao         | Assinatura | Auditoria | Escalacao    |
+| --------------------- | ----------------- | ------------------- | -------- | ---------- | --------------- | --------------- | ---------- | ----------------- | ---------- | --------- | ------------ |
+| Fisioterapeuta        | Fisioterapeuta    | Reabilitacao        | Diarista | Assistente | 4 (restrito)    | 3 (operacional) | Evolucao   | Validacao tecnica | Digital    | Auditado  | Pode escalar |
+| Farmaceutico Clinico  | Farmaceutico      | Farmacia clinica    | Diarista | Consultor  | 4 (restrito)    | 4 (restrito)    | Parecer    | Validacao clinica | Digital    | Auditado  | Pode escalar |
+| Nutricionista Clinico | Nutricionista     | Terapia nutricional | Diarista | Assistente | 4 (restrito)    | 3 (operacional) | Prescricao | Validacao tecnica | Digital    | Auditado  | Pode escalar |
+| Psicologo             | Psicologo         | Apoio psicologico   | Diarista | Assistente | 4 (restrito)    | 2 (basico)      | Evolucao   | Validacao tecnica | Digital    | Auditado  | Pode escalar |
+| Assistente Social     | Assistente Social | Servico social      | Diarista | Assistente | 3 (operacional) | 3 (operacional) | Evolucao   | Validacao tecnica | Digital    | Auditado  | Pode escalar |
+| Fonoaudiologo         | Fonoaudiologo     | Fonoaudiologia      | Diarista | Assistente | 4 (restrito)    | 2 (basico)      | Evolucao   | Validacao tecnica | Digital    | Auditado  | Pode escalar |
+| Terapeuta Ocupacional | TO                | Terapia ocupacional | Diarista | Assistente | 4 (restrito)    | 2 (basico)      | Evolucao   | Validacao tecnica | Digital    | Auditado  | Pode escalar |
 
 ### 2.4 Diagnostico e Apoio Clinico
 
-| Papel | Profissao | Funcao | Turno | Encounter | Clinico | Operacional | Autoria | Validacao | Assinatura | Auditoria | Escalacao |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Biomedico/Lab | Biomedico | Analises clinicas | Rotativo | Executor | 3 (operacional) | 3 (operacional) | Laudo | Validacao tecnica | Digital | Auditado | Pode escalar |
-| Tecnico Laboratorio | Tecnico | Coleta e processamento | Rotativo | Executor | 2 (basico) | 3 (operacional) | Registro operacional | Conferencia | Simples | Auditado | Pode escalar |
-| Radiologista | Medico | Diagnostico imagem | Flexivel | Consultor | 5 (amplo) | 3 (operacional) | Laudo | Validacao clinica | Digital | Auditado | Pode escalar |
-| Tecnico Radiologia | Tecnico | Execucao exames | Rotativo | Executor | 2 (basico) | 3 (operacional) | Registro operacional | Conferencia | Simples | Auditado | Pode escalar |
+| Papel               | Profissao | Funcao                 | Turno    | Encounter | Clinico         | Operacional     | Autoria              | Validacao         | Assinatura | Auditoria | Escalacao    |
+| ------------------- | --------- | ---------------------- | -------- | --------- | --------------- | --------------- | -------------------- | ----------------- | ---------- | --------- | ------------ |
+| Biomedico/Lab       | Biomedico | Analises clinicas      | Rotativo | Executor  | 3 (operacional) | 3 (operacional) | Laudo                | Validacao tecnica | Digital    | Auditado  | Pode escalar |
+| Tecnico Laboratorio | Tecnico   | Coleta e processamento | Rotativo | Executor  | 2 (basico)      | 3 (operacional) | Registro operacional | Conferencia       | Simples    | Auditado  | Pode escalar |
+| Radiologista        | Medico    | Diagnostico imagem     | Flexivel | Consultor | 5 (amplo)       | 3 (operacional) | Laudo                | Validacao clinica | Digital    | Auditado  | Pode escalar |
+| Tecnico Radiologia  | Tecnico   | Execucao exames        | Rotativo | Executor  | 2 (basico)      | 3 (operacional) | Registro operacional | Conferencia       | Simples    | Auditado  | Pode escalar |
 
 ---
 
@@ -175,45 +175,45 @@ enum DataScope {
 
 ### 3.1 Recepcao e Cadastro
 
-| Papel | Profissao | Funcao | Turno | Encounter | Clinico | Operacional | Autoria | Validacao | Assinatura | Auditoria | Escalacao |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Recepcionista | Administrativo | Recepcao pacientes | Rotativo | Nenhum | 1 (minimo) | 4 (restrito) | Registro operacional | Conferencia | Simples | Auditado | Pode escalar |
-| Cadastrista | Administrativo | Cadastro e admissao | Diarista | Nenhum | 2 (basico) | 4 (restrito) | Registro operacional | Conferencia | Simples | Auditado | Pode escalar |
-| Central Internacao | Administrativo | Gestao internacoes | Diarista | Nenhum | 2 (basico) | 5 (amplo) | Registro operacional | Conferencia | Simples | Auditado | Pode escalar |
-| Central Leitos | Administrativo | Gestao leitos | Rotativo | Nenhum | 1 (minimo) | 5 (amplo) | Registro operacional | Conferencia | Simples | Auditado | Recebe escalacao |
+| Papel              | Profissao      | Funcao              | Turno    | Encounter | Clinico    | Operacional  | Autoria              | Validacao   | Assinatura | Auditoria | Escalacao        |
+| ------------------ | -------------- | ------------------- | -------- | --------- | ---------- | ------------ | -------------------- | ----------- | ---------- | --------- | ---------------- |
+| Recepcionista      | Administrativo | Recepcao pacientes  | Rotativo | Nenhum    | 1 (minimo) | 4 (restrito) | Registro operacional | Conferencia | Simples    | Auditado  | Pode escalar     |
+| Cadastrista        | Administrativo | Cadastro e admissao | Diarista | Nenhum    | 2 (basico) | 4 (restrito) | Registro operacional | Conferencia | Simples    | Auditado  | Pode escalar     |
+| Central Internacao | Administrativo | Gestao internacoes  | Diarista | Nenhum    | 2 (basico) | 5 (amplo)    | Registro operacional | Conferencia | Simples    | Auditado  | Pode escalar     |
+| Central Leitos     | Administrativo | Gestao leitos       | Rotativo | Nenhum    | 1 (minimo) | 5 (amplo)    | Registro operacional | Conferencia | Simples    | Auditado  | Recebe escalacao |
 
 ### 3.2 Logistica e Apoio
 
-| Papel | Profissao | Funcao | Turno | Encounter | Clinico | Operacional | Autoria | Validacao | Assinatura | Auditoria | Escalacao |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Maqueiro | Operacional | Transporte interno | Rotativo | Apoio | 0 (nenhum) | 3 (operacional) | Registro operacional | Nenhum | Simples | Auditado | Pode escalar |
-| Motorista Ambulancia | Operacional | Transporte externo | Plantonista | Apoio | 0 (nenhum) | 3 (operacional) | Registro operacional | Nenhum | Simples | Auditado | Pode escalar |
-| Higienizacao | Operacional | Limpeza hospitalar | Rotativo | Nenhum | 0 (nenhum) | 3 (operacional) | Registro operacional | Nenhum | Simples | Auditado | Pode escalar |
-| Rouparia | Operacional | Gestao enxoval | Diarista | Nenhum | 0 (nenhum) | 3 (operacional) | Registro operacional | Nenhum | Simples | Auditado | Pode escalar |
-| Manutencao | Tecnico | Manutencao predial/equip | Rotativo | Nenhum | 0 (nenhum) | 3 (operacional) | Registro operacional | Validacao tecnica | Simples | Auditado | Pode escalar |
-| Hotelaria | Operacional | Servicos hoteleiros | Diarista | Nenhum | 0 (nenhum) | 3 (operacional) | Registro operacional | Nenhum | Simples | Auditado | Pode escalar |
-| Seguranca | Operacional | Seguranca patrimonial | Plantonista | Nenhum | 0 (nenhum) | 3 (operacional) | Registro operacional | Nenhum | Simples | Auditado | Recebe escalacao |
-| Almoxarifado | Operacional | Gestao materiais | Diarista | Nenhum | 0 (nenhum) | 4 (restrito) | Registro operacional | Conferencia | Simples | Auditado | Pode escalar |
+| Papel                | Profissao   | Funcao                   | Turno       | Encounter | Clinico    | Operacional     | Autoria              | Validacao         | Assinatura | Auditoria | Escalacao        |
+| -------------------- | ----------- | ------------------------ | ----------- | --------- | ---------- | --------------- | -------------------- | ----------------- | ---------- | --------- | ---------------- |
+| Maqueiro             | Operacional | Transporte interno       | Rotativo    | Apoio     | 0 (nenhum) | 3 (operacional) | Registro operacional | Nenhum            | Simples    | Auditado  | Pode escalar     |
+| Motorista Ambulancia | Operacional | Transporte externo       | Plantonista | Apoio     | 0 (nenhum) | 3 (operacional) | Registro operacional | Nenhum            | Simples    | Auditado  | Pode escalar     |
+| Higienizacao         | Operacional | Limpeza hospitalar       | Rotativo    | Nenhum    | 0 (nenhum) | 3 (operacional) | Registro operacional | Nenhum            | Simples    | Auditado  | Pode escalar     |
+| Rouparia             | Operacional | Gestao enxoval           | Diarista    | Nenhum    | 0 (nenhum) | 3 (operacional) | Registro operacional | Nenhum            | Simples    | Auditado  | Pode escalar     |
+| Manutencao           | Tecnico     | Manutencao predial/equip | Rotativo    | Nenhum    | 0 (nenhum) | 3 (operacional) | Registro operacional | Validacao tecnica | Simples    | Auditado  | Pode escalar     |
+| Hotelaria            | Operacional | Servicos hoteleiros      | Diarista    | Nenhum    | 0 (nenhum) | 3 (operacional) | Registro operacional | Nenhum            | Simples    | Auditado  | Pode escalar     |
+| Seguranca            | Operacional | Seguranca patrimonial    | Plantonista | Nenhum    | 0 (nenhum) | 3 (operacional) | Registro operacional | Nenhum            | Simples    | Auditado  | Recebe escalacao |
+| Almoxarifado         | Operacional | Gestao materiais         | Diarista    | Nenhum    | 0 (nenhum) | 4 (restrito)    | Registro operacional | Conferencia       | Simples    | Auditado  | Pode escalar     |
 
 ### 3.3 Farmacia e Nutricao Operacional
 
-| Papel | Profissao | Funcao | Turno | Encounter | Clinico | Operacional | Autoria | Validacao | Assinatura | Auditoria | Escalacao |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Farmacia Logistica | Tecnico | Dispensacao/estoque | Rotativo | Nenhum | 1 (minimo) | 4 (restrito) | Registro operacional | Dupla checagem | Simples | Auditado | Pode escalar |
-| Nutricao Operacional | Tecnico | Producao dietas | Rotativo | Nenhum | 1 (minimo) | 3 (operacional) | Registro operacional | Conferencia | Simples | Auditado | Pode escalar |
+| Papel                | Profissao | Funcao              | Turno    | Encounter | Clinico    | Operacional     | Autoria              | Validacao      | Assinatura | Auditoria | Escalacao    |
+| -------------------- | --------- | ------------------- | -------- | --------- | ---------- | --------------- | -------------------- | -------------- | ---------- | --------- | ------------ |
+| Farmacia Logistica   | Tecnico   | Dispensacao/estoque | Rotativo | Nenhum    | 1 (minimo) | 4 (restrito)    | Registro operacional | Dupla checagem | Simples    | Auditado  | Pode escalar |
+| Nutricao Operacional | Tecnico   | Producao dietas     | Rotativo | Nenhum    | 1 (minimo) | 3 (operacional) | Registro operacional | Conferencia    | Simples    | Auditado  | Pode escalar |
 
 ### 3.4 Administrativo e Gestao
 
-| Papel | Profissao | Funcao | Turno | Encounter | Clinico | Operacional | Autoria | Validacao | Assinatura | Auditoria | Escalacao |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Admin Unidade | Administrativo | Gestao unidade | Diarista | Nenhum | 2 (basico) | 5 (amplo) | Registro operacional | Aprovacao | Digital | Auditor operacional | Recebe escalacao |
-| Faturamento | Administrativo | Faturamento | Diarista | Nenhum | 2 (basico) | 7 (administrativo) | Registro operacional | Conferencia | Digital | Auditado | Pode escalar |
-| TI | Tecnico | Tecnologia informacao | Rotativo | Nenhum | 0 (nenhum) | 5 (amplo) | Registro operacional | Validacao tecnica | Simples | Auditado | Recebe escalacao |
-| Qualidade | Especialista | Gestao qualidade | Diarista | Nenhum | 8 (auditoria) | 8 (auditoria) | Parecer | Validacao clinica | Digital | Auditor total | Recebe escalacao |
-| Auditoria | Especialista | Auditoria clinica/op | Diarista | Observador | 8 (auditoria) | 8 (auditoria) | Parecer | Validacao clinica | Digital | Auditor total | Resolve escalacao |
-| SCIH | Enfermeiro | Controle infeccao | Diarista | Consultor | 5 (amplo) | 4 (restrito) | Parecer | Validacao clinica | Digital | Auditor clinico | Recebe escalacao |
-| Gestor/Coordenador | Administrativo | Gestao departamento | Diarista | Nenhum | 9 (gestao) | 9 (gestao) | Registro operacional | Aprovacao | Digital | Auditor operacional | Resolve escalacao |
-| Direcao | Administrativo | Direcao institucional | Administrativo | Nenhum | 10 (direcao) | 10 (direcao) | Registro operacional | Aprovacao | Responsavel | Auditor total | Escalacao institucional |
+| Papel              | Profissao      | Funcao                | Turno          | Encounter  | Clinico       | Operacional        | Autoria              | Validacao         | Assinatura  | Auditoria           | Escalacao               |
+| ------------------ | -------------- | --------------------- | -------------- | ---------- | ------------- | ------------------ | -------------------- | ----------------- | ----------- | ------------------- | ----------------------- |
+| Admin Unidade      | Administrativo | Gestao unidade        | Diarista       | Nenhum     | 2 (basico)    | 5 (amplo)          | Registro operacional | Aprovacao         | Digital     | Auditor operacional | Recebe escalacao        |
+| Faturamento        | Administrativo | Faturamento           | Diarista       | Nenhum     | 2 (basico)    | 7 (administrativo) | Registro operacional | Conferencia       | Digital     | Auditado            | Pode escalar            |
+| TI                 | Tecnico        | Tecnologia informacao | Rotativo       | Nenhum     | 0 (nenhum)    | 5 (amplo)          | Registro operacional | Validacao tecnica | Simples     | Auditado            | Recebe escalacao        |
+| Qualidade          | Especialista   | Gestao qualidade      | Diarista       | Nenhum     | 8 (auditoria) | 8 (auditoria)      | Parecer              | Validacao clinica | Digital     | Auditor total       | Recebe escalacao        |
+| Auditoria          | Especialista   | Auditoria clinica/op  | Diarista       | Observador | 8 (auditoria) | 8 (auditoria)      | Parecer              | Validacao clinica | Digital     | Auditor total       | Resolve escalacao       |
+| SCIH               | Enfermeiro     | Controle infeccao     | Diarista       | Consultor  | 5 (amplo)     | 4 (restrito)       | Parecer              | Validacao clinica | Digital     | Auditor clinico     | Recebe escalacao        |
+| Gestor/Coordenador | Administrativo | Gestao departamento   | Diarista       | Nenhum     | 9 (gestao)    | 9 (gestao)         | Registro operacional | Aprovacao         | Digital     | Auditor operacional | Resolve escalacao       |
+| Direcao            | Administrativo | Direcao institucional | Administrativo | Nenhum     | 10 (direcao)  | 10 (direcao)       | Registro operacional | Aprovacao         | Responsavel | Auditor total       | Escalacao institucional |
 
 ---
 
@@ -313,19 +313,19 @@ const contextualRules: ContextualAccessRule[] = [
 
 ### 4.2 Mapa de Dados Visiveis por Nivel
 
-| Nivel | Dados Visiveis | Dados Mascarados | Dados Bloqueados |
-|---|---|---|---|
-| 0 (nenhum) | Nenhum dado de paciente | Tudo | Tudo |
-| 1 (minimo) | Numero leito, sala, codigo atendimento | Nome, idade, diagnostico | Tudo clinico |
-| 2 (basico) | Nome, idade, convenio | CPF parcial, endereco | Diagnostico, prescricao |
-| 3 (operacional) | Dados operacionais: fila, status, prioridade | Dados clinicos | Evolucoes, laudos |
-| 4 (restrito) | Dados clinicos do paciente sob cuidado | Outros pacientes | Dados financeiros |
-| 5 (amplo) | Dados clinicos da unidade | Outras unidades | Dados financeiros |
-| 6 (total) | Todos os dados clinicos (com justificativa) | - | Dados financeiros |
-| 7 (admin) | Dados administrativos e financeiros | Detalhes clinicos | - |
-| 8 (auditoria) | Leitura ampla para auditoria | - | Escrita clinica |
-| 9 (gestao) | Dados agregados e indicadores | Dados individuais sensiveis | - |
-| 10 (direcao) | Acesso total institucional | - | - |
+| Nivel           | Dados Visiveis                               | Dados Mascarados            | Dados Bloqueados        |
+| --------------- | -------------------------------------------- | --------------------------- | ----------------------- |
+| 0 (nenhum)      | Nenhum dado de paciente                      | Tudo                        | Tudo                    |
+| 1 (minimo)      | Numero leito, sala, codigo atendimento       | Nome, idade, diagnostico    | Tudo clinico            |
+| 2 (basico)      | Nome, idade, convenio                        | CPF parcial, endereco       | Diagnostico, prescricao |
+| 3 (operacional) | Dados operacionais: fila, status, prioridade | Dados clinicos              | Evolucoes, laudos       |
+| 4 (restrito)    | Dados clinicos do paciente sob cuidado       | Outros pacientes            | Dados financeiros       |
+| 5 (amplo)       | Dados clinicos da unidade                    | Outras unidades             | Dados financeiros       |
+| 6 (total)       | Todos os dados clinicos (com justificativa)  | -                           | Dados financeiros       |
+| 7 (admin)       | Dados administrativos e financeiros          | Detalhes clinicos           | -                       |
+| 8 (auditoria)   | Leitura ampla para auditoria                 | -                           | Escrita clinica         |
+| 9 (gestao)      | Dados agregados e indicadores                | Dados individuais sensiveis | -                       |
+| 10 (direcao)    | Acesso total institucional                   | -                           | -                       |
 
 ---
 
@@ -491,16 +491,16 @@ async function evaluateAccess(
 
 ## 7. Resumo da Matriz
 
-| Grupo | Qtd Papeis | Acesso Clinico Max | Acesso Operacional Max | Reporta Trabalho |
-|---|---|---|---|---|
-| Corpo Medico | 10 | 6 (total) | 5 (amplo) | SIM |
-| Enfermagem | 4 | 5 (amplo) | 5 (amplo) | SIM |
-| Multiprofissional | 7 | 4 (restrito) | 3 (operacional) | SIM |
-| Diagnostico | 4 | 5 (amplo) | 3 (operacional) | SIM |
-| Recepcao/Cadastro | 4 | 2 (basico) | 5 (amplo) | SIM |
-| Logistica/Apoio | 8 | 0 (nenhum) | 4 (restrito) | SIM |
-| Farmacia/Nutricao Op | 2 | 1 (minimo) | 4 (restrito) | SIM |
-| Admin/Gestao | 8 | 10 (direcao) | 10 (direcao) | SIM |
-| **Total** | **47** | - | - | **TODOS** |
+| Grupo                | Qtd Papeis | Acesso Clinico Max | Acesso Operacional Max | Reporta Trabalho |
+| -------------------- | ---------- | ------------------ | ---------------------- | ---------------- |
+| Corpo Medico         | 10         | 6 (total)          | 5 (amplo)              | SIM              |
+| Enfermagem           | 4          | 5 (amplo)          | 5 (amplo)              | SIM              |
+| Multiprofissional    | 7          | 4 (restrito)       | 3 (operacional)        | SIM              |
+| Diagnostico          | 4          | 5 (amplo)          | 3 (operacional)        | SIM              |
+| Recepcao/Cadastro    | 4          | 2 (basico)         | 5 (amplo)              | SIM              |
+| Logistica/Apoio      | 8          | 0 (nenhum)         | 4 (restrito)           | SIM              |
+| Farmacia/Nutricao Op | 2          | 1 (minimo)         | 4 (restrito)           | SIM              |
+| Admin/Gestao         | 8          | 10 (direcao)       | 10 (direcao)           | SIM              |
+| **Total**            | **47**     | -                  | -                      | **TODOS**        |
 
 **Principio inviolavel:** Todo papel reporta trabalho. Acesso clinico e proporcional a necessidade assistencial. Nenhum acesso sem justificativa e rastreabilidade.

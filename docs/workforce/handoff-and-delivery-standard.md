@@ -17,62 +17,62 @@
 ```typescript
 interface HandoffEvent {
   // --- Identificacao ---
-  handoff_id: string;                    // UUID v7
-  handoff_type: HandoffType;             // Tipo do handoff
-  category: HandoffCategory;             // Categoria funcional
+  handoff_id: string; // UUID v7
+  handoff_type: HandoffType; // Tipo do handoff
+  category: HandoffCategory; // Categoria funcional
 
   // --- Origem ---
-  origin_actor_id: string;               // Quem entrega
-  origin_actor_role: ProfessionalRole;   // Papel de quem entrega
-  origin_unit_id: string;                // Unidade de origem
-  origin_department_id: string;          // Departamento de origem
-  origin_shift_id?: string;              // Turno de origem (se passagem de plantao)
+  origin_actor_id: string; // Quem entrega
+  origin_actor_role: ProfessionalRole; // Papel de quem entrega
+  origin_unit_id: string; // Unidade de origem
+  origin_department_id: string; // Departamento de origem
+  origin_shift_id?: string; // Turno de origem (se passagem de plantao)
 
   // --- Destino ---
-  destination_actor_id?: string;         // Para quem (pode ser role se nao definido)
-  destination_role: ProfessionalRole;    // Papel esperado do receptor
-  destination_unit_id: string;           // Unidade de destino
-  destination_department_id: string;     // Departamento de destino
-  destination_shift_id?: string;         // Turno de destino
+  destination_actor_id?: string; // Para quem (pode ser role se nao definido)
+  destination_role: ProfessionalRole; // Papel esperado do receptor
+  destination_unit_id: string; // Unidade de destino
+  destination_department_id: string; // Departamento de destino
+  destination_shift_id?: string; // Turno de destino
 
   // --- Contexto do Paciente/Atividade ---
-  patient_id?: string;                   // Paciente (quando aplicavel)
-  encounter_id?: string;                 // Encontro/atendimento
-  location_id: string;                   // Local
-  reason: HandoffReason;                 // Motivo do handoff
+  patient_id?: string; // Paciente (quando aplicavel)
+  encounter_id?: string; // Encontro/atendimento
+  location_id: string; // Local
+  reason: HandoffReason; // Motivo do handoff
 
   // --- Resumo Contextual ---
-  context_summary: ContextSummary;       // Resumo estruturado
-  clinical_status?: ClinicalStatus;      // Status clinico (SBAR)
+  context_summary: ContextSummary; // Resumo estruturado
+  clinical_status?: ClinicalStatus; // Status clinico (SBAR)
   operational_status?: OperationalStatus; // Status operacional
 
   // --- Itens Pendentes ---
-  pending_items: PendingItem[];          // O que esta pendente
-  completed_items: CompletedItem[];      // O que foi feito
+  pending_items: PendingItem[]; // O que esta pendente
+  completed_items: CompletedItem[]; // O que foi feito
 
   // --- Prioridade e Risco ---
-  priority: Priority;                    // Prioridade da passagem
-  risk_level: RiskLevel;                 // Nivel de risco
-  risk_factors?: string[];               // Fatores de risco identificados
+  priority: Priority; // Prioridade da passagem
+  risk_level: RiskLevel; // Nivel de risco
+  risk_factors?: string[]; // Fatores de risco identificados
 
   // --- Proximos Passos ---
-  next_steps: NextStep[];                // Acoes esperadas do receptor
-  expected_actions_timeline?: string;    // Quando as acoes devem ocorrer
+  next_steps: NextStep[]; // Acoes esperadas do receptor
+  expected_actions_timeline?: string; // Quando as acoes devem ocorrer
 
   // --- Aceite ---
-  acceptance: HandoffAcceptance;         // Estado do aceite
+  acceptance: HandoffAcceptance; // Estado do aceite
 
   // --- Temporal ---
-  initiated_at: string;                  // Quando iniciado
-  presented_at?: string;                 // Quando apresentado ao destino
-  accepted_at?: string;                  // Quando aceito
-  transition_time_minutes?: number;      // Tempo de transicao
-  sla_target_minutes: number;            // SLA para aceite
+  initiated_at: string; // Quando iniciado
+  presented_at?: string; // Quando apresentado ao destino
+  accepted_at?: string; // Quando aceito
+  transition_time_minutes?: number; // Tempo de transicao
+  sla_target_minutes: number; // SLA para aceite
 
   // --- Rastreabilidade ---
   provenance_id: string;
   audit_event_id: string;
-  related_work_events: string[];         // WorkEvents relacionados
+  related_work_events: string[]; // WorkEvents relacionados
   version: number;
   supersedes?: string;
 }
@@ -119,7 +119,7 @@ interface HandoffAcceptance {
   actor_role?: ProfessionalRole;
   timestamp?: string;
   refusal_reason?: string;
-  conditions?: string[];                 // Condicoes de aceite
+  conditions?: string[]; // Condicoes de aceite
   partial_acceptance?: {
     accepted_items: string[];
     refused_items: string[];
@@ -151,19 +151,19 @@ interface ContextSummary {
 
 // --- SBAR (clinico) ---
 interface SBARContent {
-  situation: string;        // O que esta acontecendo agora
-  background: string;       // Contexto relevante
-  assessment: string;       // Avaliacao atual
-  recommendation: string;   // O que recomenda ao proximo
+  situation: string; // O que esta acontecendo agora
+  background: string; // Contexto relevante
+  assessment: string; // Avaliacao atual
+  recommendation: string; // O que recomenda ao proximo
 }
 
 // --- I-PASS (passagem de plantao) ---
 interface IPASSContent {
   illness_severity: 'estavel' | 'observacao' | 'instavel' | 'critico';
-  patient_summary: string;       // Resumo do paciente
-  action_list: ActionItem[];     // Lista de acoes pendentes
-  situation_awareness: string;   // Consciencia situacional
-  synthesis: string;             // Sintese e confirmacao
+  patient_summary: string; // Resumo do paciente
+  action_list: ActionItem[]; // Lista de acoes pendentes
+  situation_awareness: string; // Consciencia situacional
+  synthesis: string; // Sintese e confirmacao
 }
 
 interface ActionItem {
@@ -176,19 +176,19 @@ interface ActionItem {
 
 // --- Closed Loop (comunicacao critica) ---
 interface ClosedLoopContent {
-  message_sent: string;          // Mensagem enviada
-  message_received: string;      // Mensagem recebida (readback)
-  confirmation: string;          // Confirmacao do emissor
-  confirmed_at: string;          // Timestamp da confirmacao
+  message_sent: string; // Mensagem enviada
+  message_received: string; // Mensagem recebida (readback)
+  confirmation: string; // Confirmacao do emissor
+  confirmed_at: string; // Timestamp da confirmacao
 }
 
 // --- Operational Simple (nao-clinico) ---
 interface OperationalSimpleContent {
-  what_was_done: string;         // O que foi feito
-  what_remains: string;          // O que falta
-  where: string;                 // Onde
-  when_needed: string;           // Quando precisa ser feito
-  special_conditions?: string;   // Condicoes especiais
+  what_was_done: string; // O que foi feito
+  what_remains: string; // O que falta
+  where: string; // Onde
+  when_needed: string; // Quando precisa ser feito
+  special_conditions?: string; // Condicoes especiais
 }
 ```
 
@@ -198,39 +198,39 @@ interface OperationalSimpleContent {
 
 ### 3.1 Tabela de Formatos
 
-| Contexto | Formato | Obrigatoriedade | Aceite Obrigatorio | SLA Aceite |
-|---|---|---|---|---|
-| Passagem de plantao medico | I-PASS | Obrigatorio | Sim | 15 min |
-| Passagem de plantao enfermagem | I-PASS | Obrigatorio | Sim | 15 min |
-| Transferencia UTI -> Enfermaria | SBAR | Obrigatorio | Sim | 30 min |
-| Transferencia entre unidades | SBAR | Obrigatorio | Sim | 30 min |
-| Alta hospitalar | SBAR | Obrigatorio | N/A (paciente) | N/A |
-| Interconsulta | SBAR | Obrigatorio | Sim | 60 min |
-| Cobertura temporaria | Closed Loop | Obrigatorio | Sim | 5 min |
-| Comunicacao critica (lab, imagem) | Closed Loop | Obrigatorio | Sim | 10 min |
-| Transporte paciente | Operational Simple | Obrigatorio | Sim | 5 min |
-| Limpeza terminal | Operational Simple | Obrigatorio | Sim | 10 min |
-| Manutencao equipamento | Operational Simple | Obrigatorio | Sim | 15 min |
-| Entrega material/farmacia | Operational Simple | Obrigatorio | Sim | 10 min |
-| Seguranca - ocorrencia | Operational Simple | Obrigatorio | Sim | 5 min |
-| Escalacao clinica | SBAR + Closed Loop | Obrigatorio | Sim | Conforme urgencia |
+| Contexto                          | Formato            | Obrigatoriedade | Aceite Obrigatorio | SLA Aceite        |
+| --------------------------------- | ------------------ | --------------- | ------------------ | ----------------- |
+| Passagem de plantao medico        | I-PASS             | Obrigatorio     | Sim                | 15 min            |
+| Passagem de plantao enfermagem    | I-PASS             | Obrigatorio     | Sim                | 15 min            |
+| Transferencia UTI -> Enfermaria   | SBAR               | Obrigatorio     | Sim                | 30 min            |
+| Transferencia entre unidades      | SBAR               | Obrigatorio     | Sim                | 30 min            |
+| Alta hospitalar                   | SBAR               | Obrigatorio     | N/A (paciente)     | N/A               |
+| Interconsulta                     | SBAR               | Obrigatorio     | Sim                | 60 min            |
+| Cobertura temporaria              | Closed Loop        | Obrigatorio     | Sim                | 5 min             |
+| Comunicacao critica (lab, imagem) | Closed Loop        | Obrigatorio     | Sim                | 10 min            |
+| Transporte paciente               | Operational Simple | Obrigatorio     | Sim                | 5 min             |
+| Limpeza terminal                  | Operational Simple | Obrigatorio     | Sim                | 10 min            |
+| Manutencao equipamento            | Operational Simple | Obrigatorio     | Sim                | 15 min            |
+| Entrega material/farmacia         | Operational Simple | Obrigatorio     | Sim                | 10 min            |
+| Seguranca - ocorrencia            | Operational Simple | Obrigatorio     | Sim                | 5 min             |
+| Escalacao clinica                 | SBAR + Closed Loop | Obrigatorio     | Sim                | Conforme urgencia |
 
 ### 3.2 Campos por Formato
 
-| Campo | SBAR | I-PASS | Closed Loop | Op. Simple |
-|---|---|---|---|---|
-| Origem | Obrigatorio | Obrigatorio | Obrigatorio | Obrigatorio |
-| Destino | Obrigatorio | Obrigatorio | Obrigatorio | Obrigatorio |
-| Motivo | Obrigatorio | Obrigatorio | Obrigatorio | Obrigatorio |
-| Resumo contextual | SBAR completo | I-PASS completo | Mensagem+readback | O que feito/falta |
-| Pendencias | Obrigatorio | Action list | N/A | O que falta |
-| Prioridade | Obrigatorio | illness_severity | Implicita | Obrigatorio |
-| Risco | Obrigatorio | Obrigatorio | N/A | Opcional |
-| Proximos passos | Recommendation | Action list | Confirmacao | Quando necessario |
-| Aceite explicito | Sim | Synthesis | Confirmation | Sim |
-| Tempo aceite | Registrado | Registrado | Registrado | Registrado |
-| Tempo transicao | Calculado | Calculado | Calculado | Calculado |
-| Motivo recusa | Se recusado | Se recusado | N/A | Se recusado |
+| Campo             | SBAR           | I-PASS           | Closed Loop       | Op. Simple        |
+| ----------------- | -------------- | ---------------- | ----------------- | ----------------- |
+| Origem            | Obrigatorio    | Obrigatorio      | Obrigatorio       | Obrigatorio       |
+| Destino           | Obrigatorio    | Obrigatorio      | Obrigatorio       | Obrigatorio       |
+| Motivo            | Obrigatorio    | Obrigatorio      | Obrigatorio       | Obrigatorio       |
+| Resumo contextual | SBAR completo  | I-PASS completo  | Mensagem+readback | O que feito/falta |
+| Pendencias        | Obrigatorio    | Action list      | N/A               | O que falta       |
+| Prioridade        | Obrigatorio    | illness_severity | Implicita         | Obrigatorio       |
+| Risco             | Obrigatorio    | Obrigatorio      | N/A               | Opcional          |
+| Proximos passos   | Recommendation | Action list      | Confirmacao       | Quando necessario |
+| Aceite explicito  | Sim            | Synthesis        | Confirmation      | Sim               |
+| Tempo aceite      | Registrado     | Registrado       | Registrado        | Registrado        |
+| Tempo transicao   | Calculado      | Calculado        | Calculado         | Calculado         |
+| Motivo recusa     | Se recusado    | Se recusado      | N/A               | Se recusado       |
 
 ---
 
@@ -295,7 +295,7 @@ const handoffTimeoutRules: TimeoutRule[] = [
   {
     handoff_type: 'passagem_plantao',
     sla_minutes: 15,
-    warning_at_percent: 75,     // Alerta em 11 min
+    warning_at_percent: 75, // Alerta em 11 min
     escalation_at_percent: 100, // Escala em 15 min
     escalation_target: 'enfermeiro_lider',
   },
@@ -353,41 +353,41 @@ const clinicalEscalationChain: EscalationChain[] = [
 streams:
   HANDOFFS:
     subjects:
-      - "velya.handoff.>"
+      - 'velya.handoff.>'
     retention: limits
-    max_age: "2160h"
+    max_age: '2160h'
     storage: file
     replicas: 3
 
 subjects:
-  - "velya.handoff.passagem_plantao.initiated"
-  - "velya.handoff.passagem_plantao.accepted"
-  - "velya.handoff.passagem_plantao.refused"
-  - "velya.handoff.passagem_plantao.timeout"
-  - "velya.handoff.passagem_plantao.escalated"
-  - "velya.handoff.transferencia_setor.initiated"
-  - "velya.handoff.transferencia_setor.accepted"
-  - "velya.handoff.transferencia_setor.refused"
-  - "velya.handoff.transferencia_setor.timeout"
-  - "velya.handoff.custodia_transporte.initiated"
-  - "velya.handoff.custodia_transporte.accepted"
-  - "velya.handoff.custodia_transporte.refused"
-  - "velya.handoff.entrega_operacional.initiated"
-  - "velya.handoff.entrega_operacional.accepted"
-  - "velya.handoff.entrega_operacional.refused"
-  - "velya.handoff.escalacao.initiated"
-  - "velya.handoff.escalacao.resolved"
+  - 'velya.handoff.passagem_plantao.initiated'
+  - 'velya.handoff.passagem_plantao.accepted'
+  - 'velya.handoff.passagem_plantao.refused'
+  - 'velya.handoff.passagem_plantao.timeout'
+  - 'velya.handoff.passagem_plantao.escalated'
+  - 'velya.handoff.transferencia_setor.initiated'
+  - 'velya.handoff.transferencia_setor.accepted'
+  - 'velya.handoff.transferencia_setor.refused'
+  - 'velya.handoff.transferencia_setor.timeout'
+  - 'velya.handoff.custodia_transporte.initiated'
+  - 'velya.handoff.custodia_transporte.accepted'
+  - 'velya.handoff.custodia_transporte.refused'
+  - 'velya.handoff.entrega_operacional.initiated'
+  - 'velya.handoff.entrega_operacional.accepted'
+  - 'velya.handoff.entrega_operacional.refused'
+  - 'velya.handoff.escalacao.initiated'
+  - 'velya.handoff.escalacao.resolved'
 
 consumers:
   handoff_tracker:
-    durable_name: "handoff-state-tracker"
-    filter_subject: "velya.handoff.>"
+    durable_name: 'handoff-state-tracker'
+    filter_subject: 'velya.handoff.>'
     ack_policy: explicit
     max_deliver: 5
 
   handoff_timeout_checker:
-    durable_name: "handoff-timeout-monitor"
-    filter_subject: "velya.handoff.*.initiated"
+    durable_name: 'handoff-timeout-monitor'
+    filter_subject: 'velya.handoff.*.initiated'
     ack_policy: explicit
 ```
 
@@ -525,62 +525,62 @@ metrics:
   - name: velya_handoff_total
     type: counter
     labels: [handoff_type, category, acceptance_status]
-    help: "Total de handoffs realizados"
+    help: 'Total de handoffs realizados'
 
   - name: velya_handoff_acceptance_time_seconds
     type: histogram
     labels: [handoff_type, category]
     buckets: [30, 60, 120, 300, 600, 900, 1800, 3600]
-    help: "Tempo ate aceite do handoff em segundos"
+    help: 'Tempo ate aceite do handoff em segundos'
 
   - name: velya_handoff_transition_time_minutes
     type: histogram
     labels: [handoff_type, from_unit, to_unit]
     buckets: [5, 10, 15, 30, 45, 60, 90, 120]
-    help: "Tempo total de transicao em minutos"
+    help: 'Tempo total de transicao em minutos'
 
   - name: velya_handoff_pending_count
     type: gauge
     labels: [handoff_type, destination_unit, priority]
-    help: "Handoffs aguardando aceite"
+    help: 'Handoffs aguardando aceite'
 
   - name: velya_handoff_timeout_total
     type: counter
     labels: [handoff_type, destination_unit]
-    help: "Total de handoffs com timeout"
+    help: 'Total de handoffs com timeout'
 
   - name: velya_handoff_refusal_total
     type: counter
     labels: [handoff_type, refusal_reason]
-    help: "Total de handoffs recusados"
+    help: 'Total de handoffs recusados'
 
   - name: velya_handoff_sla_compliance_ratio
     type: gauge
     labels: [handoff_type, department]
-    help: "Taxa de conformidade SLA de handoff"
+    help: 'Taxa de conformidade SLA de handoff'
 
   - name: velya_handoff_pending_items_count
     type: gauge
     labels: [handoff_type, priority]
-    help: "Itens pendentes em handoffs"
+    help: 'Itens pendentes em handoffs'
 ```
 
 ---
 
 ## 9. Regras de Negocio
 
-| ID | Regra | Consequencia do Descumprimento |
-|---|---|---|
-| H001 | Todo handoff clinico usa SBAR ou I-PASS | Bloqueio do envio |
-| H002 | Aceite explicito e obrigatorio | Item aparece como pendente/risco |
-| H003 | Recusa requer justificativa | Bloqueio da recusa |
-| H004 | Timeout gera escalacao automatica | Notificacao ao gestor |
-| H005 | Pendencias devem ser listadas individualmente | Bloqueio do envio |
-| H006 | Handoff de turno deve cobrir todos os pacientes da unidade | Gap detectado automaticamente |
-| H007 | Transporte requer aceite de custodia na origem e no destino | Transporte nao inicia/finaliza |
-| H008 | Limpeza terminal requer liberacao explicita pelo higienizacao | Leito nao disponibilizado |
-| H009 | Interconsulta requer aceite do especialista | Solicitacao fica pendente visivel |
-| H010 | Handoff com risco critico gera alerta imediato ao gestor | Alerta push + painel |
+| ID   | Regra                                                         | Consequencia do Descumprimento    |
+| ---- | ------------------------------------------------------------- | --------------------------------- |
+| H001 | Todo handoff clinico usa SBAR ou I-PASS                       | Bloqueio do envio                 |
+| H002 | Aceite explicito e obrigatorio                                | Item aparece como pendente/risco  |
+| H003 | Recusa requer justificativa                                   | Bloqueio da recusa                |
+| H004 | Timeout gera escalacao automatica                             | Notificacao ao gestor             |
+| H005 | Pendencias devem ser listadas individualmente                 | Bloqueio do envio                 |
+| H006 | Handoff de turno deve cobrir todos os pacientes da unidade    | Gap detectado automaticamente     |
+| H007 | Transporte requer aceite de custodia na origem e no destino   | Transporte nao inicia/finaliza    |
+| H008 | Limpeza terminal requer liberacao explicita pelo higienizacao | Leito nao disponibilizado         |
+| H009 | Interconsulta requer aceite do especialista                   | Solicitacao fica pendente visivel |
+| H010 | Handoff com risco critico gera alerta imediato ao gestor      | Alerta push + painel              |
 
 ---
 

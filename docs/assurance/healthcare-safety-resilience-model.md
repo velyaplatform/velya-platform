@@ -14,14 +14,14 @@ A Velya opera em ambiente hospitalar onde falhas de software podem impactar dire
 
 ## 2. Principios Fundamentais de Seguranca Hospitalar
 
-| Principio | Descricao | Implicacao Tecnica |
-|---|---|---|
-| **Alta nunca silenciosamente bloqueada** | O processo de alta hospitalar NUNCA pode travar sem notificacao | Temporal workflow com escalation obrigatoria em todo timeout |
-| **Dado clinico imutavel** | Dados clinicos nao podem ser alterados sem audit trail | audit-service registra toda mutacao com before/after/actor |
-| **Agente nao e autoridade final** | Agentes de IA recomendam, humanos decidem | Todas as decisoes de agente requerem confirmacao humana para acoes clinicas |
-| **PHI com acesso minimo** | Dados de saude acessados apenas quando necessario | RBAC granular + rate limiting + logging obrigatorio |
-| **Falha visivel** | Qualquer falha deve ser visivel, nao escondida | Circuit breakers expoe estado, degradacao e comunicada ao usuario |
-| **Compensacao garantida** | Se uma operacao falhar no meio, o estado deve ser consistente | Saga pattern com compensacao em Temporal workflows |
+| Principio                                | Descricao                                                       | Implicacao Tecnica                                                          |
+| ---------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Alta nunca silenciosamente bloqueada** | O processo de alta hospitalar NUNCA pode travar sem notificacao | Temporal workflow com escalation obrigatoria em todo timeout                |
+| **Dado clinico imutavel**                | Dados clinicos nao podem ser alterados sem audit trail          | audit-service registra toda mutacao com before/after/actor                  |
+| **Agente nao e autoridade final**        | Agentes de IA recomendam, humanos decidem                       | Todas as decisoes de agente requerem confirmacao humana para acoes clinicas |
+| **PHI com acesso minimo**                | Dados de saude acessados apenas quando necessario               | RBAC granular + rate limiting + logging obrigatorio                         |
+| **Falha visivel**                        | Qualquer falha deve ser visivel, nao escondida                  | Circuit breakers expoe estado, degradacao e comunicada ao usuario           |
+| **Compensacao garantida**                | Se uma operacao falhar no meio, o estado deve ser consistente   | Saga pattern com compensacao em Temporal workflows                          |
 
 ---
 
@@ -124,28 +124,27 @@ export async function performMedicationReview(input: {
   facilityId: string;
   currentMedications: Medication[];
 }): Promise<MedicationReviewResult> {
-  
   // 1. Buscar historico de medicamentos
   const preAdmissionMeds = await patientFlowClient.getMedicationHistory(input.patientId);
   const prescribedMeds = await patientFlowClient.getDischargePrescriptions(input.patientId);
-  
+
   // 2. Reconciliar
   const reconciliation = reconcileMedications(
     input.currentMedications,
     preAdmissionMeds,
-    prescribedMeds
+    prescribedMeds,
   );
-  
+
   // 3. Verificar interacoes
   const interactions = await policyEngine.checkDrugInteractions({
     medications: reconciliation.finalList,
     patientAllergies: await patientFlowClient.getAllergies(input.patientId),
     patientConditions: await patientFlowClient.getConditions(input.patientId),
   });
-  
+
   // 4. Classificar resultado
   let validationStatus: 'approved' | 'alert' | 'blocked';
-  
+
   if (interactions.critical.length > 0) {
     validationStatus = 'blocked';
   } else if (interactions.warnings.length > 0) {
@@ -153,7 +152,7 @@ export async function performMedicationReview(input: {
   } else {
     validationStatus = 'approved';
   }
-  
+
   // 5. Registrar no audit trail
   await auditService.record({
     event: 'MEDICATION_RECONCILIATION',
@@ -166,7 +165,7 @@ export async function performMedicationReview(input: {
     actor: 'system:medication-review',
     requiresHumanConfirmation: validationStatus !== 'approved',
   });
-  
+
   // 6. Se bloqueado, NUNCA prosseguir sem override documentado
   if (validationStatus === 'blocked') {
     throw new MedicationInteractionBlockedError({
@@ -175,7 +174,7 @@ export async function performMedicationReview(input: {
       message: 'Interacoes criticas detectadas. Requer override medico documentado.',
     });
   }
-  
+
   return {
     reviewId: generateId(),
     reconciledList: reconciliation.finalList,
@@ -193,20 +192,20 @@ export async function performMedicationReview(input: {
 
 **Campos obrigatorios do audit trail:**
 
-| Campo | Descricao | Exemplo |
-|---|---|---|
-| `eventId` | ID unico do evento | UUID |
-| `timestamp` | Momento exato (UTC) | `2026-04-08T14:30:00.000Z` |
-| `actor` | Quem realizou a acao | `user:dr.silva`, `agent:discharge-agent`, `system:scheduler` |
-| `actorIp` | IP de origem | `10.0.1.45` |
-| `action` | Tipo de acao | `CREATE`, `UPDATE`, `DELETE`, `READ`, `EXPORT` |
-| `resource` | Recurso afetado | `patient:uuid/medications` |
-| `resourceBefore` | Estado anterior (para UPDATE/DELETE) | JSON snapshot |
-| `resourceAfter` | Estado posterior (para CREATE/UPDATE) | JSON snapshot |
-| `reason` | Motivo da acao | `discharge_process`, `clinical_correction` |
-| `correlationId` | ID de correlacao | UUID |
-| `facility` | Unidade hospitalar | `hospital-central` |
-| `classification` | Classificacao do dado | `PHI`, `PII`, `administrative` |
+| Campo            | Descricao                             | Exemplo                                                      |
+| ---------------- | ------------------------------------- | ------------------------------------------------------------ |
+| `eventId`        | ID unico do evento                    | UUID                                                         |
+| `timestamp`      | Momento exato (UTC)                   | `2026-04-08T14:30:00.000Z`                                   |
+| `actor`          | Quem realizou a acao                  | `user:dr.silva`, `agent:discharge-agent`, `system:scheduler` |
+| `actorIp`        | IP de origem                          | `10.0.1.45`                                                  |
+| `action`         | Tipo de acao                          | `CREATE`, `UPDATE`, `DELETE`, `READ`, `EXPORT`               |
+| `resource`       | Recurso afetado                       | `patient:uuid/medications`                                   |
+| `resourceBefore` | Estado anterior (para UPDATE/DELETE)  | JSON snapshot                                                |
+| `resourceAfter`  | Estado posterior (para CREATE/UPDATE) | JSON snapshot                                                |
+| `reason`         | Motivo da acao                        | `discharge_process`, `clinical_correction`                   |
+| `correlationId`  | ID de correlacao                      | UUID                                                         |
+| `facility`       | Unidade hospitalar                    | `hospital-central`                                           |
+| `classification` | Classificacao do dado                 | `PHI`, `PII`, `administrative`                               |
 
 **Garantias tecnicas:**
 
@@ -214,18 +213,18 @@ export async function performMedicationReview(input: {
 # audit-service/config.yaml
 audit:
   storage:
-    primary: postgresql  # Tabela append-only
-    secondary: s3        # Backup imutavel
-    
+    primary: postgresql # Tabela append-only
+    secondary: s3 # Backup imutavel
+
   table:
     name: audit_events
     partitioning: by_month
-    retention: 7_years   # Exigencia regulatoria
-    immutable: true      # Sem UPDATE ou DELETE
-    
+    retention: 7_years # Exigencia regulatoria
+    immutable: true # Sem UPDATE ou DELETE
+
   write:
-    mode: synchronous    # Nunca async para dados clinicos
-    replication: 2       # Minimo 2 replicas antes de ACK
+    mode: synchronous # Nunca async para dados clinicos
+    replication: 2 # Minimo 2 replicas antes de ACK
     timeout: 5s
     retry:
       attempts: 3
@@ -233,12 +232,12 @@ audit:
     dead_letter:
       enabled: true
       topic: audit-events.dlq
-      alert_on_first: true  # Qualquer falha de audit e critica
-      
+      alert_on_first: true # Qualquer falha de audit e critica
+
   read:
     require_authentication: true
     require_authorization: true
-    log_access: true     # Logar quem leu o audit trail
+    log_access: true # Logar quem leu o audit trail
     rate_limit:
       per_user: 100/min
       per_service: 1000/min
@@ -319,50 +318,50 @@ interface ClinicalAgentRecommendation {
   agentId: string;
   agentVersion: string;
   timestamp: string;
-  
+
   // Contexto
   patientId: string;
   clinicalContext: string;
-  
+
   // Recomendacao principal
   recommendation: {
-    action: string;           // "Iniciar alta hospitalar"
-    rationale: string;        // "Paciente atende criterios de alta: ..."
-    confidence: number;       // 0.0 - 1.0
+    action: string; // "Iniciar alta hospitalar"
+    rationale: string; // "Paciente atende criterios de alta: ..."
+    confidence: number; // 0.0 - 1.0
     confidenceLevel: 'high' | 'medium' | 'low';
   };
-  
+
   // Evidencias que suportam a recomendacao
   evidence: {
-    source: string;           // "prontuario_eletronico", "lab_results", "vital_signs"
-    description: string;      // "Sinais vitais estaveis por 24h"
-    weight: number;           // 0.0 - 1.0 (importancia para a decisao)
-    dataTimestamp: string;    // Quando o dado foi coletado
+    source: string; // "prontuario_eletronico", "lab_results", "vital_signs"
+    description: string; // "Sinais vitais estaveis por 24h"
+    weight: number; // 0.0 - 1.0 (importancia para a decisao)
+    dataTimestamp: string; // Quando o dado foi coletado
   }[];
-  
+
   // Alternativas consideradas
   alternatives: {
-    action: string;           // "Manter internacao por mais 24h"
-    rationale: string;        // "Exames laboratoriais pendentes"
+    action: string; // "Manter internacao por mais 24h"
+    rationale: string; // "Exames laboratoriais pendentes"
     confidence: number;
-    tradeoffs: string;        // "Maior custo, porem menor risco de readmissao"
+    tradeoffs: string; // "Maior custo, porem menor risco de readmissao"
   }[];
-  
+
   // Riscos identificados
   risks: {
-    description: string;      // "Risco de readmissao em 30 dias"
+    description: string; // "Risco de readmissao em 30 dias"
     probability: 'high' | 'medium' | 'low';
-    mitigation: string;       // "Agendar consulta de retorno em 7 dias"
+    mitigation: string; // "Agendar consulta de retorno em 7 dias"
   }[];
-  
+
   // Restricoes
   constraints: {
-    requiresHumanApproval: true;    // SEMPRE true para acoes clinicas
-    expiresAt: string;              // Recomendacao expira se nao validada
-    validFor: string;               // "2h" - contexto pode mudar
-    supersededBy?: string;          // Se recomendacao mais recente existir
+    requiresHumanApproval: true; // SEMPRE true para acoes clinicas
+    expiresAt: string; // Recomendacao expira se nao validada
+    validFor: string; // "2h" - contexto pode mudar
+    supersededBy?: string; // Se recomendacao mais recente existir
   };
-  
+
   // Policy compliance
   policyValidation: {
     checked: boolean;
@@ -417,28 +416,28 @@ deny_recommendation[msg] {
 
 ### 4.1 Definicoes
 
-| Modo | Descricao | Quando Usar |
-|---|---|---|
-| **Fail-Safe** | Em caso de falha, BLOQUEAR a operacao | Quando a acao pode causar dano ao paciente |
+| Modo          | Descricao                             | Quando Usar                                         |
+| ------------- | ------------------------------------- | --------------------------------------------------- |
+| **Fail-Safe** | Em caso de falha, BLOQUEAR a operacao | Quando a acao pode causar dano ao paciente          |
 | **Fail-Open** | Em caso de falha, PERMITIR a operacao | Quando bloquear pode causar dano maior que permitir |
 
 ### 4.2 Classificacao por Funcionalidade
 
-| Funcionalidade | Modo de Falha | Justificativa |
-|---|---|---|
-| Dispensacao de medicamento controlado | **Fail-Safe** | Erro de medicacao pode ser fatal |
-| Processo de alta hospitalar | **Fail-Open** | Bloquear alta por falha de sistema causa dano ao paciente (retencao indevida) |
-| Acesso a prontuario em emergencia | **Fail-Open** (break-glass) | Em emergencia, acesso ao historico salva vidas |
-| Agendamento de consulta | **Fail-Safe** | Dupla marcacao ou erro pode ser corrigido depois |
-| Triagem de urgencia | **Fail-Open** | Paciente deve ser atendido mesmo sem sistema |
-| Audit trail | **Fail-Safe** | Operacao sem audit trail viola regulacao |
-| Rotacao de secrets | **Fail-Safe** | Secret invalido pode derrubar servicos |
-| Autenticacao de usuario | **Fail-Safe** | Acesso nao autorizado a dados de paciente |
-| Autenticacao em emergencia | **Fail-Open** (break-glass) | Em P0, acesso deve ser possivel com log pos-facto |
-| Decisao de agente clinico | **Fail-Safe** | Agente sem validacao nao deve influenciar decisao |
-| Dashboard de monitoramento | **Fail-Open** | Falha no dashboard nao deve impedir visualizacao de dados anteriores (cache) |
-| Publicacao de evento no NATS | **Fail-Safe** com buffer | Evento perdido pode significar dado clinico perdido |
-| Faturamento | **Fail-Safe** | Erro financeiro requer correcao custosa |
+| Funcionalidade                        | Modo de Falha               | Justificativa                                                                 |
+| ------------------------------------- | --------------------------- | ----------------------------------------------------------------------------- |
+| Dispensacao de medicamento controlado | **Fail-Safe**               | Erro de medicacao pode ser fatal                                              |
+| Processo de alta hospitalar           | **Fail-Open**               | Bloquear alta por falha de sistema causa dano ao paciente (retencao indevida) |
+| Acesso a prontuario em emergencia     | **Fail-Open** (break-glass) | Em emergencia, acesso ao historico salva vidas                                |
+| Agendamento de consulta               | **Fail-Safe**               | Dupla marcacao ou erro pode ser corrigido depois                              |
+| Triagem de urgencia                   | **Fail-Open**               | Paciente deve ser atendido mesmo sem sistema                                  |
+| Audit trail                           | **Fail-Safe**               | Operacao sem audit trail viola regulacao                                      |
+| Rotacao de secrets                    | **Fail-Safe**               | Secret invalido pode derrubar servicos                                        |
+| Autenticacao de usuario               | **Fail-Safe**               | Acesso nao autorizado a dados de paciente                                     |
+| Autenticacao em emergencia            | **Fail-Open** (break-glass) | Em P0, acesso deve ser possivel com log pos-facto                             |
+| Decisao de agente clinico             | **Fail-Safe**               | Agente sem validacao nao deve influenciar decisao                             |
+| Dashboard de monitoramento            | **Fail-Open**               | Falha no dashboard nao deve impedir visualizacao de dados anteriores (cache)  |
+| Publicacao de evento no NATS          | **Fail-Safe** com buffer    | Evento perdido pode significar dado clinico perdido                           |
+| Faturamento                           | **Fail-Safe**               | Erro financeiro requer correcao custosa                                       |
 
 ### 4.3 Implementacao de Break-Glass
 
@@ -446,11 +445,11 @@ deny_recommendation[msg] {
 // middleware/break-glass.ts
 export async function breakGlassMiddleware(req: Request, res: Response, next: NextFunction) {
   const isBreakGlass = req.headers['x-velya-break-glass'] === 'true';
-  
+
   if (!isBreakGlass) {
     return next();
   }
-  
+
   // Verificar que usuario tem permissao de break-glass
   const user = req.user;
   if (!user.roles.includes('break-glass-authorized')) {
@@ -458,7 +457,7 @@ export async function breakGlassMiddleware(req: Request, res: Response, next: Ne
       error: 'Break-glass nao autorizado para este usuario',
     });
   }
-  
+
   // Registrar uso de break-glass ANTES de permitir acesso
   await auditService.record({
     event: 'BREAK_GLASS_ACTIVATED',
@@ -469,7 +468,7 @@ export async function breakGlassMiddleware(req: Request, res: Response, next: Ne
     classification: 'security_critical',
     alertImmediate: true,
   });
-  
+
   // Notificar seguranca imediatamente
   await notifySecurityTeam({
     event: 'break_glass',
@@ -478,11 +477,11 @@ export async function breakGlassMiddleware(req: Request, res: Response, next: Ne
     reason: req.headers['x-velya-break-glass-reason'],
     timestamp: new Date().toISOString(),
   });
-  
+
   // Marcar request para logging extra
   req.breakGlass = true;
   req.breakGlassAuditId = auditRecord.id;
-  
+
   next();
 }
 ```
@@ -493,38 +492,38 @@ export async function breakGlassMiddleware(req: Request, res: Response, next: Ne
 
 ### 5.1 HIPAA (Health Insurance Portability and Accountability Act)
 
-| Requisito HIPAA | Secao | Implementacao Velya | Camada de Assurance |
-|---|---|---|---|
-| Access controls | 164.312(a)(1) | RBAC via policy-engine + Kubernetes RBAC | Layer 0: Pre-deploy |
-| Audit controls | 164.312(b) | audit-service com retencao de 7 anos | Layer 2: Runtime |
-| Integrity controls | 164.312(c)(1) | Checksums em dados clinicos + append-only audit | Layer 2: Runtime |
-| Transmission security | 164.312(e)(1) | mTLS entre servicos + TLS 1.3 externo | Layer 0: Pre-deploy |
-| Person authentication | 164.312(d) | JWT + MFA para dados sensiveis | Layer 2: Runtime |
-| Encryption at rest | 164.312(a)(2)(iv) | AWS KMS + EBS encryption | Layer 0: Infra |
-| Emergency access | 164.312(a)(2)(ii) | Break-glass procedure | Layer 2: Runtime |
-| Automatic logoff | 164.312(a)(2)(iii) | Session timeout: 15min idle, 8h max | Layer 2: Runtime |
-| Unique user identification | 164.312(a)(2)(i) | SSO + unique user ID propagado | Layer 0: Pre-deploy |
-| Minimum necessary | 164.502(b) | Field-level access control + mascaramento | Layer 2: Runtime |
-| Business associate agreements | 164.502(e) | Contratos com AWS, Anthropic (Claude) | Layer 0: Organizacional |
-| Breach notification | 164.404 | Alertas automaticos + procedimento documentado | Layer 3: Self-healing |
-| Risk analysis | 164.308(a)(1)(ii)(A) | change-risk-matrix.md + analise por mudanca | Layer 1: Deploy |
+| Requisito HIPAA               | Secao                | Implementacao Velya                             | Camada de Assurance     |
+| ----------------------------- | -------------------- | ----------------------------------------------- | ----------------------- |
+| Access controls               | 164.312(a)(1)        | RBAC via policy-engine + Kubernetes RBAC        | Layer 0: Pre-deploy     |
+| Audit controls                | 164.312(b)           | audit-service com retencao de 7 anos            | Layer 2: Runtime        |
+| Integrity controls            | 164.312(c)(1)        | Checksums em dados clinicos + append-only audit | Layer 2: Runtime        |
+| Transmission security         | 164.312(e)(1)        | mTLS entre servicos + TLS 1.3 externo           | Layer 0: Pre-deploy     |
+| Person authentication         | 164.312(d)           | JWT + MFA para dados sensiveis                  | Layer 2: Runtime        |
+| Encryption at rest            | 164.312(a)(2)(iv)    | AWS KMS + EBS encryption                        | Layer 0: Infra          |
+| Emergency access              | 164.312(a)(2)(ii)    | Break-glass procedure                           | Layer 2: Runtime        |
+| Automatic logoff              | 164.312(a)(2)(iii)   | Session timeout: 15min idle, 8h max             | Layer 2: Runtime        |
+| Unique user identification    | 164.312(a)(2)(i)     | SSO + unique user ID propagado                  | Layer 0: Pre-deploy     |
+| Minimum necessary             | 164.502(b)           | Field-level access control + mascaramento       | Layer 2: Runtime        |
+| Business associate agreements | 164.502(e)           | Contratos com AWS, Anthropic (Claude)           | Layer 0: Organizacional |
+| Breach notification           | 164.404              | Alertas automaticos + procedimento documentado  | Layer 3: Self-healing   |
+| Risk analysis                 | 164.308(a)(1)(ii)(A) | change-risk-matrix.md + analise por mudanca     | Layer 1: Deploy         |
 
 ### 5.2 LGPD (Lei Geral de Protecao de Dados)
 
-| Requisito LGPD | Artigo | Implementacao Velya | Camada de Assurance |
-|---|---|---|---|
-| Base legal para tratamento | Art. 7, 11 | Consentimento + necessidade para tutela da saude | Layer 0: Design |
-| Dados sensiveis de saude | Art. 11 | Classificacao automatica + controles extras | Layer 2: Runtime |
-| Direito de acesso | Art. 18, I | API de export de dados do paciente | Layer 2: Runtime |
-| Direito de correcao | Art. 18, III | API de correcao com audit trail | Layer 2: Runtime |
-| Direito de exclusao | Art. 18, VI | Anonimizacao (nao exclusao fisica por obrigacao legal) | Layer 2: Runtime |
-| Portabilidade | Art. 18, V | Export em formato interoperavel (FHIR) | Layer 2: Runtime |
-| Relatorio de impacto | Art. 38 | Documentacao automatizada de fluxos de dados | Layer 0: Design |
-| Encarregado (DPO) | Art. 41 | Notificacoes automaticas para DPO em eventos de risco | Layer 3: Self-healing |
-| Notificacao de incidente | Art. 48 | Deteccao automatica + procedimento de 72h | Layer 3: Self-healing |
-| Transferencia internacional | Art. 33 | Dados em regiao AWS sa-east-1 (Sao Paulo) | Layer 0: Infra |
-| Registro de tratamento | Art. 37 | Logs em audit-service mapeados para operacoes LGPD | Layer 2: Runtime |
-| Anonimizacao | Art. 12 | Pipeline de anonimizacao para analytics | Layer 0: Design |
+| Requisito LGPD              | Artigo       | Implementacao Velya                                    | Camada de Assurance   |
+| --------------------------- | ------------ | ------------------------------------------------------ | --------------------- |
+| Base legal para tratamento  | Art. 7, 11   | Consentimento + necessidade para tutela da saude       | Layer 0: Design       |
+| Dados sensiveis de saude    | Art. 11      | Classificacao automatica + controles extras            | Layer 2: Runtime      |
+| Direito de acesso           | Art. 18, I   | API de export de dados do paciente                     | Layer 2: Runtime      |
+| Direito de correcao         | Art. 18, III | API de correcao com audit trail                        | Layer 2: Runtime      |
+| Direito de exclusao         | Art. 18, VI  | Anonimizacao (nao exclusao fisica por obrigacao legal) | Layer 2: Runtime      |
+| Portabilidade               | Art. 18, V   | Export em formato interoperavel (FHIR)                 | Layer 2: Runtime      |
+| Relatorio de impacto        | Art. 38      | Documentacao automatizada de fluxos de dados           | Layer 0: Design       |
+| Encarregado (DPO)           | Art. 41      | Notificacoes automaticas para DPO em eventos de risco  | Layer 3: Self-healing |
+| Notificacao de incidente    | Art. 48      | Deteccao automatica + procedimento de 72h              | Layer 3: Self-healing |
+| Transferencia internacional | Art. 33      | Dados em regiao AWS sa-east-1 (Sao Paulo)              | Layer 0: Infra        |
+| Registro de tratamento      | Art. 37      | Logs em audit-service mapeados para operacoes LGPD     | Layer 2: Runtime      |
+| Anonimizacao                | Art. 12      | Pipeline de anonimizacao para analytics                | Layer 0: Design       |
 
 ### 5.3 Compliance Checks Automatizados
 
@@ -540,7 +539,7 @@ metadata:
     velya.io/check-type: regulatory
     velya.io/severity: critical
 spec:
-  schedule: "0 */12 * * *"
+  schedule: '0 */12 * * *'
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -566,11 +565,11 @@ spec:
                     minimum_necessary_enforced
                     break_glass_logged
                 - name: REPORT_OUTPUT
-                  value: "s3://velya-compliance/hipaa/$(date +%Y-%m-%d).json"
+                  value: 's3://velya-compliance/hipaa/$(date +%Y-%m-%d).json'
                 - name: ALERT_ON_FAILURE
-                  value: "true"
+                  value: 'true'
                 - name: ALERT_CHANNEL
-                  value: "#velya-compliance-critical"
+                  value: '#velya-compliance-critical'
 ```
 
 ---
@@ -714,27 +713,27 @@ RESPOSTA (72h LGPD / sem delay HIPAA):
 
 ### 8.1 Testes Obrigatorios por Release
 
-| Teste | Frequencia | Automatizado | Owner |
-|---|---|---|---|
-| PHI access logging verification | Cada release | Sim | compliance |
-| Medication interaction detection accuracy | Cada release do ai-gateway | Sim | clinical-eng |
-| Break-glass procedure validation | Trimestral | Manual | security |
-| Audit trail completeness | Cada release do audit-service | Sim | compliance |
-| RBAC policy correctness | Cada release do policy-engine | Sim | security |
-| Discharge workflow escalation | Mensal | Semi-auto | clinical-eng |
-| Data encryption at rest verification | Trimestral | Sim | platform-sre |
-| Session timeout enforcement | Cada release do velya-web | Sim | frontend |
-| Agent recommendation format compliance | Cada release do agent-orchestrator | Sim | ai-ops |
+| Teste                                     | Frequencia                         | Automatizado | Owner        |
+| ----------------------------------------- | ---------------------------------- | ------------ | ------------ |
+| PHI access logging verification           | Cada release                       | Sim          | compliance   |
+| Medication interaction detection accuracy | Cada release do ai-gateway         | Sim          | clinical-eng |
+| Break-glass procedure validation          | Trimestral                         | Manual       | security     |
+| Audit trail completeness                  | Cada release do audit-service      | Sim          | compliance   |
+| RBAC policy correctness                   | Cada release do policy-engine      | Sim          | security     |
+| Discharge workflow escalation             | Mensal                             | Semi-auto    | clinical-eng |
+| Data encryption at rest verification      | Trimestral                         | Sim          | platform-sre |
+| Session timeout enforcement               | Cada release do velya-web          | Sim          | frontend     |
+| Agent recommendation format compliance    | Cada release do agent-orchestrator | Sim          | ai-ops       |
 
 ### 8.2 Chaos Testing Clinico
 
-| Teste | Objetivo | Frequencia | Impacto Permitido |
-|---|---|---|---|
-| Kill audit-service | Verificar fail-safe e buffer | Mensal | Zero perda de eventos |
-| Kill Temporal worker | Verificar que discharge nao trava silenciosamente | Mensal | Escalacao em < 5min |
-| Kill ai-gateway | Verificar fallback de agentes | Mensal | Decisoes manuais continuam |
-| Network partition NATS | Verificar que eventos clinicos nao se perdem | Trimestral | Buffer + replay |
-| Simular breach | Verificar procedimento de resposta | Semestral | Deteccao em < 15min |
+| Teste                  | Objetivo                                          | Frequencia | Impacto Permitido          |
+| ---------------------- | ------------------------------------------------- | ---------- | -------------------------- |
+| Kill audit-service     | Verificar fail-safe e buffer                      | Mensal     | Zero perda de eventos      |
+| Kill Temporal worker   | Verificar que discharge nao trava silenciosamente | Mensal     | Escalacao em < 5min        |
+| Kill ai-gateway        | Verificar fallback de agentes                     | Mensal     | Decisoes manuais continuam |
+| Network partition NATS | Verificar que eventos clinicos nao se perdem      | Trimestral | Buffer + replay            |
+| Simular breach         | Verificar procedimento de resposta                | Semestral  | Deteccao em < 15min        |
 
 ---
 

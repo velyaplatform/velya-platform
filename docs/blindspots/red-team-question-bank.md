@@ -846,12 +846,12 @@
 
 ## Resumo por Severidade
 
-| Severidade | Quantidade | Categorias Mais Representadas |
-|---|---|---|
-| Catastrófica | 22 | Dados/Privacidade, AI Safety, Governança, DR |
-| Crítica | 28 | Infraestrutura, AI Safety, Governança, Custo |
-| Alta | 53 | Todas as categorias |
-| Média | 13 | Governança, Custo, Mudança |
-| **Total** | **116** | |
+| Severidade   | Quantidade | Categorias Mais Representadas                |
+| ------------ | ---------- | -------------------------------------------- |
+| Catastrófica | 22         | Dados/Privacidade, AI Safety, Governança, DR |
+| Crítica      | 28         | Infraestrutura, AI Safety, Governança, Custo |
+| Alta         | 53         | Todas as categorias                          |
+| Média        | 13         | Governança, Custo, Mudança                   |
+| **Total**    | **116**    |                                              |
 
 > **Uso recomendado**: Selecionar 10-15 perguntas por componente antes de qualquer release significativa. Documentar as respostas. Perguntas sem resposta satisfatória são bloqueantes para go-live.

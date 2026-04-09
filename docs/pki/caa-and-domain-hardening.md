@@ -27,13 +27,13 @@ antes de emitir certificados.
 
 ### 2.2 Beneficios
 
-| Beneficio | Descricao |
-|---|---|
-| Restricao de CA | Apenas CAs autorizadas podem emitir certificados |
-| Prevencao de fraude | Impede emissao nao autorizada de certificados |
-| Deteccao | Notificacao quando emissao e negada |
-| Compliance | Demonstra controle sobre emissao de certificados |
-| Custo zero | Nenhum custo adicional, apenas configuracao DNS |
+| Beneficio           | Descricao                                        |
+| ------------------- | ------------------------------------------------ |
+| Restricao de CA     | Apenas CAs autorizadas podem emitir certificados |
+| Prevencao de fraude | Impede emissao nao autorizada de certificados    |
+| Deteccao            | Notificacao quando emissao e negada              |
+| Compliance          | Demonstra controle sobre emissao de certificados |
+| Custo zero          | Nenhum custo adicional, apenas configuracao DNS  |
 
 ### 2.3 Formato
 
@@ -47,11 +47,11 @@ dominio. IN CAA <flags> <tag> "<value>"
 
 ### 2.4 Tags
 
-| Tag | Descricao |
-|---|---|
-| issue | CA autorizada a emitir certificados nao-wildcard |
-| issuewild | CA autorizada a emitir certificados wildcard |
-| iodef | Email/URL para notificacao de tentativas negadas |
+| Tag       | Descricao                                        |
+| --------- | ------------------------------------------------ |
+| issue     | CA autorizada a emitir certificados nao-wildcard |
+| issuewild | CA autorizada a emitir certificados wildcard     |
+| iodef     | Email/URL para notificacao de tentativas negadas |
 
 ---
 
@@ -171,12 +171,12 @@ e integridade das respostas DNS.
 
 ### 5.2 Protecoes
 
-| Ataque | Sem DNSSEC | Com DNSSEC |
-|---|---|---|
-| DNS Spoofing | Vulneravel | Protegido |
-| DNS Cache Poisoning | Vulneravel | Protegido |
-| Man-in-the-Middle DNS | Vulneravel | Protegido |
-| DNS Redirect | Vulneravel | Protegido |
+| Ataque                | Sem DNSSEC | Com DNSSEC |
+| --------------------- | ---------- | ---------- |
+| DNS Spoofing          | Vulneravel | Protegido  |
+| DNS Cache Poisoning   | Vulneravel | Protegido  |
+| Man-in-the-Middle DNS | Vulneravel | Protegido  |
+| DNS Redirect          | Vulneravel | Protegido  |
 
 ### 5.3 Configuracao no Route53
 
@@ -305,12 +305,12 @@ curl -s "https://crt.sh/?q=velya.health&output=json" | \
 
 ### 8.2 Ferramentas de Monitoramento
 
-| Ferramenta | Proposito | URL |
-|---|---|---|
-| crt.sh | CT log search | https://crt.sh |
-| SSLMate Certspotter | CT monitoring + alertas | https://sslmate.com/certspotter |
-| Facebook CT Monitor | CT monitoring | https://developers.facebook.com/tools/ct |
-| Hardenize | Domain security assessment | https://www.hardenize.com |
+| Ferramenta          | Proposito                  | URL                                      |
+| ------------------- | -------------------------- | ---------------------------------------- |
+| crt.sh              | CT log search              | https://crt.sh                           |
+| SSLMate Certspotter | CT monitoring + alertas    | https://sslmate.com/certspotter          |
+| Facebook CT Monitor | CT monitoring              | https://developers.facebook.com/tools/ct |
+| Hardenize           | Domain security assessment | https://www.hardenize.com                |
 
 ### 8.3 Alerta de CT
 
@@ -327,22 +327,22 @@ e emitido para velya.health em qualquer CA. Isso permite detectar:
 
 ### 9.1 Checklist Completa
 
-| Item | Status | Prioridade |
-|---|---|---|
-| CAA records configurados | - | Alta |
-| CAA restringe apenas Let's Encrypt | - | Alta |
-| CAA iodef configurado | - | Media |
-| DNSSEC habilitado | - | Media |
-| Domain transfer lock habilitado | - | Alta |
-| WHOIS privacy habilitado | - | Media |
-| Auto-renew habilitado | - | Alta |
-| MFA no registrar | - | Alta |
-| SPF record configurado | - | Media |
-| DMARC record configurado | - | Media |
-| CT monitoring habilitado | - | Media |
-| DNS audit trail (CloudTrail) | - | Alta |
-| Acesso ao registrar restrito | - | Alta |
-| NS records protegidos | - | Alta |
+| Item                               | Status | Prioridade |
+| ---------------------------------- | ------ | ---------- |
+| CAA records configurados           | -      | Alta       |
+| CAA restringe apenas Let's Encrypt | -      | Alta       |
+| CAA iodef configurado              | -      | Media      |
+| DNSSEC habilitado                  | -      | Media      |
+| Domain transfer lock habilitado    | -      | Alta       |
+| WHOIS privacy habilitado           | -      | Media      |
+| Auto-renew habilitado              | -      | Alta       |
+| MFA no registrar                   | -      | Alta       |
+| SPF record configurado             | -      | Media      |
+| DMARC record configurado           | -      | Media      |
+| CT monitoring habilitado           | -      | Media      |
+| DNS audit trail (CloudTrail)       | -      | Alta       |
+| Acesso ao registrar restrito       | -      | Alta       |
+| NS records protegidos              | -      | Alta       |
 
 ---
 
@@ -356,14 +356,14 @@ e emitido para velya.health em qualquer CA. Isso permite detectar:
 
 ### 10.2 TTL dos Records Criticos
 
-| Record | TTL Recomendado | Justificativa |
-|---|---|---|
-| NS | 86400 (24h) | Estabilidade |
-| SOA | 86400 (24h) | Estabilidade |
-| CAA | 3600 (1h) | Balanco entre cache e atualizacao |
-| A/CNAME de servicos | 300 (5min) | Flexibilidade de failover |
-| MX | 3600 (1h) | Estabilidade de email |
-| TXT (SPF/DKIM) | 3600 (1h) | Estabilidade |
+| Record              | TTL Recomendado | Justificativa                     |
+| ------------------- | --------------- | --------------------------------- |
+| NS                  | 86400 (24h)     | Estabilidade                      |
+| SOA                 | 86400 (24h)     | Estabilidade                      |
+| CAA                 | 3600 (1h)       | Balanco entre cache e atualizacao |
+| A/CNAME de servicos | 300 (5min)      | Flexibilidade de failover         |
+| MX                  | 3600 (1h)       | Estabilidade de email             |
+| TXT (SPF/DKIM)      | 3600 (1h)       | Estabilidade                      |
 
 ### 10.3 Resposta a Incidentes de DNS
 
@@ -401,13 +401,13 @@ dig velya.health +dnssec +short
 
 ### 11.2 Criterios de Aprovacao
 
-| Teste | Resultado Minimo |
-|---|---|
-| SSL Labs | A+ |
-| Mozilla Observatory | A+ |
-| Hardenize | Verde em todos os items |
-| DNSSEC Validation | Pass |
-| CAA Check | Only letsencrypt.org |
+| Teste               | Resultado Minimo        |
+| ------------------- | ----------------------- |
+| SSL Labs            | A+                      |
+| Mozilla Observatory | A+                      |
+| Hardenize           | Verde em todos os items |
+| DNSSEC Validation   | Pass                    |
+| CAA Check           | Only letsencrypt.org    |
 
 ---
 
@@ -415,12 +415,12 @@ dig velya.health +dnssec +short
 
 ### 12.1 Regulamentacoes
 
-| Regulamentacao | Requisito de DNS/TLS |
-|---|---|
-| LGPD | Encriptacao de dados em transito (TLS obrigatorio) |
-| HIPAA | Encriptacao forte para dados de saude |
-| SOC 2 | Controle de acesso, encriptacao, monitoramento |
-| ISO 27001 | Gestao de certificados e chaves |
+| Regulamentacao | Requisito de DNS/TLS                               |
+| -------------- | -------------------------------------------------- |
+| LGPD           | Encriptacao de dados em transito (TLS obrigatorio) |
+| HIPAA          | Encriptacao forte para dados de saude              |
+| SOC 2          | Controle de acesso, encriptacao, monitoramento     |
+| ISO 27001      | Gestao de certificados e chaves                    |
 
 ### 12.2 Evidencias
 
@@ -436,10 +436,10 @@ para auditorias de compliance. Manter registros de:
 
 ## 13. Changelog
 
-| Data | Versao | Descricao |
-|---|---|---|
-| 2026-04-09 | 1.0 | Versao inicial do documento de CAA e hardening |
+| Data       | Versao | Descricao                                      |
+| ---------- | ------ | ---------------------------------------------- |
+| 2026-04-09 | 1.0    | Versao inicial do documento de CAA e hardening |
 
 ---
 
-*Documento mantido pelo Security Team e Platform Team. Revisao trimestral obrigatoria.*
+_Documento mantido pelo Security Team e Platform Team. Revisao trimestral obrigatoria._

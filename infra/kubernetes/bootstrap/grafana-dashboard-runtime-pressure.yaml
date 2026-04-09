@@ -8,7 +8,7 @@ metadata:
   namespace: velya-dev-observability
   labels:
     app.kubernetes.io/part-of: velya-platform
-    grafana_dashboard: "1"
+    grafana_dashboard: '1'
 data:
   velya-runtime-pressure.json: |
     {
@@ -133,7 +133,7 @@ metadata:
   namespace: velya-dev-observability
   labels:
     app.kubernetes.io/part-of: velya-platform
-    grafana_dashboard: "1"
+    grafana_dashboard: '1'
 data:
   velya-queue-health.json: |
     {

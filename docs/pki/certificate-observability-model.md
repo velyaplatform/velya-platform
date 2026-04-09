@@ -59,18 +59,19 @@ metricas customizadas e integracao com o stack de observabilidade existente.
 
 **Paineis**:
 
-| Painel | Tipo | Query |
-|---|---|---|
-| Total de Certificados | Stat | `count(certmanager_certificate_ready_status)` |
-| Certificados Ready | Stat | `count(certmanager_certificate_ready_status == 1)` |
-| Certificados Not Ready | Stat | `count(certmanager_certificate_ready_status == 0)` |
-| Proximo Vencimento | Stat | `min(certmanager_certificate_expiration_timestamp_seconds - time())` |
-| Timeline de Expiracao | Time Series | `certmanager_certificate_expiration_timestamp_seconds - time()` |
-| Certificados por Issuer | Pie Chart | `count by (issuer_name)(certmanager_certificate_ready_status)` |
-| Renovacoes Recentes | Table | `changes(certmanager_certificate_expiration_timestamp_seconds[7d])` |
-| Historico de Emissoes | Time Series | `rate(certmanager_controller_sync_call_count[5m])` |
+| Painel                  | Tipo        | Query                                                                |
+| ----------------------- | ----------- | -------------------------------------------------------------------- |
+| Total de Certificados   | Stat        | `count(certmanager_certificate_ready_status)`                        |
+| Certificados Ready      | Stat        | `count(certmanager_certificate_ready_status == 1)`                   |
+| Certificados Not Ready  | Stat        | `count(certmanager_certificate_ready_status == 0)`                   |
+| Proximo Vencimento      | Stat        | `min(certmanager_certificate_expiration_timestamp_seconds - time())` |
+| Timeline de Expiracao   | Time Series | `certmanager_certificate_expiration_timestamp_seconds - time()`      |
+| Certificados por Issuer | Pie Chart   | `count by (issuer_name)(certmanager_certificate_ready_status)`       |
+| Renovacoes Recentes     | Table       | `changes(certmanager_certificate_expiration_timestamp_seconds[7d])`  |
+| Historico de Emissoes   | Time Series | `rate(certmanager_controller_sync_call_count[5m])`                   |
 
 **Variaveis de Dashboard**:
+
 - `namespace`: filtro por namespace
 - `issuer`: filtro por ClusterIssuer/Issuer
 - `certificate`: filtro por nome do certificado
@@ -89,16 +90,18 @@ metricas customizadas e integracao com o stack de observabilidade existente.
       {
         "title": "Certificados Ready",
         "type": "stat",
-        "targets": [{
-          "expr": "count(certmanager_certificate_ready_status{condition=\"Ready\"} == 1)",
-          "legendFormat": "Ready"
-        }],
+        "targets": [
+          {
+            "expr": "count(certmanager_certificate_ready_status{condition=\"Ready\"} == 1)",
+            "legendFormat": "Ready"
+          }
+        ],
         "fieldConfig": {
           "defaults": {
             "thresholds": {
               "steps": [
-                {"color": "red", "value": 0},
-                {"color": "green", "value": 1}
+                { "color": "red", "value": 0 },
+                { "color": "green", "value": 1 }
               ]
             }
           }
@@ -107,19 +110,21 @@ metricas customizadas e integracao com o stack de observabilidade existente.
       {
         "title": "Tempo ate Expiracao (dias)",
         "type": "timeseries",
-        "targets": [{
-          "expr": "(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400",
-          "legendFormat": "{{ namespace }}/{{ name }}"
-        }],
+        "targets": [
+          {
+            "expr": "(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400",
+            "legendFormat": "{{ namespace }}/{{ name }}"
+          }
+        ],
         "fieldConfig": {
           "defaults": {
             "unit": "d",
             "thresholds": {
               "steps": [
-                {"color": "red", "value": 7},
-                {"color": "orange", "value": 14},
-                {"color": "yellow", "value": 30},
-                {"color": "green", "value": 60}
+                { "color": "red", "value": 7 },
+                { "color": "orange", "value": 14 },
+                { "color": "yellow", "value": 30 },
+                { "color": "green", "value": 60 }
               ]
             }
           }
@@ -136,13 +141,13 @@ metricas customizadas e integracao com o stack de observabilidade existente.
 
 **Paineis**:
 
-| Painel | Tipo | Query |
-|---|---|---|
-| Challenges Ativos | Stat | `count(certmanager_http_acme_client_request_count)` |
-| Taxa de Sucesso | Gauge | `rate(certmanager_http_acme_client_request_count{status="200"}[1h])` |
-| Erros ACME | Time Series | `rate(certmanager_http_acme_client_request_count{status=~"4..|5.."}[5m])` |
-| Latencia ACME | Histogram | `certmanager_http_acme_client_request_duration_seconds` |
-| Orders por Status | Pie Chart | `count by (state)(certmanager_acme_order_state)` |
+| Painel            | Tipo        | Query                                                                |
+| ----------------- | ----------- | -------------------------------------------------------------------- | ----------- |
+| Challenges Ativos | Stat        | `count(certmanager_http_acme_client_request_count)`                  |
+| Taxa de Sucesso   | Gauge       | `rate(certmanager_http_acme_client_request_count{status="200"}[1h])` |
+| Erros ACME        | Time Series | `rate(certmanager_http_acme_client_request_count{status=~"4..        | 5.."}[5m])` |
+| Latencia ACME     | Histogram   | `certmanager_http_acme_client_request_duration_seconds`              |
+| Orders por Status | Pie Chart   | `count by (state)(certmanager_acme_order_state)`                     |
 
 ### 3.3 Dashboard 3: DNS Automation Board
 
@@ -150,13 +155,13 @@ metricas customizadas e integracao com o stack de observabilidade existente.
 
 **Paineis**:
 
-| Painel | Tipo | Query |
-|---|---|---|
-| Endpoints Gerenciados | Stat | `external_dns_registry_endpoints` |
-| Ultimo Sync | Stat | `time() - external_dns_controller_last_sync_timestamp` |
-| Erros de Sync | Time Series | `rate(external_dns_source_errors_total[5m])` |
-| Endpoints por Fonte | Bar | `external_dns_source_endpoints` |
-| Registros por Tipo | Pie Chart | `count by (record_type)(external_dns_registry_endpoints)` |
+| Painel                | Tipo        | Query                                                     |
+| --------------------- | ----------- | --------------------------------------------------------- |
+| Endpoints Gerenciados | Stat        | `external_dns_registry_endpoints`                         |
+| Ultimo Sync           | Stat        | `time() - external_dns_controller_last_sync_timestamp`    |
+| Erros de Sync         | Time Series | `rate(external_dns_source_errors_total[5m])`              |
+| Endpoints por Fonte   | Bar         | `external_dns_source_endpoints`                           |
+| Registros por Tipo    | Pie Chart   | `count by (record_type)(external_dns_registry_endpoints)` |
 
 ### 3.4 Dashboard 4: HTTPS Endpoint Health Board
 
@@ -164,12 +169,12 @@ metricas customizadas e integracao com o stack de observabilidade existente.
 
 **Paineis**:
 
-| Painel | Tipo | Query |
-|---|---|---|
-| Endpoints HTTPS Up | Stat | `count(probe_ssl_earliest_cert_expiry > 0)` |
-| Dias para Expiracao (externo) | Table | `(probe_ssl_earliest_cert_expiry - time()) / 86400` |
-| TLS Version | Pie Chart | `count by (version)(probe_tls_version_info)` |
-| Tempo de Handshake | Time Series | `probe_http_duration_seconds{phase="tls"}` |
+| Painel                        | Tipo        | Query                                               |
+| ----------------------------- | ----------- | --------------------------------------------------- |
+| Endpoints HTTPS Up            | Stat        | `count(probe_ssl_earliest_cert_expiry > 0)`         |
+| Dias para Expiracao (externo) | Table       | `(probe_ssl_earliest_cert_expiry - time()) / 86400` |
+| TLS Version                   | Pie Chart   | `count by (version)(probe_tls_version_info)`        |
+| Tempo de Handshake            | Time Series | `probe_http_duration_seconds{phase="tls"}`          |
 
 **Nota**: Requer blackbox_exporter configurado para probes HTTPS.
 
@@ -179,14 +184,14 @@ metricas customizadas e integracao com o stack de observabilidade existente.
 
 **Paineis**:
 
-| Painel | Tipo | Query |
-|---|---|---|
-| step-ca Up | Stat | `up{job="step-ca"}` |
-| Certificados Emitidos (total) | Stat | `step_ca_certificate_issued_total` |
-| Taxa de Emissao | Time Series | `rate(step_ca_certificate_issued_total[5m])` |
-| Falhas de Emissao | Time Series | `rate(step_ca_certificate_failed_total[5m])` |
-| Latencia de Emissao | Histogram | `step_ca_request_duration_seconds` |
-| CA Intermediaria Expiracao | Stat | `step_ca_intermediate_cert_expiry_seconds - time()` |
+| Painel                        | Tipo        | Query                                               |
+| ----------------------------- | ----------- | --------------------------------------------------- |
+| step-ca Up                    | Stat        | `up{job="step-ca"}`                                 |
+| Certificados Emitidos (total) | Stat        | `step_ca_certificate_issued_total`                  |
+| Taxa de Emissao               | Time Series | `rate(step_ca_certificate_issued_total[5m])`        |
+| Falhas de Emissao             | Time Series | `rate(step_ca_certificate_failed_total[5m])`        |
+| Latencia de Emissao           | Histogram   | `step_ca_request_duration_seconds`                  |
+| CA Intermediaria Expiracao    | Stat        | `step_ca_intermediate_cert_expiry_seconds - time()` |
 
 ### 3.6 Dashboard 6: Expiry Risk Board
 
@@ -194,14 +199,14 @@ metricas customizadas e integracao com o stack de observabilidade existente.
 
 **Paineis**:
 
-| Painel | Tipo | Query |
-|---|---|---|
-| Risco Critico (< 7d) | Stat (red) | `count((certmanager_certificate_expiration_timestamp_seconds - time()) < 604800)` |
-| Risco Alto (< 14d) | Stat (orange) | `count((certmanager_certificate_expiration_timestamp_seconds - time()) < 1209600)` |
-| Risco Medio (< 30d) | Stat (yellow) | `count((certmanager_certificate_expiration_timestamp_seconds - time()) < 2592000)` |
-| Sem Risco (> 30d) | Stat (green) | `count((certmanager_certificate_expiration_timestamp_seconds - time()) >= 2592000)` |
-| Heatmap de Risco | Heatmap | Por namespace e dias para expiracao |
-| Tabela de Certificados | Table | Todos os certificados ordenados por expiracao |
+| Painel                 | Tipo          | Query                                                                               |
+| ---------------------- | ------------- | ----------------------------------------------------------------------------------- |
+| Risco Critico (< 7d)   | Stat (red)    | `count((certmanager_certificate_expiration_timestamp_seconds - time()) < 604800)`   |
+| Risco Alto (< 14d)     | Stat (orange) | `count((certmanager_certificate_expiration_timestamp_seconds - time()) < 1209600)`  |
+| Risco Medio (< 30d)    | Stat (yellow) | `count((certmanager_certificate_expiration_timestamp_seconds - time()) < 2592000)`  |
+| Sem Risco (> 30d)      | Stat (green)  | `count((certmanager_certificate_expiration_timestamp_seconds - time()) >= 2592000)` |
+| Heatmap de Risco       | Heatmap       | Por namespace e dias para expiracao                                                 |
+| Tabela de Certificados | Table         | Todos os certificados ordenados por expiracao                                       |
 
 ---
 
@@ -235,12 +240,12 @@ spec:
             severity: warning
             team: platform
           annotations:
-            summary: "Certificado {{ $labels.name }} expira em menos de 30 dias"
+            summary: 'Certificado {{ $labels.name }} expira em menos de 30 dias'
             description: |
               O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }}
               expira em {{ $value | humanizeDuration }}. A renovacao deveria ser automatica.
               Verificar cert-manager e ClusterIssuer.
-            runbook_url: "https://docs.velya.health/pki/certificate-lifecycle-runbooks"
+            runbook_url: 'https://docs.velya.health/pki/certificate-lifecycle-runbooks'
 
         - alert: CertExpiring14Days
           expr: |
@@ -252,7 +257,7 @@ spec:
             severity: critical
             team: platform
           annotations:
-            summary: "CRITICO: Certificado {{ $labels.name }} expira em menos de 14 dias"
+            summary: 'CRITICO: Certificado {{ $labels.name }} expira em menos de 14 dias'
             description: |
               O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }}
               expira em {{ $value | humanizeDuration }}. Renovacao automatica provavelmente falhou.
@@ -269,7 +274,7 @@ spec:
             team: platform
             escalation: p1
           annotations:
-            summary: "EMERGENCIA: Certificado {{ $labels.name }} expira em menos de 7 dias"
+            summary: 'EMERGENCIA: Certificado {{ $labels.name }} expira em menos de 7 dias'
             description: |
               O certificado {{ $labels.name }} expira em {{ $value | humanizeDuration }}.
               Incidente P1. Resolver imediatamente.
@@ -285,7 +290,7 @@ spec:
             team: platform
             escalation: p0
           annotations:
-            summary: "P0: Certificado {{ $labels.name }} expira em menos de 24 horas"
+            summary: 'P0: Certificado {{ $labels.name }} expira em menos de 24 horas'
             description: |
               O certificado {{ $labels.name }} expira em {{ $value | humanizeDuration }}.
               DOWNTIME IMINENTE. Acao emergencial.
@@ -303,8 +308,8 @@ spec:
             severity: critical
             team: platform
           annotations:
-            summary: "cert-manager esta down"
-            description: "O cert-manager controller nao esta respondendo. Certificados nao serao renovados."
+            summary: 'cert-manager esta down'
+            description: 'O cert-manager controller nao esta respondendo. Certificados nao serao renovados.'
 
         - alert: CertManagerWebhookDown
           expr: |
@@ -314,8 +319,8 @@ spec:
             severity: critical
             team: platform
           annotations:
-            summary: "cert-manager webhook esta down"
-            description: "O webhook do cert-manager nao esta respondendo. Novos Certificate resources nao serao validados."
+            summary: 'cert-manager webhook esta down'
+            description: 'O webhook do cert-manager nao esta respondendo. Novos Certificate resources nao serao validados.'
 
         - alert: CertNotReady
           expr: |
@@ -325,8 +330,8 @@ spec:
             severity: warning
             team: platform
           annotations:
-            summary: "Certificado {{ $labels.name }} nao esta Ready"
-            description: "O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }} nao esta no estado Ready ha 30 minutos."
+            summary: 'Certificado {{ $labels.name }} nao esta Ready'
+            description: 'O certificado {{ $labels.name }} no namespace {{ $labels.exported_namespace }} nao esta no estado Ready ha 30 minutos.'
 
     # ==========================================
     # Grupo 3: ACME Challenges
@@ -341,8 +346,8 @@ spec:
             severity: warning
             team: platform
           annotations:
-            summary: "Multiplas falhas de challenge ACME"
-            description: "Mais de 5 requests ACME com erro nos ultimos 15 minutos. Verificar credenciais DNS e conectividade."
+            summary: 'Multiplas falhas de challenge ACME'
+            description: 'Mais de 5 requests ACME com erro nos ultimos 15 minutos. Verificar credenciais DNS e conectividade.'
 
         - alert: ACMEChallengeStuck
           expr: |
@@ -354,7 +359,7 @@ spec:
             severity: warning
             team: platform
           annotations:
-            summary: "Challenge ACME preso ha mais de 1 hora"
+            summary: 'Challenge ACME preso ha mais de 1 hora'
 
     # ==========================================
     # Grupo 4: Secrets e TLS
@@ -371,7 +376,7 @@ spec:
             severity: critical
             team: platform
           annotations:
-            summary: "Secret TLS ausente para certificado Ready"
+            summary: 'Secret TLS ausente para certificado Ready'
 
     # ==========================================
     # Grupo 5: PKI Interna
@@ -386,8 +391,8 @@ spec:
             severity: critical
             team: platform
           annotations:
-            summary: "step-ca CA interna esta down"
-            description: "A CA interna nao esta respondendo. Certificados internos nao serao renovados."
+            summary: 'step-ca CA interna esta down'
+            description: 'A CA interna nao esta respondendo. Certificados internos nao serao renovados.'
 
         - alert: InternalCertRenewalFailed
           expr: |
@@ -397,7 +402,7 @@ spec:
             severity: warning
             team: platform
           annotations:
-            summary: "Falha na emissao de certificado interno"
+            summary: 'Falha na emissao de certificado interno'
 
     # ==========================================
     # Grupo 6: DNS
@@ -412,7 +417,7 @@ spec:
             severity: critical
             team: platform
           annotations:
-            summary: "ExternalDNS esta down"
+            summary: 'ExternalDNS esta down'
 
         - alert: ExternalDNSSyncStale
           expr: |
@@ -422,7 +427,7 @@ spec:
             severity: warning
             team: platform
           annotations:
-            summary: "ExternalDNS nao sincroniza ha mais de 10 minutos"
+            summary: 'ExternalDNS nao sincroniza ha mais de 10 minutos'
 ```
 
 ---
@@ -513,7 +518,7 @@ modules:
     prober: http
     timeout: 10s
     http:
-      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_http_versions: ['HTTP/1.1', 'HTTP/2.0']
       valid_status_codes: [200, 301, 302]
       method: GET
       tls_config:
@@ -581,12 +586,12 @@ route:
       repeat_interval: 24h
 
     - match_re:
-        alertname: "CertManager.*|StepCA.*"
+        alertname: 'CertManager.*|StepCA.*'
       receiver: slack-platform-critical
       repeat_interval: 1h
 
     - match_re:
-        alertname: "ACME.*|ExternalDNS.*"
+        alertname: 'ACME.*|ExternalDNS.*'
       receiver: slack-platform-warning
       repeat_interval: 2h
 ```
@@ -654,10 +659,10 @@ spec:
 
 ## 10. Changelog
 
-| Data | Versao | Descricao |
-|---|---|---|
-| 2026-04-09 | 1.0 | Versao inicial do modelo de observabilidade |
+| Data       | Versao | Descricao                                   |
+| ---------- | ------ | ------------------------------------------- |
+| 2026-04-09 | 1.0    | Versao inicial do modelo de observabilidade |
 
 ---
 
-*Documento mantido pelo Platform Team e SRE Team. Revisao trimestral obrigatoria.*
+_Documento mantido pelo Platform Team e SRE Team. Revisao trimestral obrigatoria._

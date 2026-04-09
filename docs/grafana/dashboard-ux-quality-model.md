@@ -10,15 +10,15 @@ Um dashboard nao e bom porque tem muitos paineis. Um dashboard e bom porque ajud
 
 Antes de criar ou revisar qualquer dashboard, responda estas perguntas:
 
-| # | Pergunta                                    | Se Nao Souber Responder                    |
-|---|--------------------------------------------|--------------------------------------------|
-| 1 | **Para quem e este dashboard?**            | O dashboard nao tem publico definido       |
-| 2 | **Que decisao ele ajuda a tomar?**         | O dashboard e decorativo, nao util         |
-| 3 | **Que acao ele dispara?**                  | O dashboard informa mas nao orienta        |
-| 4 | **Que pergunta ele responde?**             | O dashboard existe sem proposito claro     |
-| 5 | **O que deve chamar atencao?**             | Nao ha hierarquia visual, tudo e igual     |
-| 6 | **O que e ruido?**                         | Ha paineis que ninguem olha                |
-| 7 | **O que deveria estar em drilldown?**      | Tudo esta no topo, sem filtragem           |
+| #   | Pergunta                              | Se Nao Souber Responder                |
+| --- | ------------------------------------- | -------------------------------------- |
+| 1   | **Para quem e este dashboard?**       | O dashboard nao tem publico definido   |
+| 2   | **Que decisao ele ajuda a tomar?**    | O dashboard e decorativo, nao util     |
+| 3   | **Que acao ele dispara?**             | O dashboard informa mas nao orienta    |
+| 4   | **Que pergunta ele responde?**        | O dashboard existe sem proposito claro |
+| 5   | **O que deve chamar atencao?**        | Nao ha hierarquia visual, tudo e igual |
+| 6   | **O que e ruido?**                    | Ha paineis que ninguem olha            |
+| 7   | **O que deveria estar em drilldown?** | Tudo esta no topo, sem filtragem       |
 
 ### Exemplo: Dashboard do Patient API
 
@@ -119,17 +119,17 @@ Descricao deve conter:
 
 ### Regra 4: Unidades Corretas e Consistentes
 
-| Tipo de Dado      | Unidade Correta      | Unidade ERRADA         |
-|-------------------|---------------------|------------------------|
-| Latencia          | ms ou s             | "none" ou "short"      |
-| Taxa de erro      | percent (0-100)     | ratio (0-1) sem label  |
-| Request rate      | reqps ou ops/s      | "none"                 |
-| Bytes             | bytes (SI ou IEC)   | "none" ou numero bruto |
-| CPU               | percent ou cores    | "none"                 |
-| Memoria           | bytes (IEC: GiB)    | "none" ou MB vs MiB    |
-| Tempo de atividade| duration (d, h, m)  | segundos brutos        |
-| Contagem          | short               | "none"                 |
-| Temperatura       | celsius             | "none"                 |
+| Tipo de Dado       | Unidade Correta    | Unidade ERRADA         |
+| ------------------ | ------------------ | ---------------------- |
+| Latencia           | ms ou s            | "none" ou "short"      |
+| Taxa de erro       | percent (0-100)    | ratio (0-1) sem label  |
+| Request rate       | reqps ou ops/s     | "none"                 |
+| Bytes              | bytes (SI ou IEC)  | "none" ou numero bruto |
+| CPU                | percent ou cores   | "none"                 |
+| Memoria            | bytes (IEC: GiB)   | "none" ou MB vs MiB    |
+| Tempo de atividade | duration (d, h, m) | segundos brutos        |
+| Contagem           | short              | "none"                 |
+| Temperatura        | celsius            | "none"                 |
 
 ### Regra 5: Thresholds Coerentes e Acionaveis
 
@@ -248,43 +248,43 @@ o fluxo de navegacao precisa ser melhorado.
 
 ### Para Dashboard Novo
 
-| # | Criterio                                              | Obrigatorio | Status |
-|---|------------------------------------------------------|-------------|--------|
-| 1 | Publico-alvo definido e documentado                  | Sim         | [ ]    |
-| 2 | Pergunta principal que o dashboard responde           | Sim         | [ ]    |
-| 3 | Acoes que o dashboard dispara documentadas            | Sim         | [ ]    |
-| 4 | Titulo segue padrao "Velya - [Servico/Categoria]"    | Sim         | [ ]    |
-| 5 | Descricao do dashboard preenchida (>20 chars)         | Sim         | [ ]    |
-| 6 | Owner atribuido no registry                           | Sim         | [ ]    |
-| 7 | Criticidade definida                                  | Sim         | [ ]    |
-| 8 | Tags obrigatorias presentes (velya, criticidade, owner)| Sim        | [ ]    |
-| 9 | Maximo de 6-8 paineis visiveis sem scroll             | Rec.        | [ ]    |
-| 10| Rows colapsadas para detalhes                         | Rec.        | [ ]    |
-| 11| Todos os paineis tem titulo descritivo               | Sim         | [ ]    |
-| 12| Paineis criticos tem descricao (tooltip)              | Sim         | [ ]    |
-| 13| Unidades configuradas em todos os paineis            | Sim         | [ ]    |
-| 14| Thresholds definidos e documentados                  | Sim         | [ ]    |
-| 15| Links para drilldown configurados                    | Rec.        | [ ]    |
-| 16| Links para Explore (logs, traces) configurados       | Rec.        | [ ]    |
-| 17| Link para runbook (se critical)                       | Sim*        | [ ]    |
-| 18| Variaveis com defaults uteis                          | Sim         | [ ]    |
-| 19| Testado com dados reais em staging                   | Sim         | [ ]    |
-| 20| Revisado por pelo menos 1 usuario do publico-alvo    | Rec.        | [ ]    |
+| #   | Criterio                                                | Obrigatorio | Status |
+| --- | ------------------------------------------------------- | ----------- | ------ |
+| 1   | Publico-alvo definido e documentado                     | Sim         | [ ]    |
+| 2   | Pergunta principal que o dashboard responde             | Sim         | [ ]    |
+| 3   | Acoes que o dashboard dispara documentadas              | Sim         | [ ]    |
+| 4   | Titulo segue padrao "Velya - [Servico/Categoria]"       | Sim         | [ ]    |
+| 5   | Descricao do dashboard preenchida (>20 chars)           | Sim         | [ ]    |
+| 6   | Owner atribuido no registry                             | Sim         | [ ]    |
+| 7   | Criticidade definida                                    | Sim         | [ ]    |
+| 8   | Tags obrigatorias presentes (velya, criticidade, owner) | Sim         | [ ]    |
+| 9   | Maximo de 6-8 paineis visiveis sem scroll               | Rec.        | [ ]    |
+| 10  | Rows colapsadas para detalhes                           | Rec.        | [ ]    |
+| 11  | Todos os paineis tem titulo descritivo                  | Sim         | [ ]    |
+| 12  | Paineis criticos tem descricao (tooltip)                | Sim         | [ ]    |
+| 13  | Unidades configuradas em todos os paineis               | Sim         | [ ]    |
+| 14  | Thresholds definidos e documentados                     | Sim         | [ ]    |
+| 15  | Links para drilldown configurados                       | Rec.        | [ ]    |
+| 16  | Links para Explore (logs, traces) configurados          | Rec.        | [ ]    |
+| 17  | Link para runbook (se critical)                         | Sim\*       | [ ]    |
+| 18  | Variaveis com defaults uteis                            | Sim         | [ ]    |
+| 19  | Testado com dados reais em staging                      | Sim         | [ ]    |
+| 20  | Revisado por pelo menos 1 usuario do publico-alvo       | Rec.        | [ ]    |
 
 ### Para Revisao de Dashboard Existente
 
-| # | Criterio                                              | Acao se Falhar                          |
-|---|------------------------------------------------------|-----------------------------------------|
-| 1 | Todos os paineis tem dados (nao "no data")?          | Diagnosticar com arvore de 14 passos    |
-| 2 | Todos os paineis tem titulo editado?                  | Corrigir titulos padrao                  |
-| 3 | Unidades estao corretas em todos os paineis?          | Corrigir unidades                        |
-| 4 | Thresholds fazem sentido com dados atuais?            | Revisar com owner                        |
-| 5 | Ha paineis que ninguem usa (0 views em 30d)?          | Candidato a remocao                      |
-| 6 | Links funcionam?                                      | Corrigir links quebrados                 |
-| 7 | Variaveis resolvem?                                   | Corrigir queries de variaveis            |
-| 8 | Dashboard carrega em < 5 segundos?                    | Otimizar queries                         |
-| 9 | Layout e legivel em tela padrao (1920x1080)?          | Ajustar gridPos                          |
-| 10| Cores e contrastes sao acessiveis?                    | Ajustar paleta de cores                  |
+| #   | Criterio                                     | Acao se Falhar                       |
+| --- | -------------------------------------------- | ------------------------------------ |
+| 1   | Todos os paineis tem dados (nao "no data")?  | Diagnosticar com arvore de 14 passos |
+| 2   | Todos os paineis tem titulo editado?         | Corrigir titulos padrao              |
+| 3   | Unidades estao corretas em todos os paineis? | Corrigir unidades                    |
+| 4   | Thresholds fazem sentido com dados atuais?   | Revisar com owner                    |
+| 5   | Ha paineis que ninguem usa (0 views em 30d)? | Candidato a remocao                  |
+| 6   | Links funcionam?                             | Corrigir links quebrados             |
+| 7   | Variaveis resolvem?                          | Corrigir queries de variaveis        |
+| 8   | Dashboard carrega em < 5 segundos?           | Otimizar queries                     |
+| 9   | Layout e legivel em tela padrao (1920x1080)? | Ajustar gridPos                      |
+| 10  | Cores e contrastes sao acessiveis?           | Ajustar paleta de cores              |
 
 ---
 
@@ -407,19 +407,23 @@ avg(dae_panel_dimension_score{dimension="semantic_usefulness"})
 **Frequencia de Uso:** [Quando este dashboard e consultado]
 
 ### Perguntas que este dashboard responde:
+
 1. [Pergunta 1]
 2. [Pergunta 2]
 3. [Pergunta 3]
 
 ### Acoes disparadas por este dashboard:
+
 - Se [condicao]: [acao]
 - Se [condicao]: [acao]
 
 ### Dependencias:
+
 - Datasource: [lista]
 - Servicos monitorados: [lista]
 
 ### Links Relacionados:
+
 - Runbook: [URL]
 - Drilldown: [Dashboard]
 - Documentacao: [URL]

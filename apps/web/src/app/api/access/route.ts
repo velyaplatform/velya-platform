@@ -26,10 +26,7 @@ export async function GET(request: NextRequest) {
     const roleParam = searchParams.get('role');
 
     if (!roleParam) {
-      return NextResponse.json(
-        { error: 'Parametro "role" e obrigatorio' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Parametro "role" e obrigatorio' }, { status: 400 });
     }
 
     let professionalRole: ProfessionalRole;
@@ -41,10 +38,7 @@ export async function GET(request: NextRequest) {
 
     const roleDef = ROLE_DEFINITIONS[professionalRole];
     if (!roleDef) {
-      return NextResponse.json(
-        { error: 'Funcao nao encontrada' },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: 'Funcao nao encontrada' }, { status: 404 });
     }
 
     audit({
@@ -105,10 +99,7 @@ export async function POST(request: NextRequest) {
     } = body;
 
     if (!roleParam || typeof roleParam !== 'string') {
-      return NextResponse.json(
-        { error: 'Campo "role" e obrigatorio' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Campo "role" e obrigatorio' }, { status: 400 });
     }
 
     if (!action && !dataClass) {

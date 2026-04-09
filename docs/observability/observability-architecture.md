@@ -9,26 +9,26 @@
 
 Os 18 princípios abaixo são não-negociáveis. Toda decisão de instrumentação, dashboard ou alerta deve ser justificável contra ao menos um deles.
 
-| # | Princípio | Justificativa no contexto hospitalar |
-|---|-----------|--------------------------------------|
-| 1 | **Observabilidade é requisito clínico** | Sistemas invisíveis não podem garantir segurança do paciente. |
-| 2 | **Todo sinal deve ser acionável** | Dados sem ação são ruído. Cada métrica, log e trace deve conectar a uma decisão. |
-| 3 | **Correlação entre sinais é obrigatória** | Métrica → Log → Trace → Runbook. Nenhum sinal vive isolado. |
-| 4 | **Falhas silenciosas são as mais perigosas** | O sistema que falha sem ruído é pior do que o que falha barulhento. |
-| 5 | **PHI nunca em logs, métricas ou traces** | Identificadores de paciente apenas tokenizados (patient_id, visit_id). |
-| 6 | **Observabilidade como código** | Tudo versionado em Git. Nada de dashboard manual sem rastreabilidade. |
-| 7 | **SLOs definem a operação, não alertas ad hoc** | A pergunta é: "estamos dentro do SLO?" não "haverá alerta?". |
-| 8 | **Cada serviço tem owner de observabilidade** | Sem owner → sem responsabilidade → degradação invisível. |
-| 9 | **Agents são cidadãos de primeira classe** | A empresa digital deve ser tão observável quanto a infraestrutura. |
-| 10 | **Frontend é parte da cadeia clínica** | Atrito de UX em ambiente hospitalar tem impacto em tempo de resposta clínica. |
-| 11 | **Custo de observabilidade é monitorado** | Cardinalidade, volume de logs e traces têm custo real. |
-| 12 | **Alertas têm severidade, dono e runbook** | Alerta sem runbook não deve existir em produção. |
-| 13 | **Distributed tracing é mandatório para fluxos clínicos** | Não é opcional rastrear o caminho de uma decisão de alta ou alerta clínico. |
-| 14 | **Degraded mode é um estado explícito e monitorado** | O sistema deve saber e comunicar quando está operando em modo degradado. |
-| 15 | **Retenção de dados de observabilidade é política** | Logs: 30 dias dev, 90 dias prod. Métricas: 90 dias dev, 1 ano prod. |
-| 16 | **Revisão periódica obrigatória** | Dashboards, alertas e métricas têm ciclo de revisão de 90 dias. |
-| 17 | **Stack OSS prioritária** | Preferência por ferramentas open source para evitar lock-in e custo de licença. |
-| 18 | **Simplicidade acima de completude prematura** | Melhor ter 10 métricas úteis do que 1000 métricas não consultadas. |
+| #   | Princípio                                                 | Justificativa no contexto hospitalar                                             |
+| --- | --------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 1   | **Observabilidade é requisito clínico**                   | Sistemas invisíveis não podem garantir segurança do paciente.                    |
+| 2   | **Todo sinal deve ser acionável**                         | Dados sem ação são ruído. Cada métrica, log e trace deve conectar a uma decisão. |
+| 3   | **Correlação entre sinais é obrigatória**                 | Métrica → Log → Trace → Runbook. Nenhum sinal vive isolado.                      |
+| 4   | **Falhas silenciosas são as mais perigosas**              | O sistema que falha sem ruído é pior do que o que falha barulhento.              |
+| 5   | **PHI nunca em logs, métricas ou traces**                 | Identificadores de paciente apenas tokenizados (patient_id, visit_id).           |
+| 6   | **Observabilidade como código**                           | Tudo versionado em Git. Nada de dashboard manual sem rastreabilidade.            |
+| 7   | **SLOs definem a operação, não alertas ad hoc**           | A pergunta é: "estamos dentro do SLO?" não "haverá alerta?".                     |
+| 8   | **Cada serviço tem owner de observabilidade**             | Sem owner → sem responsabilidade → degradação invisível.                         |
+| 9   | **Agents são cidadãos de primeira classe**                | A empresa digital deve ser tão observável quanto a infraestrutura.               |
+| 10  | **Frontend é parte da cadeia clínica**                    | Atrito de UX em ambiente hospitalar tem impacto em tempo de resposta clínica.    |
+| 11  | **Custo de observabilidade é monitorado**                 | Cardinalidade, volume de logs e traces têm custo real.                           |
+| 12  | **Alertas têm severidade, dono e runbook**                | Alerta sem runbook não deve existir em produção.                                 |
+| 13  | **Distributed tracing é mandatório para fluxos clínicos** | Não é opcional rastrear o caminho de uma decisão de alta ou alerta clínico.      |
+| 14  | **Degraded mode é um estado explícito e monitorado**      | O sistema deve saber e comunicar quando está operando em modo degradado.         |
+| 15  | **Retenção de dados de observabilidade é política**       | Logs: 30 dias dev, 90 dias prod. Métricas: 90 dias dev, 1 ano prod.              |
+| 16  | **Revisão periódica obrigatória**                         | Dashboards, alertas e métricas têm ciclo de revisão de 90 dias.                  |
+| 17  | **Stack OSS prioritária**                                 | Preferência por ferramentas open source para evitar lock-in e custo de licença.  |
+| 18  | **Simplicidade acima de completude prematura**            | Melhor ter 10 métricas úteis do que 1000 métricas não consultadas.               |
 
 ---
 
@@ -36,28 +36,28 @@ Os 18 princípios abaixo são não-negociáveis. Toda decisão de instrumentaç�
 
 ### 2.1 Componentes e Responsabilidades
 
-| Componente | Versão mínima | Sinal | Responsabilidade |
-|------------|---------------|-------|-----------------|
-| **Prometheus** | 2.50+ | Métricas | Coleta, storage e avaliação de regras |
-| **Grafana OSS** | 10.4+ | Visualização | Dashboards, alerting, explore |
-| **Loki** | 3.0+ | Logs | Indexação e query de logs estruturados |
-| **Promtail** | 3.0+ | Logs | Agente de coleta de logs em cada nó |
-| **Grafana Tempo** | 2.4+ | Traces | Distributed tracing backend (**a implementar**) |
-| **Grafana Alloy** | 1.0+ | Agente universal | Substituto do OTel Collector + Promtail no futuro |
-| **OTel Collector** | 0.97+ | Telemetria | Gateway de telemetria atual (OTLP → Prometheus/Loki/Tempo) |
-| **Grafana Pyroscope** | 1.5+ | Profiling | Profiling contínuo de CPU e memória (**futuro**) |
-| **kube-state-metrics** | 2.10+ | Métricas K8s | Estado dos objetos Kubernetes |
-| **node-exporter** | 1.7+ | Métricas SO | Métricas de sistema operacional dos nós |
-| **KEDA** | 2.13+ | Escalabilidade | ScaledObjects com triggers Prometheus |
+| Componente             | Versão mínima | Sinal            | Responsabilidade                                           |
+| ---------------------- | ------------- | ---------------- | ---------------------------------------------------------- |
+| **Prometheus**         | 2.50+         | Métricas         | Coleta, storage e avaliação de regras                      |
+| **Grafana OSS**        | 10.4+         | Visualização     | Dashboards, alerting, explore                              |
+| **Loki**               | 3.0+          | Logs             | Indexação e query de logs estruturados                     |
+| **Promtail**           | 3.0+          | Logs             | Agente de coleta de logs em cada nó                        |
+| **Grafana Tempo**      | 2.4+          | Traces           | Distributed tracing backend (**a implementar**)            |
+| **Grafana Alloy**      | 1.0+          | Agente universal | Substituto do OTel Collector + Promtail no futuro          |
+| **OTel Collector**     | 0.97+         | Telemetria       | Gateway de telemetria atual (OTLP → Prometheus/Loki/Tempo) |
+| **Grafana Pyroscope**  | 1.5+          | Profiling        | Profiling contínuo de CPU e memória (**futuro**)           |
+| **kube-state-metrics** | 2.10+         | Métricas K8s     | Estado dos objetos Kubernetes                              |
+| **node-exporter**      | 1.7+          | Métricas SO      | Métricas de sistema operacional dos nós                    |
+| **KEDA**               | 2.13+         | Escalabilidade   | ScaledObjects com triggers Prometheus                      |
 
 ### 2.2 Não Utilizar (justificativa)
 
-| Ferramenta | Motivo para não usar |
-|------------|---------------------|
-| Datadog, New Relic, Dynatrace | Custo de licença e lock-in |
-| Elasticsearch para logs | Complexidade operacional e custo; Loki é suficiente |
-| Grafana Cloud (managed) | Dado clínico não sai do cluster sem aprovação explícita |
-| Jaeger standalone | Substituído por Tempo na stack Grafana |
+| Ferramenta                    | Motivo para não usar                                    |
+| ----------------------------- | ------------------------------------------------------- |
+| Datadog, New Relic, Dynatrace | Custo de licença e lock-in                              |
+| Elasticsearch para logs       | Complexidade operacional e custo; Loki é suficiente     |
+| Grafana Cloud (managed)       | Dado clínico não sai do cluster sem aprovação explícita |
+| Jaeger standalone             | Substituído por Tempo na stack Grafana                  |
 
 ---
 
@@ -129,75 +129,75 @@ Os 18 princípios abaixo são não-negociáveis. Toda decisão de instrumentaç�
 
 **Responsável**: node-exporter, kube-state-metrics, kubelet metrics
 
-| Sinal | Fonte | Frequência de scrape |
-|-------|-------|---------------------|
-| CPU/memória por nó | node-exporter | 15s |
-| Status de pods e deployments | kube-state-metrics | 30s |
-| Métricas de kubelet (volumes, containers) | kubelet | 30s |
-| Métricas do API server | kube-apiserver | 30s |
-| Estado de nós (conditions) | kube-state-metrics | 30s |
+| Sinal                                     | Fonte              | Frequência de scrape |
+| ----------------------------------------- | ------------------ | -------------------- |
+| CPU/memória por nó                        | node-exporter      | 15s                  |
+| Status de pods e deployments              | kube-state-metrics | 30s                  |
+| Métricas de kubelet (volumes, containers) | kubelet            | 30s                  |
+| Métricas do API server                    | kube-apiserver     | 30s                  |
+| Estado de nós (conditions)                | kube-state-metrics | 30s                  |
 
 ### 4.2 Camada de Plataforma
 
 **Responsável**: ArgoCD metrics, KEDA metrics, cert-manager
 
-| Sinal | Fonte | Frequência de scrape |
-|-------|-------|---------------------|
-| Estado de Applications ArgoCD | argocd-metrics | 30s |
-| ScaledObjects KEDA | keda-metrics-apiserver | 30s |
-| Renovação de certificados | cert-manager | 60s |
-| Eventos de secret rotation | vault/external-secrets (futuro) | evento |
+| Sinal                         | Fonte                           | Frequência de scrape |
+| ----------------------------- | ------------------------------- | -------------------- |
+| Estado de Applications ArgoCD | argocd-metrics                  | 30s                  |
+| ScaledObjects KEDA            | keda-metrics-apiserver          | 30s                  |
+| Renovação de certificados     | cert-manager                    | 60s                  |
+| Eventos de secret rotation    | vault/external-secrets (futuro) | evento               |
 
 ### 4.3 Camada de Backend (Serviços Velya)
 
 **Responsável**: Cada serviço NestJS expondo /metrics via prom-client
 
-| Serviço | Namespace | Endpoint /metrics | ServiceMonitor |
-|---------|-----------|-------------------|---------------|
-| patient-flow-service | velya-dev-core | :3000/metrics | **PENDENTE** |
-| task-inbox-service | velya-dev-core | :3000/metrics | **PENDENTE** |
-| discharge-orchestrator | velya-dev-core | :3000/metrics | **PENDENTE** |
-| api-gateway | velya-dev-platform | :3000/metrics | **PENDENTE** |
-| ai-gateway | velya-dev-agents | :3000/metrics | **PENDENTE** |
-| decision-log | velya-dev-platform | :3000/metrics | **PENDENTE** |
-| memory-service | velya-dev-agents | :3000/metrics | **PENDENTE** |
-| policy-engine | velya-dev-platform | :3000/metrics | **PENDENTE** |
+| Serviço                | Namespace          | Endpoint /metrics | ServiceMonitor |
+| ---------------------- | ------------------ | ----------------- | -------------- |
+| patient-flow-service   | velya-dev-core     | :3000/metrics     | **PENDENTE**   |
+| task-inbox-service     | velya-dev-core     | :3000/metrics     | **PENDENTE**   |
+| discharge-orchestrator | velya-dev-core     | :3000/metrics     | **PENDENTE**   |
+| api-gateway            | velya-dev-platform | :3000/metrics     | **PENDENTE**   |
+| ai-gateway             | velya-dev-agents   | :3000/metrics     | **PENDENTE**   |
+| decision-log           | velya-dev-platform | :3000/metrics     | **PENDENTE**   |
+| memory-service         | velya-dev-agents   | :3000/metrics     | **PENDENTE**   |
+| policy-engine          | velya-dev-platform | :3000/metrics     | **PENDENTE**   |
 
 ### 4.4 Camada de Frontend
 
 **Responsável**: velya-web (Next.js) via Web Vitals + OTel instrumentation
 
-| Sinal | Método | Estado |
-|-------|--------|--------|
-| Core Web Vitals (LCP, CLS, INP) | web-vitals library | **PENDENTE** |
-| Route performance | Next.js instrumentation.ts | **PENDENTE** |
-| JavaScript errors | Error boundary + OTel | **PENDENTE** |
-| Failed API calls | fetch interceptor | **PENDENTE** |
-| User interaction metrics | Instrumentação manual | **PENDENTE** |
+| Sinal                           | Método                     | Estado       |
+| ------------------------------- | -------------------------- | ------------ |
+| Core Web Vitals (LCP, CLS, INP) | web-vitals library         | **PENDENTE** |
+| Route performance               | Next.js instrumentation.ts | **PENDENTE** |
+| JavaScript errors               | Error boundary + OTel      | **PENDENTE** |
+| Failed API calls                | fetch interceptor          | **PENDENTE** |
+| User interaction metrics        | Instrumentação manual      | **PENDENTE** |
 
 ### 4.5 Camada de Agents e Empresa Digital
 
 **Responsável**: Workers Temporal + instrumentação custom
 
-| Sinal | Tipo | Estado |
-|-------|------|--------|
-| Throughput por agent | Contador Prometheus | **PENDENTE** |
-| Taxa de validação | Gauge Prometheus | **PENDENTE** |
-| Silêncio de agent | Timestamp Prometheus | **PENDENTE** |
-| Handoff latency | Histograma Prometheus | **PENDENTE** |
-| Loop de correção | Contador Prometheus | **PENDENTE** |
+| Sinal                | Tipo                  | Estado       |
+| -------------------- | --------------------- | ------------ |
+| Throughput por agent | Contador Prometheus   | **PENDENTE** |
+| Taxa de validação    | Gauge Prometheus      | **PENDENTE** |
+| Silêncio de agent    | Timestamp Prometheus  | **PENDENTE** |
+| Handoff latency      | Histograma Prometheus | **PENDENTE** |
+| Loop de correção     | Contador Prometheus   | **PENDENTE** |
 
 ### 4.6 Camada de Negócio Hospitalar
 
 **Responsável**: Serviços de domínio expondo métricas de workflow
 
-| Sinal | Tipo | Estado |
-|-------|------|--------|
-| Altas pendentes por status | Gauge | **PENDENTE** |
+| Sinal                       | Tipo             | Estado       |
+| --------------------------- | ---------------- | ------------ |
+| Altas pendentes por status  | Gauge            | **PENDENTE** |
 | Bloqueadores por tipo/idade | Gauge/Histograma | **PENDENTE** |
-| Tarefas por prioridade/SLA | Gauge | **PENDENTE** |
-| Capacidade de leitos | Gauge | **PENDENTE** |
-| Latência de alerta clínico | Histograma | **PENDENTE** |
+| Tarefas por prioridade/SLA  | Gauge            | **PENDENTE** |
+| Capacidade de leitos        | Gauge            | **PENDENTE** |
+| Latência de alerta clínico  | Histograma       | **PENDENTE** |
 
 ---
 
@@ -205,33 +205,33 @@ Os 18 princípios abaixo são não-negociáveis. Toda decisão de instrumentaç�
 
 ### 5.1 O que está funcionando hoje
 
-| Componente | Estado | Detalhes |
-|------------|--------|----------|
-| kube-prometheus-stack | Funcionando | Instalado em velya-dev-observability |
-| Grafana OSS | Funcionando | ClusterIP 10.96.117.151:80 — apenas port-forward |
-| Prometheus | Funcionando | ClusterIP 10.96.153.246:9090 |
-| Loki | Funcionando | ClusterIP — scraping via Promtail |
-| Promtail | Funcionando | DaemonSet em todos os nós |
-| OTel Collector | Instalado | Sem destino de traces configurado (Tempo ausente) |
-| PrometheusRule | Parcial | 1 regra com 5 alertas básicos (velya-service-alerts) |
-| KEDA | Funcionando | 5 ScaledObjects com Prometheus triggers |
-| PriorityClasses | Funcionando | 5 classes configuradas |
-| Alertmanager | Instalado | Sem contact points reais configurados |
+| Componente            | Estado      | Detalhes                                             |
+| --------------------- | ----------- | ---------------------------------------------------- |
+| kube-prometheus-stack | Funcionando | Instalado em velya-dev-observability                 |
+| Grafana OSS           | Funcionando | ClusterIP 10.96.117.151:80 — apenas port-forward     |
+| Prometheus            | Funcionando | ClusterIP 10.96.153.246:9090                         |
+| Loki                  | Funcionando | ClusterIP — scraping via Promtail                    |
+| Promtail              | Funcionando | DaemonSet em todos os nós                            |
+| OTel Collector        | Instalado   | Sem destino de traces configurado (Tempo ausente)    |
+| PrometheusRule        | Parcial     | 1 regra com 5 alertas básicos (velya-service-alerts) |
+| KEDA                  | Funcionando | 5 ScaledObjects com Prometheus triggers              |
+| PriorityClasses       | Funcionando | 5 classes configuradas                               |
+| Alertmanager          | Instalado   | Sem contact points reais configurados                |
 
 ### 5.2 Estado Alvo (6 meses)
 
-| Capacidade | Estado Alvo |
-|------------|-------------|
+| Capacidade                                   | Estado Alvo  |
+| -------------------------------------------- | ------------ |
 | ServiceMonitors para todos os serviços Velya | Implementado |
-| Grafana Tempo (distributed tracing) | Implementado |
-| Métricas de negócio/workflow clínico | Implementado |
-| Observabilidade de frontend (RUM) | Implementado |
-| Métricas de agents | Implementado |
-| Grafana com Ingress | Implementado |
-| Alertmanager com Slack + PagerDuty | Implementado |
-| Dashboards versionados em Git (35+) | Implementado |
-| SLOs definidos para serviços clínicos | Implementado |
-| Grafana Alloy substituindo OTel+Promtail | Implementado |
+| Grafana Tempo (distributed tracing)          | Implementado |
+| Métricas de negócio/workflow clínico         | Implementado |
+| Observabilidade de frontend (RUM)            | Implementado |
+| Métricas de agents                           | Implementado |
+| Grafana com Ingress                          | Implementado |
+| Alertmanager com Slack + PagerDuty           | Implementado |
+| Dashboards versionados em Git (35+)          | Implementado |
+| SLOs definidos para serviços clínicos        | Implementado |
+| Grafana Alloy substituindo OTel+Promtail     | Implementado |
 
 ---
 
@@ -285,44 +285,44 @@ Os 18 princípios abaixo são não-negociáveis. Toda decisão de instrumentaç�
 
 ### Fase 1 — Visibilidade Mínima (Sprint 1-2, ~2 semanas)
 
-| Prioridade | Item | Esforço | Owner |
-|-----------|------|---------|-------|
-| P0 | ServiceMonitors para todos os serviços Velya | 1 dia | Eng. Platform |
-| P0 | prom-client em todos os serviços NestJS | 2 dias | Eng. Backend |
-| P0 | Alertmanager com Slack webhook configurado | 0.5 dia | Eng. Platform |
-| P0 | Grafana Ingress (ou NodePort para kind) | 0.5 dia | Eng. Platform |
-| P1 | Dashboard API RED por serviço | 1 dia | Eng. Observabilidade |
-| P1 | Dashboard Cluster Overview | 0.5 dia | Eng. Platform |
+| Prioridade | Item                                         | Esforço | Owner                |
+| ---------- | -------------------------------------------- | ------- | -------------------- |
+| P0         | ServiceMonitors para todos os serviços Velya | 1 dia   | Eng. Platform        |
+| P0         | prom-client em todos os serviços NestJS      | 2 dias  | Eng. Backend         |
+| P0         | Alertmanager com Slack webhook configurado   | 0.5 dia | Eng. Platform        |
+| P0         | Grafana Ingress (ou NodePort para kind)      | 0.5 dia | Eng. Platform        |
+| P1         | Dashboard API RED por serviço                | 1 dia   | Eng. Observabilidade |
+| P1         | Dashboard Cluster Overview                   | 0.5 dia | Eng. Platform        |
 
 ### Fase 2 — Distributed Tracing (Sprint 3-4, ~2 semanas)
 
-| Prioridade | Item | Esforço | Owner |
-|-----------|------|---------|-------|
-| P0 | Instalar Grafana Tempo | 1 dia | Eng. Platform |
-| P0 | Configurar OTel Collector → Tempo | 0.5 dia | Eng. Platform |
-| P1 | Instrumentação OTel em serviços NestJS | 3 dias | Eng. Backend |
-| P1 | Propagação de trace_id via NATS | 1 dia | Eng. Backend |
-| P1 | Instrumentação Next.js (instrumentation.ts) | 1 dia | Eng. Frontend |
+| Prioridade | Item                                        | Esforço | Owner         |
+| ---------- | ------------------------------------------- | ------- | ------------- |
+| P0         | Instalar Grafana Tempo                      | 1 dia   | Eng. Platform |
+| P0         | Configurar OTel Collector → Tempo           | 0.5 dia | Eng. Platform |
+| P1         | Instrumentação OTel em serviços NestJS      | 3 dias  | Eng. Backend  |
+| P1         | Propagação de trace_id via NATS             | 1 dia   | Eng. Backend  |
+| P1         | Instrumentação Next.js (instrumentation.ts) | 1 dia   | Eng. Frontend |
 
 ### Fase 3 — Observabilidade de Negócio e Agents (Sprint 5-6)
 
-| Prioridade | Item | Esforço | Owner |
-|-----------|------|---------|-------|
-| P1 | Métricas de workflow clínico (discharge, patient-flow) | 3 dias | Eng. Backend + Produto |
-| P1 | Métricas de agents (throughput, validação, silêncio) | 2 dias | Eng. Agents |
-| P1 | Dashboard Patient Flow Command Board | 2 dias | Eng. Observabilidade |
-| P1 | Dashboard Agent Oversight Console | 2 dias | Eng. Observabilidade |
-| P2 | Métricas de frontend (RUM + Web Vitals) | 2 dias | Eng. Frontend |
+| Prioridade | Item                                                   | Esforço | Owner                  |
+| ---------- | ------------------------------------------------------ | ------- | ---------------------- |
+| P1         | Métricas de workflow clínico (discharge, patient-flow) | 3 dias  | Eng. Backend + Produto |
+| P1         | Métricas de agents (throughput, validação, silêncio)   | 2 dias  | Eng. Agents            |
+| P1         | Dashboard Patient Flow Command Board                   | 2 dias  | Eng. Observabilidade   |
+| P1         | Dashboard Agent Oversight Console                      | 2 dias  | Eng. Observabilidade   |
+| P2         | Métricas de frontend (RUM + Web Vitals)                | 2 dias  | Eng. Frontend          |
 
 ### Fase 4 — Maturidade e Profiling (Sprint 7-8)
 
-| Prioridade | Item | Esforço | Owner |
-|-----------|------|---------|-------|
-| P2 | SLOs definidos e dashboards de SLO | 3 dias | Eng. Platform + Produto |
-| P2 | Instalar Grafana Pyroscope | 1 dia | Eng. Platform |
-| P2 | Todos os dashboards do catálogo implementados | 5 dias | Eng. Observabilidade |
-| P2 | Observabilidade como código (todos artefatos no Git) | 2 dias | Eng. Platform |
-| P3 | Migração OTel Collector + Promtail → Grafana Alloy | 3 dias | Eng. Platform |
+| Prioridade | Item                                                 | Esforço | Owner                   |
+| ---------- | ---------------------------------------------------- | ------- | ----------------------- |
+| P2         | SLOs definidos e dashboards de SLO                   | 3 dias  | Eng. Platform + Produto |
+| P2         | Instalar Grafana Pyroscope                           | 1 dia   | Eng. Platform           |
+| P2         | Todos os dashboards do catálogo implementados        | 5 dias  | Eng. Observabilidade    |
+| P2         | Observabilidade como código (todos artefatos no Git) | 2 dias  | Eng. Platform           |
+| P3         | Migração OTel Collector + Promtail → Grafana Alloy   | 3 dias  | Eng. Platform           |
 
 ---
 

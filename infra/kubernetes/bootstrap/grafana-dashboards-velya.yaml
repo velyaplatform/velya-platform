@@ -8,7 +8,7 @@ metadata:
   namespace: velya-dev-observability
   labels:
     app.kubernetes.io/part-of: velya-platform
-    grafana_dashboard: "1"
+    grafana_dashboard: '1'
 data:
   velya-platform-overview.json: |
     {
@@ -140,7 +140,7 @@ metadata:
   namespace: velya-dev-observability
   labels:
     app.kubernetes.io/part-of: velya-platform
-    grafana_dashboard: "1"
+    grafana_dashboard: '1'
 data:
   velya-clinical-services.json: |
     {
@@ -247,7 +247,7 @@ metadata:
   namespace: velya-dev-observability
   labels:
     app.kubernetes.io/part-of: velya-platform
-    grafana_dashboard: "1"
+    grafana_dashboard: '1'
 data:
   velya-infrastructure.json: |
     {

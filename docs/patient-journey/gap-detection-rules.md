@@ -56,13 +56,13 @@ O modulo de Gap Detection monitora continuamente o Work Event Ledger e o Digital
 
 ### 2.1 Severidades
 
-| Severidade | Cor | Tempo de Resposta Esperado | Escalacao |
-|---|---|---|---|
-| **CRITICAL** | Vermelho | Imediato (< 5 min) | Automatica apos 5 min sem acao |
-| **HIGH** | Laranja | < 15 min | Automatica apos 15 min |
-| **MEDIUM** | Amarelo | < 60 min | Automatica apos 60 min |
-| **LOW** | Azul | < 4 horas | Consolidado em relatorio de turno |
-| **INFO** | Cinza | Sem SLA | Somente registro para auditoria |
+| Severidade   | Cor      | Tempo de Resposta Esperado | Escalacao                         |
+| ------------ | -------- | -------------------------- | --------------------------------- |
+| **CRITICAL** | Vermelho | Imediato (< 5 min)         | Automatica apos 5 min sem acao    |
+| **HIGH**     | Laranja  | < 15 min                   | Automatica apos 15 min            |
+| **MEDIUM**   | Amarelo  | < 60 min                   | Automatica apos 60 min            |
+| **LOW**      | Azul     | < 4 horas                  | Consolidado em relatorio de turno |
+| **INFO**     | Cinza    | Sem SLA                    | Somente registro para auditoria   |
 
 ---
 
@@ -73,6 +73,7 @@ O modulo de Gap Detection monitora continuamente o Work Event Ledger e o Digital
 **Descricao**: Detecta eventos registrados em ordem cronologica inconsistente com a logica assistencial esperada. Exemplo: resultado de exame registrado antes da coleta, administracao de medicamento antes da prescricao.
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA par de eventos (A, B) onde B depende causalmente de A:
   SE B.timestamp < A.timestamp:
@@ -83,22 +84,24 @@ PARA CADA par de eventos (A, B) onde B depende causalmente de A:
 
 **Pares Causais Monitorados**:
 
-| Evento A (deve vir antes) | Evento B (deve vir depois) |
-|---|---|
-| MedicationRequest | MedicationAdministration |
-| ServiceRequest (lab) | Specimen (coleta) |
-| Specimen (coleta) | DiagnosticReport (resultado) |
-| ServiceRequest (procedimento) | Procedure |
-| Consent | Procedure (que requer consentimento) |
-| Encounter.admission | Qualquer evento clinico |
-| Procedure.start | Procedure.end |
+| Evento A (deve vir antes)     | Evento B (deve vir depois)           |
+| ----------------------------- | ------------------------------------ |
+| MedicationRequest             | MedicationAdministration             |
+| ServiceRequest (lab)          | Specimen (coleta)                    |
+| Specimen (coleta)             | DiagnosticReport (resultado)         |
+| ServiceRequest (procedimento) | Procedure                            |
+| Consent                       | Procedure (que requer consentimento) |
+| Encounter.admission           | Qualquer evento clinico              |
+| Procedure.start               | Procedure.end                        |
 
 **Notificacao**:
+
 - Notifica o autor do evento B.
 - Notifica o coordenador da unidade.
 - Gera flag no Digital Twin do paciente.
 
 **Excecoes**:
+
 - Registro retroativo explicito (com justificativa) ate 2 horas.
 - Correcao de horario com autorizacao do coordenador.
 
@@ -112,16 +115,17 @@ PARA CADA par de eventos (A, B) onde B depende causalmente de A:
 
 **SLAs por Tipo de Ordem**:
 
-| Tipo de Ordem | Prioridade STAT | Prioridade Urgente | Prioridade Rotina |
-|---|---|---|---|
-| Medicamento | 15 min | 60 min | Proximo horario prescrito |
-| Laboratorio | 30 min (coleta) | 2h (coleta) | 4h (coleta) |
-| Imagem | 60 min | 4h | 24h |
-| Interconsulta | 60 min | 4h | 24h |
-| Procedimento simples | 30 min | 2h | Conforme agendamento |
-| Dieta | 30 min | Proxima refeicao | Proxima refeicao |
+| Tipo de Ordem        | Prioridade STAT | Prioridade Urgente | Prioridade Rotina         |
+| -------------------- | --------------- | ------------------ | ------------------------- |
+| Medicamento          | 15 min          | 60 min             | Proximo horario prescrito |
+| Laboratorio          | 30 min (coleta) | 2h (coleta)        | 4h (coleta)               |
+| Imagem               | 60 min          | 4h                 | 24h                       |
+| Interconsulta        | 60 min          | 4h                 | 24h                       |
+| Procedimento simples | 30 min          | 2h                 | Conforme agendamento      |
+| Dieta                | 30 min          | Proxima refeicao   | Proxima refeicao          |
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA ServiceRequest/MedicationRequest com status 'active':
   calcular tempoDesdeEmissao = agora - request.authoredOn
@@ -133,11 +137,13 @@ PARA CADA ServiceRequest/MedicationRequest com status 'active':
 ```
 
 **Severidade Dinamica**:
+
 - 1x-1.5x SLA: MEDIUM
 - 1.5x-2x SLA: HIGH
 - > 2x SLA: CRITICAL
 
 **Notificacao**:
+
 - 1x SLA: Notifica responsavel pela execucao.
 - 1.5x SLA: Notifica coordenador de enfermagem.
 - 2x SLA: Notifica medico prescritor + coordenador da unidade.
@@ -151,6 +157,7 @@ PARA CADA ServiceRequest/MedicationRequest com status 'active':
 **Descricao**: Evento de execucao (procedimento, administracao de medicamento, coleta) registrado sem ordem medica correspondente ativa.
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA evento de execucao (MedicationAdministration, Procedure, Specimen):
   buscar ServiceRequest/MedicationRequest vinculado
@@ -159,12 +166,14 @@ PARA CADA evento de execucao (MedicationAdministration, Procedure, Specimen):
 ```
 
 **Notificacao**:
+
 - Notifica imediatamente o executor e o medico responsavel pelo paciente.
 - Notifica o coordenador da unidade.
 - Registra como evento de seguranca do paciente.
 - Requer justificativa do executor em 30 minutos.
 
 **Excecoes**:
+
 - Protocolos de emergencia pre-aprovados (ex: PCR, anafilaxia) — registra mas nao escala.
 - Ordem verbal em emergencia — requer confirmacao escrita em 1 hora.
 
@@ -177,6 +186,7 @@ PARA CADA evento de execucao (MedicationAdministration, Procedure, Specimen):
 **Descricao**: Registro de dor significativa sem intervencao farmacologica ou nao-farmacologica em tempo adequado.
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA Observation de dor (pain score):
   SE score >= 7:
@@ -191,11 +201,13 @@ PARA CADA Observation de dor (pain score):
 ```
 
 **Regras Adicionais**:
+
 - Dor >= 7 persistente por > 2 avaliacoes consecutivas: escala para CRITICAL.
 - Paciente com protocolo de sedacao/analgesia em UTI: janelas diferenciadas (15 min).
 - Neonatos e pediatricos: escalas especificas (NIPS, FLACC).
 
 **Notificacao**:
+
 - Dor >= 7: Notifica enfermeiro responsavel + medico.
 - Dor 4-6 sem reavaliacao: Notifica enfermeiro responsavel.
 - Dor persistente: Notifica equipe de dor (se disponivel).
@@ -209,6 +221,7 @@ PARA CADA Observation de dor (pain score):
 **Descricao**: Chamada de paciente (nurse call) sem resposta dentro do tempo esperado.
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA evento nurse_call.triggered:
   tipo = call.type  // 'emergency' | 'standard' | 'comfort'
@@ -219,11 +232,13 @@ PARA CADA evento nurse_call.triggered:
 ```
 
 **Escalacao**:
+
 - 1x SLA: Redistribui para outro enfermeiro da unidade.
 - 2x SLA: Notifica coordenador de enfermagem.
 - 3x SLA: Notifica supervisao de enfermagem + registra como evento de seguranca.
 
 **Metricas Derivadas**:
+
 - Tempo medio de resposta por unidade/turno.
 - Taxa de chamadas sem resposta no SLA.
 - Correlacao com staffing ratio.
@@ -238,20 +253,21 @@ PARA CADA evento nurse_call.triggered:
 
 **Valores Criticos Monitorados (exemplos)**:
 
-| Exame | Valor Critico |
-|---|---|
-| Potassio | < 2.5 ou > 6.5 mEq/L |
-| Sodio | < 120 ou > 160 mEq/L |
-| Glicose | < 40 ou > 500 mg/dL |
-| Hemoglobina | < 7.0 g/dL |
-| Plaquetas | < 20.000/mm3 |
-| INR | > 5.0 |
-| Troponina | > limite superior |
-| Lactato | > 4.0 mmol/L |
-| pH arterial | < 7.20 ou > 7.60 |
-| pCO2 | < 20 ou > 70 mmHg |
+| Exame       | Valor Critico        |
+| ----------- | -------------------- |
+| Potassio    | < 2.5 ou > 6.5 mEq/L |
+| Sodio       | < 120 ou > 160 mEq/L |
+| Glicose     | < 40 ou > 500 mg/dL  |
+| Hemoglobina | < 7.0 g/dL           |
+| Plaquetas   | < 20.000/mm3         |
+| INR         | > 5.0                |
+| Troponina   | > limite superior    |
+| Lactato     | > 4.0 mmol/L         |
+| pH arterial | < 7.20 ou > 7.60     |
+| pCO2        | < 20 ou > 70 mmHg    |
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA DiagnosticReport com interpretation = 'critical' OU 'panic':
   buscar Communication(sobre=report) de laboratorio para medico
@@ -268,6 +284,7 @@ PARA CADA DiagnosticReport com interpretation = 'critical' OU 'panic':
 ```
 
 **Notificacao**:
+
 - Imediata para medico responsavel (push + SMS + alerta em todas as telas).
 - Se sem acao em 15 min: notifica plantonista da unidade.
 - Se sem acao em 30 min: notifica coordenador medico.
@@ -282,6 +299,7 @@ PARA CADA DiagnosticReport com interpretation = 'critical' OU 'panic':
 **Descricao**: Deteccao de atrasos que excedem significativamente o padrao historico (baseline) para aquele tipo de evento na mesma unidade e turno.
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA par de eventos esperados (A -> B):
   calcular intervalo = B.timestamp - A.timestamp
@@ -294,6 +312,7 @@ PARA CADA par de eventos esperados (A -> B):
 ```
 
 **Pares Monitorados**:
+
 - Prescricao -> Dispensacao
 - Dispensacao -> Administracao
 - Solicitacao de exame -> Coleta
@@ -304,6 +323,7 @@ PARA CADA par de eventos esperados (A -> B):
 - Admissao -> Primeiro atendimento medico
 
 **Notificacao**:
+
 - 2 desvios: Notifica responsavel pelo processo.
 - 3 desvios: Notifica coordenador + registra para analise de causa raiz.
 
@@ -317,13 +337,14 @@ PARA CADA par de eventos esperados (A -> B):
 
 **Timeouts por Prioridade**:
 
-| Prioridade | Timeout | Escalacao |
-|---|---|---|
-| Critico | 5 minutos | Coordenador da unidade receptora |
-| Urgente | 15 minutos | Coordenador de enfermagem |
-| Rotina | 60 minutos | Supervisao do turno |
+| Prioridade | Timeout    | Escalacao                        |
+| ---------- | ---------- | -------------------------------- |
+| Critico    | 5 minutos  | Coordenador da unidade receptora |
+| Urgente    | 15 minutos | Coordenador de enfermagem        |
+| Rotina     | 60 minutos | Supervisao do turno              |
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA Task com:
   code = 'handoff' E
@@ -334,6 +355,7 @@ PARA CADA Task com:
 ```
 
 **Detalhes de Escalacao**:
+
 1. Timeout expirado: notifica receptor + supervisor do receptor.
 2. Timeout + 50%: notifica coordenador da unidade receptora.
 3. Timeout x 2: notifica supervisao geral + registra como risco operacional.
@@ -348,6 +370,7 @@ PARA CADA Task com:
 **Descricao**: Paciente movimentado (transferencia de unidade, de leito entre alas, ida para centro cirurgico) sem atribuicao de novo responsavel na unidade destino.
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA evento encounter.location.changed:
   SE nova_unidade != unidade_anterior:
@@ -358,6 +381,7 @@ PARA CADA evento encounter.location.changed:
 ```
 
 **Notificacao**:
+
 - Imediata para coordenador da unidade destino.
 - Copia para coordenador da unidade origem.
 - Se sem resolucao em 15 min: supervisao geral.
@@ -373,6 +397,7 @@ PARA CADA evento encounter.location.changed:
 **Descricao**: Profissional que registra correcoes (amendments) tardias com frequencia acima do esperado, indicando possivel problema de fluxo de trabalho ou documentacao retroativa habitual.
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA Practitioner:
   contar amendments = DocumentReference com relatesTo.code = 'amends'
@@ -388,6 +413,7 @@ PARA CADA Practitioner:
 ```
 
 **Notificacao**:
+
 - Primeira deteccao: Notifica o profissional + coordenador.
 - Padrao repetitivo: Notifica diretoria clinica/de enfermagem.
 - Inclui no relatorio mensal de qualidade documental.
@@ -402,16 +428,17 @@ PARA CADA Practitioner:
 
 **Conflitos Monitorados**:
 
-| Campo | Exemplo de Conflito |
-|---|---|
-| Alergias | Evolucao diz "sem alergias", AllergyIntolerance registra penicilina |
-| Dieta | Prescricao diz "dieta liquida", NutritionOrder diz "dieta livre" |
-| Peso | Variacao > 5kg entre registros com < 24h de intervalo |
-| Diagnostico | CID principal diverge entre evolucao e Condition ativa |
-| Medicamento | Evolucao menciona medicamento nao presente na prescricao |
-| Status funcional | Fisioterapia registra deambulacao, enfermagem registra acamado |
+| Campo            | Exemplo de Conflito                                                 |
+| ---------------- | ------------------------------------------------------------------- |
+| Alergias         | Evolucao diz "sem alergias", AllergyIntolerance registra penicilina |
+| Dieta            | Prescricao diz "dieta liquida", NutritionOrder diz "dieta livre"    |
+| Peso             | Variacao > 5kg entre registros com < 24h de intervalo               |
+| Diagnostico      | CID principal diverge entre evolucao e Condition ativa              |
+| Medicamento      | Evolucao menciona medicamento nao presente na prescricao            |
+| Status funcional | Fisioterapia registra deambulacao, enfermagem registra acamado      |
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA atualizacao de documento clinico:
   extrair entidades clinicas (NLP) do texto
@@ -427,6 +454,7 @@ PARA CADA atualizacao de documento clinico:
 ```
 
 **Notificacao**:
+
 - Notifica autores de ambos os documentos.
 - Notifica coordenador medico se envolve campo critico (alergias, medicamentos).
 - Requer reconciliacao em 4 horas.
@@ -440,6 +468,7 @@ PARA CADA atualizacao de documento clinico:
 **Descricao**: Documento clinico ou evento sem identificacao clara do autor, ou com autoria atribuida a usuario generico/sistema.
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA DocumentReference, Observation, Procedure, MedicationAdministration:
   verificar Provenance vinculado
@@ -450,6 +479,7 @@ PARA CADA DocumentReference, Observation, Procedure, MedicationAdministration:
 ```
 
 **Notificacao**:
+
 - Notifica administrador do sistema.
 - Gera pendencia de regularizacao.
 - Inclui no relatorio de compliance.
@@ -463,6 +493,7 @@ PARA CADA DocumentReference, Observation, Procedure, MedicationAdministration:
 **Descricao**: Evolucao clinica que reproduz conteudo de evolucao anterior sem evidencia de reavaliacao do paciente (exame fisico atualizado, novos sinais vitais, interacao documentada com paciente).
 
 **Metodo de Deteccao**:
+
 ```
 PARA CADA DocumentReference(tipo='progress_note'):
   buscar DocumentReference anterior do mesmo tipo para o mesmo paciente
@@ -479,6 +510,7 @@ PARA CADA DocumentReference(tipo='progress_note'):
 ```
 
 **Notificacao**:
+
 - Notifica o autor da evolucao.
 - Notifica coordenador medico se HIGH.
 - Registra para auditoria de qualidade documental.
@@ -489,35 +521,35 @@ PARA CADA DocumentReference(tipo='progress_note'):
 
 ### 3.1 Regras Especificas para UTI
 
-| ID | Regra | Severidade |
-|---|---|---|
-| GAP-UTI-001 | Sinais vitais nao registrados a cada 1h (paciente instavel) ou 2h (estavel) | HIGH |
-| GAP-UTI-002 | Balanco hidrico nao fechado a cada 6h | MEDIUM |
-| GAP-UTI-003 | Sedacao sem avaliacao RASS/BPS a cada 4h | HIGH |
-| GAP-UTI-004 | Ventilacao mecanica sem parametros registrados a cada 4h | HIGH |
-| GAP-UTI-005 | Cateter venoso central sem checklist diario de necessidade | MEDIUM |
-| GAP-UTI-006 | Tubo orotraqueal sem avaliacao de extubacao diaria | MEDIUM |
-| GAP-UTI-007 | Profilaxia TVP nao prescrita sem justificativa | HIGH |
-| GAP-UTI-008 | Elevacao de cabeceira nao registrada para paciente ventilado | MEDIUM |
+| ID          | Regra                                                                       | Severidade |
+| ----------- | --------------------------------------------------------------------------- | ---------- |
+| GAP-UTI-001 | Sinais vitais nao registrados a cada 1h (paciente instavel) ou 2h (estavel) | HIGH       |
+| GAP-UTI-002 | Balanco hidrico nao fechado a cada 6h                                       | MEDIUM     |
+| GAP-UTI-003 | Sedacao sem avaliacao RASS/BPS a cada 4h                                    | HIGH       |
+| GAP-UTI-004 | Ventilacao mecanica sem parametros registrados a cada 4h                    | HIGH       |
+| GAP-UTI-005 | Cateter venoso central sem checklist diario de necessidade                  | MEDIUM     |
+| GAP-UTI-006 | Tubo orotraqueal sem avaliacao de extubacao diaria                          | MEDIUM     |
+| GAP-UTI-007 | Profilaxia TVP nao prescrita sem justificativa                              | HIGH       |
+| GAP-UTI-008 | Elevacao de cabeceira nao registrada para paciente ventilado                | MEDIUM     |
 
 ### 3.2 Regras Especificas para Centro Cirurgico
 
-| ID | Regra | Severidade |
-|---|---|---|
-| GAP-CC-001 | Checklist de seguranca cirurgica (OMS) incompleto antes do procedimento | CRITICAL |
-| GAP-CC-002 | Consentimento cirurgico ausente 1h antes do procedimento | CRITICAL |
-| GAP-CC-003 | Nota cirurgica nao registrada em 2h apos fim do procedimento | HIGH |
-| GAP-CC-004 | Contagem de compressas nao registrada | CRITICAL |
-| GAP-CC-005 | Antibiotico profilatico nao administrado em janela pre-operatoria | HIGH |
+| ID         | Regra                                                                   | Severidade |
+| ---------- | ----------------------------------------------------------------------- | ---------- |
+| GAP-CC-001 | Checklist de seguranca cirurgica (OMS) incompleto antes do procedimento | CRITICAL   |
+| GAP-CC-002 | Consentimento cirurgico ausente 1h antes do procedimento                | CRITICAL   |
+| GAP-CC-003 | Nota cirurgica nao registrada em 2h apos fim do procedimento            | HIGH       |
+| GAP-CC-004 | Contagem de compressas nao registrada                                   | CRITICAL   |
+| GAP-CC-005 | Antibiotico profilatico nao administrado em janela pre-operatoria       | HIGH       |
 
 ### 3.3 Regras Especificas para Emergencia
 
-| ID | Regra | Severidade |
-|---|---|---|
-| GAP-ER-001 | Classificacao de risco nao realizada em 10 min da chegada | HIGH |
-| GAP-ER-002 | Paciente vermelho/laranja sem atendimento medico em 15 min | CRITICAL |
-| GAP-ER-003 | Reclassificacao nao realizada em pacientes em espera > 2h | MEDIUM |
-| GAP-ER-004 | Paciente em observacao > 24h sem reavaliacao medica documentada | HIGH |
+| ID         | Regra                                                           | Severidade |
+| ---------- | --------------------------------------------------------------- | ---------- |
+| GAP-ER-001 | Classificacao de risco nao realizada em 10 min da chegada       | HIGH       |
+| GAP-ER-002 | Paciente vermelho/laranja sem atendimento medico em 15 min      | CRITICAL   |
+| GAP-ER-003 | Reclassificacao nao realizada em pacientes em espera > 2h       | MEDIUM     |
+| GAP-ER-004 | Paciente em observacao > 24h sem reavaliacao medica documentada | HIGH       |
 
 ---
 
@@ -540,8 +572,8 @@ rules:
       - push
       - dashboard
     escalation_enabled: true
-    cooldown_minutes: 30  # Nao gerar mesmo gap para mesmo paciente em 30min
-    
+    cooldown_minutes: 30 # Nao gerar mesmo gap para mesmo paciente em 30min
+
   GAP-002:
     enabled: true
     severity_override: null
@@ -552,10 +584,10 @@ rules:
     units:
       - all
     exclude_units:
-      - ambulatorio  # Ambulatorio tem SLAs diferentes
+      - ambulatorio # Ambulatorio tem SLAs diferentes
     shifts:
       - all
-    
+
   GAP-004:
     enabled: true
     pain_threshold_high: 7
@@ -565,7 +597,7 @@ rules:
     units:
       - all
     exclude_patient_profiles:
-      - end_of_life_comfort  # Pacientes em cuidados paliativos tem regras proprias
+      - end_of_life_comfort # Pacientes em cuidados paliativos tem regras proprias
 ```
 
 ### 4.2 Metricas de Performance das Regras
@@ -607,13 +639,13 @@ sum by (rule_id, unit) (velya_gap_unresolved_beyond_sla)
 
 ### 5.1 Estados
 
-| Estado | Descricao |
-|---|---|
-| **DETECTED** | Gap identificado pelo motor de regras |
-| **NOTIFIED** | Notificacao enviada ao responsavel |
-| **ACKNOWLEDGED** | Responsavel confirmou ciencia do gap |
-| **RESOLVED** | Gap resolvido (acao corretiva registrada) |
-| **ESCALATED** | Gap escalado por timeout de resolucao |
+| Estado             | Descricao                                         |
+| ------------------ | ------------------------------------------------- |
+| **DETECTED**       | Gap identificado pelo motor de regras             |
+| **NOTIFIED**       | Notificacao enviada ao responsavel                |
+| **ACKNOWLEDGED**   | Responsavel confirmou ciencia do gap              |
+| **RESOLVED**       | Gap resolvido (acao corretiva registrada)         |
+| **ESCALATED**      | Gap escalado por timeout de resolucao             |
 | **FALSE_POSITIVE** | Gap marcado como falso positivo com justificativa |
 
 ### 5.2 Transicoes
@@ -644,6 +676,7 @@ Cada gap detectado atualiza o Digital Twin do paciente:
 ### 7.1 Relatorio por Turno
 
 Gerado automaticamente no fim de cada turno:
+
 - Total de gaps detectados por severidade.
 - Gaps resolvidos vs pendentes.
 - Tempo medio de resolucao.
@@ -653,6 +686,7 @@ Gerado automaticamente no fim de cada turno:
 ### 7.2 Relatorio Mensal de Qualidade
 
 Consolidado mensal para diretoria clinica:
+
 - Tendencia de gaps por tipo e unidade.
 - Taxa de falsos positivos por regra (para tuning).
 - Correlacao entre gaps e eventos adversos.
@@ -690,10 +724,10 @@ Ver `journey-audit-dashboards.md` — **Delay and Gap Board**.
 
 ### 9.2 Comite Responsavel
 
-| Papel | Responsabilidade |
-|---|---|
-| Diretor Clinico | Aprovacao final de regras criticas |
-| Coordenador de Qualidade | Gestao do catalogo de regras |
-| Enfermeiro Lider | Validacao de regras de enfermagem |
-| Engenheiro de Plataforma | Implementacao tecnica |
-| Analista de Dados | Analise de performance e calibracao |
+| Papel                    | Responsabilidade                    |
+| ------------------------ | ----------------------------------- |
+| Diretor Clinico          | Aprovacao final de regras criticas  |
+| Coordenador de Qualidade | Gestao do catalogo de regras        |
+| Enfermeiro Lider         | Validacao de regras de enfermagem   |
+| Engenheiro de Plataforma | Implementacao tecnica               |
+| Analista de Dados        | Analise de performance e calibracao |

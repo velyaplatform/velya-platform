@@ -9,17 +9,17 @@
 
 ## Quick Reference
 
-| Service | Namespace | Ingress URL | Health Path |
-|---|---|---|---|
-| patient-flow | velya-dev-core | http://patient-flow.172.19.0.6.nip.io | /health |
-| discharge-orchestrator | velya-dev-core | http://discharge.172.19.0.6.nip.io | /health |
-| task-inbox | velya-dev-core | http://task-inbox.172.19.0.6.nip.io | /health |
-| audit-service | velya-dev-core | http://audit.172.19.0.6.nip.io | /health |
-| ai-gateway | velya-dev-platform | http://ai-gateway.172.19.0.6.nip.io | /health |
-| policy-engine | velya-dev-platform | http://policy-engine.172.19.0.6.nip.io | /health |
-| memory-service | velya-dev-platform | http://memory-service.172.19.0.6.nip.io | /health |
-| decision-log-service | velya-dev-platform | http://decision-log.172.19.0.6.nip.io | /health |
-| agent-orchestrator | velya-dev-agents | http://agents.172.19.0.6.nip.io | /health |
+| Service                | Namespace          | Ingress URL                             | Health Path |
+| ---------------------- | ------------------ | --------------------------------------- | ----------- |
+| patient-flow           | velya-dev-core     | http://patient-flow.172.19.0.6.nip.io   | /health     |
+| discharge-orchestrator | velya-dev-core     | http://discharge.172.19.0.6.nip.io      | /health     |
+| task-inbox             | velya-dev-core     | http://task-inbox.172.19.0.6.nip.io     | /health     |
+| audit-service          | velya-dev-core     | http://audit.172.19.0.6.nip.io          | /health     |
+| ai-gateway             | velya-dev-platform | http://ai-gateway.172.19.0.6.nip.io     | /health     |
+| policy-engine          | velya-dev-platform | http://policy-engine.172.19.0.6.nip.io  | /health     |
+| memory-service         | velya-dev-platform | http://memory-service.172.19.0.6.nip.io | /health     |
+| decision-log-service   | velya-dev-platform | http://decision-log.172.19.0.6.nip.io   | /health     |
+| agent-orchestrator     | velya-dev-agents   | http://agents.172.19.0.6.nip.io         | /health     |
 
 ---
 
@@ -28,11 +28,13 @@
 ### 1.1 How You Know a Service Is Unhealthy
 
 **Automated detection** (when configured):
+
 - Prometheus alert fires: `VelyaServiceDown` or `VelyaHighErrorRate`
 - ArgoCD app shows Degraded health (when ArgoCD Applications are configured)
 - Grafana alert notification in Slack/PagerDuty
 
 **Manual detection**:
+
 - HTTP request to service endpoint returns 5xx
 - HTTP request times out (> 5 seconds)
 - Pod shows CrashLoopBackOff or OOMKilled
@@ -59,14 +61,14 @@ kubectl get events -n velya-dev-core --sort-by='.lastTimestamp' | tail -20
 
 ### 2.1 Classify the Severity
 
-| Condition | Severity | Response Time |
-|---|---|---|
-| Clinical service returning 5xx | P1 CRITICAL | Immediate |
-| Clinical service not responding | P1 CRITICAL | Immediate |
-| AI/Platform service down | P2 HIGH | 15 minutes |
-| Observability service down | P3 MEDIUM | 1 hour |
-| Single pod restart (recovered) | P4 LOW | Next business day |
-| Background service degraded | P4 LOW | Next business day |
+| Condition                       | Severity    | Response Time     |
+| ------------------------------- | ----------- | ----------------- |
+| Clinical service returning 5xx  | P1 CRITICAL | Immediate         |
+| Clinical service not responding | P1 CRITICAL | Immediate         |
+| AI/Platform service down        | P2 HIGH     | 15 minutes        |
+| Observability service down      | P3 MEDIUM   | 1 hour            |
+| Single pod restart (recovered)  | P4 LOW      | Next business day |
+| Background service degraded     | P4 LOW      | Next business day |
 
 **Clinical services** (patient-flow, discharge-orchestrator, task-inbox, audit-service) are P1 by default.
 
@@ -167,7 +169,7 @@ kubectl logs -n <namespace> <pod-name> --previous
 kubectl get pod -n <namespace> <pod-name> -o jsonpath='{.status.containerStatuses[0].lastState}'
 
 # Check memory usage trend (requires Prometheus)
-# Grafana → explore → 
+# Grafana → explore →
 # container_memory_usage_bytes{pod="<pod-name>"}
 ```
 
@@ -277,18 +279,19 @@ kubectl apply -f infra/kubernetes/services/<service-name>/deployment.yaml
 
 ### 5.1 Escalation Matrix
 
-| Situation | Escalate To | Channel |
-|---|---|---|
-| P1 - Clinical service down > 5 minutes | Platform Lead + Clinical Lead | Pager/phone |
-| P1 - Cannot recover in 15 minutes | Engineering Manager | Phone |
-| Data loss suspected | Security Team + Engineering Manager | Phone immediately |
-| PHI exposure suspected | Security Team + Legal + Engineering Manager | Phone immediately |
-| Recurring failures (3rd time same issue) | Platform Lead for root cause | Slack |
-| Node or cluster failure | Infrastructure Lead | Pager |
+| Situation                                | Escalate To                                 | Channel           |
+| ---------------------------------------- | ------------------------------------------- | ----------------- |
+| P1 - Clinical service down > 5 minutes   | Platform Lead + Clinical Lead               | Pager/phone       |
+| P1 - Cannot recover in 15 minutes        | Engineering Manager                         | Phone             |
+| Data loss suspected                      | Security Team + Engineering Manager         | Phone immediately |
+| PHI exposure suspected                   | Security Team + Legal + Engineering Manager | Phone immediately |
+| Recurring failures (3rd time same issue) | Platform Lead for root cause                | Slack             |
+| Node or cluster failure                  | Infrastructure Lead                         | Pager             |
 
 ### 5.2 Escalation Information to Prepare
 
 Before escalating, gather:
+
 1. Which service is affected
 2. When did it start failing
 3. Error messages from pod logs (last 50 lines)
@@ -302,9 +305,9 @@ Before escalating, gather:
 
 When Prometheus and Grafana are configured with application metrics:
 
-| Dashboard | URL |
-|---|---|
-| Grafana | http://grafana.172.19.0.6.nip.io |
+| Dashboard  | URL                                 |
+| ---------- | ----------------------------------- |
+| Grafana    | http://grafana.172.19.0.6.nip.io    |
 | Prometheus | http://prometheus.172.19.0.6.nip.io |
 
 **Useful Prometheus queries** (once ServiceMonitors are configured):
@@ -354,45 +357,51 @@ Conduct a blameless post-mortem covering:
 
 ### 7.3 Action Item Categories
 
-| Category | Example |
-|---|---|
-| Detection | Add alert rule, improve health check |
-| Prevention | Fix bug, add validation, increase resources |
-| Recovery | Improve runbook, add rollback automation |
-| Process | Update on-call procedures, add escalation contact |
+| Category   | Example                                           |
+| ---------- | ------------------------------------------------- |
+| Detection  | Add alert rule, improve health check              |
+| Prevention | Fix bug, add validation, increase resources       |
+| Recovery   | Improve runbook, add rollback automation          |
+| Process    | Update on-call procedures, add escalation contact |
 
 ---
 
 ## 8. Service-Specific Notes
 
 ### patient-flow
+
 - Most critical clinical service — P1 always
 - Affects: patient admission, transfer, census visibility
 - Key dependency: PostgreSQL database connection
 
 ### discharge-orchestrator
+
 - Critical for bed capacity — P1 if beds unavailable
 - Affects: discharge planning, bed turnover
 - Key dependency: patient-flow service + external pharmacy integration
 
 ### task-inbox
+
 - Affects clinical workflow routing — P1
 - Key dependency: NATS JetStream for task events
 
 ### audit-service
+
 - Must not lose events — P1 for data integrity
 - If audit-service fails, all other services should continue but log to fallback
 - Key dependency: PostgreSQL write path
 
 ### ai-gateway
+
 - Affects all AI features — P2 (AI features degrade, clinical continues)
 - Key dependency: Anthropic/OpenAI API access
 
 ### policy-engine
+
 - Affects AI safety checks — P1 if in enforcement mode
 - If policy-engine is down and AI gateway defaults to DENY, all AI features stop
 - Consider fail-open vs. fail-closed policy for degraded mode
 
 ---
 
-*Runbook maintained by: Platform Team. Review quarterly or after any incident.*
+_Runbook maintained by: Platform Team. Review quarterly or after any incident._

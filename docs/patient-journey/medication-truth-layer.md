@@ -38,18 +38,18 @@ a administracao — seja rastreavel, auditavel e verificavel.
 
 ### 2.1 Etapas e Atores
 
-| Etapa | Ator Principal | Papel | Recurso FHIR | Evento Journey |
-|---|---|---|---|---|
-| Prescricao | Medico | Prescritor | MedicationRequest | `medication_request.new` |
-| Revisao Farmaceutica | Farmaceutico | Revisor | MedicationRequest (nota) | `medication_request.reviewed` |
-| Aprovacao | Farmaceutico / Medico Senior | Aprovador | MedicationRequest (status) | `medication_request.approved` |
-| Dispensacao | Farmaceutico / Tecnico | Dispensador | MedicationDispense | `medication_dispensed` |
-| Preparacao | Enfermeiro | Preparador | (extension) | `medication_prepared` |
-| Verificacao (Dupla Checagem) | Segundo Enfermeiro | Verificador | (extension) | `medication_double_check` |
-| Administracao | Enfermeiro | Executor | MedicationAdministration | `medication_administration.given` |
-| Monitoramento | Enfermeiro / Medico | Monitorador | Observation | `medication_monitoring` |
-| Registro de Efeito | Enfermeiro | Documentador | Observation | `pain_assessment`, `vital_signs` |
-| Evento Adverso | Enfermeiro / Medico | Notificador | AdverseEvent | `medication_administration.adverse_event` |
+| Etapa                        | Ator Principal               | Papel        | Recurso FHIR               | Evento Journey                            |
+| ---------------------------- | ---------------------------- | ------------ | -------------------------- | ----------------------------------------- |
+| Prescricao                   | Medico                       | Prescritor   | MedicationRequest          | `medication_request.new`                  |
+| Revisao Farmaceutica         | Farmaceutico                 | Revisor      | MedicationRequest (nota)   | `medication_request.reviewed`             |
+| Aprovacao                    | Farmaceutico / Medico Senior | Aprovador    | MedicationRequest (status) | `medication_request.approved`             |
+| Dispensacao                  | Farmaceutico / Tecnico       | Dispensador  | MedicationDispense         | `medication_dispensed`                    |
+| Preparacao                   | Enfermeiro                   | Preparador   | (extension)                | `medication_prepared`                     |
+| Verificacao (Dupla Checagem) | Segundo Enfermeiro           | Verificador  | (extension)                | `medication_double_check`                 |
+| Administracao                | Enfermeiro                   | Executor     | MedicationAdministration   | `medication_administration.given`         |
+| Monitoramento                | Enfermeiro / Medico          | Monitorador  | Observation                | `medication_monitoring`                   |
+| Registro de Efeito           | Enfermeiro                   | Documentador | Observation                | `pain_assessment`, `vital_signs`          |
+| Evento Adverso               | Enfermeiro / Medico          | Notificador  | AdverseEvent               | `medication_administration.adverse_event` |
 
 ### 2.2 Diagrama de Fluxo Detalhado
 
@@ -113,7 +113,7 @@ interface MedicationLifecycle {
   medication: {
     code: string;
     name: string;
-    form: string;           // comprimido, solucao, injetavel
+    form: string; // comprimido, solucao, injetavel
     concentration?: string; // ex: "500mg/5ml"
   };
 
@@ -151,7 +151,7 @@ interface MedicationRequestPhase {
   dose_unit: string;
   route: string;
   frequency: string;
-  frequency_times: string[];  // ["06:00", "14:00", "22:00"]
+  frequency_times: string[]; // ["06:00", "14:00", "22:00"]
   prn: boolean;
   prn_reason?: string;
   duration_days?: number;
@@ -231,8 +231,8 @@ interface ScheduledAdministration {
     dose_unit: string;
     route: string;
     site?: string;
-    rate?: string;        // Para infusoes
-    duration?: string;    // Para infusoes
+    rate?: string; // Para infusoes
+    duration?: string; // Para infusoes
 
     /** Verificacao dos 9 certos */
     nine_rights_check: {
@@ -334,17 +334,17 @@ interface ScheduledAdministration {
 }
 
 type AdministrationStatus =
-  | 'scheduled'        // Ainda nao chegou o horario
-  | 'due'              // No horario, pendente
-  | 'overdue'          // Atrasado
-  | 'given'            // Administrado
-  | 'given_late'       // Administrado com atraso
-  | 'refused'          // Paciente recusou
-  | 'held'             // Suspenso pelo profissional
-  | 'omitted'          // Nao administrado sem justificativa
-  | 'substituted'      // Substituido por outro
-  | 'cancelled'        // Cancelado (prescricao alterada)
-  | 'not_applicable';  // Nao aplicavel (ex: alta antes do horario)
+  | 'scheduled' // Ainda nao chegou o horario
+  | 'due' // No horario, pendente
+  | 'overdue' // Atrasado
+  | 'given' // Administrado
+  | 'given_late' // Administrado com atraso
+  | 'refused' // Paciente recusou
+  | 'held' // Suspenso pelo profissional
+  | 'omitted' // Nao administrado sem justificativa
+  | 'substituted' // Substituido por outro
+  | 'cancelled' // Cancelado (prescricao alterada)
+  | 'not_applicable'; // Nao aplicavel (ex: alta antes do horario)
 ```
 
 ### 3.2 Anomalias de Medicacao
@@ -381,29 +381,29 @@ interface MedicationAnomaly {
 }
 
 type MedicationAnomalyType =
-  | 'dose_outside_standard'           // Dose fora do padrao para indicacao
-  | 'relevant_delay'                  // Atraso > 30 min na administracao
-  | 'critical_delay'                  // Atraso > 60 min em medicacao critica
-  | 'administration_without_order'    // Administracao sem prescricao valida
-  | 'order_without_administration'    // Prescricao sem administracao esperada
-  | 'duplicate_administration'        // Dose duplicada no mesmo periodo
-  | 'suspicious_prn_frequency'        // PRN com frequencia acima do esperado
-  | 'drug_interaction'                // Interacao medicamentosa detectada
-  | 'allergy_conflict'                // Conflito com alergia registrada
-  | 'missing_performer'               // Administracao sem executor identificado
-  | 'divergent_performer'             // Executor diferente do designado
-  | 'missing_double_check'            // Dupla checagem obrigatoria nao realizada
-  | 'missing_monitoring'              // Monitoramento pos-administracao ausente
-  | 'late_documentation'              // Registro > 1h apos administracao
-  | 'dose_accumulation_risk'          // Risco de acumulo de dose
-  | 'renal_dose_adjustment_missing'   // Dose nao ajustada para funcao renal
+  | 'dose_outside_standard' // Dose fora do padrao para indicacao
+  | 'relevant_delay' // Atraso > 30 min na administracao
+  | 'critical_delay' // Atraso > 60 min em medicacao critica
+  | 'administration_without_order' // Administracao sem prescricao valida
+  | 'order_without_administration' // Prescricao sem administracao esperada
+  | 'duplicate_administration' // Dose duplicada no mesmo periodo
+  | 'suspicious_prn_frequency' // PRN com frequencia acima do esperado
+  | 'drug_interaction' // Interacao medicamentosa detectada
+  | 'allergy_conflict' // Conflito com alergia registrada
+  | 'missing_performer' // Administracao sem executor identificado
+  | 'divergent_performer' // Executor diferente do designado
+  | 'missing_double_check' // Dupla checagem obrigatoria nao realizada
+  | 'missing_monitoring' // Monitoramento pos-administracao ausente
+  | 'late_documentation' // Registro > 1h apos administracao
+  | 'dose_accumulation_risk' // Risco de acumulo de dose
+  | 'renal_dose_adjustment_missing' // Dose nao ajustada para funcao renal
   | 'hepatic_dose_adjustment_missing' // Dose nao ajustada para funcao hepatica
-  | 'weight_based_dose_mismatch'      // Dose por kg inconsistente
-  | 'route_mismatch'                  // Via diferente da prescrita
-  | 'timing_pattern_anomaly'          // Padrao de horarios irregular
-  | 'lot_expired'                     // Lote com validade expirada
-  | 'lot_recall'                      // Lote com recall ativo
-  | 'substitution_unauthorized';      // Substituicao sem autorizacao
+  | 'weight_based_dose_mismatch' // Dose por kg inconsistente
+  | 'route_mismatch' // Via diferente da prescrita
+  | 'timing_pattern_anomaly' // Padrao de horarios irregular
+  | 'lot_expired' // Lote com validade expirada
+  | 'lot_recall' // Lote com recall ativo
+  | 'substitution_unauthorized'; // Substituicao sem autorizacao
 ```
 
 ---
@@ -426,13 +426,13 @@ interface MedicationDetectionRule {
   category: 'safety' | 'compliance' | 'quality' | 'efficiency';
   severity: 'critical' | 'high' | 'medium' | 'low';
   enabled: boolean;
-  
+
   /** Condicao de disparo */
   condition: RuleCondition;
-  
+
   /** Acoes ao disparar */
   actions: RuleAction[];
-  
+
   /** Excecoes/supressoes */
   suppressions?: RuleSuppression[];
 }
@@ -493,7 +493,8 @@ const MEDICATION_RULES: MedicationDetectionRule[] = [
   {
     rule_id: 'MED-003',
     name: 'Atraso critico em medicacao critica',
-    description: 'Medicacao de alta criticidade (antibiotico, anticoagulante, vasoativo) com atraso > 60 min',
+    description:
+      'Medicacao de alta criticidade (antibiotico, anticoagulante, vasoativo) com atraso > 60 min',
     category: 'safety',
     severity: 'critical',
     enabled: true,
@@ -503,7 +504,13 @@ const MEDICATION_RULES: MedicationDetectionRule[] = [
         event_expected: 'medication_administration',
         reference_time: 'scheduled_time',
         threshold_minutes: 60,
-        medication_categories: ['antibiotic', 'anticoagulant', 'vasoactive', 'insulin', 'antiarrhythmic'],
+        medication_categories: [
+          'antibiotic',
+          'anticoagulant',
+          'vasoactive',
+          'insulin',
+          'antiarrhythmic',
+        ],
         exclude_prn: true,
       },
     },
@@ -541,7 +548,8 @@ const MEDICATION_RULES: MedicationDetectionRule[] = [
   {
     rule_id: 'MED-005',
     name: 'Prescricao sem administracao',
-    description: 'Prescricao ativa com horario previsto que passou sem registro de administracao, recusa ou justificativa',
+    description:
+      'Prescricao ativa com horario previsto que passou sem registro de administracao, recusa ou justificativa',
     category: 'compliance',
     severity: 'high',
     enabled: true,
@@ -579,7 +587,10 @@ const MEDICATION_RULES: MedicationDetectionRule[] = [
     },
     actions: [
       { type: 'create_anomaly', anomaly_type: 'duplicate_administration' },
-      { type: 'notify', targets: ['responsible_nurse', 'charge_nurse', 'prescriber', 'pharmacist'] },
+      {
+        type: 'notify',
+        targets: ['responsible_nurse', 'charge_nurse', 'prescriber', 'pharmacist'],
+      },
       { type: 'flag_in_timeline', relevance: 'critical' },
       { type: 'auto_create_task', task: 'verify_double_dose' },
     ],
@@ -604,7 +615,10 @@ const MEDICATION_RULES: MedicationDetectionRule[] = [
     actions: [
       { type: 'create_anomaly', anomaly_type: 'suspicious_prn_frequency' },
       { type: 'notify', targets: ['prescriber'] },
-      { type: 'suggest', message: 'Considerar conversao para dose fixa ou revisao do plano analgesico' },
+      {
+        type: 'suggest',
+        message: 'Considerar conversao para dose fixa ou revisao do plano analgesico',
+      },
     ],
   },
 
@@ -621,9 +635,15 @@ const MEDICATION_RULES: MedicationDetectionRule[] = [
         event: 'medication_administration.given',
         required_step: 'double_check',
         medication_categories: [
-          'high_alert', 'insulin', 'heparin', 'chemotherapy',
-          'opioid', 'neuromuscular_blocker', 'potassium_concentrate',
-          'blood_products', 'vasoactive'
+          'high_alert',
+          'insulin',
+          'heparin',
+          'chemotherapy',
+          'opioid',
+          'neuromuscular_blocker',
+          'potassium_concentrate',
+          'blood_products',
+          'vasoactive',
         ],
       },
     },
@@ -637,7 +657,8 @@ const MEDICATION_RULES: MedicationDetectionRule[] = [
   {
     rule_id: 'MED-009',
     name: 'Executor divergente',
-    description: 'Medicamento administrado por profissional diferente do designado, sem justificativa',
+    description:
+      'Medicamento administrado por profissional diferente do designado, sem justificativa',
     category: 'compliance',
     severity: 'medium',
     enabled: true,
@@ -958,24 +979,22 @@ const MEDICATION_RULES: MedicationDetectionRule[] = [
  * Calcula o score de integridade do ciclo de vida de uma prescricao.
  * Score de 0-100 onde 100 = ciclo perfeito.
  */
-function calculateMedicationIntegrityScore(
-  lifecycle: MedicationLifecycle
-): number {
+function calculateMedicationIntegrityScore(lifecycle: MedicationLifecycle): number {
   let score = 100;
   const weights = {
-    missing_review: -10,          // Sem revisao farmaceutica
-    missing_dispensation: -5,     // Sem registro de dispensacao
-    administration_delay: -3,     // Por cada atraso > 30 min
-    critical_delay: -10,          // Por cada atraso > 60 min (critico)
-    missing_administration: -15,  // Dose omitida sem justificativa
-    missing_double_check: -20,    // Dupla checagem ausente (alta vigilancia)
-    duplicate: -25,               // Dose duplicada
-    without_order: -30,           // Sem prescricao valida
-    adverse_event: -15,           // Evento adverso
-    late_documentation: -2,       // Documentacao tardia
-    missing_monitoring: -5,       // Monitoramento ausente
-    lot_expired: -25,             // Lote expirado
-    interaction_ignored: -15,     // Interacao medicamentosa ignorada
+    missing_review: -10, // Sem revisao farmaceutica
+    missing_dispensation: -5, // Sem registro de dispensacao
+    administration_delay: -3, // Por cada atraso > 30 min
+    critical_delay: -10, // Por cada atraso > 60 min (critico)
+    missing_administration: -15, // Dose omitida sem justificativa
+    missing_double_check: -20, // Dupla checagem ausente (alta vigilancia)
+    duplicate: -25, // Dose duplicada
+    without_order: -30, // Sem prescricao valida
+    adverse_event: -15, // Evento adverso
+    late_documentation: -2, // Documentacao tardia
+    missing_monitoring: -5, // Monitoramento ausente
+    lot_expired: -25, // Lote expirado
+    interaction_ignored: -15, // Interacao medicamentosa ignorada
     refusal_no_notification: -10, // Recusa sem notificacao medica
   };
 
@@ -1112,15 +1131,15 @@ topk(10, sum by (medication_name) (
 
 ### 9.2 Alertas
 
-| Alerta | Condicao | Canal | Destinatarios |
-|---|---|---|---|
-| `MedCriticalDelay` | Atraso > 60 min em med critica | Push + SMS | Enfermeiro, Chefe, Medico |
-| `MedDuplicate` | Dose duplicada detectada | Push + SMS | Enfermeiro, Farmaceutico |
-| `MedNoOrder` | Administracao sem prescricao | Push | Enfermeiro Chefe, Farmaceutico |
-| `MedOmission` | Dose omitida > 2h sem justificativa | Push | Enfermeiro |
-| `MedDoubleCheckMissing` | Alta vigilancia sem dupla checagem | Push | Enfermeiro, Chefe |
-| `MedAdverseEvent` | Evento adverso registrado | Push + Email | Medico, Farmaceutico, Qualidade |
-| `MedLotExpired` | Lote expirado detectado | Push + Email | Farmaceutico, Qualidade |
+| Alerta                  | Condicao                            | Canal        | Destinatarios                   |
+| ----------------------- | ----------------------------------- | ------------ | ------------------------------- |
+| `MedCriticalDelay`      | Atraso > 60 min em med critica      | Push + SMS   | Enfermeiro, Chefe, Medico       |
+| `MedDuplicate`          | Dose duplicada detectada            | Push + SMS   | Enfermeiro, Farmaceutico        |
+| `MedNoOrder`            | Administracao sem prescricao        | Push         | Enfermeiro Chefe, Farmaceutico  |
+| `MedOmission`           | Dose omitida > 2h sem justificativa | Push         | Enfermeiro                      |
+| `MedDoubleCheckMissing` | Alta vigilancia sem dupla checagem  | Push         | Enfermeiro, Chefe               |
+| `MedAdverseEvent`       | Evento adverso registrado           | Push + Email | Medico, Farmaceutico, Qualidade |
+| `MedLotExpired`         | Lote expirado detectado             | Push + Email | Farmaceutico, Qualidade         |
 
 ---
 

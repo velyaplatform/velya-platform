@@ -8,6 +8,7 @@
 ## Definição
 
 Uma **falha silenciosa** é qualquer condição onde:
+
 1. O sistema (ou uma parte dele) não está funcionando corretamente, E
 2. Nenhum alerta automático dispara, E
 3. Nenhum log de erro visível é gerado, OU o erro existe mas ninguém está olhando
@@ -49,11 +50,13 @@ kubectl run test-pod --image=busybox -n velya-dev-web --rm -it -- wget -qO- http
 **Impacto acumulado**: Mudanças no Git nunca chegam ao cluster. Mudanças manuais no cluster nunca são detectadas como drift. A promessa de GitOps (auditabilidade, reprodutibilidade) é nula.
 
 **Detector necessário**:
+
 ```bash
 # Verificar se há Applications configuradas
 argocd app list 2>/dev/null | wc -l
 # Se retornar 0 ou 1 (apenas header) => nenhuma Application configurada
 ```
+
 Alerta: `argocd_app_info` métrica com count = 0.
 
 ---
@@ -69,6 +72,7 @@ Alerta: `argocd_app_info` métrica com count = 0.
 **Impacto acumulado**: Serviço operando abaixo da capacidade durante pico clínico. Latência elevada para clínicos durante período crítico.
 
 **Detector necessário**:
+
 ```yaml
 # Alerta Prometheus
 - alert: KedaScaledObjectDegraded
@@ -77,7 +81,7 @@ Alerta: `argocd_app_info` métrica com count = 0.
     kube_deployment_spec_replicas == keda_scaledobject_min_replica_count
   for: 15m
   annotations:
-    summary: "ScaledObject {{ $labels.scaledObject }} no mínimo por 15 minutos"
+    summary: 'ScaledObject {{ $labels.scaledObject }} no mínimo por 15 minutos'
 ```
 
 ---
@@ -93,11 +97,13 @@ Alerta: `argocd_app_info` métrica com count = 0.
 **Impacto acumulado**: Serviço completamente inacessível externamente enquanto parece saudável internamente. Diagnóstico incorreto prolonga o incidente.
 
 **Detector necessário**:
+
 ```bash
 # Smoke test de disponibilidade externa após cada deploy
 curl -s -o /dev/null -w "%{http_code}" http://velya.172.19.0.6.nip.io/api/health
 # Resultado esperado: 200. Qualquer 5xx indica problema.
 ```
+
 Alerta sintético: probe HTTP externo a cada 30 segundos.
 
 ---
@@ -141,6 +147,7 @@ Alerta sintético: probe HTTP externo a cada 30 segundos.
 **Impacto acumulado**: Todo o investimento em alertas é nulo. Incidentes não são detectados automaticamente. O time opera sem safety net de monitoramento.
 
 **Detector necessário**:
+
 ```bash
 # Verificar se Alertmanager tem receivers configurados
 kubectl get secret alertmanager-config -n velya-dev-observability -o jsonpath='{.data.alertmanager\.yaml}' | base64 -d | grep -c "receivers"
@@ -473,11 +480,11 @@ kubectl get secret alertmanager-config -n velya-dev-observability -o jsonpath='{
 
 ## Resumo por Tempo de Detecção
 
-| Janela de Detecção | Falhas Silenciosas | IDs |
-|---|---|---|
-| Nunca (requer auditoria explícita) | 8 | SF-001, SF-002, SF-007, SF-013, SF-015, SF-016, SF-021, SF-023 |
-| Indefinida (até alguém olhar) | 10 | SF-006, SF-008, SF-009, SF-012, SF-017, SF-018, SF-020, SF-025, SF-029, SF-030 |
-| Horas | 7 | SF-003, SF-005, SF-011, SF-019, SF-022, SF-026, SF-027 |
-| Minutos (detectado por usuário) | 5 | SF-004, SF-010, SF-014, SF-024, SF-028 |
+| Janela de Detecção                 | Falhas Silenciosas | IDs                                                                            |
+| ---------------------------------- | ------------------ | ------------------------------------------------------------------------------ |
+| Nunca (requer auditoria explícita) | 8                  | SF-001, SF-002, SF-007, SF-013, SF-015, SF-016, SF-021, SF-023                 |
+| Indefinida (até alguém olhar)      | 10                 | SF-006, SF-008, SF-009, SF-012, SF-017, SF-018, SF-020, SF-025, SF-029, SF-030 |
+| Horas                              | 7                  | SF-003, SF-005, SF-011, SF-019, SF-022, SF-026, SF-027                         |
+| Minutos (detectado por usuário)    | 5                  | SF-004, SF-010, SF-014, SF-024, SF-028                                         |
 
 > **Prioridade de instrumentação**: As 18 falhas silenciosas com janela de detecção "Nunca" ou "Indefinida" são as mais urgentes — podem estar ocorrendo agora sem que ninguém saiba.

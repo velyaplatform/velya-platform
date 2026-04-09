@@ -356,10 +356,7 @@ export default function PatientsPage() {
   const [wardFilter, setWardFilter] = useState<string>('all');
   const [riskFilter, setRiskFilter] = useState<string>('all');
 
-  const wards = useMemo(
-    () => Array.from(new Set(MOCK_PATIENTS.map((p) => p.ward))).sort(),
-    []
-  );
+  const wards = useMemo(() => Array.from(new Set(MOCK_PATIENTS.map((p) => p.ward))).sort(), []);
 
   const sorted = useMemo(() => {
     const filtered = MOCK_PATIENTS.filter((p) => {
@@ -378,15 +375,15 @@ export default function PatientsPage() {
 
   const blockedCount = useMemo(
     () => MOCK_PATIENTS.filter((p) => p.dischargeStatus === 'blocked').length,
-    []
+    [],
   );
   const atRiskCount = useMemo(
     () => MOCK_PATIENTS.filter((p) => p.dischargeStatus === 'at-risk').length,
-    []
+    [],
   );
   const onTrackCount = useMemo(
     () => MOCK_PATIENTS.filter((p) => p.dischargeStatus === 'on-track').length,
-    []
+    [],
   );
 
   return (
@@ -394,8 +391,8 @@ export default function PatientsPage() {
       <div className="page-header">
         <h1 className="page-title">Pacientes</h1>
         <p className="page-subtitle">
-          {MOCK_PATIENTS.length} internados &mdash; {blockedCount} bloqueados, {atRiskCount} em risco,{' '}
-          {onTrackCount} no prazo
+          {MOCK_PATIENTS.length} internados &mdash; {blockedCount} bloqueados, {atRiskCount} em
+          risco, {onTrackCount} no prazo
         </p>
       </div>
 
@@ -482,7 +479,9 @@ export default function PatientsPage() {
                   <td colSpan={10}>
                     <div className="empty-state">
                       <div className="empty-state-icon">🔍</div>
-                      <div className="empty-state-title">Nenhum paciente corresponde aos filtros</div>
+                      <div className="empty-state-title">
+                        Nenhum paciente corresponde aos filtros
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -556,7 +555,12 @@ export default function PatientsPage() {
                     </td>
                     <td>
                       <div className="flex gap-2">
-                        <Link href={`/patients/${patient.mrn}`} className="btn btn-sm btn-primary no-underline">Ver</Link>
+                        <Link
+                          href={`/patients/${patient.mrn}`}
+                          className="btn btn-sm btn-primary no-underline"
+                        >
+                          Ver
+                        </Link>
                         <button className="btn btn-sm btn-outline">Tarefas</button>
                       </div>
                     </td>

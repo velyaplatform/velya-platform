@@ -13,6 +13,7 @@
 Um agent de análise de alta entra em loop de autocorreção. A cada iteração, o agent faz uma nova chamada ao Claude claude-sonnet-4-6. Sem circuit breaker, isso pode acontecer indefinidamente.
 
 **Cálculo de custo no pior caso**:
+
 ```
 Claude claude-sonnet-4-6 pricing (estimativa 2026):
 - Input: $3 / 1M tokens
@@ -33,6 +34,7 @@ Loop sem controle — 1 chamada por 30 segundos:
 **Detector**: Alerta quando mesmo `agent_id` faz > 10 chamadas em 5 minutos.
 
 **Circuit breaker**:
+
 ```typescript
 // AI Gateway: circuit breaker por agent
 const agentCallTracker = new Map<string, number[]>();
@@ -40,14 +42,14 @@ const agentCallTracker = new Map<string, number[]>();
 function checkAgentRateLimit(agentId: string): void {
   const now = Date.now();
   const calls = agentCallTracker.get(agentId) ?? [];
-  const recentCalls = calls.filter(t => now - t < 300_000); // últimos 5 min
-  
+  const recentCalls = calls.filter((t) => now - t < 300_000); // últimos 5 min
+
   if (recentCalls.length >= 10) {
     throw new AgentRateLimitError(
-      `Agent ${agentId} excedeu 10 chamadas em 5 minutos. Circuit breaker aberto.`
+      `Agent ${agentId} excedeu 10 chamadas em 5 minutos. Circuit breaker aberto.`,
     );
   }
-  
+
   agentCallTracker.set(agentId, [...recentCalls, now]);
 }
 ```
@@ -66,6 +68,7 @@ function checkAgentRateLimit(agentId: string): void {
 O market intelligence agent pesquisa o mercado hospitalar para cada proposta. Para cada pesquisa: 3 buscas web, 5 páginas coletadas, 1 análise LLM por página + 1 síntese final.
 
 **Cálculo de custo**:
+
 ```
 Por proposta de market intelligence:
 - 5 páginas × análise LLM: 5 × $0,050 = $0,25
@@ -98,6 +101,7 @@ Se bug gera 1.000 propostas por dia (loop ou intake mal-configurado):
 O discharge-orchestrator inicia um workflow de alta complexa e paraleliza 8 sub-agents para analisar diferentes aspectos (medicação, exames, logística, transporte, etc.). Cada sub-agent faz 3 chamadas LLM. Para 50 altas simultâneas:
 
 **Cálculo**:
+
 ```
 Por alta complexa:
 - 8 sub-agents × 3 chamadas × $0,027 = $0,648
@@ -128,6 +132,7 @@ Por mês: ~$93.312 — completamente inviável
 Por falta de política de model routing, agentes de triagem simples (classificar se um evento é urgente ou não) usam Claude Opus em vez de Claude Haiku.
 
 **Cálculo de diferença de custo**:
+
 ```
 Haiku pricing (estimativa):
 - Input: $0,25 / 1M tokens = $0,0000002/token
@@ -151,13 +156,14 @@ Diferença: $663,60/mês por 1.000 triagens simples
 **Detector**: Log de model usado por tipo de task. Alerta quando Opus usado em tasks de triagem simples.
 
 **Controle**:
+
 ```typescript
 // Política de model routing
 const MODEL_ROUTING: Record<TaskType, string> = {
-  'simple_triage': 'claude-haiku-4',
-  'clinical_analysis': 'claude-sonnet-4-6',
-  'complex_reasoning': 'claude-opus-4',
-  'default': 'claude-haiku-4'
+  simple_triage: 'claude-haiku-4',
+  clinical_analysis: 'claude-sonnet-4-6',
+  complex_reasoning: 'claude-opus-4',
+  default: 'claude-haiku-4',
 };
 ```
 
@@ -173,6 +179,7 @@ const MODEL_ROUTING: Record<TaskType, string> = {
 Sem budget de tokens por agent, um agent pode consumir todo o limite de rate da API em horas, tanto bloqueando outros agents quanto gerando custo descontrolado.
 
 **Cálculo**:
+
 ```
 Sem limite: agent com comportamento anômalo consome
 - 10M tokens/hora de input × $3/1M = $30/hora
@@ -181,6 +188,7 @@ Sem limite: agent com comportamento anômalo consome
 ```
 
 **Implementação de budget**:
+
 ```typescript
 interface AgentTokenBudget {
   agentId: string;
@@ -199,6 +207,7 @@ interface AgentTokenBudget {
 ScaledObject configurado com trigger de Prometheus que oscila em torno do threshold. A cada 30-60 segundos, o KEDA alterna entre scale-up e scale-down.
 
 **Cálculo em EKS (produção)**:
+
 ```
 EKS m5.large on-demand: ~$0,096/hora
 Cada scale-up adiciona 1 nó por 60 segundos antes de scale-down
@@ -232,6 +241,7 @@ Além do custo, cada scale-up/down consome quota de API do EC2.
 ScaledObject sem `maxReplicaCount`. Um metric spike falso (ex: Prometheus retornou valor errado) dispara scale para 100 pods.
 
 **Cálculo em EKS**:
+
 ```
 100 pods de patient-flow-service (1 vCPU, 512MB cada):
 - Requerem ~25 instâncias m5.large
@@ -245,10 +255,11 @@ Custo: 250+ instâncias × $0,096 = $24/hora = $576/dia
 ```
 
 **Controle**:
+
 ```yaml
 spec:
   minReplicaCount: 1
-  maxReplicaCount: 10  # Sempre definir explicitamente
+  maxReplicaCount: 10 # Sempre definir explicitamente
   triggers: [...]
 ```
 
@@ -262,6 +273,7 @@ spec:
 Um desenvolvedor adiciona `patient_id` como label de uma métrica de request. Com 10.000 pacientes únicos, isso cria 10.000 séries temporais para cada métrica afetada. Com 20 métricas afetadas, são 200.000 séries extras.
 
 **Cálculo de custo**:
+
 ```
 Prometheus resource com cardinality normal:
 - 500k séries: ~2GB de RAM, 1GB de storage/dia
@@ -293,6 +305,7 @@ O real problema não é custo — é o OOMKill do Prometheus:
 Loki armazena logs indefinidamente. Com volume real de hospital (múltiplos serviços, logs de AI, traces de eventos NATS):
 
 **Cálculo**:
+
 ```
 Logs por serviço por dia (estimativa com dados reais):
 - patient-flow-service: ~500MB/dia (requests de pacientes + eventos)
@@ -314,10 +327,11 @@ Risco legal > risco financeiro aqui.
 ```
 
 **Implementação**:
+
 ```yaml
 # Loki config: retenção de 30 dias
 limits_config:
-  retention_period: 720h  # 30 dias
+  retention_period: 720h # 30 dias
 
 table_manager:
   retention_deletes_enabled: true
@@ -332,6 +346,7 @@ table_manager:
 OTel Collector com 100% de sampling. Com volume real hospitalar:
 
 **Cálculo**:
+
 ```
 Traces por dia estimado (hospital com 200 leitos):
 - 10.000 requests HTTP por dia
@@ -361,18 +376,18 @@ Implementar tail-based sampling:
 
 ## Matriz de Cenários por Custo e Probabilidade
 
-| ID | Cenário | Custo Mensal Pior Caso | Probabilidade | Detector Implementado | Kill Switch |
-|---|---|---|---|---|---|
-| COST-001 | Agent em retry loop com LLM | $23.000 | Alta | Ausente | Ausente |
-| COST-002 | Market intelligence loop | $13.500 | Média | Ausente | Ausente |
-| COST-003 | Orchestrator fan-out de sub-agents | $93.000 | Baixa | Ausente | Ausente |
-| COST-004 | Opus para tarefas simples | $664+ de desperdício | Alta | Ausente | Ausente |
-| COST-005 | Sem token budget por agent | $21.600 | Média | Ausente | Ausente |
-| COST-006 | KEDA thrash (EKS) | $700 | Alta | Ausente | Ausente |
-| COST-007 | Sem maxReplicaCount | $576/dia | Baixa | Ausente | Parcial |
-| COST-008 | Cardinality explosion Prometheus | OOMKill (indireto) | Média | Ausente | Ausente |
-| COST-009 | Loki sem retenção (PHI) | $66/mês (+ risco legal) | Imediata | Ausente | Ausente |
-| COST-010 | Trace 100% sampling | $21+ em crise | Alta | Ausente | Ausente |
+| ID       | Cenário                            | Custo Mensal Pior Caso  | Probabilidade | Detector Implementado | Kill Switch |
+| -------- | ---------------------------------- | ----------------------- | ------------- | --------------------- | ----------- |
+| COST-001 | Agent em retry loop com LLM        | $23.000                 | Alta          | Ausente               | Ausente     |
+| COST-002 | Market intelligence loop           | $13.500                 | Média         | Ausente               | Ausente     |
+| COST-003 | Orchestrator fan-out de sub-agents | $93.000                 | Baixa         | Ausente               | Ausente     |
+| COST-004 | Opus para tarefas simples          | $664+ de desperdício    | Alta          | Ausente               | Ausente     |
+| COST-005 | Sem token budget por agent         | $21.600                 | Média         | Ausente               | Ausente     |
+| COST-006 | KEDA thrash (EKS)                  | $700                    | Alta          | Ausente               | Ausente     |
+| COST-007 | Sem maxReplicaCount                | $576/dia                | Baixa         | Ausente               | Parcial     |
+| COST-008 | Cardinality explosion Prometheus   | OOMKill (indireto)      | Média         | Ausente               | Ausente     |
+| COST-009 | Loki sem retenção (PHI)            | $66/mês (+ risco legal) | Imediata      | Ausente               | Ausente     |
+| COST-010 | Trace 100% sampling                | $21+ em crise           | Alta          | Ausente               | Ausente     |
 
 ---
 
@@ -388,14 +403,15 @@ interface DailyBudget {
 }
 
 const PRODUCTION_BUDGET: DailyBudget = {
-  totalUsdLimit: 500,         // $500/dia total de AI
-  perAgentUsdLimit: 50,       // $50/dia por agent
-  alertAtPercent: 0.80,       // Alerta em 80%
-  killAtPercent: 1.00,        // Para em 100%
+  totalUsdLimit: 500, // $500/dia total de AI
+  perAgentUsdLimit: 50, // $50/dia por agent
+  alertAtPercent: 0.8, // Alerta em 80%
+  killAtPercent: 1.0, // Para em 100%
 };
 ```
 
 **AWS Budgets (para EKS)**:
+
 ```hcl
 # OpenTofu: criar budget alert para EKS
 resource "aws_budgets_budget" "velya_monthly" {
@@ -412,7 +428,7 @@ resource "aws_budgets_budget" "velya_monthly" {
     threshold_type      = "PERCENTAGE"
     subscriber_email_addresses = ["ops@velya.health"]
   }
-  
+
   notification {
     comparison_operator = "GREATER_THAN"
     notification_type   = "ACTUAL"

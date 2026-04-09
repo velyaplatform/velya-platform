@@ -13,6 +13,7 @@
 **Autonomous operation** means the Velya agent enterprise handles all routine hospital operational work — planning, execution, validation, monitoring, correction, and learning — without requiring human intervention in the normal course of business.
 
 "Autonomous" does not mean:
+
 - Ungoverned (governance is more rigorous, not less)
 - Infallible (failures happen; autonomy means the enterprise recovers from them without human rescue)
 - Isolated from humans (humans govern the framework and intervene in genuine exceptions)
@@ -33,7 +34,7 @@ The autonomous enterprise runs the following loops continuously. These are not s
 
 ```
 For each active agent:
-  → Is a status report expected within the cycle? 
+  → Is a status report expected within the cycle?
   → If yes, has it been received?
   → If no, has the agent's heartbeat NATS message been received?
   → If neither: watchdog alert
@@ -53,7 +54,7 @@ For each agent:
   → Compare to previous week (trend)
   → Flag threshold breaches
   → Notify relevant managers
-  
+
 For each office:
   → Aggregate agent scores
   → Compute office-level metrics
@@ -102,7 +103,7 @@ For each validated, unpropped learning item:
   → Issue propagation directives
   → Track acknowledgment deadlines
   → Flag unacknowledged lessons to relevant managers
-  
+
 For each previously propagated lesson:
   → Has acknowledgment been received from all targets?
   → Has demonstration been scheduled or completed?
@@ -120,7 +121,7 @@ Daily scans:
   → Clinical best practice updates (relevant clinical domains)
   → Technology security alerts (CVE feeds, vendor advisories)
   → Competitive intelligence sources (configured)
-  
+
 Weekly digest:
   → Produce briefing for Executive Office
   → Flag urgent items (same-day notification for regulatory effective-date alerts < 30 days)
@@ -144,31 +145,31 @@ Within their contract scope and for actions at their risk authorization level, a
 
 ### 3.2 What Requires Approval Within the Agent Hierarchy
 
-| Decision | Approval Required From |
-|---|---|
-| Cross-office task handoff | Both office managers |
-| Exception to standard process | Office Manager |
-| High-risk action execution | Second validator + Office Manager awareness |
-| Critical risk action | Two validators + Office Manager + Executive awareness |
-| Permission expansion | Office Manager + Security Office |
-| Contract amendment | Agent Factory + ARB + Office Manager |
-| Agent quarantine (L2+) | Office Manager (L2) or Executive (L3+) |
-| Agent retirement proposal | Office Manager + Executive |
+| Decision                      | Approval Required From                                |
+| ----------------------------- | ----------------------------------------------------- |
+| Cross-office task handoff     | Both office managers                                  |
+| Exception to standard process | Office Manager                                        |
+| High-risk action execution    | Second validator + Office Manager awareness           |
+| Critical risk action          | Two validators + Office Manager + Executive awareness |
+| Permission expansion          | Office Manager + Security Office                      |
+| Contract amendment            | Agent Factory + ARB + Office Manager                  |
+| Agent quarantine (L2+)        | Office Manager (L2) or Executive (L3+)                |
+| Agent retirement proposal     | Office Manager + Executive                            |
 
 ### 3.3 What Requires Human Break-Glass
 
 Human intervention is required for:
 
-| Situation | Human Authority Needed |
-|---|---|
-| Catastrophic risk action | Governance Council |
-| Patient safety threat | Clinical human authority + Executive |
-| PHI breach confirmed | HIPAA Officer (human) + Executive + Governance Council |
-| Executive Agent failure or conflict of interest | Governance Council |
-| Regulatory authority contact | Legal/Compliance human authority |
-| Novel ethical dilemma | Governance Council |
-| External audit commencement | Human Compliance Officer |
-| Any action where the entire agent hierarchy is implicated | Governance Council |
+| Situation                                                 | Human Authority Needed                                 |
+| --------------------------------------------------------- | ------------------------------------------------------ |
+| Catastrophic risk action                                  | Governance Council                                     |
+| Patient safety threat                                     | Clinical human authority + Executive                   |
+| PHI breach confirmed                                      | HIPAA Officer (human) + Executive + Governance Council |
+| Executive Agent failure or conflict of interest           | Governance Council                                     |
+| Regulatory authority contact                              | Legal/Compliance human authority                       |
+| Novel ethical dilemma                                     | Governance Council                                     |
+| External audit commencement                               | Human Compliance Officer                               |
+| Any action where the entire agent hierarchy is implicated | Governance Council                                     |
 
 ---
 
@@ -217,14 +218,14 @@ The enterprise operates on a continuous cadence within each day:
 
 ### 4.2 Weekly Rhythm
 
-| Day | Primary Activities |
-|---|---|
-| Monday | Scorecard generation; Agent probation/quarantine reviews |
-| Tuesday | Office scorecard aggregation; Cross-office dependency review |
-| Wednesday | Enterprise health dashboard update; Architecture decisions |
-| Thursday | Learning propagation digest; Backlog grooming |
-| Friday | Cross-office retrospective (automated PAR digest); Pre-weekend risk assessment |
-| Saturday/Sunday | Maintenance window operations (Platform, DevOps); Reduced monitoring |
+| Day             | Primary Activities                                                             |
+| --------------- | ------------------------------------------------------------------------------ |
+| Monday          | Scorecard generation; Agent probation/quarantine reviews                       |
+| Tuesday         | Office scorecard aggregation; Cross-office dependency review                   |
+| Wednesday       | Enterprise health dashboard update; Architecture decisions                     |
+| Thursday        | Learning propagation digest; Backlog grooming                                  |
+| Friday          | Cross-office retrospective (automated PAR digest); Pre-weekend risk assessment |
+| Saturday/Sunday | Maintenance window operations (Platform, DevOps); Reduced monitoring           |
 
 ### 4.3 Monthly Rhythm
 
@@ -280,12 +281,12 @@ break_glass_briefing:
   briefing_id: string
   triggered_at: datetime
   trigger_condition: string
-  situation_summary: string          # max 200 words
+  situation_summary: string # max 200 words
   current_agent_actions:
     - action: string
       agent: string
       status: string
-  specific_decision_required: string  # exactly what the human must decide
+  specific_decision_required: string # exactly what the human must decide
   options:
     - option: string
       agent_recommendation: bool
@@ -298,6 +299,7 @@ break_glass_briefing:
 ### 6.2 Human Action
 
 The human:
+
 1. Reviews the briefing
 2. Reviews the evidence package if needed
 3. Makes a binary decision (authorize or prohibit) or a selection among options
@@ -316,18 +318,18 @@ Every break-glass invocation generates a mandatory PAR within 24 hours. The PAR 
 
 The Executive Office maintains a real-time enterprise health dashboard:
 
-| Section | Key Indicators |
-|---|---|
-| **Agent Workforce** | Total active agents; agents in quarantine; agents on probation; agents in shadow |
-| **Quality** | Enterprise validation pass rate; audit pass rate; evidence completeness |
-| **Reliability** | Enterprise SLA compliance; open incident count by severity; MTTR by severity |
-| **Learning** | Learning propagation completion rate; open learning items; lessons pending validation |
-| **Security** | Open critical vulnerabilities; secret rotation compliance; permission anomalies |
-| **Compliance** | Open critical audit findings; HIPAA readiness score; SOC2 readiness score |
-| **Human Interventions** | Interventions in last 30 days; trend; interventions by type |
-| **Office Health** | Office scorecard status (all 23) — green/yellow/orange/red |
-| **Cost** | Cloud spend vs. budget; cost efficiency trend |
-| **Autonomy Level** | Current autonomy self-assessment (see Section 10) |
+| Section                 | Key Indicators                                                                        |
+| ----------------------- | ------------------------------------------------------------------------------------- |
+| **Agent Workforce**     | Total active agents; agents in quarantine; agents on probation; agents in shadow      |
+| **Quality**             | Enterprise validation pass rate; audit pass rate; evidence completeness               |
+| **Reliability**         | Enterprise SLA compliance; open incident count by severity; MTTR by severity          |
+| **Learning**            | Learning propagation completion rate; open learning items; lessons pending validation |
+| **Security**            | Open critical vulnerabilities; secret rotation compliance; permission anomalies       |
+| **Compliance**          | Open critical audit findings; HIPAA readiness score; SOC2 readiness score             |
+| **Human Interventions** | Interventions in last 30 days; trend; interventions by type                           |
+| **Office Health**       | Office scorecard status (all 23) — green/yellow/orange/red                            |
+| **Cost**                | Cloud spend vs. budget; cost efficiency trend                                         |
+| **Autonomy Level**      | Current autonomy self-assessment (see Section 10)                                     |
 
 ---
 
@@ -335,22 +337,22 @@ The Executive Office maintains a real-time enterprise health dashboard:
 
 The following must ALL be met before Velya can claim autonomous operation:
 
-| Prerequisite | Status (2026-04-08) |
-|---|---|
-| All 23 offices have active Manager Agents | Partial — 14 of 23 offices have Manager Agents active |
-| All office watchdog coverage complete | Partial — 11 of 23 offices have dedicated watchdog coverage |
-| Agent lifecycle model fully implemented | In progress — lifecycle tooling 60% complete |
-| Scorecard system operational for all agents | In progress — manual scorecard for ~40% of agents |
+| Prerequisite                                      | Status (2026-04-08)                                                         |
+| ------------------------------------------------- | --------------------------------------------------------------------------- |
+| All 23 offices have active Manager Agents         | Partial — 14 of 23 offices have Manager Agents active                       |
+| All office watchdog coverage complete             | Partial — 11 of 23 offices have dedicated watchdog coverage                 |
+| Agent lifecycle model fully implemented           | In progress — lifecycle tooling 60% complete                                |
+| Scorecard system operational for all agents       | In progress — manual scorecard for ~40% of agents                           |
 | Evidence Store operational with hash verification | In progress — write-once storage implemented; hash verification in progress |
-| Decision log operational for all agents | Not yet — decision log model defined; implementation pending |
-| Learning propagation loop automated | Partial — manual Learning Office process; automation in progress |
-| Correction loop automated (not manual tracking) | Partial — correction workflow defined; automation pending |
-| Handoff confirmation protocol automated | Not yet — defined; implementation pending |
-| Quarantine system operational | Partial — L1/L2 quarantine manual; tooling in progress |
-| Meta-watchdog operational | Not yet — model defined; implementation pending |
-| Enterprise health dashboard operational | Partial — key metrics visible; full dashboard in progress |
-| Break-glass protocol tested and exercised | Not yet — protocol defined; first exercise not yet conducted |
-| Human intervention rate < 5/month for 90 days | Not yet — baseline not established |
+| Decision log operational for all agents           | Not yet — decision log model defined; implementation pending                |
+| Learning propagation loop automated               | Partial — manual Learning Office process; automation in progress            |
+| Correction loop automated (not manual tracking)   | Partial — correction workflow defined; automation pending                   |
+| Handoff confirmation protocol automated           | Not yet — defined; implementation pending                                   |
+| Quarantine system operational                     | Partial — L1/L2 quarantine manual; tooling in progress                      |
+| Meta-watchdog operational                         | Not yet — model defined; implementation pending                             |
+| Enterprise health dashboard operational           | Partial — key metrics visible; full dashboard in progress                   |
+| Break-glass protocol tested and exercised         | Not yet — protocol defined; first exercise not yet conducted                |
+| Human intervention rate < 5/month for 90 days     | Not yet — baseline not established                                          |
 
 ---
 
@@ -358,28 +360,29 @@ The following must ALL be met before Velya can claim autonomous operation:
 
 This is an honest, current assessment. Optimistic claims about autonomy are more dangerous than accurate admissions of gap.
 
-| Autonomy Dimension | Target | Current | Gap |
-|---|---|---|---|
-| **Routine work execution** | Zero human intervention | ~70% autonomous — humans review many outputs | Large |
-| **Incident detection** | Automated, < 5 min | ~60% automated — some reliance on human observation | Significant |
-| **Incident resolution** | Agent-led, human notified | ~40% agent-led — humans heavily involved in resolution | Very large |
-| **Validation chain** | Fully automated | ~50% automated — validator agents operational for some domains | Large |
-| **Audit chain** | Fully automated | ~30% automated — mostly manual audits | Very large |
-| **Learning capture** | Automated capture and propagation | ~20% automated — primarily manual | Very large |
-| **Watchdog coverage** | Complete enterprise coverage | ~48% of offices covered | Large |
-| **Scorecard generation** | Fully automated weekly | ~40% automated — mostly manual | Large |
-| **Handoff management** | Automated confirmation protocol | ~20% automated — mostly manual or implicit | Very large |
-| **Quarantine management** | Automated trigger + process | ~30% — L1 partially automated; L2+ manual | Large |
-| **Evidence collection** | Automated, complete | ~55% — evidence collected for some domains, not all | Significant |
-| **Decision logging** | Automated, comprehensive | ~15% — model defined; minimal implementation | Very large |
-| **Correction loop** | Automated, tracked | ~25% — correction loop exists but tracking is manual | Large |
-| **Break-glass protocol** | Tested and operational | Model defined; not yet implemented or tested | Full gap |
+| Autonomy Dimension         | Target                            | Current                                                        | Gap         |
+| -------------------------- | --------------------------------- | -------------------------------------------------------------- | ----------- |
+| **Routine work execution** | Zero human intervention           | ~70% autonomous — humans review many outputs                   | Large       |
+| **Incident detection**     | Automated, < 5 min                | ~60% automated — some reliance on human observation            | Significant |
+| **Incident resolution**    | Agent-led, human notified         | ~40% agent-led — humans heavily involved in resolution         | Very large  |
+| **Validation chain**       | Fully automated                   | ~50% automated — validator agents operational for some domains | Large       |
+| **Audit chain**            | Fully automated                   | ~30% automated — mostly manual audits                          | Very large  |
+| **Learning capture**       | Automated capture and propagation | ~20% automated — primarily manual                              | Very large  |
+| **Watchdog coverage**      | Complete enterprise coverage      | ~48% of offices covered                                        | Large       |
+| **Scorecard generation**   | Fully automated weekly            | ~40% automated — mostly manual                                 | Large       |
+| **Handoff management**     | Automated confirmation protocol   | ~20% automated — mostly manual or implicit                     | Very large  |
+| **Quarantine management**  | Automated trigger + process       | ~30% — L1 partially automated; L2+ manual                      | Large       |
+| **Evidence collection**    | Automated, complete               | ~55% — evidence collected for some domains, not all            | Significant |
+| **Decision logging**       | Automated, comprehensive          | ~15% — model defined; minimal implementation                   | Very large  |
+| **Correction loop**        | Automated, tracked                | ~25% — correction loop exists but tracking is manual           | Large       |
+| **Break-glass protocol**   | Tested and operational            | Model defined; not yet implemented or tested                   | Full gap    |
 
 **Enterprise Autonomy Level (Self-Assessed):** **2.5 / 5.0 — Early Development**
 
 At this level, Velya operates with significant human involvement in most governance functions. The agent enterprise exists as a defined model and partial implementation. The gap between the model and operational reality is the primary engineering and organizational challenge for the next 12–18 months.
 
 **What Level 2.5 means in practice:**
+
 - Agents exist and execute work in many domains
 - Governance structures are defined and partially implemented
 - Human intervention is routine, not exceptional
@@ -393,27 +396,16 @@ At this level, Velya operates with significant human involvement in most governa
 The following sequence prioritizes the highest-value autonomy investments:
 
 **Phase 1 (Next 90 days): Foundation**
+
 1. Complete watchdog coverage for all 23 offices
 2. Automate agent scorecard generation for all agents
 3. Implement decision log tooling (agents can file decision logs natively)
 4. Implement evidence store hash verification
 
-**Phase 2 (90–180 days): Quality Chain**
-5. Expand validator agent coverage to all High-risk domains
-6. Automate handoff confirmation protocol
-7. Automate correction loop tracking and escalation
-8. Implement learning propagation automation
+**Phase 2 (90–180 days): Quality Chain** 5. Expand validator agent coverage to all High-risk domains 6. Automate handoff confirmation protocol 7. Automate correction loop tracking and escalation 8. Implement learning propagation automation
 
-**Phase 3 (180–270 days): Governance Completion**
-9. Complete audit agent coverage for all Critical domains
-10. Implement automated quarantine triggering (L1/L2)
-11. Deploy Meta-Watchdog
-12. Conduct first break-glass protocol exercise
+**Phase 3 (180–270 days): Governance Completion** 9. Complete audit agent coverage for all Critical domains 10. Implement automated quarantine triggering (L1/L2) 11. Deploy Meta-Watchdog 12. Conduct first break-glass protocol exercise
 
-**Phase 4 (270–365 days): Autonomy Validation**
-13. 90-day measurement period for human intervention rate
-14. Enterprise autonomy audit by Compliance & Audit Office
-15. Governance Council assessment of autonomy claim readiness
-16. First public autonomy level declaration
+**Phase 4 (270–365 days): Autonomy Validation** 13. 90-day measurement period for human intervention rate 14. Enterprise autonomy audit by Compliance & Audit Office 15. Governance Council assessment of autonomy claim readiness 16. First public autonomy level declaration
 
 Full autonomous operation is not a destination — it is an ongoing practice. The enterprise will continue to improve autonomy dimensions after the initial phases, adding new domains and refining governance mechanisms as the agent workforce matures.

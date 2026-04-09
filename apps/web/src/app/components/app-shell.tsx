@@ -68,7 +68,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
           minute: '2-digit',
           second: '2-digit',
           hour12: false,
-        })
+        }),
       );
     };
     updateTime();
@@ -96,9 +96,10 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
 
   // Compute initials from user name
   const nameParts = sessionData.userName.split(' ').filter(Boolean);
-  const initials = nameParts.length >= 2
-    ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
-    : sessionData.userName.slice(0, 2).toUpperCase();
+  const initials =
+    nameParts.length >= 2
+      ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+      : sessionData.userName.slice(0, 2).toUpperCase();
 
   return (
     <div className="flex min-h-screen bg-[var(--color-surface)]">
@@ -128,7 +129,12 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
               aria-label="Abrir menu"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
             </button>
             <span className="topbar-title">{pageTitle}</span>

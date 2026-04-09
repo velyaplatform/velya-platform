@@ -10,7 +10,8 @@ export async function POST(request: NextRequest) {
       timestamp: body.timestamp || new Date().toISOString(),
       source: body.sentinel || 'unknown',
       type: 'sentinel',
-      severity: body.status === 'critical' ? 'critical' : body.status === 'warning' ? 'warning' : 'info',
+      severity:
+        body.status === 'critical' ? 'critical' : body.status === 'warning' ? 'warning' : 'info',
       data: {
         sentinel: body.sentinel,
         status: body.status,
@@ -20,16 +21,18 @@ export async function POST(request: NextRequest) {
     });
 
     // Log for observability
-    console.log(JSON.stringify({
-      level: 'info',
-      service: 'velya-web',
-      event: 'sentinel_report_received',
-      sentinel: body.sentinel,
-      status: body.status,
-      findingsCount: body.findings?.length || 0,
-      eventId: stored.id,
-      timestamp: body.timestamp,
-    }));
+    console.log(
+      JSON.stringify({
+        level: 'info',
+        service: 'velya-web',
+        event: 'sentinel_report_received',
+        sentinel: body.sentinel,
+        status: body.status,
+        findingsCount: body.findings?.length || 0,
+        eventId: stored.id,
+        timestamp: body.timestamp,
+      }),
+    );
 
     audit({
       category: 'infra',

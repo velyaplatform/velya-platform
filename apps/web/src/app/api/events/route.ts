@@ -23,17 +23,20 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(JSON.stringify({
-      level: body.severity === 'critical' ? 'error' : body.severity === 'warning' ? 'warn' : 'info',
-      service: 'velya-web',
-      event: 'platform_event',
-      source: body.source,
-      severity: body.severity,
-      actionRequired: body.actionRequired,
-      summary: body.summary,
-      eventId: stored.id,
-      timestamp: body.timestamp,
-    }));
+    console.log(
+      JSON.stringify({
+        level:
+          body.severity === 'critical' ? 'error' : body.severity === 'warning' ? 'warn' : 'info',
+        service: 'velya-web',
+        event: 'platform_event',
+        source: body.source,
+        severity: body.severity,
+        actionRequired: body.actionRequired,
+        summary: body.summary,
+        eventId: stored.id,
+        timestamp: body.timestamp,
+      }),
+    );
 
     audit({
       category: 'backend',
@@ -41,7 +44,8 @@ export async function POST(request: NextRequest) {
       description: `Evento recebido: ${body.summary || body.source || 'unknown'}`,
       actor: body.source || 'unknown',
       resource: `event:${body.id || stored.id}`,
-      result: body.severity === 'critical' ? 'error' : body.severity === 'warning' ? 'warning' : 'info',
+      result:
+        body.severity === 'critical' ? 'error' : body.severity === 'warning' ? 'warning' : 'info',
       details: {
         severity: body.severity,
         actionRequired: body.actionRequired,
@@ -80,7 +84,7 @@ export async function GET(request: NextRequest) {
   // Apply actionRequired filter on top of store filters
   let filtered = events;
   if (actionOnly) {
-    filtered = filtered.filter(e => (e.data as { actionRequired?: boolean }).actionRequired);
+    filtered = filtered.filter((e) => (e.data as { actionRequired?: boolean }).actionRequired);
   }
 
   // Compute summary from all events (not just filtered)
@@ -94,7 +98,9 @@ export async function GET(request: NextRequest) {
       total: allEvents.total,
       critical: getEvents('event', { severity: 'critical' }).total,
       warning: getEvents('event', { severity: 'warning' }).total,
-      actionRequired: allEvents.events.filter(e => (e.data as { actionRequired?: boolean }).actionRequired).length,
+      actionRequired: allEvents.events.filter(
+        (e) => (e.data as { actionRequired?: boolean }).actionRequired,
+      ).length,
     },
   });
 }

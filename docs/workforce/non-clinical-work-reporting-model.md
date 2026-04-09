@@ -27,11 +27,11 @@ interface LimpezaWorkflow {
   // --- Acionamento ---
   acionamento: {
     tipo_limpeza: 'terminal' | 'concorrente' | 'imediata' | 'area_critica' | 'desinfeccao';
-    local: string;                      // Leito, sala, area
+    local: string; // Leito, sala, area
     motivo: 'alta' | 'obito' | 'transferencia' | 'contaminacao' | 'rotina' | 'isolamento';
     prioridade: 'urgente' | 'rotina';
-    solicitante_id: string;             // Quem acionou (enfermeiro, sistema)
-    isolamento?: boolean;               // Precaucao de isolamento?
+    solicitante_id: string; // Quem acionou (enfermeiro, sistema)
+    isolamento?: boolean; // Precaucao de isolamento?
     tipo_isolamento?: 'contato' | 'respiratorio' | 'aerossol' | 'goticulaa';
     timestamp: string;
   };
@@ -40,16 +40,16 @@ interface LimpezaWorkflow {
   chegada: {
     profissional_id: string;
     timestamp: string;
-    tempo_resposta_minutos: number;      // Calculado automaticamente
-    sla_cumprido: boolean;               // Terminal: 60min, Concorrente: 30min
+    tempo_resposta_minutos: number; // Calculado automaticamente
+    sla_cumprido: boolean; // Terminal: 60min, Concorrente: 30min
   };
 
   // --- Execucao ---
   execucao: {
-    produtos_utilizados: string[];       // Lista padrao por tipo
-    tecnica: string;                     // Conforme protocolo
-    epi_utilizado: string[];             // EPI conforme precaucao
-    checklist_completo: boolean;         // Checklist por tipo de limpeza
+    produtos_utilizados: string[]; // Lista padrao por tipo
+    tecnica: string; // Conforme protocolo
+    epi_utilizado: string[]; // EPI conforme precaucao
+    checklist_completo: boolean; // Checklist por tipo de limpeza
     observacoes?: string;
     inicio: string;
     fim: string;
@@ -58,8 +58,8 @@ interface LimpezaWorkflow {
 
   // --- Liberacao ---
   liberacao: {
-    liberado_por: string;               // ID do profissional de limpeza
-    conferido_por?: string;             // Supervisor (quando aplicavel)
+    liberado_por: string; // ID do profissional de limpeza
+    conferido_por?: string; // Supervisor (quando aplicavel)
     timestamp: string;
     status_final: 'liberado' | 'pendencia' | 'retrabalho';
     pendencias?: string[];
@@ -69,13 +69,13 @@ interface LimpezaWorkflow {
 
 #### SLA
 
-| Tipo | SLA Resposta | SLA Conclusao | Alerta | Escalacao |
-|---|---|---|---|---|
-| Terminal | 15 min | 60 min | 75% SLA | Supervisor |
-| Concorrente | 10 min | 30 min | 75% SLA | Supervisor |
-| Imediata | 5 min | 15 min | 50% SLA | Supervisor |
-| Area critica | 10 min | 45 min | 50% SLA | Coordenador |
-| Desinfeccao | 15 min | 90 min | 75% SLA | SCIH |
+| Tipo         | SLA Resposta | SLA Conclusao | Alerta  | Escalacao   |
+| ------------ | ------------ | ------------- | ------- | ----------- |
+| Terminal     | 15 min       | 60 min        | 75% SLA | Supervisor  |
+| Concorrente  | 10 min       | 30 min        | 75% SLA | Supervisor  |
+| Imediata     | 5 min        | 15 min        | 50% SLA | Supervisor  |
+| Area critica | 10 min       | 45 min        | 50% SLA | Coordenador |
+| Desinfeccao  | 15 min       | 90 min        | 75% SLA | SCIH        |
 
 ---
 
@@ -96,10 +96,10 @@ interface ManutencaoWorkflow {
   // --- Chamado ---
   chamado: {
     tipo_manutencao: 'emergencial' | 'corretiva' | 'preventiva';
-    equipamento_id?: string;            // ID do patrimonio
-    equipamento_tipo: string;           // Tipo do equipamento
-    local: string;                      // Onde esta
-    defeito_relatado: string;           // Descricao do problema
+    equipamento_id?: string; // ID do patrimonio
+    equipamento_tipo: string; // Tipo do equipamento
+    local: string; // Onde esta
+    defeito_relatado: string; // Descricao do problema
     impacto_assistencial: 'critico' | 'alto' | 'medio' | 'baixo';
     solicitante_id: string;
     timestamp: string;
@@ -142,18 +142,18 @@ interface ManutencaoWorkflow {
     previsao_retorno?: string;
     alternativa_disponibilizada?: string;
     areas_impactadas: string[];
-    comunicado_para: string[];          // Quem foi avisado
+    comunicado_para: string[]; // Quem foi avisado
   };
 }
 ```
 
 #### SLA
 
-| Tipo | SLA Resposta | SLA Conclusao | Escalacao |
-|---|---|---|---|
-| Emergencial | 15 min | 2h | Coordenador -> Direcao |
-| Corretiva | 1h | 4h | Supervisor |
-| Preventiva | N/A (agendada) | Conforme agenda | Supervisor |
+| Tipo        | SLA Resposta   | SLA Conclusao   | Escalacao              |
+| ----------- | -------------- | --------------- | ---------------------- |
+| Emergencial | 15 min         | 2h              | Coordenador -> Direcao |
+| Corretiva   | 1h             | 4h              | Supervisor             |
+| Preventiva  | N/A (agendada) | Conforme agenda | Supervisor             |
 
 ---
 
@@ -172,9 +172,9 @@ interface TransporteWorkflow {
   // --- Acionamento ---
   acionamento: {
     tipo_transporte: 'urgente' | 'rotina' | 'agendado';
-    paciente_id: string;                // ID do paciente (sem dados clinicos)
-    origem: string;                     // Local de origem
-    destino: string;                    // Local de destino
+    paciente_id: string; // ID do paciente (sem dados clinicos)
+    origem: string; // Local de origem
+    destino: string; // Local de destino
     motivo: 'exame' | 'cirurgia' | 'transferencia' | 'alta' | 'outro';
     restricoes: TransporteRestricoes;
     prioridade: 'imediata' | 'urgente' | 'rotina';
@@ -193,10 +193,10 @@ interface TransporteWorkflow {
   // --- Saida ---
   saida: {
     timestamp: string;
-    acompanhantes: string[];            // IDs de acompanhantes (enfermeiro, familiar)
-    equipamentos: string[];             // O2, bomba, monitor
-    custodia_recebida_de: string;       // De quem recebeu o paciente
-    aceite_custodia: boolean;           // Aceite explicito
+    acompanhantes: string[]; // IDs de acompanhantes (enfermeiro, familiar)
+    equipamentos: string[]; // O2, bomba, monitor
+    custodia_recebida_de: string; // De quem recebeu o paciente
+    aceite_custodia: boolean; // Aceite explicito
   };
 
   // --- Chegada ---
@@ -209,8 +209,8 @@ interface TransporteWorkflow {
 
   // --- Transferencia Custodia ---
   transferencia_custodia: {
-    entregue_para: string;              // ID de quem recebeu
-    aceite_custodia: boolean;           // Aceite explicito no destino
+    entregue_para: string; // ID de quem recebeu
+    aceite_custodia: boolean; // Aceite explicito no destino
     timestamp: string;
     observacoes?: string;
   };
@@ -231,12 +231,12 @@ interface TransporteRestricoes {
 
 #### SLA
 
-| Tipo | SLA Aceite | SLA Saida | SLA Total | Escalacao |
-|---|---|---|---|---|
-| Imediata | 3 min | 5 min | 15 min | Supervisor -> Coordenador |
-| Urgente | 5 min | 10 min | 30 min | Supervisor |
-| Rotina | 10 min | 20 min | 45 min | Supervisor |
-| Agendado | N/A | Conforme agenda | +/- 15 min | Supervisor |
+| Tipo     | SLA Aceite | SLA Saida       | SLA Total  | Escalacao                 |
+| -------- | ---------- | --------------- | ---------- | ------------------------- |
+| Imediata | 3 min      | 5 min           | 15 min     | Supervisor -> Coordenador |
+| Urgente  | 5 min      | 10 min          | 30 min     | Supervisor                |
+| Rotina   | 10 min     | 20 min          | 45 min     | Supervisor                |
+| Agendado | N/A        | Conforme agenda | +/- 15 min | Supervisor                |
 
 ---
 
@@ -253,10 +253,18 @@ interface TransporteRestricoes {
 ```typescript
 interface SegurancaWorkflow {
   ocorrencia: {
-    tipo: 'agressao' | 'furto' | 'invasao' | 'incendio' | 'ameaca' | 'contencao_paciente' | 'apoio_equipe' | 'outro';
+    tipo:
+      | 'agressao'
+      | 'furto'
+      | 'invasao'
+      | 'incendio'
+      | 'ameaca'
+      | 'contencao_paciente'
+      | 'apoio_equipe'
+      | 'outro';
     local: string;
     descricao: string;
-    envolvidos: string[];               // Descricao generica (sem dados clinicos)
+    envolvidos: string[]; // Descricao generica (sem dados clinicos)
     gravidade: 'critica' | 'alta' | 'media' | 'baixa';
     policia_acionada: boolean;
     timestamp: string;
@@ -321,7 +329,7 @@ interface TIWorkflow {
     acao_realizada: string;
     causa_raiz?: string;
     categoria_causa: 'software' | 'hardware' | 'rede' | 'configuracao' | 'capacidade' | 'externo';
-    permanente: boolean;                // Correcao definitiva ou paliativa
+    permanente: boolean; // Correcao definitiva ou paliativa
     timestamp: string;
   };
 
@@ -354,9 +362,9 @@ interface CentralLeitosWorkflow {
     tipo_leito: 'uti' | 'semi' | 'enfermaria' | 'isolamento' | 'pediatrico' | 'obstetrico';
     especialidade: string;
     prioridade: 'emergencia' | 'urgente' | 'eletiva';
-    origem: string;                     // De onde vem o paciente
-    paciente_id: string;                // Sem dados clinicos
-    necessidades_especiais?: string[];  // Isolamento, O2, monitoracao
+    origem: string; // De onde vem o paciente
+    paciente_id: string; // Sem dados clinicos
+    necessidades_especiais?: string[]; // Isolamento, O2, monitoracao
     solicitante_id: string;
     timestamp: string;
   };
@@ -408,11 +416,11 @@ interface NonClinicalReportingUX {
 
   // Principio 2: Contexto pre-preenchido
   prefill: {
-    profissional: 'auto';               // Do login
-    unidade: 'auto';                    // Da sessao
-    turno: 'auto';                      // Do turno vigente
-    local: 'auto_or_select';            // GPS/NFC ou selecao rapida
-    timestamp: 'auto';                  // Momento do registro
+    profissional: 'auto'; // Do login
+    unidade: 'auto'; // Da sessao
+    turno: 'auto'; // Do turno vigente
+    local: 'auto_or_select'; // GPS/NFC ou selecao rapida
+    timestamp: 'auto'; // Momento do registro
   };
 
   // Principio 3: Templates por area
@@ -430,7 +438,7 @@ interface NonClinicalReportingUX {
     contrast_ratio_min: 4.5;
     offline_capable: true;
     language: 'pt-BR';
-    literacy_level: 'basico';           // Vocabulario simples
+    literacy_level: 'basico'; // Vocabulario simples
   };
 
   // Principio 5: Funciona offline com sync
@@ -452,9 +460,9 @@ interface QuickReportTemplate {
   name: string;
   icon: string;
   prefilled_fields: Record<string, unknown>;
-  required_input: string[];             // Campos que o usuario DEVE preencher
-  optional_input: string[];             // Campos opcionais
-  estimated_time_seconds: number;       // Tempo estimado para completar
+  required_input: string[]; // Campos que o usuario DEVE preencher
+  optional_input: string[]; // Campos opcionais
+  estimated_time_seconds: number; // Tempo estimado para completar
 }
 
 const limpezaTemplates: QuickReportTemplate[] = [
@@ -468,7 +476,7 @@ const limpezaTemplates: QuickReportTemplate[] = [
       category: 'higiene',
       event_type: 'liberacao_limpeza',
     },
-    required_input: ['local'],          // Apenas selecionar o local
+    required_input: ['local'], // Apenas selecionar o local
     optional_input: ['observacoes'],
     estimated_time_seconds: 10,
   },
@@ -511,7 +519,7 @@ const transporteTemplates: QuickReportTemplate[] = [
       category: 'transporte',
       event_type: 'aceite_transporte',
     },
-    required_input: [],                 // Aceite do acionamento recebido
+    required_input: [], // Aceite do acionamento recebido
     optional_input: ['previsao'],
     estimated_time_seconds: 3,
   },
@@ -524,7 +532,7 @@ const transporteTemplates: QuickReportTemplate[] = [
       category: 'transporte',
       event_type: 'transferencia_custodia',
     },
-    required_input: ['entregue_para'],  // Selecionar quem recebeu
+    required_input: ['entregue_para'], // Selecionar quem recebeu
     optional_input: ['observacoes'],
     estimated_time_seconds: 10,
   },
@@ -599,19 +607,19 @@ const manutencaoTemplates: QuickReportTemplate[] = [
 
 ### 4.1 Tabela de Obrigatoriedade
 
-| Area | Evento Minimo por Turno | Campos Minimos | SLA Monitorado | Handoff Obrigatorio |
-|---|---|---|---|---|
-| Limpeza | 1 por acionamento | tipo, local, horarios | Sim | Sim (liberacao) |
-| Manutencao | 1 por chamado | equipamento, local, status | Sim | Sim (conclusao) |
-| Transporte | 1 por transporte | paciente, origem, destino, horarios | Sim | Sim (custodia) |
-| Seguranca | 1 por ocorrencia | tipo, local, descricao | Nao | Sim (registro final) |
-| TI | 1 por incidente | sistema, descricao, impacto | Sim | Sim (correcao) |
-| Central Leitos | 1 por pedido/alocacao | tipo_leito, local, status | Sim | Sim (alocacao) |
-| Recepcao | 1 por atendimento | paciente, tipo, horario | Sim (espera) | Nao |
-| Farmacia Logistica | 1 por dispensacao | medicamento, destino | Sim | Sim (entrega) |
-| Nutricao Operacional | 1 por refeicao | tipo_dieta, destino | Sim | Sim (entrega) |
-| Rouparia | 1 por distribuicao | tipo, quantidade, destino | Nao | Nao |
-| Almoxarifado | 1 por requisicao | material, quantidade, solicitante | Nao | Sim (entrega) |
+| Area                 | Evento Minimo por Turno | Campos Minimos                      | SLA Monitorado | Handoff Obrigatorio  |
+| -------------------- | ----------------------- | ----------------------------------- | -------------- | -------------------- |
+| Limpeza              | 1 por acionamento       | tipo, local, horarios               | Sim            | Sim (liberacao)      |
+| Manutencao           | 1 por chamado           | equipamento, local, status          | Sim            | Sim (conclusao)      |
+| Transporte           | 1 por transporte        | paciente, origem, destino, horarios | Sim            | Sim (custodia)       |
+| Seguranca            | 1 por ocorrencia        | tipo, local, descricao              | Nao            | Sim (registro final) |
+| TI                   | 1 por incidente         | sistema, descricao, impacto         | Sim            | Sim (correcao)       |
+| Central Leitos       | 1 por pedido/alocacao   | tipo_leito, local, status           | Sim            | Sim (alocacao)       |
+| Recepcao             | 1 por atendimento       | paciente, tipo, horario             | Sim (espera)   | Nao                  |
+| Farmacia Logistica   | 1 por dispensacao       | medicamento, destino                | Sim            | Sim (entrega)        |
+| Nutricao Operacional | 1 por refeicao          | tipo_dieta, destino                 | Sim            | Sim (entrega)        |
+| Rouparia             | 1 por distribuicao      | tipo, quantidade, destino           | Nao            | Nao                  |
+| Almoxarifado         | 1 por requisicao        | material, quantidade, solicitante   | Nao            | Sim (entrega)        |
 
 ### 4.2 Excecoes e Desvios
 
@@ -680,38 +688,38 @@ interface ExceptionRule {
 ```yaml
 subjects:
   # Limpeza
-  - "velya.work.higiene.acionamento_limpeza"
-  - "velya.work.higiene.chegada_limpeza"
-  - "velya.work.higiene.execucao_limpeza"
-  - "velya.work.higiene.liberacao_limpeza"
+  - 'velya.work.higiene.acionamento_limpeza'
+  - 'velya.work.higiene.chegada_limpeza'
+  - 'velya.work.higiene.execucao_limpeza'
+  - 'velya.work.higiene.liberacao_limpeza'
 
   # Manutencao
-  - "velya.work.manutencao.chamado_manutencao"
-  - "velya.work.manutencao.inicio_manutencao"
-  - "velya.work.manutencao.conclusao_manutencao"
-  - "velya.work.manutencao.indisponibilidade_equipamento"
+  - 'velya.work.manutencao.chamado_manutencao'
+  - 'velya.work.manutencao.inicio_manutencao'
+  - 'velya.work.manutencao.conclusao_manutencao'
+  - 'velya.work.manutencao.indisponibilidade_equipamento'
 
   # Transporte
-  - "velya.work.transporte.acionamento_transporte"
-  - "velya.work.transporte.aceite_transporte"
-  - "velya.work.transporte.saida_transporte"
-  - "velya.work.transporte.chegada_transporte"
-  - "velya.work.transporte.transferencia_custodia"
+  - 'velya.work.transporte.acionamento_transporte'
+  - 'velya.work.transporte.aceite_transporte'
+  - 'velya.work.transporte.saida_transporte'
+  - 'velya.work.transporte.chegada_transporte'
+  - 'velya.work.transporte.transferencia_custodia'
 
   # Seguranca
-  - "velya.work.seguranca.ocorrencia_seguranca"
-  - "velya.work.seguranca.contencao_seguranca"
+  - 'velya.work.seguranca.ocorrencia_seguranca'
+  - 'velya.work.seguranca.contencao_seguranca'
 
   # TI
-  - "velya.work.ti.incidente_ti"
-  - "velya.work.ti.indisponibilidade_sistema"
-  - "velya.work.ti.correcao_ti"
+  - 'velya.work.ti.incidente_ti'
+  - 'velya.work.ti.indisponibilidade_sistema'
+  - 'velya.work.ti.correcao_ti'
 
   # Central Leitos
-  - "velya.work.operacional.pedido_vaga"
-  - "velya.work.operacional.alocacao_vaga"
-  - "velya.work.operacional.bloqueio_leito"
-  - "velya.work.operacional.liberacao_leito"
+  - 'velya.work.operacional.pedido_vaga'
+  - 'velya.work.operacional.alocacao_vaga'
+  - 'velya.work.operacional.bloqueio_leito'
+  - 'velya.work.operacional.liberacao_leito'
 ```
 
 ---
@@ -724,27 +732,27 @@ metrics:
     type: histogram
     labels: [area, template_id]
     buckets: [3, 5, 10, 15, 20, 30, 45, 60]
-    help: "Tempo para completar reporte nao-clinico em segundos"
+    help: 'Tempo para completar reporte nao-clinico em segundos'
 
   - name: velya_non_clinical_template_usage
     type: counter
     labels: [area, template_id]
-    help: "Uso de templates de reporte rapido"
+    help: 'Uso de templates de reporte rapido'
 
   - name: velya_non_clinical_offline_events
     type: counter
     labels: [area]
-    help: "Eventos registrados offline e sincronizados depois"
+    help: 'Eventos registrados offline e sincronizados depois'
 
   - name: velya_non_clinical_sla_compliance
     type: gauge
     labels: [area, tipo]
-    help: "Taxa de conformidade SLA nao-clinico"
+    help: 'Taxa de conformidade SLA nao-clinico'
 
   - name: velya_non_clinical_exceptions_total
     type: counter
     labels: [area, exception_type]
-    help: "Total de excecoes registradas por area nao-clinica"
+    help: 'Total de excecoes registradas por area nao-clinica'
 ```
 
 ---

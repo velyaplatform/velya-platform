@@ -18,7 +18,7 @@ metadata:
     velya.io/agent-class: sentinel
     velya.io/loop: short
 spec:
-  schedule: "*/5 * * * *"
+  schedule: '*/5 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -41,7 +41,7 @@ spec:
               image: bitnami/kubectl:1.31
               env:
                 - name: VELYA_WEBHOOK_URL
-                  value: "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel"
+                  value: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel'
               resources:
                 requests:
                   cpu: 50m
@@ -156,7 +156,7 @@ metadata:
     velya.io/agent-class: watchdog
     velya.io/loop: short
 spec:
-  schedule: "*/10 * * * *"
+  schedule: '*/10 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -178,7 +178,7 @@ spec:
               image: bitnami/kubectl:1.31
               env:
                 - name: VELYA_WEBHOOK_URL
-                  value: "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel"
+                  value: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel'
               resources:
                 requests:
                   cpu: 25m
@@ -280,7 +280,7 @@ metadata:
     velya.io/agent-class: sentinel
     velya.io/loop: hourly
 spec:
-  schedule: "0 * * * *"
+  schedule: '0 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 3
@@ -302,7 +302,7 @@ spec:
               image: bitnami/kubectl:1.31
               env:
                 - name: VELYA_WEBHOOK_URL
-                  value: "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel"
+                  value: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel'
               resources:
                 requests:
                   cpu: 50m
@@ -413,7 +413,7 @@ metadata:
     velya.io/agent-class: sentinel
     velya.io/loop: daily
 spec:
-  schedule: "0 7 * * *"
+  schedule: '0 7 * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 7
   failedJobsHistoryLimit: 3
@@ -435,7 +435,7 @@ spec:
               image: bitnami/kubectl:1.31
               env:
                 - name: VELYA_WEBHOOK_URL
-                  value: "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel"
+                  value: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel'
               resources:
                 requests:
                   cpu: 100m
@@ -562,7 +562,7 @@ metadata:
     velya.io/agent-class: governance
     velya.io/loop: weekly
 spec:
-  schedule: "0 8 * * 1"  # Segunda-feira às 08:00
+  schedule: '0 8 * * 1' # Segunda-feira às 08:00
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 4
   failedJobsHistoryLimit: 2
@@ -584,7 +584,7 @@ spec:
               image: bitnami/kubectl:1.31
               env:
                 - name: VELYA_WEBHOOK_URL
-                  value: "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel"
+                  value: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel'
               resources:
                 requests:
                   cpu: 100m
@@ -730,39 +730,39 @@ metadata:
   labels:
     app.kubernetes.io/part-of: velya-platform
 rules:
-  - apiGroups: [""]
-    resources: ["pods", "nodes", "namespaces", "services", "resourcequotas"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "list", "watch", "create"]
-  - apiGroups: ["events.k8s.io"]
-    resources: ["events"]
-    verbs: ["create"]
-  - apiGroups: ["apps"]
-    resources: ["deployments", "replicasets", "statefulsets"]
-    verbs: ["get", "list"]
-  - apiGroups: ["autoscaling"]
-    resources: ["horizontalpodautoscalers"]
-    verbs: ["get", "list"]
-  - apiGroups: ["keda.sh"]
-    resources: ["scaledobjects", "scaledjobs", "triggerauthentications"]
-    verbs: ["get", "list"]
-  - apiGroups: ["policy"]
-    resources: ["poddisruptionbudgets"]
-    verbs: ["get", "list"]
-  - apiGroups: ["networking.k8s.io"]
-    resources: ["networkpolicies", "ingresses"]
-    verbs: ["get", "list"]
-  - apiGroups: ["argoproj.io"]
-    resources: ["applications", "appprojects"]
-    verbs: ["get", "list"]
-  - apiGroups: ["monitoring.coreos.com"]
-    resources: ["prometheusrules", "servicemonitors"]
-    verbs: ["get", "list"]
-  - apiGroups: ["batch"]
-    resources: ["jobs", "cronjobs"]
-    verbs: ["get", "list"]
+  - apiGroups: ['']
+    resources: ['pods', 'nodes', 'namespaces', 'services', 'resourcequotas']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['']
+    resources: ['events']
+    verbs: ['get', 'list', 'watch', 'create']
+  - apiGroups: ['events.k8s.io']
+    resources: ['events']
+    verbs: ['create']
+  - apiGroups: ['apps']
+    resources: ['deployments', 'replicasets', 'statefulsets']
+    verbs: ['get', 'list']
+  - apiGroups: ['autoscaling']
+    resources: ['horizontalpodautoscalers']
+    verbs: ['get', 'list']
+  - apiGroups: ['keda.sh']
+    resources: ['scaledobjects', 'scaledjobs', 'triggerauthentications']
+    verbs: ['get', 'list']
+  - apiGroups: ['policy']
+    resources: ['poddisruptionbudgets']
+    verbs: ['get', 'list']
+  - apiGroups: ['networking.k8s.io']
+    resources: ['networkpolicies', 'ingresses']
+    verbs: ['get', 'list']
+  - apiGroups: ['argoproj.io']
+    resources: ['applications', 'appprojects']
+    verbs: ['get', 'list']
+  - apiGroups: ['monitoring.coreos.com']
+    resources: ['prometheusrules', 'servicemonitors']
+    verbs: ['get', 'list']
+  - apiGroups: ['batch']
+    resources: ['jobs', 'cronjobs']
+    verbs: ['get', 'list']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

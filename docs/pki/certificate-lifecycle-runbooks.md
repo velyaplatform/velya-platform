@@ -102,6 +102,7 @@ kubectl get secret -n cert-manager | grep route53
 ### 3.4 Passos de Resolucao
 
 **Caso 1: Credenciais DNS expiradas**
+
 ```bash
 # Verificar se credenciais estao validas
 kubectl get secret route53-credentials -n cert-manager -o yaml
@@ -115,6 +116,7 @@ kubectl create secret generic route53-credentials \
 ```
 
 **Caso 2: DNS nao propagou**
+
 ```bash
 # Verificar registro TXT
 dig TXT _acme-challenge.velya.health @8.8.8.8
@@ -124,6 +126,7 @@ dig TXT _acme-challenge.velya.health @8.8.8.8
 ```
 
 **Caso 3: Rate limit atingido**
+
 ```bash
 # Verificar logs para mensagem de rate limit
 kubectl logs -n cert-manager deploy/cert-manager | grep -i "rate limit"
@@ -133,6 +136,7 @@ kubectl logs -n cert-manager deploy/cert-manager | grep -i "rate limit"
 ```
 
 **Caso 4: ClusterIssuer com problema**
+
 ```bash
 # Verificar status do ClusterIssuer
 kubectl describe clusterissuer acme-production
@@ -316,6 +320,7 @@ helm list -n cert-manager
 ### 6.3 Passos de Resolucao
 
 **Caso 1: Pod crashando**
+
 ```bash
 # Verificar logs do crash
 kubectl logs -n cert-manager deploy/cert-manager --previous
@@ -328,6 +333,7 @@ kubectl get pods -n cert-manager -w
 ```
 
 **Caso 2: OOM (Out of Memory)**
+
 ```bash
 # Aumentar limites de memoria
 helm upgrade cert-manager jetstack/cert-manager \
@@ -337,6 +343,7 @@ helm upgrade cert-manager jetstack/cert-manager \
 ```
 
 **Caso 3: CRDs corrompidos**
+
 ```bash
 # Verificar CRDs
 kubectl get crd | grep cert-manager
@@ -346,6 +353,7 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 ```
 
 **Caso 4: Webhook com problema**
+
 ```bash
 # Verificar webhook
 kubectl get pods -n cert-manager -l app.kubernetes.io/component=webhook
@@ -614,25 +622,25 @@ kubectl delete certificate rate-limit-test
 
 ## 11. Matriz de Escalonamento
 
-| Situacao | Urgencia | Acao | Responsavel |
-|---|---|---|---|
-| Renovacao normal | Baixa | Nenhuma | Automatico |
-| Renovacao falhou (> 14 dias para expiracao) | Media | Investigar | SRE |
-| Renovacao falhou (< 14 dias para expiracao) | Alta | Resolver imediatamente | SRE + Platform |
-| Renovacao falhou (< 7 dias para expiracao) | Critica | Incidente P1 | SRE + Platform + Mgmt |
-| cert-manager down | Alta | Restaurar | SRE |
-| CA interna down | Alta | Restaurar em 8h (antes da expiracao de certs 24h) | SRE |
-| Todos os certs expirados | Critica | Incidente P1 | All hands |
-| Rate limit atingido | Media | Esperar + prevenir | Platform |
+| Situacao                                    | Urgencia | Acao                                              | Responsavel           |
+| ------------------------------------------- | -------- | ------------------------------------------------- | --------------------- |
+| Renovacao normal                            | Baixa    | Nenhuma                                           | Automatico            |
+| Renovacao falhou (> 14 dias para expiracao) | Media    | Investigar                                        | SRE                   |
+| Renovacao falhou (< 14 dias para expiracao) | Alta     | Resolver imediatamente                            | SRE + Platform        |
+| Renovacao falhou (< 7 dias para expiracao)  | Critica  | Incidente P1                                      | SRE + Platform + Mgmt |
+| cert-manager down                           | Alta     | Restaurar                                         | SRE                   |
+| CA interna down                             | Alta     | Restaurar em 8h (antes da expiracao de certs 24h) | SRE                   |
+| Todos os certs expirados                    | Critica  | Incidente P1                                      | All hands             |
+| Rate limit atingido                         | Media    | Esperar + prevenir                                | Platform              |
 
 ---
 
 ## 12. Changelog
 
-| Data | Versao | Descricao |
-|---|---|---|
-| 2026-04-09 | 1.0 | Versao inicial dos runbooks |
+| Data       | Versao | Descricao                   |
+| ---------- | ------ | --------------------------- |
+| 2026-04-09 | 1.0    | Versao inicial dos runbooks |
 
 ---
 
-*Documento mantido pelo SRE Team. Revisao trimestral obrigatoria.*
+_Documento mantido pelo SRE Team. Revisao trimestral obrigatoria._

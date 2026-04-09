@@ -38,44 +38,44 @@ Todo evento de log relevante deve conter os seguintes campos:
 
 ### 1.1 Campos Obrigatórios (todos os logs)
 
-| Campo | Tipo | Valores válidos | Nunca omitir |
-|-------|------|----------------|-------------|
-| `timestamp` | ISO 8601 com ms | `2026-04-08T14:32:01.123Z` | Sempre |
-| `level` | enum | `debug`, `info`, `warn`, `error` | Sempre |
-| `service` | string | Nome do serviço (sem sufixo -service em logs, padronizar) | Sempre |
-| `namespace` | string | `velya-dev-core`, `velya-dev-platform`, etc. | Sempre |
-| `version` | semver | `0.5.0` | Sempre |
-| `environment` | enum | `dev`, `staging`, `prod` | Sempre |
-| `message` | string | Texto legível por humanos, em português | Sempre |
+| Campo         | Tipo            | Valores válidos                                           | Nunca omitir |
+| ------------- | --------------- | --------------------------------------------------------- | ------------ |
+| `timestamp`   | ISO 8601 com ms | `2026-04-08T14:32:01.123Z`                                | Sempre       |
+| `level`       | enum            | `debug`, `info`, `warn`, `error`                          | Sempre       |
+| `service`     | string          | Nome do serviço (sem sufixo -service em logs, padronizar) | Sempre       |
+| `namespace`   | string          | `velya-dev-core`, `velya-dev-platform`, etc.              | Sempre       |
+| `version`     | semver          | `0.5.0`                                                   | Sempre       |
+| `environment` | enum            | `dev`, `staging`, `prod`                                  | Sempre       |
+| `message`     | string          | Texto legível por humanos, em português                   | Sempre       |
 
 ### 1.2 Campos Obrigatórios para Eventos de Negócio
 
-| Campo | Tipo | Quando incluir |
-|-------|------|---------------|
-| `event_type` | string | Qualquer evento de domínio (não logs técnicos) |
-| `action` | string | Quando uma ação específica é executada |
-| `outcome` | enum (`success`, `failure`, `partial`) | Sempre que há outcome de ação |
-| `risk_class` | enum (`high`, `medium`, `low`) | Para operações sobre dados clínicos |
-| `workflow_id` | string | Para qualquer operação dentro de um workflow |
+| Campo         | Tipo                                   | Quando incluir                                 |
+| ------------- | -------------------------------------- | ---------------------------------------------- |
+| `event_type`  | string                                 | Qualquer evento de domínio (não logs técnicos) |
+| `action`      | string                                 | Quando uma ação específica é executada         |
+| `outcome`     | enum (`success`, `failure`, `partial`) | Sempre que há outcome de ação                  |
+| `risk_class`  | enum (`high`, `medium`, `low`)         | Para operações sobre dados clínicos            |
+| `workflow_id` | string                                 | Para qualquer operação dentro de um workflow   |
 
 ### 1.3 Campos de Correlação (obrigatórios quando disponíveis)
 
-| Campo | Tipo | Fonte | Propósito |
-|-------|------|-------|---------|
-| `trace_id` | hex string (32 chars) | OTel propagation | Correlação com traces |
-| `span_id` | hex string (16 chars) | OTel propagation | Correlação com span específico |
-| `request_id` | UUID | Gerado no api-gateway e propagado | Rastrear request HTTP |
-| `office` | string | Contexto do agent | Filtragem por office |
-| `agent_name` | string | Contexto do agent | Identificar agent responsável |
+| Campo        | Tipo                  | Fonte                             | Propósito                      |
+| ------------ | --------------------- | --------------------------------- | ------------------------------ |
+| `trace_id`   | hex string (32 chars) | OTel propagation                  | Correlação com traces          |
+| `span_id`    | hex string (16 chars) | OTel propagation                  | Correlação com span específico |
+| `request_id` | UUID                  | Gerado no api-gateway e propagado | Rastrear request HTTP          |
+| `office`     | string                | Contexto do agent                 | Filtragem por office           |
+| `agent_name` | string                | Contexto do agent                 | Identificar agent responsável  |
 
 ### 1.4 Campos para Erros
 
-| Campo | Tipo | Exemplo | Quando incluir |
-|-------|------|---------|---------------|
-| `error_code` | string | `DISCHARGE_BLOCKER_ACTIVE` | Sempre que há erro |
-| `error_class` | string | `clinical.blocker`, `infrastructure.timeout`, `validation.rejected` | Sempre que há erro |
-| `retry_count` | int | `0`, `1`, `2` | Quando há retry logic |
-| `duration_ms` | int | `234` | Em eventos de ação com duração |
+| Campo         | Tipo   | Exemplo                                                             | Quando incluir                 |
+| ------------- | ------ | ------------------------------------------------------------------- | ------------------------------ |
+| `error_code`  | string | `DISCHARGE_BLOCKER_ACTIVE`                                          | Sempre que há erro             |
+| `error_class` | string | `clinical.blocker`, `infrastructure.timeout`, `validation.rejected` | Sempre que há erro             |
+| `retry_count` | int    | `0`, `1`, `2`                                                       | Quando há retry logic          |
+| `duration_ms` | int    | `234`                                                               | Em eventos de ação com duração |
 
 ---
 
@@ -92,7 +92,10 @@ this.logger.error(`Discharge blocked for Maria Santos, bed 42, ward B`);
 
 // CORRETO — Identificadores tokenizados apenas
 this.logger.info('Paciente admitido', { patient_id: 'PAT-001', unit: 'UTI', bed_id: 'BED-042' });
-this.logger.error('Alta bloqueada', { patient_id: 'PAT-001', error_code: 'DISCHARGE_BLOCKER_ACTIVE' });
+this.logger.error('Alta bloqueada', {
+  patient_id: 'PAT-001',
+  error_code: 'DISCHARGE_BLOCKER_ACTIVE',
+});
 ```
 
 **Secrets e credenciais**:
@@ -105,7 +108,10 @@ this.logger.error(`Auth failed for token: ${bearerToken}`);
 
 // CORRETO — Nunca incluir o valor de credenciais
 this.logger.debug('Conectando ao banco de dados', { host: dbHost, port: dbPort });
-this.logger.error('Falha de autenticação', { error_code: 'AUTH_INVALID_TOKEN', service: 'ai-gateway' });
+this.logger.error('Falha de autenticação', {
+  error_code: 'AUTH_INVALID_TOKEN',
+  service: 'ai-gateway',
+});
 ```
 
 **Payloads completos sem necessidade**:
@@ -137,17 +143,17 @@ this.logger.error('Erro no processamento', { error_code: error.code, message: er
 
 ### 2.2 Identificadores permitidos em logs
 
-| Campo | Permitido | Exemplo |
-|-------|-----------|---------|
-| `patient_id` | Sim — tokenizado | `PAT-001`, `PAT-2024-00123` |
-| `visit_id` | Sim — tokenizado | `VST-20240408-001` |
-| `bed_id` | Sim — não é PHI | `BED-UTI-42` |
-| `unit` | Sim — não é PHI | `UTI`, `Enfermaria-A` |
-| `provider_id` | Sim — tokenizado | `PROV-123` |
-| Nome do paciente | **Nunca** | — |
-| CPF, RG, data de nascimento | **Nunca** | — |
-| Diagnóstico clínico | **Nunca** | — |
-| Dados de contato | **Nunca** | — |
+| Campo                       | Permitido        | Exemplo                     |
+| --------------------------- | ---------------- | --------------------------- |
+| `patient_id`                | Sim — tokenizado | `PAT-001`, `PAT-2024-00123` |
+| `visit_id`                  | Sim — tokenizado | `VST-20240408-001`          |
+| `bed_id`                    | Sim — não é PHI  | `BED-UTI-42`                |
+| `unit`                      | Sim — não é PHI  | `UTI`, `Enfermaria-A`       |
+| `provider_id`               | Sim — tokenizado | `PROV-123`                  |
+| Nome do paciente            | **Nunca**        | —                           |
+| CPF, RG, data de nascimento | **Nunca**        | —                           |
+| Diagnóstico clínico         | **Nunca**        | —                           |
+| Dados de contato            | **Nunca**        | —                           |
 
 ---
 
@@ -195,7 +201,11 @@ export class VelyaLoggerService implements LoggerService {
     this.baseContext = context;
   }
 
-  private write(level: VelyaLogEntry['level'], message: string, extra?: Record<string, unknown>): void {
+  private write(
+    level: VelyaLogEntry['level'],
+    message: string,
+    extra?: Record<string, unknown>,
+  ): void {
     // Em produção, DEBUG nunca é escrito
     if (level === 'debug' && process.env.NODE_ENV === 'production') {
       return;
@@ -239,7 +249,7 @@ export class VelyaLoggerService implements LoggerService {
     event_type: string,
     action: string,
     outcome: 'success' | 'failure' | 'partial',
-    extra?: Record<string, unknown>
+    extra?: Record<string, unknown>,
   ): void {
     this.write('info', message, { event_type, action, outcome, ...extra });
   }
@@ -260,7 +270,7 @@ export class DischargeService {
   async initiateDischarge(
     patientId: string,
     requestedBy: string,
-    workflowId: string
+    workflowId: string,
   ): Promise<void> {
     const startTime = Date.now();
 
@@ -268,8 +278,8 @@ export class DischargeService {
       event_type: 'patient.discharge.initiated',
       action: 'discharge.initiate',
       workflow_id: workflowId,
-      patient_id: patientId,  // tokenizado — OK
-      requested_by_provider_id: requestedBy,  // tokenizado — OK
+      patient_id: patientId, // tokenizado — OK
+      requested_by_provider_id: requestedBy, // tokenizado — OK
       risk_class: 'high',
     });
 
@@ -288,7 +298,7 @@ export class DischargeService {
           duration_ms: Date.now() - startTime,
           risk_class: 'high',
           blocker_count: blockers.length,
-          blocker_types: blockers.map(b => b.type),  // tipos, não dados clínicos
+          blocker_types: blockers.map((b) => b.type), // tipos, não dados clínicos
         });
         return;
       }
@@ -305,9 +315,8 @@ export class DischargeService {
           patient_id: patientId,
           duration_ms: Date.now() - startTime,
           risk_class: 'high',
-        }
+        },
       );
-
     } catch (error) {
       this.logger.error('Erro ao processar alta', {
         event_type: 'patient.discharge.error',
@@ -349,8 +358,8 @@ export class TraceContextMiddleware implements NestMiddleware {
     }
 
     // request_id: gerado ou extraído do header X-Request-ID
-    req['velya_request_id'] = req.headers['x-request-id'] as string
-      || `req-${crypto.randomUUID()}`;
+    req['velya_request_id'] =
+      (req.headers['x-request-id'] as string) || `req-${crypto.randomUUID()}`;
 
     next();
   }
@@ -512,22 +521,22 @@ pipeline_stages:
 
 ### 5.4 Retenção de Logs
 
-| Ambiente | Retenção | Justificativa |
-|----------|----------|---------------|
-| dev | 7 dias | Espaço limitado no kind cluster |
-| staging | 30 dias | Debugging de issues pré-prod |
-| prod | 90 dias | Auditoria clínica e compliance |
+| Ambiente               | Retenção | Justificativa                                 |
+| ---------------------- | -------- | --------------------------------------------- |
+| dev                    | 7 dias   | Espaço limitado no kind cluster               |
+| staging                | 30 dias  | Debugging de issues pré-prod                  |
+| prod                   | 90 dias  | Auditoria clínica e compliance                |
 | prod (risk_class=high) | 365 dias | Retenção estendida para auditoria regulatória |
 
 ---
 
 ## 6. Campos para Queries LogQL Frequentes
 
-| Query de negócio | LogQL |
-|-----------------|-------|
-| Erros de alta hoje | `{service="discharge-orchestrator"} \| json \| level="error" \| action=~"discharge.*"` |
-| Eventos clínicos de alto risco | `{namespace=~"velya-dev-.+"} \| json \| risk_class="high"` |
-| Silêncio de agent | `{namespace="velya-dev-agents"} \| json \| event_type=~"agent.*"` (ausência de logs) |
-| Logs de um workflow específico | `{namespace=~"velya-dev-.+"} \| json \| workflow_id="wf-discharge-PAT-001-2026-04-08"` |
-| Taxa de falhas por serviço | `sum(rate({namespace="velya-dev-core"} \| json \| outcome="failure" [5m])) by (service)` |
-| Decisões de AI por agent | `{service="decision-log"} \| json \| agent_name="discharge-coordinator-agent"` |
+| Query de negócio               | LogQL                                                                                    |
+| ------------------------------ | ---------------------------------------------------------------------------------------- |
+| Erros de alta hoje             | `{service="discharge-orchestrator"} \| json \| level="error" \| action=~"discharge.*"`   |
+| Eventos clínicos de alto risco | `{namespace=~"velya-dev-.+"} \| json \| risk_class="high"`                               |
+| Silêncio de agent              | `{namespace="velya-dev-agents"} \| json \| event_type=~"agent.*"` (ausência de logs)     |
+| Logs de um workflow específico | `{namespace=~"velya-dev-.+"} \| json \| workflow_id="wf-discharge-PAT-001-2026-04-08"`   |
+| Taxa de falhas por serviço     | `sum(rate({namespace="velya-dev-core"} \| json \| outcome="failure" [5m])) by (service)` |
+| Decisões de AI por agent       | `{service="decision-log"} \| json \| agent_name="discharge-coordinator-agent"`           |

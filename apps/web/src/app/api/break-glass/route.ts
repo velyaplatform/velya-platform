@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { appendEvent, getEvents } from '@/lib/event-store';
 import { audit } from '@/lib/audit-logger';
-import {
-  ROLE_DEFINITIONS,
-  resolveUiRole,
-  type ProfessionalRole,
-} from '@/lib/access-control';
+import { ROLE_DEFINITIONS, resolveUiRole, type ProfessionalRole } from '@/lib/access-control';
 
 const BREAK_GLASS_EVENT_TYPE = 'break_glass.session';
 const BREAK_GLASS_DURATION_MS = 30 * 60 * 1000; // 30 minutes
@@ -48,17 +44,11 @@ export async function POST(request: NextRequest) {
     const { role: roleParam, patientId, justification } = body;
 
     if (!roleParam || typeof roleParam !== 'string') {
-      return NextResponse.json(
-        { error: 'Campo "role" e obrigatorio' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Campo "role" e obrigatorio' }, { status: 400 });
     }
 
     if (!patientId || typeof patientId !== 'string' || patientId.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Campo "patientId" e obrigatorio' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Campo "patientId" e obrigatorio' }, { status: 400 });
     }
 
     if (!justification || typeof justification !== 'string' || justification.trim().length < 10) {
@@ -223,9 +213,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Sort most recent first
-    sessions.sort((a, b) =>
-      new Date(b.activatedAt).getTime() - new Date(a.activatedAt).getTime(),
-    );
+    sessions.sort((a, b) => new Date(b.activatedAt).getTime() - new Date(a.activatedAt).getTime());
 
     audit({
       category: 'api',

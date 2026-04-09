@@ -64,22 +64,22 @@ do cert-manager com todos os componentes da plataforma.
 
 ### 2.2 Componentes
 
-| Componente | Funcao | Replicas |
-|---|---|---|
-| Controller | Processa Certificate resources, cria Orders/Challenges | 2 |
-| Webhook | Validacao e conversao de recursos via admission webhook | 2 |
-| CAInjector | Injeta CA bundles em webhooks e API services | 1 |
+| Componente | Funcao                                                  | Replicas |
+| ---------- | ------------------------------------------------------- | -------- |
+| Controller | Processa Certificate resources, cria Orders/Challenges  | 2        |
+| Webhook    | Validacao e conversao de recursos via admission webhook | 2        |
+| CAInjector | Injeta CA bundles em webhooks e API services            | 1        |
 
 ### 2.3 CRDs
 
-| CRD | Descricao |
-|---|---|
-| Certificate | Declaracao do certificado desejado |
-| CertificateRequest | Request individual de certificado |
-| Issuer | Emissor de certificados (namespace-scoped) |
-| ClusterIssuer | Emissor de certificados (cluster-scoped) |
-| Order | Ordem ACME em andamento |
-| Challenge | Challenge ACME individual |
+| CRD                | Descricao                                  |
+| ------------------ | ------------------------------------------ |
+| Certificate        | Declaracao do certificado desejado         |
+| CertificateRequest | Request individual de certificado          |
+| Issuer             | Emissor de certificados (namespace-scoped) |
+| ClusterIssuer      | Emissor de certificados (cluster-scoped)   |
+| Order              | Ordem ACME em andamento                    |
+| Challenge          | Challenge ACME individual                  |
 
 ---
 
@@ -145,7 +145,7 @@ serviceAccount:
   create: true
   name: cert-manager
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/cert-manager-route53"
+    eks.amazonaws.com/role-arn: 'arn:aws:iam::ACCOUNT_ID:role/cert-manager-route53'
 
 # Webhook
 webhook:
@@ -213,11 +213,11 @@ affinity:
           topologyKey: kubernetes.io/hostname
 
 # Feature gates
-featureGates: ""
+featureGates: ''
 
 # DNS configuration
 dns01RecursiveNameserversOnly: true
-dns01RecursiveNameservers: "8.8.8.8:53,1.1.1.1:53"
+dns01RecursiveNameservers: '8.8.8.8:53,1.1.1.1:53'
 ```
 
 ### 3.4 Verificacao da Instalacao
@@ -274,6 +274,7 @@ kubectl delete clusterissuer test-selfsigned
 ClusterIssuer e cluster-scoped: qualquer namespace pode referencia-lo.
 
 **Usar para**:
+
 - Let's Encrypt staging e production (compartilhados por toda a plataforma).
 - CA interna (step-ca) quando todos os namespaces podem solicitar certificados.
 - Qualquer emissor que nao precisa de isolamento por namespace.
@@ -283,18 +284,19 @@ ClusterIssuer e cluster-scoped: qualquer namespace pode referencia-lo.
 Issuer e namespace-scoped: apenas Certificates no mesmo namespace podem usa-lo.
 
 **Usar para**:
+
 - Quando um namespace especifico tem CA ou credenciais proprias.
 - Isolamento de seguranca entre equipes.
 - Ambientes multi-tenant onde cada tenant tem sua propria CA.
 
 ### 4.3 Configuracao da Velya Platform
 
-| Issuer | Tipo | Namespace | Uso |
-|---|---|---|---|
-| acme-staging | ClusterIssuer | N/A | Testes, CI, novos hosts |
-| acme-production | ClusterIssuer | N/A | Hosts oficiais de producao |
-| internal-ca | ClusterIssuer | N/A | Certificados internos mTLS |
-| selfsigned-bootstrap | ClusterIssuer | N/A | Bootstrap da CA interna |
+| Issuer               | Tipo          | Namespace | Uso                        |
+| -------------------- | ------------- | --------- | -------------------------- |
+| acme-staging         | ClusterIssuer | N/A       | Testes, CI, novos hosts    |
+| acme-production      | ClusterIssuer | N/A       | Hosts oficiais de producao |
+| internal-ca          | ClusterIssuer | N/A       | Certificados internos mTLS |
+| selfsigned-bootstrap | ClusterIssuer | N/A       | Bootstrap da CA interna    |
 
 ---
 
@@ -323,7 +325,7 @@ spec:
             hostedZoneID: HOSTED_ZONE_ID
         selector:
           dnsZones:
-            - "velya.health"
+            - 'velya.health'
 ```
 
 ### 5.2 Production
@@ -349,7 +351,7 @@ spec:
             hostedZoneID: HOSTED_ZONE_ID
         selector:
           dnsZones:
-            - "velya.health"
+            - 'velya.health'
 ```
 
 ### 5.3 Internal CA (Self-Signed Bootstrap)
@@ -375,9 +377,9 @@ spec:
   issuerRef:
     name: selfsigned-bootstrap
     kind: ClusterIssuer
-  commonName: "Velya Internal Root CA"
-  duration: 87600h  # 10 anos
-  renewBefore: 8760h  # 1 ano antes
+  commonName: 'Velya Internal Root CA'
+  duration: 87600h # 10 anos
+  renewBefore: 8760h # 1 ano antes
   privateKey:
     algorithm: ECDSA
     size: 256
@@ -417,11 +419,11 @@ spec:
 
   # Nomes DNS cobertos pelo certificado
   dnsNames:
-    - "example.velya.health"
+    - 'example.velya.health'
 
   # Duracao e renovacao
-  duration: 2160h    # 90 dias
-  renewBefore: 720h  # 30 dias antes
+  duration: 2160h # 90 dias
+  renewBefore: 720h # 30 dias antes
 
   # Algoritmo da chave privada
   privateKey:
@@ -468,7 +470,7 @@ kind: Ingress
 metadata:
   name: app-ingress
   annotations:
-    cert-manager.io/cluster-issuer: "acme-production"
+    cert-manager.io/cluster-issuer: 'acme-production'
 spec:
   ingressClassName: nginx
   tls:
@@ -531,13 +533,13 @@ spec:
 
 ### 7.3 Quando usar cada metodo
 
-| Criterio | Anotacao | Certificate Explicito |
-|---|---|---|
-| Simplicidade | Mais simples | Mais verbose |
-| Controle | Menos controle | Controle total |
-| Wildcard | Nao recomendado | Recomendado |
-| Multi-namespace | Nao | Sim |
-| Customizacao | Limitada | Total |
+| Criterio        | Anotacao        | Certificate Explicito |
+| --------------- | --------------- | --------------------- |
+| Simplicidade    | Mais simples    | Mais verbose          |
+| Controle        | Menos controle  | Controle total        |
+| Wildcard        | Nao recomendado | Recomendado           |
+| Multi-namespace | Nao             | Sim                   |
+| Customizacao    | Limitada        | Total                 |
 
 **Recomendacao Velya**: usar Certificate explicito para wildcard e apex.
 Usar anotacao de Ingress para servicos individuais que nao usam wildcard.
@@ -562,6 +564,7 @@ cert-manager (namespace)
 ### 8.2 RBAC
 
 O cert-manager precisa de permissoes cluster-wide para:
+
 - Ler e atualizar Secrets em qualquer namespace.
 - Ler Ingress resources em qualquer namespace.
 - Criar e gerenciar Certificate, Order, Challenge resources.
@@ -573,18 +576,18 @@ kind: ClusterRole
 metadata:
   name: cert-manager-controller-certificates
 rules:
-  - apiGroups: ["cert-manager.io"]
-    resources: ["certificates", "certificaterequests", "orders", "challenges"]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["create", "patch"]
-  - apiGroups: ["networking.k8s.io"]
-    resources: ["ingresses"]
-    verbs: ["get", "list", "watch"]
+  - apiGroups: ['cert-manager.io']
+    resources: ['certificates', 'certificaterequests', 'orders', 'challenges']
+    verbs: ['get', 'list', 'watch', 'create', 'update', 'patch', 'delete']
+  - apiGroups: ['']
+    resources: ['secrets']
+    verbs: ['get', 'list', 'watch', 'create', 'update', 'patch', 'delete']
+  - apiGroups: ['']
+    resources: ['events']
+    verbs: ['create', 'patch']
+  - apiGroups: ['networking.k8s.io']
+    resources: ['ingresses']
+    verbs: ['get', 'list', 'watch']
 ```
 
 ---
@@ -616,14 +619,14 @@ spec:
 
 ### 9.2 Metricas Principais
 
-| Metrica | Descricao |
-|---|---|
-| certmanager_certificate_expiration_timestamp_seconds | Timestamp Unix de expiracao |
-| certmanager_certificate_ready_status | 1 se certificado esta Ready |
-| certmanager_certificate_renewal_timestamp_seconds | Proximo timestamp de renovacao |
-| certmanager_controller_sync_call_count | Chamadas de sync do controller |
-| certmanager_http_acme_client_request_count | Requests para servidor ACME |
-| certmanager_http_acme_client_request_duration_seconds | Latencia de requests ACME |
+| Metrica                                               | Descricao                      |
+| ----------------------------------------------------- | ------------------------------ |
+| certmanager_certificate_expiration_timestamp_seconds  | Timestamp Unix de expiracao    |
+| certmanager_certificate_ready_status                  | 1 se certificado esta Ready    |
+| certmanager_certificate_renewal_timestamp_seconds     | Proximo timestamp de renovacao |
+| certmanager_controller_sync_call_count                | Chamadas de sync do controller |
+| certmanager_http_acme_client_request_count            | Requests para servidor ACME    |
+| certmanager_http_acme_client_request_duration_seconds | Latencia de requests ACME      |
 
 ---
 
@@ -680,13 +683,13 @@ kubectl get secret <name>-tls -n <namespace> -o jsonpath='{.data.tls\.crt}' | \
 
 ### 10.3 Problemas Comuns
 
-| Problema | Causa | Solucao |
-|---|---|---|
-| Certificate stuck Issuing | Challenge falhou | Verificar DNS credentials |
-| Challenge pending | DNS nao propagou | Esperar ou verificar DNS |
-| Webhook timeout | Webhook pod down | Restart webhook |
-| Secret nao criado | RBAC insuficiente | Verificar ClusterRole |
-| Certificado expirado | Renewal falhou | Verificar logs, forcar renewal |
+| Problema                  | Causa             | Solucao                        |
+| ------------------------- | ----------------- | ------------------------------ |
+| Certificate stuck Issuing | Challenge falhou  | Verificar DNS credentials      |
+| Challenge pending         | DNS nao propagou  | Esperar ou verificar DNS       |
+| Webhook timeout           | Webhook pod down  | Restart webhook                |
+| Secret nao criado         | RBAC insuficiente | Verificar ClusterRole          |
+| Certificado expirado      | Renewal falhou    | Verificar logs, forcar renewal |
 
 ---
 
@@ -743,10 +746,10 @@ helm rollback cert-manager -n cert-manager
 
 ## 13. Changelog
 
-| Data | Versao | Descricao |
-|---|---|---|
-| 2026-04-09 | 1.0 | Versao inicial da arquitetura cert-manager |
+| Data       | Versao | Descricao                                  |
+| ---------- | ------ | ------------------------------------------ |
+| 2026-04-09 | 1.0    | Versao inicial da arquitetura cert-manager |
 
 ---
 
-*Documento mantido pelo Platform Team. Revisao trimestral obrigatoria.*
+_Documento mantido pelo Platform Team. Revisao trimestral obrigatoria._

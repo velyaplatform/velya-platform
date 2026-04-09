@@ -6,7 +6,11 @@ export function ErrorReporter() {
   useEffect(() => {
     // Report unhandled promise rejections
     const handleRejection = (event: PromiseRejectionEvent) => {
-      reportError('unhandled-rejection', event.reason?.message || String(event.reason), event.reason?.stack);
+      reportError(
+        'unhandled-rejection',
+        event.reason?.message || String(event.reason),
+        event.reason?.stack,
+      );
     };
 
     // Report global errors
@@ -33,7 +37,12 @@ export function ErrorReporter() {
   return null;
 }
 
-function reportError(source: string, message: string, stack?: string, extra?: Record<string, unknown>) {
+function reportError(
+  source: string,
+  message: string,
+  stack?: string,
+  extra?: Record<string, unknown>,
+) {
   fetch('/api/errors', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -48,7 +57,9 @@ function reportError(source: string, message: string, stack?: string, extra?: Re
       const pending = JSON.parse(localStorage.getItem('velya_pending_errors') || '[]');
       pending.push({ source, message, timestamp: new Date().toISOString() });
       localStorage.setItem('velya_pending_errors', JSON.stringify(pending.slice(-50)));
-    } catch { /* localStorage indisponível */ }
+    } catch {
+      /* localStorage indisponível */
+    }
   });
 }
 
@@ -63,10 +74,12 @@ function retryPendingErrors() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...err, source: 'frontend-retry', severity: 'high', data: err }),
-        }).catch(() => null)
-      )
+        }).catch(() => null),
+      ),
     ).then(() => {
       localStorage.removeItem('velya_pending_errors');
     });
-  } catch { /* fetch error */ }
+  } catch {
+    /* fetch error */
+  }
 }

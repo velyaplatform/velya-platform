@@ -101,7 +101,9 @@ export default function ActivityPage() {
       if (res.ok) {
         setStats(await res.json());
       }
-    } catch { /* fetch error */ }
+    } catch {
+      /* fetch error */
+    }
   }, []);
 
   const fetchItems = useCallback(async () => {
@@ -109,7 +111,7 @@ export default function ActivityPage() {
     try {
       if (activeTab === 'todos') {
         // Fetch all types and merge
-        const endpoints = TABS.filter(t => t.key !== 'todos');
+        const endpoints = TABS.filter((t) => t.key !== 'todos');
         const results = await Promise.all(
           endpoints.map(async (tab) => {
             try {
@@ -119,18 +121,22 @@ export default function ActivityPage() {
               if (!res.ok) return [];
               const json = await res.json();
               return (json[tab.dataKey] || []) as PlatformEvent[];
-            } catch { /* fetch error */
+            } catch {
+              /* fetch error */
               return [];
             }
-          })
+          }),
         );
-        const merged = results.flat().sort((a, b) =>
-          new Date(b.receivedAt || b.timestamp).getTime() -
-          new Date(a.receivedAt || a.timestamp).getTime()
-        );
+        const merged = results
+          .flat()
+          .sort(
+            (a, b) =>
+              new Date(b.receivedAt || b.timestamp).getTime() -
+              new Date(a.receivedAt || a.timestamp).getTime(),
+          );
         setItems(merged.slice(0, 200));
       } else {
-        const tab = TABS.find(t => t.key === activeTab);
+        const tab = TABS.find((t) => t.key === activeTab);
         if (!tab) return;
         const params = new URLSearchParams({ limit: '100' });
         if (severityFilter !== 'all') params.set('severity', severityFilter);
@@ -140,22 +146,29 @@ export default function ActivityPage() {
           setItems((json[tab.dataKey] || []) as PlatformEvent[]);
         }
       }
-    } catch { /* fetch error */ }
+    } catch {
+      /* fetch error */
+    }
     setLoading(false);
     setLastRefresh(new Date().toLocaleTimeString('pt-BR'));
   }, [activeTab, severityFilter]);
 
-  const handleAck = useCallback(async (event: PlatformEvent) => {
-    try {
-      await fetch('/api/ack', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: event.type, id: event.id }),
-      });
-      setItems(prev => prev.map(e => e.id === event.id ? { ...e, acked: true } : e));
-      fetchStats();
-    } catch { /* fetch error */ }
-  }, [fetchStats]);
+  const handleAck = useCallback(
+    async (event: PlatformEvent) => {
+      try {
+        await fetch('/api/ack', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: event.type, id: event.id }),
+        });
+        setItems((prev) => prev.map((e) => (e.id === event.id ? { ...e, acked: true } : e)));
+        fetchStats();
+      } catch {
+        /* fetch error */
+      }
+    },
+    [fetchStats],
+  );
 
   useEffect(() => {
     fetchStats();
@@ -171,25 +184,48 @@ export default function ActivityPage() {
     <AppShell pageTitle="Log de Atividade">
       <div style={{ padding: '1.5rem' }}>
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.5rem',
+          }}
+        >
           <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Log de Atividade</h1>
-            <p style={{ color: 'var(--text-secondary)', margin: '0.25rem 0 0', fontSize: '0.875rem' }}>
+            <p
+              style={{
+                color: 'var(--text-secondary)',
+                margin: '0.25rem 0 0',
+                fontSize: '0.875rem',
+              }}
+            >
               Visibilidade total de todos os eventos da plataforma
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            {stats && (() => {
-              const totalUnacked = Object.values(stats.stats).reduce((sum, s) => sum + s.unacked, 0);
-              return totalUnacked > 0 ? (
-                <span style={{
-                  background: '#ef4444', color: 'white', borderRadius: '9999px',
-                  padding: '0.25rem 0.75rem', fontSize: '0.75rem', fontWeight: 700,
-                }}>
-                  {totalUnacked} pendente{totalUnacked !== 1 ? 's' : ''}
-                </span>
-              ) : null;
-            })()}
+            {stats &&
+              (() => {
+                const totalUnacked = Object.values(stats.stats).reduce(
+                  (sum, s) => sum + s.unacked,
+                  0,
+                );
+                return totalUnacked > 0 ? (
+                  <span
+                    style={{
+                      background: '#ef4444',
+                      color: 'white',
+                      borderRadius: '9999px',
+                      padding: '0.25rem 0.75rem',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {totalUnacked} pendente{totalUnacked !== 1 ? 's' : ''}
+                  </span>
+                ) : null;
+              })()}
             <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
               Atualizado: {lastRefresh || '—'}
             </span>
@@ -198,17 +234,51 @@ export default function ActivityPage() {
 
         {/* Stats bar */}
         {stats && (
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.75rem', marginBottom: '1.5rem',
-          }}>
-            {([
-              { label: 'Sentinelas', total: stats.stats.sentinel.total, unacked: stats.stats.sentinel.unacked, color: '#8b5cf6' },
-              { label: 'Alertas', total: stats.stats.alert.total, unacked: stats.stats.alert.unacked, color: '#f97316' },
-              { label: 'Eventos', total: stats.stats.event.total, unacked: stats.stats.event.unacked, color: '#3b82f6' },
-              { label: 'Erros', total: stats.stats.error.total, unacked: stats.stats.error.unacked, color: '#ef4444' },
-              { label: 'Ações', total: stats.stats.action.total, unacked: stats.stats.action.unacked, color: '#10b981' },
-            ]).map(s => (
-              <div key={s.label} className="card" style={{ padding: '0.75rem', textAlign: 'center' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(5, 1fr)',
+              gap: '0.75rem',
+              marginBottom: '1.5rem',
+            }}
+          >
+            {[
+              {
+                label: 'Sentinelas',
+                total: stats.stats.sentinel.total,
+                unacked: stats.stats.sentinel.unacked,
+                color: '#8b5cf6',
+              },
+              {
+                label: 'Alertas',
+                total: stats.stats.alert.total,
+                unacked: stats.stats.alert.unacked,
+                color: '#f97316',
+              },
+              {
+                label: 'Eventos',
+                total: stats.stats.event.total,
+                unacked: stats.stats.event.unacked,
+                color: '#3b82f6',
+              },
+              {
+                label: 'Erros',
+                total: stats.stats.error.total,
+                unacked: stats.stats.error.unacked,
+                color: '#ef4444',
+              },
+              {
+                label: 'Ações',
+                total: stats.stats.action.total,
+                unacked: stats.stats.action.unacked,
+                color: '#10b981',
+              },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="card"
+                style={{ padding: '0.75rem', textAlign: 'center' }}
+              >
                 <div style={{ fontSize: '1.5rem', fontWeight: 700, color: s.color }}>{s.total}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{s.label}</div>
                 {s.unacked > 0 && (
@@ -222,9 +292,18 @@ export default function ActivityPage() {
         )}
 
         {/* Tabs + filters */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1rem',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
+          }}
+        >
           <div style={{ display: 'flex', gap: '0.25rem' }}>
-            {TABS.map(tab => (
+            {TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
@@ -235,7 +314,8 @@ export default function ActivityPage() {
                   cursor: 'pointer',
                   fontSize: '0.8125rem',
                   fontWeight: activeTab === tab.key ? 700 : 400,
-                  background: activeTab === tab.key ? 'var(--accent-primary, #3b82f6)' : 'transparent',
+                  background:
+                    activeTab === tab.key ? 'var(--accent-primary, #3b82f6)' : 'transparent',
                   color: activeTab === tab.key ? 'white' : 'var(--text-secondary)',
                 }}
               >
@@ -244,8 +324,12 @@ export default function ActivityPage() {
             ))}
           </div>
           <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginRight: '0.25rem' }}>Severidade:</span>
-            {(['all', 'critical', 'high', 'warning', 'info'] as SeverityFilter[]).map(sev => (
+            <span
+              style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginRight: '0.25rem' }}
+            >
+              Severidade:
+            </span>
+            {(['all', 'critical', 'high', 'warning', 'info'] as SeverityFilter[]).map((sev) => (
               <button
                 key={sev}
                 onClick={() => setSeverityFilter(sev)}
@@ -256,9 +340,12 @@ export default function ActivityPage() {
                   cursor: 'pointer',
                   fontSize: '0.6875rem',
                   fontWeight: severityFilter === sev ? 700 : 400,
-                  background: severityFilter === sev
-                    ? (sev === 'all' ? 'var(--accent-primary, #3b82f6)' : SEVERITY_COLORS[sev] || '#666')
-                    : 'transparent',
+                  background:
+                    severityFilter === sev
+                      ? sev === 'all'
+                        ? 'var(--accent-primary, #3b82f6)'
+                        : SEVERITY_COLORS[sev] || '#666'
+                      : 'transparent',
                   color: severityFilter === sev ? 'white' : 'var(--text-secondary)',
                 }}
               >
@@ -282,12 +369,66 @@ export default function ActivityPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-color, #e5e7eb)' }}>
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Hora</th>
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Tipo</th>
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Origem</th>
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Severidade</th>
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Resumo</th>
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'center', fontWeight: 600, color: 'var(--text-secondary)' }}>Ack</th>
+                  <th
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontWeight: 600,
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    Hora
+                  </th>
+                  <th
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontWeight: 600,
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    Tipo
+                  </th>
+                  <th
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontWeight: 600,
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    Origem
+                  </th>
+                  <th
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontWeight: 600,
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    Severidade
+                  </th>
+                  <th
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontWeight: 600,
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    Resumo
+                  </th>
+                  <th
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'center',
+                      fontWeight: 600,
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    Ack
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -299,43 +440,70 @@ export default function ActivityPage() {
                       background: item.acked ? 'transparent' : 'rgba(239, 68, 68, 0.03)',
                     }}
                   >
-                    <td style={{ padding: '0.5rem 0.75rem', whiteSpace: 'nowrap', fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                    <td
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        whiteSpace: 'nowrap',
+                        fontFamily: 'monospace',
+                        fontSize: '0.75rem',
+                      }}
+                    >
                       {formatTimestamp(item.receivedAt || item.timestamp)}
                     </td>
                     <td style={{ padding: '0.5rem 0.75rem' }}>
-                      <span style={{
-                        fontSize: '0.6875rem',
-                        padding: '0.125rem 0.375rem',
-                        borderRadius: '0.25rem',
-                        background: 'var(--surface-secondary, #f3f4f6)',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                      }}>
+                      <span
+                        style={{
+                          fontSize: '0.6875rem',
+                          padding: '0.125rem 0.375rem',
+                          borderRadius: '0.25rem',
+                          background: 'var(--surface-secondary, #f3f4f6)',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                        }}
+                      >
                         {item.type}
                       </span>
                     </td>
-                    <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    <td
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        fontSize: '0.75rem',
+                        color: 'var(--text-secondary)',
+                      }}
+                    >
                       {item.source}
                     </td>
                     <td style={{ padding: '0.5rem 0.75rem' }}>
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '0.125rem 0.5rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.6875rem',
-                        fontWeight: 700,
-                        color: 'white',
-                        background: SEVERITY_COLORS[item.severity] || '#9ca3af',
-                      }}>
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          padding: '0.125rem 0.5rem',
+                          borderRadius: '9999px',
+                          fontSize: '0.6875rem',
+                          fontWeight: 700,
+                          color: 'white',
+                          background: SEVERITY_COLORS[item.severity] || '#9ca3af',
+                        }}
+                      >
                         {SEVERITY_LABELS[item.severity] || item.severity}
                       </span>
                     </td>
-                    <td style={{ padding: '0.5rem 0.75rem', maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        maxWidth: '400px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {getEventSummary(item)}
                     </td>
                     <td style={{ padding: '0.5rem 0.75rem', textAlign: 'center' }}>
                       {item.acked ? (
-                        <span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>✓</span>
+                        <span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>
+                          ✓
+                        </span>
                       ) : (
                         <button
                           onClick={() => handleAck(item)}
@@ -361,8 +529,16 @@ export default function ActivityPage() {
         </div>
 
         {/* Footer info */}
-        <div style={{ marginTop: '0.75rem', fontSize: '0.6875rem', color: 'var(--text-tertiary)', textAlign: 'right' }}>
-          {items.length} evento{items.length !== 1 ? 's' : ''} exibido{items.length !== 1 ? 's' : ''} — atualização automática a cada 10s
+        <div
+          style={{
+            marginTop: '0.75rem',
+            fontSize: '0.6875rem',
+            color: 'var(--text-tertiary)',
+            textAlign: 'right',
+          }}
+        >
+          {items.length} evento{items.length !== 1 ? 's' : ''} exibido
+          {items.length !== 1 ? 's' : ''} — atualização automática a cada 10s
         </div>
       </div>
     </AppShell>

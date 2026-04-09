@@ -4,7 +4,7 @@
 **Versao:** 1.0.0  
 **Data:** 2026-04-08  
 **Classificacao:** Interno - Seguranca  
-**Responsavel:** Time de Plataforma Velya  
+**Responsavel:** Time de Plataforma Velya
 
 ---
 
@@ -27,20 +27,20 @@ A deteccao combina regras estaticas (thresholds fixos) com analise comportamenta
 
 ### 2.1 Catalogo Completo de Padroes
 
-| # | Padrao | Codigo | Severidade | Categoria |
-|---|---|---|---|---|
-| 1 | Acesso fora da unidade atribuida | `ANOM-001` | Media | Contexto |
-| 2 | Acesso fora do turno de trabalho | `ANOM-002` | Media | Temporal |
-| 3 | Volume anormal de prontuarios | `ANOM-003` | Alta | Volume |
-| 4 | Acesso VIP sem vinculo assistencial | `ANOM-004` | Critica | Privacidade |
-| 5 | Troca rapida excessiva de usuario | `ANOM-005` | Media | Comportamento |
-| 6 | Exportacao/impressao acima do limiar | `ANOM-006` | Alta | Exfiltracao |
-| 7 | Break-glass frequente | `ANOM-007` | Alta | Privilegio |
-| 8 | Acesso a prontuario proprio/familiar | `ANOM-008` | Critica | Privacidade |
-| 9 | Acesso apos mudanca de papel/desligamento | `ANOM-009` | Critica | Acesso Indevido |
-| 10 | Acesso massivo sequencial | `ANOM-010` | Alta | Exfiltracao |
-| 11 | Padrao de navegacao atipico | `ANOM-011` | Baixa | Comportamento |
-| 12 | Acesso simultaneo de locais diferentes | `ANOM-012` | Critica | Credencial |
+| #   | Padrao                                    | Codigo     | Severidade | Categoria       |
+| --- | ----------------------------------------- | ---------- | ---------- | --------------- |
+| 1   | Acesso fora da unidade atribuida          | `ANOM-001` | Media      | Contexto        |
+| 2   | Acesso fora do turno de trabalho          | `ANOM-002` | Media      | Temporal        |
+| 3   | Volume anormal de prontuarios             | `ANOM-003` | Alta       | Volume          |
+| 4   | Acesso VIP sem vinculo assistencial       | `ANOM-004` | Critica    | Privacidade     |
+| 5   | Troca rapida excessiva de usuario         | `ANOM-005` | Media      | Comportamento   |
+| 6   | Exportacao/impressao acima do limiar      | `ANOM-006` | Alta       | Exfiltracao     |
+| 7   | Break-glass frequente                     | `ANOM-007` | Alta       | Privilegio      |
+| 8   | Acesso a prontuario proprio/familiar      | `ANOM-008` | Critica    | Privacidade     |
+| 9   | Acesso apos mudanca de papel/desligamento | `ANOM-009` | Critica    | Acesso Indevido |
+| 10  | Acesso massivo sequencial                 | `ANOM-010` | Alta       | Exfiltracao     |
+| 11  | Padrao de navegacao atipico               | `ANOM-011` | Baixa      | Comportamento   |
+| 12  | Acesso simultaneo de locais diferentes    | `ANOM-012` | Critica    | Credencial      |
 
 ---
 
@@ -52,12 +52,12 @@ A deteccao combina regras estaticas (thresholds fixos) com analise comportamenta
 
 **Thresholds:**
 
-| Perfil | Threshold | Baseline |
-|---|---|---|
+| Perfil              | Threshold                | Baseline                     |
+| ------------------- | ------------------------ | ---------------------------- |
 | Medico especialista | 5 acessos cross-unit/dia | Normal: 1-2 (interconsultas) |
-| Enfermeiro | 2 acessos cross-unit/dia | Normal: 0-1 (transferencias) |
-| Tecnico enfermagem | 1 acesso cross-unit/dia | Normal: 0 |
-| Nao-clinico | 0 acessos cross-unit/dia | Normal: 0 |
+| Enfermeiro          | 2 acessos cross-unit/dia | Normal: 0-1 (transferencias) |
+| Tecnico enfermagem  | 1 acesso cross-unit/dia  | Normal: 0                    |
+| Nao-clinico         | 0 acessos cross-unit/dia | Normal: 0                    |
 
 **Metodo de Deteccao (PromQL):**
 
@@ -92,11 +92,11 @@ sum by (user_id, user_name, unit, target_unit) (
 
 **Thresholds:**
 
-| Condicao | Threshold | Acao |
-|---|---|---|
-| Ate 30 min antes/depois do turno | Tolerancia | Apenas log |
-| 30 min a 2h fora do turno | Alerta baixo | Notificar gestor |
-| Mais de 2h fora do turno | Alerta alto | Notificar seguranca |
+| Condicao                                       | Threshold      | Acao                |
+| ---------------------------------------------- | -------------- | ------------------- |
+| Ate 30 min antes/depois do turno               | Tolerancia     | Apenas log          |
+| 30 min a 2h fora do turno                      | Alerta baixo   | Notificar gestor    |
+| Mais de 2h fora do turno                       | Alerta alto    | Notificar seguranca |
 | Acesso entre 00:00 e 05:00 (sem turno noturno) | Alerta critico | Step-up obrigatorio |
 
 **Metodo de Deteccao (PromQL):**
@@ -130,14 +130,14 @@ velya_session_active{} == 1
 
 **Thresholds:**
 
-| Perfil | Normal/Hora | Alerta (warn) | Alerta (critical) |
-|---|---|---|---|
-| Medico intensivista | 8-12 | > 20 | > 30 |
-| Enfermeiro | 6-10 | > 20 | > 30 |
-| Tecnico enfermagem | 5-8 | > 15 | > 25 |
-| Medico ambulatorial | 4-8 | > 15 | > 25 |
-| Administrativo | 2-5 | > 10 | > 15 |
-| Nao-clinico (TI, faturamento) | 0-2 | > 5 | > 10 |
+| Perfil                        | Normal/Hora | Alerta (warn) | Alerta (critical) |
+| ----------------------------- | ----------- | ------------- | ----------------- |
+| Medico intensivista           | 8-12        | > 20          | > 30              |
+| Enfermeiro                    | 6-10        | > 20          | > 30              |
+| Tecnico enfermagem            | 5-8         | > 15          | > 25              |
+| Medico ambulatorial           | 4-8         | > 15          | > 25              |
+| Administrativo                | 2-5         | > 10          | > 15              |
+| Nao-clinico (TI, faturamento) | 0-2         | > 5           | > 10              |
 
 **Metodo de Deteccao (PromQL):**
 
@@ -183,11 +183,11 @@ rate(velya_chart_access_total{
 
 **Thresholds:**
 
-| Condicao | Acao |
-|---|---|
-| Qualquer acesso VIP sem vinculo | Alerta critico imediato |
-| Vinculo existente | Acesso permitido com log especial |
-| Break-glass para VIP | L3 + justificativa + notificacao imediata |
+| Condicao                        | Acao                                      |
+| ------------------------------- | ----------------------------------------- |
+| Qualquer acesso VIP sem vinculo | Alerta critico imediato                   |
+| Vinculo existente               | Acesso permitido com log especial         |
+| Break-glass para VIP            | L3 + justificativa + notificacao imediata |
 
 **Metodo de Deteccao (LogQL):**
 
@@ -224,12 +224,12 @@ rate(velya_chart_access_total{
 
 **Thresholds:**
 
-| Condicao | Threshold | Acao |
-|---|---|---|
-| Normal (posto de enfermagem) | 2-4 trocas/hora | Nenhuma |
-| Elevado | 5-8 trocas/hora | Alerta warn |
-| Excessivo | > 8 trocas/hora | Alerta critical |
-| Mesmo usuario voltando rapidamente | Ida e volta em < 2min | Investigar |
+| Condicao                           | Threshold             | Acao            |
+| ---------------------------------- | --------------------- | --------------- |
+| Normal (posto de enfermagem)       | 2-4 trocas/hora       | Nenhuma         |
+| Elevado                            | 5-8 trocas/hora       | Alerta warn     |
+| Excessivo                          | > 8 trocas/hora       | Alerta critical |
+| Mesmo usuario voltando rapidamente | Ida e volta em < 2min | Investigar      |
 
 **Metodo de Deteccao (PromQL):**
 
@@ -263,12 +263,12 @@ increase(velya_user_switch_rapid_total{
 
 **Thresholds:**
 
-| Tipo | Normal/Dia | Alerta (warn) | Alerta (critical) |
-|---|---|---|---|
-| Impressao de prontuario | 1-3 | > 5 | > 10 |
-| Exportacao CSV/Excel | 0 | > 1 | > 3 |
-| Exportacao PDF (prontuario completo) | 0-1 | > 2 | > 5 |
-| Download de imagem/exame | 2-5 | > 10 | > 20 |
+| Tipo                                 | Normal/Dia | Alerta (warn) | Alerta (critical) |
+| ------------------------------------ | ---------- | ------------- | ----------------- |
+| Impressao de prontuario              | 1-3        | > 5           | > 10              |
+| Exportacao CSV/Excel                 | 0          | > 1           | > 3               |
+| Exportacao PDF (prontuario completo) | 0-1        | > 2           | > 5               |
+| Download de imagem/exame             | 2-5        | > 10          | > 20              |
 
 **Metodo de Deteccao (PromQL):**
 
@@ -298,11 +298,11 @@ increase(velya_data_export_bytes_total[24h]) by (user_id) > 10485760  # > 10MB
 
 **Thresholds:**
 
-| Condicao | Threshold | Acao |
-|---|---|---|
-| Normal | 0-1/mes | Revisao pos-uso padrao |
-| Elevado | 2/mes | Alerta + revisao de permissoes |
-| Excessivo | > 2/mes | Alerta + suspensao de break-glass + investigacao |
+| Condicao  | Threshold | Acao                                             |
+| --------- | --------- | ------------------------------------------------ |
+| Normal    | 0-1/mes   | Revisao pos-uso padrao                           |
+| Elevado   | 2/mes     | Alerta + revisao de permissoes                   |
+| Excessivo | > 2/mes   | Alerta + suspensao de break-glass + investigacao |
 
 **Metodo de Deteccao (PromQL):**
 
@@ -331,11 +331,11 @@ count by (user_id, patient_id) (
 
 **Thresholds:**
 
-| Condicao | Acao |
-|---|---|
-| Acesso ao proprio prontuario | Alerta critico imediato |
+| Condicao                                  | Acao                    |
+| ----------------------------------------- | ----------------------- |
+| Acesso ao proprio prontuario              | Alerta critico imediato |
 | Acesso a prontuario de familiar (1o grau) | Alerta critico imediato |
-| Acesso a prontuario de colega de trabalho | Alerta alto |
+| Acesso a prontuario de colega de trabalho | Alerta alto             |
 
 **Metodo de Deteccao (LogQL):**
 
@@ -375,11 +375,11 @@ count by (user_id, patient_id) (
 
 **Thresholds:**
 
-| Condicao | Acao |
-|---|---|
-| Login apos desligamento | Bloqueio + alerta CRITICAL |
-| Acesso a recurso de papel revogado | Bloqueio + alerta |
-| Acesso a unidade anterior apos transferencia | Alerta warn |
+| Condicao                                     | Acao                       |
+| -------------------------------------------- | -------------------------- |
+| Login apos desligamento                      | Bloqueio + alerta CRITICAL |
+| Acesso a recurso de papel revogado           | Bloqueio + alerta          |
+| Acesso a unidade anterior apos transferencia | Alerta warn                |
 
 **Metodo de Deteccao (PromQL):**
 
@@ -429,11 +429,11 @@ spec:
           for: 5m
           labels:
             severity: warning
-            anomaly_code: "ANOM-001"
+            anomaly_code: 'ANOM-001'
           annotations:
-            summary: "Acesso excessivo fora da unidade por {{ $labels.user_name }}"
-            description: "{{ $labels.user_name }} ({{ $labels.unit }}) fez {{ $value }} acessos cross-unit em 24h"
-            runbook: "https://runbooks.velya.internal/anom-001"
+            summary: 'Acesso excessivo fora da unidade por {{ $labels.user_name }}'
+            description: '{{ $labels.user_name }} ({{ $labels.unit }}) fez {{ $value }} acessos cross-unit em 24h'
+            runbook: 'https://runbooks.velya.internal/anom-001'
 
         - alert: OffShiftAccess
           expr: |
@@ -442,10 +442,10 @@ spec:
           for: 30m
           labels:
             severity: warning
-            anomaly_code: "ANOM-002"
+            anomaly_code: 'ANOM-002'
           annotations:
-            summary: "Acesso fora do turno: {{ $labels.user_name }}"
-            description: "{{ $labels.user_name }} esta com sessao ativa fora do turno registrado"
+            summary: 'Acesso fora do turno: {{ $labels.user_name }}'
+            description: '{{ $labels.user_name }} esta com sessao ativa fora do turno registrado'
 
     - name: access_anomaly_volume
       interval: 60s
@@ -458,10 +458,10 @@ spec:
           for: 10m
           labels:
             severity: warning
-            anomaly_code: "ANOM-003"
+            anomaly_code: 'ANOM-003'
           annotations:
-            summary: "Volume alto de acessos a prontuario: {{ $labels.user_name }}"
-            description: "{{ $value }} acessos/hora (threshold: 20)"
+            summary: 'Volume alto de acessos a prontuario: {{ $labels.user_name }}'
+            description: '{{ $value }} acessos/hora (threshold: 20)'
 
         - alert: HighVolumeChartAccessNonClinical
           expr: |
@@ -471,10 +471,10 @@ spec:
           for: 5m
           labels:
             severity: critical
-            anomaly_code: "ANOM-003"
+            anomaly_code: 'ANOM-003'
           annotations:
-            summary: "Volume critico de acessos por nao-clinico: {{ $labels.user_name }}"
-            description: "{{ $value }} acessos/hora por profissional nao-clinico"
+            summary: 'Volume critico de acessos por nao-clinico: {{ $labels.user_name }}'
+            description: '{{ $value }} acessos/hora por profissional nao-clinico'
 
     - name: access_anomaly_privacy
       interval: 30s
@@ -485,10 +485,10 @@ spec:
           for: 0m
           labels:
             severity: critical
-            anomaly_code: "ANOM-004"
+            anomaly_code: 'ANOM-004'
           annotations:
-            summary: "Acesso VIP sem vinculo assistencial"
-            description: "{{ $labels.user_name }} tentou acessar prontuario VIP sem vinculo"
+            summary: 'Acesso VIP sem vinculo assistencial'
+            description: '{{ $labels.user_name }} tentou acessar prontuario VIP sem vinculo'
 
         - alert: SelfRecordAccess
           expr: |
@@ -496,9 +496,9 @@ spec:
           for: 0m
           labels:
             severity: critical
-            anomaly_code: "ANOM-008"
+            anomaly_code: 'ANOM-008'
           annotations:
-            summary: "Acesso a prontuario proprio: {{ $labels.user_name }}"
+            summary: 'Acesso a prontuario proprio: {{ $labels.user_name }}'
 
         - alert: FamilyRecordAccess
           expr: |
@@ -506,9 +506,9 @@ spec:
           for: 0m
           labels:
             severity: critical
-            anomaly_code: "ANOM-008"
+            anomaly_code: 'ANOM-008'
           annotations:
-            summary: "Acesso a prontuario de familiar: {{ $labels.user_name }}"
+            summary: 'Acesso a prontuario de familiar: {{ $labels.user_name }}'
 
     - name: access_anomaly_behavior
       interval: 60s
@@ -519,9 +519,9 @@ spec:
           for: 15m
           labels:
             severity: warning
-            anomaly_code: "ANOM-005"
+            anomaly_code: 'ANOM-005'
           annotations:
-            summary: "Troca rapida excessiva na estacao {{ $labels.workstation_id }}"
+            summary: 'Troca rapida excessiva na estacao {{ $labels.workstation_id }}'
 
         - alert: ExcessiveExport
           expr: |
@@ -529,9 +529,9 @@ spec:
           for: 5m
           labels:
             severity: critical
-            anomaly_code: "ANOM-006"
+            anomaly_code: 'ANOM-006'
           annotations:
-            summary: "Exportacao excessiva por {{ $labels.user_name }}"
+            summary: 'Exportacao excessiva por {{ $labels.user_name }}'
 
         - alert: FrequentBreakGlass
           expr: |
@@ -539,9 +539,9 @@ spec:
           for: 5m
           labels:
             severity: warning
-            anomaly_code: "ANOM-007"
+            anomaly_code: 'ANOM-007'
           annotations:
-            summary: "Break-glass frequente: {{ $labels.user_name }}"
+            summary: 'Break-glass frequente: {{ $labels.user_name }}'
 
     - name: access_anomaly_critical
       interval: 30s
@@ -552,9 +552,9 @@ spec:
           for: 0m
           labels:
             severity: critical
-            anomaly_code: "ANOM-009"
+            anomaly_code: 'ANOM-009'
           annotations:
-            summary: "Tentativa de acesso de usuario desligado: {{ $labels.user_id }}"
+            summary: 'Tentativa de acesso de usuario desligado: {{ $labels.user_id }}'
 
         - alert: SimultaneousMultiLocationAccess
           expr: |
@@ -562,9 +562,9 @@ spec:
           for: 1m
           labels:
             severity: critical
-            anomaly_code: "ANOM-012"
+            anomaly_code: 'ANOM-012'
           annotations:
-            summary: "Sessoes simultaneas em locais diferentes: {{ $labels.user_id }}"
+            summary: 'Sessoes simultaneas em locais diferentes: {{ $labels.user_id }}'
 ```
 
 ---
@@ -589,7 +589,7 @@ spec:
         "id": 1,
         "title": "Alertas Ativos por Severidade",
         "type": "stat",
-        "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+        "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
         "targets": [
           {
             "expr": "count(ALERTS{alertstate='firing', severity='critical', anomaly_code=~'ANOM-.*'}) or vector(0)",
@@ -604,9 +604,9 @@ spec:
           "defaults": {
             "thresholds": {
               "steps": [
-                {"color": "green", "value": 0},
-                {"color": "yellow", "value": 1},
-                {"color": "red", "value": 3}
+                { "color": "green", "value": 0 },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 3 }
               ]
             }
           }
@@ -616,7 +616,7 @@ spec:
         "id": 2,
         "title": "Volume de Acesso a Prontuario por Perfil (Hora)",
         "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
         "targets": [
           {
             "expr": "avg by (profession) (rate(velya_chart_access_total[1h]))",
@@ -628,7 +628,7 @@ spec:
         "id": 3,
         "title": "Acessos Cross-Unit (24h)",
         "type": "bargauge",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
         "targets": [
           {
             "expr": "topk(10, sum by (user_name, unit) (increase(velya_chart_access_total{access_type='cross_unit'}[24h])))",
@@ -640,7 +640,7 @@ spec:
         "id": 4,
         "title": "Trocas de Usuario por Estacao (Hora)",
         "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
         "targets": [
           {
             "expr": "topk(5, rate(velya_user_switch_total[1h]) by (workstation_id))",
@@ -652,7 +652,7 @@ spec:
         "id": 5,
         "title": "Exportacoes e Impressoes (24h)",
         "type": "table",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
         "targets": [
           {
             "expr": "sum by (user_name, format) (increase(velya_data_export_total[24h])) > 0",
@@ -666,7 +666,7 @@ spec:
         "id": 6,
         "title": "Break-Glass nos Ultimos 30 Dias",
         "type": "table",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
         "targets": [
           {
             "expr": "sum by (user_name) (increase(velya_break_glass_total[30d])) > 0",
@@ -679,7 +679,7 @@ spec:
         "id": 7,
         "title": "Acessos Fora do Turno (24h)",
         "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
         "targets": [
           {
             "expr": "sum by (unit) (increase(velya_off_shift_access_total[1h]))",
@@ -691,7 +691,7 @@ spec:
         "id": 8,
         "title": "Mapa de Calor: Acessos por Hora x Dia da Semana",
         "type": "heatmap",
-        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 28},
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 28 },
         "targets": [
           {
             "expr": "sum(increase(velya_chart_access_total[1h])) by (le)",
@@ -703,7 +703,7 @@ spec:
         "id": 9,
         "title": "Tentativas de Acesso de Usuarios Desativados",
         "type": "table",
-        "gridPos": {"h": 6, "w": 24, "x": 0, "y": 36},
+        "gridPos": { "h": 6, "w": 24, "x": 0, "y": 36 },
         "targets": [
           {
             "expr": "increase(velya_auth_attempt_total{user_status='deactivated'}[24h]) > 0",
@@ -716,7 +716,7 @@ spec:
         "id": 10,
         "title": "Acessos VIP sem Vinculo",
         "type": "table",
-        "gridPos": {"h": 6, "w": 24, "x": 0, "y": 42},
+        "gridPos": { "h": 6, "w": 24, "x": 0, "y": 42 },
         "targets": [
           {
             "expr": "increase(velya_vip_access_no_relationship_total[24h]) > 0",
@@ -772,8 +772,8 @@ Audit Log          Stream          Regras            Alertas         Acoes
 # anomaly-detection-pipeline.yaml
 pipeline:
   source:
-    topic: "velya.audit.events"
-    consumer_group: "anomaly-detection"
+    topic: 'velya.audit.events'
+    consumer_group: 'anomaly-detection'
 
   enrichment:
     - type: user_context
@@ -790,9 +790,9 @@ pipeline:
       fields: [is_family_member, relationship_degree]
 
   rules:
-    evaluation_interval: "1s"
-    baseline_update_interval: "24h"
-    baseline_lookback: "30d"
+    evaluation_interval: '1s'
+    baseline_update_interval: '24h'
+    baseline_lookback: '30d'
 
   actions:
     - severity: critical
@@ -820,25 +820,25 @@ pipeline:
 
 ### 7.1 Matriz de Resposta
 
-| Severidade | Tempo de Resposta | Responsavel | Escalacao |
-|---|---|---|---|
-| Critica | 15 minutos | Security Analyst on-call | CISO em 30 min |
-| Alta | 1 hora | Security Team | Manager em 4h |
-| Media | 4 horas | Security Team | Revisao semanal |
-| Baixa | 24 horas | Gestor da unidade | Revisao mensal |
+| Severidade | Tempo de Resposta | Responsavel              | Escalacao       |
+| ---------- | ----------------- | ------------------------ | --------------- |
+| Critica    | 15 minutos        | Security Analyst on-call | CISO em 30 min  |
+| Alta       | 1 hora            | Security Team            | Manager em 4h   |
+| Media      | 4 horas           | Security Team            | Revisao semanal |
+| Baixa      | 24 horas          | Gestor da unidade        | Revisao mensal  |
 
 ### 7.2 Procedimento de Investigacao
 
-| Etapa | Acao | Responsavel | Evidencia |
-|---|---|---|---|
-| 1 | Confirmar alerta (falso positivo?) | Security Analyst | Log de investigacao |
-| 2 | Preservar evidencias (logs, gravacoes) | Security Analyst | Snapshot de dados |
-| 3 | Entrevistar usuario (se aplicavel) | Gestor + Seguranca | Ata de entrevista |
-| 4 | Determinar impacto | Security Analyst | Relatorio de impacto |
-| 5 | Aplicar medida corretiva | Security Manager | Ordem de servico |
-| 6 | Documentar incidente | Compliance | Relatorio final |
-| 7 | Implementar prevencao | Engineering | Change request |
+| Etapa | Acao                                   | Responsavel        | Evidencia            |
+| ----- | -------------------------------------- | ------------------ | -------------------- |
+| 1     | Confirmar alerta (falso positivo?)     | Security Analyst   | Log de investigacao  |
+| 2     | Preservar evidencias (logs, gravacoes) | Security Analyst   | Snapshot de dados    |
+| 3     | Entrevistar usuario (se aplicavel)     | Gestor + Seguranca | Ata de entrevista    |
+| 4     | Determinar impacto                     | Security Analyst   | Relatorio de impacto |
+| 5     | Aplicar medida corretiva               | Security Manager   | Ordem de servico     |
+| 6     | Documentar incidente                   | Compliance         | Relatorio final      |
+| 7     | Implementar prevencao                  | Engineering        | Change request       |
 
 ---
 
-*Documento gerado para a plataforma Velya. Uso interno - Seguranca e Compliance.*
+_Documento gerado para a plataforma Velya. Uso interno - Seguranca e Compliance._

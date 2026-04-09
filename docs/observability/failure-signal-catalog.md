@@ -8,16 +8,16 @@
 
 ## Estrutura de Cada Entrada
 
-| Campo | Descrição |
-|-------|-----------|
-| **ID** | Identificador único (ex.: INF-001) |
-| **Nome** | Nome legível da falha |
-| **Descrição** | O que está falhando |
-| **Sinal esperado** | Como a falha se manifesta nos dados de observabilidade |
-| **Query de detecção** | PromQL ou LogQL para detectar |
-| **Dashboard** | Onde visualizar |
-| **Alerta** | ID do alerta correspondente |
-| **Detecção atualmente possível** | Sim/Não (dado o estado atual sem ServiceMonitors) |
+| Campo                            | Descrição                                              |
+| -------------------------------- | ------------------------------------------------------ |
+| **ID**                           | Identificador único (ex.: INF-001)                     |
+| **Nome**                         | Nome legível da falha                                  |
+| **Descrição**                    | O que está falhando                                    |
+| **Sinal esperado**               | Como a falha se manifesta nos dados de observabilidade |
+| **Query de detecção**            | PromQL ou LogQL para detectar                          |
+| **Dashboard**                    | Onde visualizar                                        |
+| **Alerta**                       | ID do alerta correspondente                            |
+| **Detecção atualmente possível** | Sim/Não (dado o estado atual sem ServiceMonitors)      |
 
 ---
 
@@ -35,6 +35,7 @@ sum(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}) by (pod
 ```
 
 **LogQL para diagnóstico**:
+
 ```logql
 {namespace="$namespace", pod="$pod"} | json | level="error"
 ```
@@ -50,11 +51,13 @@ sum(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}) by (pod
 **Descrição**: Nó com memória insuficiente para novos pods. Kubernetes começa a evict pods.
 
 **Sinal esperado**:
+
 ```promql
 kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
 ```
 
 **Indicadores correlatos**:
+
 ```promql
 # Taxa de evictions no nó
 rate(kube_pod_status_reason{reason="Evicted"}[10m]) > 0
@@ -74,11 +77,13 @@ kube_pod_status_reason{reason="Evicted"} == 1
 **Descrição**: Volume persistente quase cheio. Quando chega a 100%, o serviço que escreve para o PVC crasha.
 
 **Sinal esperado**:
+
 ```promql
 kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.85
 ```
 
 **Severidade por threshold**:
+
 - 85% → warning (tempo para investigar)
 - 95% → critical (intervenção imediata)
 
@@ -93,11 +98,13 @@ kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.85
 **Descrição**: Pod não consegue ser agendado em nenhum nó. Causas: falta de recursos, taint sem toleração, PV não disponível.
 
 **Sinal esperado**:
+
 ```promql
 kube_pod_status_unschedulable > 0
 ```
 
 **Eventos de diagnóstico** (via Loki — logs do K8s events):
+
 ```logql
 {namespace="kube-system"} |= "FailedScheduling" | json
 ```
@@ -113,6 +120,7 @@ kube_pod_status_unschedulable > 0
 **Descrição**: Nó do cluster em estado Not Ready. Pods podem ser realocados.
 
 **Sinal esperado**:
+
 ```promql
 kube_node_status_condition{condition="Ready",status="true"} == 0
 ```
@@ -128,11 +136,13 @@ kube_node_status_condition{condition="Ready",status="true"} == 0
 **Descrição**: Disco do nó quase cheio. Pode causar evictions e impedir criação de novos pods.
 
 **Sinal esperado**:
+
 ```promql
 kube_node_status_condition{condition="DiskPressure",status="true"} == 1
 ```
 
 **Sinal alternativo (node-exporter)**:
+
 ```promql
 node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.15
 ```
@@ -148,6 +158,7 @@ node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpo
 **Descrição**: Container está sendo throttled porque atingiu o limit de CPU. Isso causa latência adicional.
 
 **Sinal esperado**:
+
 ```promql
 rate(container_cpu_cfs_throttled_seconds_total[5m]) /
 rate(container_cpu_cfs_periods_total[5m]) > 0.50
@@ -166,6 +177,7 @@ rate(container_cpu_cfs_periods_total[5m]) > 0.50
 **Descrição**: PV em estado diferente de Bound. Pods que dependem dele não conseguem iniciar.
 
 **Sinal esperado**:
+
 ```promql
 kube_persistentvolume_status_phase{phase!="Bound"} == 1
 ```
@@ -181,6 +193,7 @@ kube_persistentvolume_status_phase{phase!="Bound"} == 1
 **Descrição**: Namespace usando > 90% da quota de CPU ou memória. Novos pods podem ser rejeitados.
 
 **Sinal esperado**:
+
 ```promql
 kube_resourcequota_used / kube_resourcequota_hard > 0.90
 ```
@@ -196,6 +209,7 @@ kube_resourcequota_used / kube_resourcequota_hard > 0.90
 **Descrição**: API Server não está respondendo. Operações de controle do cluster param.
 
 **Sinal esperado**:
+
 ```promql
 up{job="apiserver"} == 0
 ```
@@ -215,11 +229,13 @@ up{job="apiserver"} == 0
 **Descrição**: Uma Application ArgoCD tem health status Degraded. Deploy falhou ou rollout causou degradação.
 
 **Sinal esperado**:
+
 ```promql
 argocd_app_info{health_status="Degraded"} == 1
 ```
 
 **LogQL para diagnóstico**:
+
 ```logql
 {namespace="argocd"} |= "Degraded" | json | app_name="$app_name"
 ```
@@ -235,6 +251,7 @@ argocd_app_info{health_status="Degraded"} == 1
 **Descrição**: ScaledObject está escalando e desescalando repetidamente sem estabilizar. Indica trigger sensível demais ou cooldown insuficiente.
 
 **Sinal esperado**:
+
 ```promql
 changes(kube_deployment_spec_replicas{namespace=~"velya-dev-.+"}[30m]) > 6
 ```
@@ -252,6 +269,7 @@ changes(kube_deployment_spec_replicas{namespace=~"velya-dev-.+"}[30m]) > 6
 **Descrição**: KEDA não consegue acessar o Prometheus para avaliar o trigger de scaling. Comportamento silencioso: usa `minReplicaCount`.
 
 **Sinal esperado**:
+
 ```promql
 keda_scaler_active{scaler_type="prometheus"} == 0
 ```
@@ -269,11 +287,13 @@ keda_scaler_active{scaler_type="prometheus"} == 0
 **Descrição**: Serviço não conseguiu recuperar um secret do Kubernetes/Vault. Pode causar falha de conexão ao banco de dados ou API externa.
 
 **Sinal esperado**:
+
 ```promql
 rate(velya_secret_retrieval_failure_total[5m]) > 0
 ```
 
 **LogQL alternativo** (enquanto métrica não existe):
+
 ```logql
 {namespace=~"velya-dev-.+"} | json | error_code="SECRET_RETRIEVAL_FAILED"
 ```
@@ -289,6 +309,7 @@ rate(velya_secret_retrieval_failure_total[5m]) > 0
 **Descrição**: Certificado TLS com menos de 30 dias para expirar. Após expirar, conexões TLS falharão.
 
 **Sinal esperado**:
+
 ```promql
 (certmanager_certificate_expiration_timestamp_seconds - time()) < (30 * 24 * 3600)
 ```
@@ -304,6 +325,7 @@ rate(velya_secret_retrieval_failure_total[5m]) > 0
 **Descrição**: Uma Application ArgoCD ficou out-of-sync por mais de 1 hora. O estado do cluster divergiu do estado desejado no Git.
 
 **Sinal esperado**:
+
 ```promql
 argocd_app_info{sync_status="OutOfSync"} == 1
 # (com for: 1h no alerta)
@@ -320,6 +342,7 @@ argocd_app_info{sync_status="OutOfSync"} == 1
 **Descrição**: Um target de scraping ficou inacessível. Métricas daquele serviço não estão sendo coletadas.
 
 **Sinal esperado**:
+
 ```promql
 up == 0
 ```
@@ -337,6 +360,7 @@ up == 0
 **Descrição**: ArgoCD tentou sincronizar uma Application mas falhou. Pode indicar manifesto inválido, recurso inexistente ou erro de permissão.
 
 **Sinal esperado**:
+
 ```promql
 argocd_app_sync_total{phase="Error"} > 0
 ```
@@ -354,6 +378,7 @@ argocd_app_sync_total{phase="Error"} > 0
 **Descrição**: Serviço respondendo com 5xx em mais de 5% das requisições.
 
 **Sinal esperado**:
+
 ```promql
 rate(http_requests_total{status=~"5..",service=~"velya-.+"}[5m]) /
 rate(http_requests_total{service=~"velya-.+"}[5m]) > 0.05
@@ -370,6 +395,7 @@ rate(http_requests_total{service=~"velya-.+"}[5m]) > 0.05
 **Descrição**: 1% dos usuários está esperando mais de 2 segundos por resposta.
 
 **Sinal esperado**:
+
 ```promql
 histogram_quantile(0.99,
   rate(http_request_duration_seconds_bucket{service=~"velya-.+"}[$__rate_interval])
@@ -387,11 +413,13 @@ histogram_quantile(0.99,
 **Descrição**: Mensagens que falharam após todas as retentativas foram para a DLQ. Indica perda potencial de dados de workflow.
 
 **Sinal esperado**:
+
 ```promql
 velya_dead_letter_queue_total > 0
 ```
 
 **LogQL para investigação**:
+
 ```logql
 {namespace="velya-dev-core"} | json | error_class="messaging.dlq"
 ```
@@ -407,11 +435,13 @@ velya_dead_letter_queue_total > 0
 **Descrição**: Circuit breaker de um serviço abriu, indicando que a dependência está em falha. Serviço operando em modo degradado.
 
 **Sinal esperado**:
+
 ```promql
 velya_circuit_breaker_state{state="open"} == 1
 ```
 
 **LogQL correlato**:
+
 ```logql
 {namespace=~"velya-dev-.+"} | json | error_code="CIRCUIT_BREAKER_OPEN"
 ```
@@ -427,6 +457,7 @@ velya_circuit_breaker_state{state="open"} == 1
 **Descrição**: Consumer NATS com mensagens acumulando mais rápido do que são processadas.
 
 **Sinal esperado**:
+
 ```promql
 nats_consumer_num_pending > 1000
 ```
@@ -442,6 +473,7 @@ nats_consumer_num_pending > 1000
 **Descrição**: Pool de conexões com o banco de dados próximo do limite. Novas queries podem ficar em espera.
 
 **Sinal esperado**:
+
 ```promql
 velya_db_pool_waiting_total / velya_db_pool_size_total > 0.80
 ```
@@ -457,6 +489,7 @@ velya_db_pool_waiting_total / velya_db_pool_size_total > 0.80
 **Descrição**: api-gateway não está respondendo. Nenhum cliente consegue acessar nenhum serviço Velya.
 
 **Sinal esperado**:
+
 ```promql
 up{job="api-gateway"} == 0
 ```
@@ -472,11 +505,13 @@ up{job="api-gateway"} == 0
 **Descrição**: AI Gateway recebendo erros de rate-limit do provedor de AI. Agents não conseguem respostas.
 
 **Sinal esperado**:
+
 ```promql
 rate(velya_ai_error_total{error_type="rate_limit"}[5m]) > 1
 ```
 
 **LogQL correlato**:
+
 ```logql
 {service="ai-gateway"} | json | error_code="AI_RATE_LIMIT_EXCEEDED"
 ```
@@ -492,6 +527,7 @@ rate(velya_ai_error_total{error_type="rate_limit"}[5m]) > 1
 **Descrição**: Worker Temporal parou de processar tasks. Workflows podem ficar stuck.
 
 **Sinal esperado**:
+
 ```promql
 up{job=~"velya-.*-worker"} == 0
 # OU
@@ -509,6 +545,7 @@ kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", namespace="v
 **Descrição**: AI retornando respostas com score de confiança abaixo do threshold mínimo. Não é um erro técnico, mas um sinal de qualidade.
 
 **Sinal esperado**:
+
 ```promql
 histogram_quantile(0.50,
   rate(velya_ai_confidence_distribution_bucket[$__rate_interval])
@@ -534,6 +571,7 @@ Estas são as mais perigosas: o sistema parece funcionar, mas está falhando de 
 **Por que é silencioso**: KEDA não retorna erro. O ScaledObject continua parecendo "ativo". Apenas o valor da métrica para de mudar.
 
 **Como detectar**:
+
 ```promql
 keda_scaler_active{scaler_type="prometheus"} == 0
 ```
@@ -553,6 +591,7 @@ keda_scaler_active{scaler_type="prometheus"} == 0
 **Por que é silencioso**: NetworkPolicies existem nos objetos Kubernetes (`kubectl get networkpolicy`), mas não bloqueiam tráfego real. Sem sinal de violação.
 
 **Como detectar** (indiretamente):
+
 ```bash
 # Testar se tráfego proibido pela policy está fluindo
 kubectl exec -n velya-dev-core deploy/patient-flow-service -- \
@@ -574,6 +613,7 @@ kubectl exec -n velya-dev-core deploy/patient-flow-service -- \
 **Por que é silencioso**: O alerta aparece como `FIRING` no Prometheus UI, mas nenhuma notificação é enviada.
 
 **Como detectar**:
+
 ```promql
 # Alertas que estão firing mas sem receberem
 ALERTS{alertstate="firing"}
@@ -600,6 +640,7 @@ kubectl port-forward svc/alertmanager -n velya-dev-observability 9093:9093
 **Por que é silencioso**: Logs aparecem normalmente no Loki, mas sem sinal de anomalia imediato.
 
 **Como detectar**:
+
 ```logql
 # Proporção de logs DEBUG vs. INFO nos últimos 5 minutos
 sum(rate({namespace=~"velya-dev-.+"} | json | level="debug" [5m])) /
@@ -607,6 +648,7 @@ sum(rate({namespace=~"velya-dev-.+"} | json [5m])) > 0.30
 ```
 
 **Verificação via kubectl**:
+
 ```bash
 kubectl get pods -n velya-dev-core -o json | jq '.items[].spec.containers[].env[] | select(.name=="LOG_LEVEL")'
 ```
@@ -623,6 +665,7 @@ kubectl get pods -n velya-dev-core -o json | jq '.items[].spec.containers[].env[
 **Por que é silencioso**: `kubectl get servicemonitor` mostra o objeto. O Prometheus não mostra erro. Mas o target nunca aparece na lista de `/targets`.
 
 **Como detectar**:
+
 ```bash
 # Verificar que todos os ServiceMonitors têm pelo menos 1 target UP no Prometheus
 kubectl port-forward svc/kube-prometheus-stack-prometheus -n velya-dev-observability 9090:9090
@@ -631,6 +674,7 @@ kubectl port-forward svc/kube-prometheus-stack-prometheus -n velya-dev-observabi
 ```
 
 **Alerta de ausência de target**:
+
 ```promql
 # Se um job esperado desaparece dos targets (usando absent())
 absent(up{job="patient-flow-service"})
@@ -643,12 +687,12 @@ absent(up{job="patient-flow-service"})
 
 ## 5. Resumo de Detecção por Categoria
 
-| Categoria | Total de falhas documentadas | Detectáveis agora | Não detectáveis (aguardando implementação) |
-|---------|---------------------------|-------------------|------------------------------------------|
-| Infraestrutura | 10 | 10 | 0 |
-| Plataforma | 8 | 4 | 4 |
-| Backend | 10 | 2 | 8 |
-| Silenciosas específicas | 5 | 2 | 3 |
-| **Total** | **33** | **18** | **15** |
+| Categoria               | Total de falhas documentadas | Detectáveis agora | Não detectáveis (aguardando implementação) |
+| ----------------------- | ---------------------------- | ----------------- | ------------------------------------------ |
+| Infraestrutura          | 10                           | 10                | 0                                          |
+| Plataforma              | 8                            | 4                 | 4                                          |
+| Backend                 | 10                           | 2                 | 8                                          |
+| Silenciosas específicas | 5                            | 2                 | 3                                          |
+| **Total**               | **33**                       | **18**            | **15**                                     |
 
 **Nota**: As 15 falhas não detectáveis dependem majoritariamente da implementação de ServiceMonitors (GAP-001) e métricas customizadas (GAP-003, GAP-007) descritas em monitoring-gaps-register.md.

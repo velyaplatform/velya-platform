@@ -73,18 +73,21 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 **Purpose**: The primary view for clinical staff responsible for active patients.
 
 **What it shows**:
+
 - All patients ordered by clinical priority (AI-determined, human-adjustable)
 - Each patient card: name, location, status, next required action, time to next milestone
 - Visual flags: deterioration risk, discharge eligibility, pending decision
 - Predicted length of stay remaining
 
 **What it does not show**:
+
 - Full chart
 - Completed tasks
 - Historical notes (unless requested)
 - Any patient not under the user's responsibility
 
 **Interaction model**:
+
 - Tap a patient → Patient detail with action panel
 - Action panel shows: top 3 recommended actions, with one-click execute
 - Swipe to dismiss (mark reviewed)
@@ -95,6 +98,7 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 **Purpose**: Every task, alert, and required action for the current user, prioritized by the system.
 
 **What it shows**:
+
 - Ordered task list: critical (red) → urgent (amber) → routine (grey)
 - Each task: description, patient, due time, estimated effort, owner (if assigned)
 - AI-suggested routing: "This task can be delegated to [name]"
@@ -103,6 +107,7 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 **Not a notifications list**: Every item in the inbox requires an action. Informational notifications go elsewhere.
 
 **Interaction model**:
+
 - Tap task → task detail with complete/delegate/defer options
 - Swipe right → complete
 - Swipe left → defer with time picker
@@ -113,6 +118,7 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 **Purpose**: Purpose-built workspace for Discharge Planners and Ward Coordinators managing discharge pipeline.
 
 **What it shows**:
+
 - All patients with discharge potential today/tomorrow/this week
 - Discharge readiness score per patient (clinical + logistical)
 - Blockers per patient: outstanding test, transport not booked, family not contacted, TTO not dispensed
@@ -120,6 +126,7 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 - Bottleneck identification: "3 patients blocked on pharmacy"
 
 **Actions available**:
+
 - One-click: escalate to pharmacy, request transport, notify family
 - Bulk actions: discharge all Green patients, notify ward of discharge wave
 - Drag-and-drop: reorder discharge priority
@@ -129,12 +136,14 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 **Purpose**: Real-time view of physical capacity for Bed Managers and Admissions.
 
 **What it shows**:
+
 - Ward/floor grid with bed status: occupied, dirty, available, blocked
 - Incoming demand: ED patients waiting, elective admissions, transfers
 - Predicted availability in 2h, 4h, 8h
 - Mismatch alerts: "3 patients waiting for female orthopaedic bed — none predicted available today"
 
 **Actions available**:
+
 - Assign patient to bed (drag or select)
 - Mark bed dirty/clean
 - Request housekeeping
@@ -146,6 +155,7 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 **Purpose**: Supervisor view — a board that is empty when everything is on track.
 
 **What it shows**:
+
 - Only items that require human judgment or escalation
 - SLA breaches: patient in ED > 4 hours without bed
 - AI confidence below threshold: "Discharge recommendation for [patient] — please review"
@@ -161,6 +171,7 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 **Trigger**: Any AI-influenced element (recommendation, score, priority) has an info icon. One tap opens the panel.
 
 **What it shows**:
+
 - Why this recommendation was made (plain language)
 - What data influenced it
 - How confident the model is
@@ -168,6 +179,7 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 - Who is accountable for this recommendation (agent ID + human reviewer if applicable)
 
 **What it does not show**:
+
 - Model weights
 - Raw probability distributions
 - Technical implementation details
@@ -177,6 +189,7 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 **Purpose**: Structured end-of-shift handoff for every clinical user.
 
 **What it shows**:
+
 - Automatic pre-population: all patients, all open tasks, all pending decisions
 - Outstanding items flagged by category: clinical, administrative, family communication
 - Space for free-text notes per patient (voice-to-text supported)
@@ -191,23 +204,27 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 **Purpose**: Maintain essential operations when backend systems are unavailable.
 
 **Degraded mode triggers**:
+
 - API response time > 3 seconds
 - Service health check failure
 - Explicit user activation ("I can't reach the server")
 
 **What works in degraded mode**:
+
 - Read access to last-synced patient data (cached locally)
 - Task completion queue (stored locally, sync on reconnection)
 - Handoff notes creation (local storage)
 - Manual bed status updates (queued)
 
 **What does not work in degraded mode**:
+
 - Real-time alerts
 - AI recommendations
 - Drug interaction checking
 - Cross-ward patient queries
 
 **User experience**:
+
 - Clear banner: "Offline mode — data last updated [time]"
 - All write operations confirmed with: "Saved locally — will sync when reconnected"
 - Reconnection is automatic and silent (no full page reload)
@@ -217,6 +234,7 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 **Purpose**: For platform administrators and clinical safety leads — visibility into AI agent activity.
 
 **What it shows**:
+
 - All active agents, status, last action
 - Decision log: every recommendation made in last 24h, with patient, agent, decision, outcome
 - Anomaly detection: agents behaving outside expected parameters
@@ -224,6 +242,7 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 - Agent scorecard: accuracy, latency, escalation rate per agent
 
 **Actions available**:
+
 - Pause specific agent
 - Override agent recommendation
 - Escalate anomaly for review
@@ -233,18 +252,18 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 
 ## Part 4: Click Budget Standards
 
-| Action | Max Clicks | Current State |
-|---|---|---|
-| View my patient list | 0 clicks (default landing view) | NOT IMPLEMENTED |
-| Acknowledge a task | 1 click (swipe or tap Complete) | NOT IMPLEMENTED |
-| View patient detail | 1 click | NOT IMPLEMENTED |
-| Complete a routine task | 2 clicks (open → complete) | NOT IMPLEMENTED |
-| Assign a bed | 3 clicks (select patient → select bed → confirm) | NOT IMPLEMENTED |
-| Escalate an alert | 2 clicks (open → escalate) | NOT IMPLEMENTED |
-| View discharge readiness | 1 click (tap patient in Discharge Tower) | NOT IMPLEMENTED |
-| Start handoff | 1 click (from any view) | NOT IMPLEMENTED |
-| Open explainability panel | 1 click (tap info icon) | NOT IMPLEMENTED |
-| Switch workspace (role change) | 2 clicks | NOT IMPLEMENTED |
+| Action                         | Max Clicks                                       | Current State   |
+| ------------------------------ | ------------------------------------------------ | --------------- |
+| View my patient list           | 0 clicks (default landing view)                  | NOT IMPLEMENTED |
+| Acknowledge a task             | 1 click (swipe or tap Complete)                  | NOT IMPLEMENTED |
+| View patient detail            | 1 click                                          | NOT IMPLEMENTED |
+| Complete a routine task        | 2 clicks (open → complete)                       | NOT IMPLEMENTED |
+| Assign a bed                   | 3 clicks (select patient → select bed → confirm) | NOT IMPLEMENTED |
+| Escalate an alert              | 2 clicks (open → escalate)                       | NOT IMPLEMENTED |
+| View discharge readiness       | 1 click (tap patient in Discharge Tower)         | NOT IMPLEMENTED |
+| Start handoff                  | 1 click (from any view)                          | NOT IMPLEMENTED |
+| Open explainability panel      | 1 click (tap info icon)                          | NOT IMPLEMENTED |
+| Switch workspace (role change) | 2 clicks                                         | NOT IMPLEMENTED |
 
 ---
 
@@ -272,35 +291,35 @@ Clinical users have zero tolerance for latency. Every interaction must respond i
 
 ## Part 6: Role-Based Workspaces
 
-| Role | Primary Module | Secondary Modules | Hidden From |
-|---|---|---|---|
-| Consultant / Attending | Patient Cockpit | Handoff Timeline, Explainability Panel | Bed Board, Capacity Planning |
-| Ward Nurse | Action Inbox | Patient Cockpit, Handoff Timeline | Discharge Tower, Bed Board |
-| Charge Nurse / Shift Leader | Exception Workboard | Patient Cockpit, Action Inbox, Handoff Timeline | Bed Board |
-| Ward Coordinator | Discharge Control Tower | Patient Cockpit, Bed Board | Detailed clinical notes |
-| Bed Manager | Bed & Capacity Board | Discharge Tower, Exception Workboard | Clinical notes |
-| Admissions | Bed Board | Action Inbox | Clinical notes |
-| Discharge Planner | Discharge Control Tower | Patient Cockpit | Bed Board |
-| Platform Admin | Agent Oversight Console | Exception Workboard | All clinical modules |
+| Role                        | Primary Module          | Secondary Modules                               | Hidden From                  |
+| --------------------------- | ----------------------- | ----------------------------------------------- | ---------------------------- |
+| Consultant / Attending      | Patient Cockpit         | Handoff Timeline, Explainability Panel          | Bed Board, Capacity Planning |
+| Ward Nurse                  | Action Inbox            | Patient Cockpit, Handoff Timeline               | Discharge Tower, Bed Board   |
+| Charge Nurse / Shift Leader | Exception Workboard     | Patient Cockpit, Action Inbox, Handoff Timeline | Bed Board                    |
+| Ward Coordinator            | Discharge Control Tower | Patient Cockpit, Bed Board                      | Detailed clinical notes      |
+| Bed Manager                 | Bed & Capacity Board    | Discharge Tower, Exception Workboard            | Clinical notes               |
+| Admissions                  | Bed Board               | Action Inbox                                    | Clinical notes               |
+| Discharge Planner           | Discharge Control Tower | Patient Cockpit                                 | Bed Board                    |
+| Platform Admin              | Agent Oversight Console | Exception Workboard                             | All clinical modules         |
 
 ---
 
 ## Part 7: Traditional EHR vs. Velya Comparison
 
-| Dimension | Traditional EHR | Velya |
-|---|---|---|
-| Default view | Full patient list, alphabetical | Priority-ordered action list |
-| Information density | Maximum — show everything | Minimum — show what matters now |
-| Task management | Separate module, not integrated | Unified inbox, integrated with clinical context |
-| AI role | None or separate add-on | Invisible co-pilot, embedded in workflow |
-| Discharge planning | Forms-based, linear | Visual pipeline, parallel workflows |
-| Handoff | Free text or structured form | Auto-populated, structured, auditable |
-| Degraded mode | System unavailable = clinical chaos | Graceful degradation, queued operations |
-| Click count (admission) | 25–50 clicks | Target: 8 clicks |
-| Time to bed assignment | 15–45 minutes | Target: under 5 minutes |
-| Role differentiation | Same system, different permissions | Different workspace per role |
-| Explainability | Not applicable | One-tap explanation for any AI input |
+| Dimension               | Traditional EHR                     | Velya                                           |
+| ----------------------- | ----------------------------------- | ----------------------------------------------- |
+| Default view            | Full patient list, alphabetical     | Priority-ordered action list                    |
+| Information density     | Maximum — show everything           | Minimum — show what matters now                 |
+| Task management         | Separate module, not integrated     | Unified inbox, integrated with clinical context |
+| AI role                 | None or separate add-on             | Invisible co-pilot, embedded in workflow        |
+| Discharge planning      | Forms-based, linear                 | Visual pipeline, parallel workflows             |
+| Handoff                 | Free text or structured form        | Auto-populated, structured, auditable           |
+| Degraded mode           | System unavailable = clinical chaos | Graceful degradation, queued operations         |
+| Click count (admission) | 25–50 clicks                        | Target: 8 clicks                                |
+| Time to bed assignment  | 15–45 minutes                       | Target: under 5 minutes                         |
+| Role differentiation    | Same system, different permissions  | Different workspace per role                    |
+| Explainability          | Not applicable                      | One-tap explanation for any AI input            |
 
 ---
 
-*This document defines what the Velya frontend should be. Current state validation is in `docs/validation/frontend-revolution-validation.md`. Implementation roadmap is in `docs/frontend/frontend-workflow-model.md`.*
+_This document defines what the Velya frontend should be. Current state validation is in `docs/validation/frontend-revolution-validation.md`. Implementation roadmap is in `docs/frontend/frontend-workflow-model.md`._

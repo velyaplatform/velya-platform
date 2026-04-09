@@ -134,78 +134,78 @@ O inventario de dashboards e a base de dados centralizada que cataloga todos os 
 
 ### Pasta: Platform/Infra
 
-| UID                         | Titulo                           | Paineis | Datasources       | Criticidade | Owner              | Health |
-|-----------------------------|----------------------------------|---------|--------------------|-------------|---------------------|--------|
-| velya-platform-overview     | Platform Overview                | 18      | Prometheus         | Critical    | Platform Eng        | 94     |
-| velya-kubernetes-cluster    | Kubernetes Cluster Status        | 24      | Prometheus         | Critical    | Platform Eng        | 91     |
-| velya-node-resources        | Node Resources                   | 16      | Prometheus         | High        | Platform Eng        | 88     |
-| velya-namespace-resources   | Namespace Resources              | 14      | Prometheus         | High        | Platform Eng        | 90     |
-| velya-networking            | Networking & Ingress             | 12      | Prometheus         | High        | Platform Eng        | 87     |
-| velya-argocd-status         | ArgoCD Sync Status               | 10      | Prometheus         | Critical    | Platform Eng        | 93     |
-| velya-keda-autoscaling      | KEDA Autoscaling                 | 8       | Prometheus         | High        | Platform Eng        | 85     |
+| UID                       | Titulo                    | Paineis | Datasources | Criticidade | Owner        | Health |
+| ------------------------- | ------------------------- | ------- | ----------- | ----------- | ------------ | ------ |
+| velya-platform-overview   | Platform Overview         | 18      | Prometheus  | Critical    | Platform Eng | 94     |
+| velya-kubernetes-cluster  | Kubernetes Cluster Status | 24      | Prometheus  | Critical    | Platform Eng | 91     |
+| velya-node-resources      | Node Resources            | 16      | Prometheus  | High        | Platform Eng | 88     |
+| velya-namespace-resources | Namespace Resources       | 14      | Prometheus  | High        | Platform Eng | 90     |
+| velya-networking          | Networking & Ingress      | 12      | Prometheus  | High        | Platform Eng | 87     |
+| velya-argocd-status       | ArgoCD Sync Status        | 10      | Prometheus  | Critical    | Platform Eng | 93     |
+| velya-keda-autoscaling    | KEDA Autoscaling          | 8       | Prometheus  | High        | Platform Eng | 85     |
 
 ### Pasta: Backend
 
-| UID                         | Titulo                           | Paineis | Datasources        | Criticidade | Owner              | Health |
-|-----------------------------|----------------------------------|---------|--------------------|-------------|---------------------|--------|
-| velya-patient-api           | Patient API Service              | 22      | Prom, Loki, Tempo  | Critical    | Backend Eng         | 92     |
-| velya-scheduling-api        | Scheduling API                   | 20      | Prom, Loki, Tempo  | Critical    | Backend Eng         | 89     |
-| velya-auth-service          | Auth Service                     | 15      | Prom, Loki, Tempo  | Critical    | Backend Eng         | 91     |
-| velya-notification-service  | Notification Service             | 12      | Prom, Loki         | High        | Backend Eng         | 86     |
-| velya-billing-service       | Billing Service                  | 18      | Prom, Loki, Tempo  | Critical    | Backend Eng         | 88     |
-| velya-integration-hub       | Integration Hub (HL7/FHIR)       | 16      | Prom, Loki, Tempo  | Critical    | Backend Eng         | 84     |
+| UID                        | Titulo                     | Paineis | Datasources       | Criticidade | Owner       | Health |
+| -------------------------- | -------------------------- | ------- | ----------------- | ----------- | ----------- | ------ |
+| velya-patient-api          | Patient API Service        | 22      | Prom, Loki, Tempo | Critical    | Backend Eng | 92     |
+| velya-scheduling-api       | Scheduling API             | 20      | Prom, Loki, Tempo | Critical    | Backend Eng | 89     |
+| velya-auth-service         | Auth Service               | 15      | Prom, Loki, Tempo | Critical    | Backend Eng | 91     |
+| velya-notification-service | Notification Service       | 12      | Prom, Loki        | High        | Backend Eng | 86     |
+| velya-billing-service      | Billing Service            | 18      | Prom, Loki, Tempo | Critical    | Backend Eng | 88     |
+| velya-integration-hub      | Integration Hub (HL7/FHIR) | 16      | Prom, Loki, Tempo | Critical    | Backend Eng | 84     |
 
 ### Pasta: Frontend
 
-| UID                         | Titulo                           | Paineis | Datasources        | Criticidade | Owner              | Health |
-|-----------------------------|----------------------------------|---------|--------------------|-------------|---------------------|--------|
-| velya-frontend-vitals       | Frontend Web Vitals              | 14      | Prometheus         | High        | Frontend Eng        | 82     |
-| velya-frontend-errors       | Frontend Error Tracking          | 10      | Loki               | High        | Frontend Eng        | 79     |
-| velya-frontend-performance  | Frontend Performance             | 12      | Prometheus         | Medium      | Frontend Eng        | 85     |
-| velya-mobile-telemetry      | Mobile App Telemetry             | 8       | Prom, Loki         | Medium      | Frontend Eng        | 77     |
-| velya-user-experience       | User Experience Metrics          | 10      | Prometheus         | Medium      | Frontend Eng        | 80     |
+| UID                        | Titulo                  | Paineis | Datasources | Criticidade | Owner        | Health |
+| -------------------------- | ----------------------- | ------- | ----------- | ----------- | ------------ | ------ |
+| velya-frontend-vitals      | Frontend Web Vitals     | 14      | Prometheus  | High        | Frontend Eng | 82     |
+| velya-frontend-errors      | Frontend Error Tracking | 10      | Loki        | High        | Frontend Eng | 79     |
+| velya-frontend-performance | Frontend Performance    | 12      | Prometheus  | Medium      | Frontend Eng | 85     |
+| velya-mobile-telemetry     | Mobile App Telemetry    | 8       | Prom, Loki  | Medium      | Frontend Eng | 77     |
+| velya-user-experience      | User Experience Metrics | 10      | Prometheus  | Medium      | Frontend Eng | 80     |
 
 ### Pasta: AI Agents
 
-| UID                         | Titulo                           | Paineis | Datasources              | Criticidade | Owner              | Health |
-|-----------------------------|----------------------------------|---------|--------------------------|-----------  |---------------------|--------|
-| velya-agent-orchestrator    | Agent Orchestrator               | 20      | Prom, Loki, Tempo, Pyro  | Critical    | AI Eng              | 90     |
-| velya-agent-triage          | Triage Agent                     | 16      | Prom, Loki, Tempo        | Critical    | AI Eng              | 88     |
-| velya-agent-diagnosis       | Diagnosis Agent                  | 18      | Prom, Loki, Tempo, Pyro  | Critical    | AI Eng              | 86     |
-| velya-agent-scheduling      | Scheduling Agent                 | 14      | Prom, Loki, Tempo        | High        | AI Eng              | 84     |
-| velya-agent-followup        | Follow-up Agent                  | 12      | Prom, Loki               | High        | AI Eng              | 82     |
-| velya-llm-gateway           | LLM Gateway                      | 16      | Prom, Loki, Tempo, Pyro  | Critical    | AI Eng              | 91     |
-| velya-agent-guardrails      | Agent Guardrails & Safety        | 10      | Prom, Loki               | Critical    | AI Eng              | 89     |
+| UID                      | Titulo                    | Paineis | Datasources             | Criticidade | Owner  | Health |
+| ------------------------ | ------------------------- | ------- | ----------------------- | ----------- | ------ | ------ |
+| velya-agent-orchestrator | Agent Orchestrator        | 20      | Prom, Loki, Tempo, Pyro | Critical    | AI Eng | 90     |
+| velya-agent-triage       | Triage Agent              | 16      | Prom, Loki, Tempo       | Critical    | AI Eng | 88     |
+| velya-agent-diagnosis    | Diagnosis Agent           | 18      | Prom, Loki, Tempo, Pyro | Critical    | AI Eng | 86     |
+| velya-agent-scheduling   | Scheduling Agent          | 14      | Prom, Loki, Tempo       | High        | AI Eng | 84     |
+| velya-agent-followup     | Follow-up Agent           | 12      | Prom, Loki              | High        | AI Eng | 82     |
+| velya-llm-gateway        | LLM Gateway               | 16      | Prom, Loki, Tempo, Pyro | Critical    | AI Eng | 91     |
+| velya-agent-guardrails   | Agent Guardrails & Safety | 10      | Prom, Loki              | Critical    | AI Eng | 89     |
 
 ### Pasta: Business/Hospital
 
-| UID                         | Titulo                           | Paineis | Datasources        | Criticidade | Owner              | Health |
-|-----------------------------|----------------------------------|---------|--------------------|-------------|---------------------|--------|
-| velya-patient-flow          | Patient Flow & Admission         | 14      | Prometheus         | Critical    | Product Eng         | 87     |
-| velya-appointment-analytics | Appointment Analytics            | 12      | Prometheus         | High        | Product Eng         | 85     |
-| velya-bed-management        | Bed Management                   | 10      | Prometheus         | High        | Product Eng         | 83     |
-| velya-revenue-cycle         | Revenue Cycle                    | 16      | Prometheus         | Critical    | Product Eng         | 81     |
-| velya-clinical-quality      | Clinical Quality Indicators      | 14      | Prometheus         | Critical    | Product Eng         | 79     |
+| UID                         | Titulo                      | Paineis | Datasources | Criticidade | Owner       | Health |
+| --------------------------- | --------------------------- | ------- | ----------- | ----------- | ----------- | ------ |
+| velya-patient-flow          | Patient Flow & Admission    | 14      | Prometheus  | Critical    | Product Eng | 87     |
+| velya-appointment-analytics | Appointment Analytics       | 12      | Prometheus  | High        | Product Eng | 85     |
+| velya-bed-management        | Bed Management              | 10      | Prometheus  | High        | Product Eng | 83     |
+| velya-revenue-cycle         | Revenue Cycle               | 16      | Prometheus  | Critical    | Product Eng | 81     |
+| velya-clinical-quality      | Clinical Quality Indicators | 14      | Prometheus  | Critical    | Product Eng | 79     |
 
 ### Pasta: Observability Health
 
-| UID                         | Titulo                           | Paineis | Datasources        | Criticidade | Owner              | Health |
-|-----------------------------|----------------------------------|---------|--------------------|-------------|---------------------|--------|
-| velya-datasource-integrity  | Datasource Integrity             | 8       | Prometheus         | Critical    | Platform Eng        | 95     |
-| velya-meta-prometheus       | Prometheus Health                 | 12      | Prometheus         | Critical    | Platform Eng        | 93     |
-| velya-meta-loki             | Loki Health                       | 10      | Prometheus         | Critical    | Platform Eng        | 91     |
-| velya-meta-tempo            | Tempo Health                      | 8       | Prometheus         | High        | Platform Eng        | 90     |
-| velya-meta-alloy            | Alloy/OTel Collector Health       | 10      | Prometheus         | High        | Platform Eng        | 88     |
-| velya-dae-status            | Dashboard Assurance Engine Status | 8       | Prometheus         | High        | Platform Eng        | 92     |
+| UID                        | Titulo                            | Paineis | Datasources | Criticidade | Owner        | Health |
+| -------------------------- | --------------------------------- | ------- | ----------- | ----------- | ------------ | ------ |
+| velya-datasource-integrity | Datasource Integrity              | 8       | Prometheus  | Critical    | Platform Eng | 95     |
+| velya-meta-prometheus      | Prometheus Health                 | 12      | Prometheus  | Critical    | Platform Eng | 93     |
+| velya-meta-loki            | Loki Health                       | 10      | Prometheus  | Critical    | Platform Eng | 91     |
+| velya-meta-tempo           | Tempo Health                      | 8       | Prometheus  | High        | Platform Eng | 90     |
+| velya-meta-alloy           | Alloy/OTel Collector Health       | 10      | Prometheus  | High        | Platform Eng | 88     |
+| velya-dae-status           | Dashboard Assurance Engine Status | 8       | Prometheus  | High        | Platform Eng | 92     |
 
 ### Pasta: Cost/Efficiency
 
-| UID                         | Titulo                           | Paineis | Datasources        | Criticidade | Owner              | Health |
-|-----------------------------|----------------------------------|---------|--------------------|-------------|---------------------|--------|
-| velya-cloud-cost            | Cloud Cost Overview (AWS)         | 14      | Prometheus         | High        | Platform Eng        | 82     |
-| velya-resource-efficiency   | Resource Efficiency               | 12      | Prometheus         | Medium      | Platform Eng        | 80     |
-| velya-observability-cost    | Observability Stack Cost          | 10      | Prometheus         | Medium      | Platform Eng        | 78     |
-| velya-rightsizing            | Rightsizing Recommendations       | 8       | Prometheus         | Medium      | Platform Eng        | 75     |
+| UID                       | Titulo                      | Paineis | Datasources | Criticidade | Owner        | Health |
+| ------------------------- | --------------------------- | ------- | ----------- | ----------- | ------------ | ------ |
+| velya-cloud-cost          | Cloud Cost Overview (AWS)   | 14      | Prometheus  | High        | Platform Eng | 82     |
+| velya-resource-efficiency | Resource Efficiency         | 12      | Prometheus  | Medium      | Platform Eng | 80     |
+| velya-observability-cost  | Observability Stack Cost    | 10      | Prometheus  | Medium      | Platform Eng | 78     |
+| velya-rightsizing         | Rightsizing Recommendations | 8       | Prometheus  | Medium      | Platform Eng | 75     |
 
 ---
 
@@ -221,7 +221,7 @@ metadata:
     app: dashboard-assurance-engine
     component: inventory-scanner
 spec:
-  schedule: "*/10 * * * *"
+  schedule: '*/10 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 3
@@ -234,53 +234,53 @@ spec:
           labels:
             app: dae-inventory-scanner
           annotations:
-            prometheus.io/scrape: "true"
-            prometheus.io/port: "8080"
+            prometheus.io/scrape: 'true'
+            prometheus.io/port: '8080'
         spec:
           serviceAccountName: dae-scanner
           containers:
-          - name: scanner
-            image: velya/dae-inventory-scanner:1.4.0
-            env:
-            - name: GRAFANA_URL
-              value: "http://grafana.velya-observability.svc:3000"
-            - name: GRAFANA_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: dae-credentials
-                  key: grafana-api-token
-            - name: INVENTORY_STORE
-              value: "/data/inventory"
-            - name: PROMETHEUS_PUSHGW
-              value: "http://prometheus-pushgateway.velya-observability.svc:9091"
-            command:
-            - python3
-            - /app/inventory_scanner.py
-            args:
-            - --grafana-url=$(GRAFANA_URL)
-            - --output-dir=$(INVENTORY_STORE)
-            - --push-metrics
-            - --detect-changes
-            - --validate-ownership
-            volumeMounts:
-            - name: data
-              mountPath: /data
-            - name: ownership-registry
-              mountPath: /config/ownership
-            resources:
-              requests:
-                cpu: 100m
-                memory: 128Mi
-              limits:
-                cpu: 500m
-                memory: 256Mi
+            - name: scanner
+              image: velya/dae-inventory-scanner:1.4.0
+              env:
+                - name: GRAFANA_URL
+                  value: 'http://grafana.velya-observability.svc:3000'
+                - name: GRAFANA_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: dae-credentials
+                      key: grafana-api-token
+                - name: INVENTORY_STORE
+                  value: '/data/inventory'
+                - name: PROMETHEUS_PUSHGW
+                  value: 'http://prometheus-pushgateway.velya-observability.svc:9091'
+              command:
+                - python3
+                - /app/inventory_scanner.py
+              args:
+                - --grafana-url=$(GRAFANA_URL)
+                - --output-dir=$(INVENTORY_STORE)
+                - --push-metrics
+                - --detect-changes
+                - --validate-ownership
+              volumeMounts:
+                - name: data
+                  mountPath: /data
+                - name: ownership-registry
+                  mountPath: /config/ownership
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
           volumes:
-          - name: data
-            persistentVolumeClaim:
-              claimName: dae-inventory-data
-          - name: ownership-registry
-            configMap:
-              name: dae-ownership-registry
+            - name: data
+              persistentVolumeClaim:
+                claimName: dae-inventory-data
+            - name: ownership-registry
+              configMap:
+                name: dae-ownership-registry
           restartPolicy: OnFailure
 ```
 
@@ -290,16 +290,16 @@ spec:
 
 ### Endpoints da API do Grafana Utilizados
 
-| Endpoint                                | Metodo | Finalidade                        |
-|-----------------------------------------|--------|-----------------------------------|
-| `/api/search?type=dash-db`              | GET    | Listar todos os dashboards        |
-| `/api/dashboards/uid/{uid}`             | GET    | Obter JSON completo do dashboard  |
-| `/api/datasources`                      | GET    | Listar todos os datasources      |
-| `/api/library-elements?kind=1`          | GET    | Listar library panels            |
-| `/api/folders`                          | GET    | Listar todas as pastas           |
-| `/api/datasources/{id}/health`          | GET    | Health check do datasource       |
-| `/api/dashboards/uid/{uid}/versions`    | GET    | Historico de versoes             |
-| `/api/usage-stats`                      | GET    | Estatisticas de uso              |
+| Endpoint                             | Metodo | Finalidade                       |
+| ------------------------------------ | ------ | -------------------------------- |
+| `/api/search?type=dash-db`           | GET    | Listar todos os dashboards       |
+| `/api/dashboards/uid/{uid}`          | GET    | Obter JSON completo do dashboard |
+| `/api/datasources`                   | GET    | Listar todos os datasources      |
+| `/api/library-elements?kind=1`       | GET    | Listar library panels            |
+| `/api/folders`                       | GET    | Listar todas as pastas           |
+| `/api/datasources/{id}/health`       | GET    | Health check do datasource       |
+| `/api/dashboards/uid/{uid}/versions` | GET    | Historico de versoes             |
+| `/api/usage-stats`                   | GET    | Estatisticas de uso              |
 
 ### Fluxo do Scanner
 
@@ -380,18 +380,18 @@ dae_inventory_orphan_datasource_references
 
 ## Validacoes Executadas no Scan
 
-| Validacao                            | Severidade | Acao se Falhar                         |
-|--------------------------------------|------------|----------------------------------------|
-| Dashboard tem owner                  | Warning    | Marcar no inventario, notificar        |
-| Dashboard tem criticidade            | Warning    | Marcar no inventario, notificar        |
-| Dashboard tem descricao              | Info       | Marcar no inventario                   |
-| Todos os datasources existem         | Error      | Alerta, marcar painel como broken      |
-| Todas as variaveis resolvem          | Warning    | Marcar painel como degraded            |
-| Links apontam para destinos validos  | Info       | Marcar link como broken                |
-| Dashboard esta sincronizado com Git  | Warning    | Marcar divergencia, notificar owner    |
-| Library panels estao na versao correta| Warning   | Marcar divergencia, notificar owner    |
-| Dashboard foi modificado por UI      | Info       | Registrar, verificar se deve ir ao Git |
-| Tags obrigatorias presentes          | Info       | Marcar no inventario                   |
+| Validacao                              | Severidade | Acao se Falhar                         |
+| -------------------------------------- | ---------- | -------------------------------------- |
+| Dashboard tem owner                    | Warning    | Marcar no inventario, notificar        |
+| Dashboard tem criticidade              | Warning    | Marcar no inventario, notificar        |
+| Dashboard tem descricao                | Info       | Marcar no inventario                   |
+| Todos os datasources existem           | Error      | Alerta, marcar painel como broken      |
+| Todas as variaveis resolvem            | Warning    | Marcar painel como degraded            |
+| Links apontam para destinos validos    | Info       | Marcar link como broken                |
+| Dashboard esta sincronizado com Git    | Warning    | Marcar divergencia, notificar owner    |
+| Library panels estao na versao correta | Warning    | Marcar divergencia, notificar owner    |
+| Dashboard foi modificado por UI        | Info       | Registrar, verificar se deve ir ao Git |
+| Tags obrigatorias presentes            | Info       | Marcar no inventario                   |
 
 ---
 
@@ -454,9 +454,9 @@ dae_inventory_orphan_datasource_references
 
 ## Retencao e Historico
 
-| Dado                    | Retencao | Armazenamento        |
-|------------------------|----------|----------------------|
-| Inventario completo    | 90 dias  | PVC + S3 backup      |
-| Diferencas entre scans | 1 ano    | Prometheus + S3      |
-| Metricas de inventario | 1 ano    | Prometheus TSDB      |
-| Changelog de dashboards| 1 ano    | Git + Grafana versions|
+| Dado                    | Retencao | Armazenamento          |
+| ----------------------- | -------- | ---------------------- |
+| Inventario completo     | 90 dias  | PVC + S3 backup        |
+| Diferencas entre scans  | 1 ano    | Prometheus + S3        |
+| Metricas de inventario  | 1 ano    | Prometheus TSDB        |
+| Changelog de dashboards | 1 ano    | Git + Grafana versions |

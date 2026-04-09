@@ -21,18 +21,19 @@ O Query Inspector e a ferramenta de debug mais importante do Grafana para diagno
 
 O Query Inspector tem 4 abas principais:
 
-| Aba      | Conteudo                                      | Uso Principal                    |
-|----------|-----------------------------------------------|----------------------------------|
-| Query    | Request HTTP enviado ao datasource            | Ver query exata, headers, params |
-| Data     | Dados retornados pelo datasource              | Ver formato, campos, valores     |
-| Stats    | Estatisticas de execucao                       | Ver tempo, bytes, cache          |
-| JSON     | Modelo JSON completo do request/response      | Debug avancado                   |
+| Aba   | Conteudo                                 | Uso Principal                    |
+| ----- | ---------------------------------------- | -------------------------------- |
+| Query | Request HTTP enviado ao datasource       | Ver query exata, headers, params |
+| Data  | Dados retornados pelo datasource         | Ver formato, campos, valores     |
+| Stats | Estatisticas de execucao                 | Ver tempo, bytes, cache          |
+| JSON  | Modelo JSON completo do request/response | Debug avancado                   |
 
 ---
 
 ## Procedimento 1: Diagnosticar Painel Sem Dados
 
 ### Cenario
+
 Painel mostra "No data" mas voce espera que tenha dados.
 
 ### Passos
@@ -54,6 +55,7 @@ O que procurar:
 ```
 
 **Exemplo de request Prometheus no Inspector:**
+
 ```json
 {
   "url": "/api/datasources/proxy/1/api/v1/query_range",
@@ -84,6 +86,7 @@ Se resultado vazio:
 ```
 
 **Exemplo de resposta vazia:**
+
 ```json
 {
   "status": "success",
@@ -95,6 +98,7 @@ Se resultado vazio:
 ```
 
 **Exemplo de resposta com dados:**
+
 ```json
 {
   "status": "success",
@@ -102,7 +106,7 @@ Se resultado vazio:
     "resultType": "matrix",
     "result": [
       {
-        "metric": {"job": "patient-api", "namespace": "velya"},
+        "metric": { "job": "patient-api", "namespace": "velya" },
         "values": [
           [1712534460, "42.5"],
           [1712534520, "43.1"],
@@ -144,6 +148,7 @@ Se retorna dados no Explore mas nao no painel:
 ## Procedimento 2: Diagnosticar Erro de Query
 
 ### Cenario
+
 Painel mostra mensagem de erro vermelha.
 
 ### Passos
@@ -204,6 +209,7 @@ Identificar em qual passo o erro aparece.
 ## Procedimento 3: Diagnosticar Query Lenta
 
 ### Cenario
+
 Painel carrega muito devagar (> 5 segundos).
 
 ### Passos
@@ -276,6 +282,7 @@ Grafana settings para cache:
 ## Procedimento 4: Diagnosticar Dados Presentes mas Nao Visiiveis
 
 ### Cenario
+
 Inspector mostra dados na aba Data, mas painel esta vazio ou com visualizacao incorreta.
 
 ### Passos
@@ -342,6 +349,7 @@ Em Edit > Field config:
 ## Procedimento 5: Diagnosticar Variavel que Nao Resolve
 
 ### Cenario
+
 Variavel mostra "No data" ou valor incorreto, afetando paineis.
 
 ### Passos
@@ -387,6 +395,7 @@ Verificar ordem das variaveis no dashboard settings.
 ## Procedimento 6: Diagnosticar Discrepancia entre Explore e Dashboard
 
 ### Cenario
+
 A mesma query retorna resultados diferentes no Explore vs no Dashboard.
 
 ### Passos
@@ -415,29 +424,29 @@ A mesma query retorna resultados diferentes no Explore vs no Dashboard.
 
 ## Tabela de Referencia Rapida
 
-| Sintoma                        | Primeiro Lugar para Verificar    | Correcao Provavel                  |
-|-------------------------------|----------------------------------|------------------------------------|
-| No data                      | Inspector > Query > response     | Verificar metrica/labels/time range|
-| Erro vermelho                 | Inspector > Query > error        | Corrigir sintaxe PromQL/LogQL      |
-| Carregamento lento            | Inspector > Stats > timing       | Otimizar query, recording rules    |
-| Dados presentes mas invisiveis| Inspector > Data > campos        | Verificar tipo de painel, overrides|
-| Variavel vazia                | Dashboard Settings > Variables   | Verificar query e datasource       |
-| Valores incorretos            | Inspector > Data > valores       | Verificar unidade, transformacoes  |
-| Discrepancia com Explore      | Comparar queries resolvidas      | Verificar time range, step, vars   |
-| Timeout                       | Inspector > Stats > timing       | Reduzir time range ou cardinalidade|
+| Sintoma                        | Primeiro Lugar para Verificar  | Correcao Provavel                   |
+| ------------------------------ | ------------------------------ | ----------------------------------- |
+| No data                        | Inspector > Query > response   | Verificar metrica/labels/time range |
+| Erro vermelho                  | Inspector > Query > error      | Corrigir sintaxe PromQL/LogQL       |
+| Carregamento lento             | Inspector > Stats > timing     | Otimizar query, recording rules     |
+| Dados presentes mas invisiveis | Inspector > Data > campos      | Verificar tipo de painel, overrides |
+| Variavel vazia                 | Dashboard Settings > Variables | Verificar query e datasource        |
+| Valores incorretos             | Inspector > Data > valores     | Verificar unidade, transformacoes   |
+| Discrepancia com Explore       | Comparar queries resolvidas    | Verificar time range, step, vars    |
+| Timeout                        | Inspector > Stats > timing     | Reduzir time range ou cardinalidade |
 
 ---
 
 ## Atalhos Uteis
 
-| Atalho          | Acao                                    |
-|----------------|-----------------------------------------|
-| `e`            | Editar painel (modo edit)               |
-| `i`            | Inspecionar painel (abre inspector)     |
-| `v`            | Ver painel em tela cheia                |
-| `d s`          | Salvar dashboard                        |
-| `Ctrl+Z`       | Desfazer ultima mudanca (em edit)       |
-| `t z`          | Zoom out no time range                  |
+| Atalho   | Acao                                |
+| -------- | ----------------------------------- |
+| `e`      | Editar painel (modo edit)           |
+| `i`      | Inspecionar painel (abre inspector) |
+| `v`      | Ver painel em tela cheia            |
+| `d s`    | Salvar dashboard                    |
+| `Ctrl+Z` | Desfazer ultima mudanca (em edit)   |
+| `t z`    | Zoom out no time range              |
 
 ---
 

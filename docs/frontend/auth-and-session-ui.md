@@ -27,21 +27,16 @@ A autenticação na plataforma Velya é crítica: equipes hospitalares precisam 
 
 ```tsx
 // lib/auth.ts
-import NextAuth from 'next-auth'
-import Credentials from 'next-auth/providers/credentials'
-import { z } from 'zod'
+import NextAuth from 'next-auth';
+import Credentials from 'next-auth/providers/credentials';
+import { z } from 'zod';
 
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-})
+});
 
-export const {
-  handlers,
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       name: 'Velya',
@@ -50,18 +45,18 @@ export const {
         password: { label: 'Senha', type: 'password' },
       },
       async authorize(credentials) {
-        const validated = loginSchema.safeParse(credentials)
-        if (!validated.success) return null
+        const validated = loginSchema.safeParse(credentials);
+        if (!validated.success) return null;
 
         const response = await fetch(`${process.env.AUTH_API_URL}/authenticate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(validated.data),
-        })
+        });
 
-        if (!response.ok) return null
+        if (!response.ok) return null;
 
-        const user = await response.json()
+        const user = await response.json();
         return {
           id: user.id,
           name: user.name,
@@ -70,7 +65,7 @@ export const {
           permissions: user.permissions,
           unit: user.unit,
           avatar: user.avatar,
-        }
+        };
       },
     }),
   ],
@@ -88,60 +83,60 @@ export const {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.role = user.role
-        token.permissions = user.permissions
-        token.unit = user.unit
+        token.id = user.id;
+        token.role = user.role;
+        token.permissions = user.permissions;
+        token.unit = user.unit;
       }
-      return token
+      return token;
     },
 
     async session({ session, token }) {
-      session.user.id = token.id as string
-      session.user.role = token.role as string
-      session.user.permissions = token.permissions as string[]
-      session.user.unit = token.unit as string
-      return session
+      session.user.id = token.id as string;
+      session.user.role = token.role as string;
+      session.user.permissions = token.permissions as string[];
+      session.user.unit = token.unit as string;
+      return session;
     },
 
     async redirect({ url, baseUrl }) {
-      if (url.startsWith('/')) return `${baseUrl}${url}`
-      if (new URL(url).origin === baseUrl) return url
-      return baseUrl
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
   },
-})
+});
 ```
 
 ### 2.2 Tipagem da Sessão
 
 ```tsx
 // types/next-auth.d.ts
-import { DefaultSession } from 'next-auth'
+import { DefaultSession } from 'next-auth';
 
 declare module 'next-auth' {
   interface Session {
     user: {
-      id: string
-      role: string
-      permissions: string[]
-      unit: string
-    } & DefaultSession['user']
+      id: string;
+      role: string;
+      permissions: string[];
+      unit: string;
+    } & DefaultSession['user'];
   }
 
   interface User {
-    role: string
-    permissions: string[]
-    unit: string
+    role: string;
+    permissions: string[];
+    unit: string;
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    id: string
-    role: string
-    permissions: string[]
-    unit: string
+    id: string;
+    role: string;
+    permissions: string[];
+    unit: string;
   }
 }
 ```
@@ -154,8 +149,8 @@ declare module 'next-auth/jwt' {
 
 ```tsx
 // middleware.ts
-import { auth } from '@/lib/auth'
-import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth';
+import { NextResponse } from 'next/server';
 
 // Mapa de rotas protegidas por permissão
 const ROUTE_PERMISSIONS: Record<string, string[]> = {
@@ -169,104 +164,96 @@ const ROUTE_PERMISSIONS: Record<string, string[]> = {
   '/workforce': ['workforce.view'],
   '/agents': ['agents.view'],
   '/observability': ['observability.access'],
-}
+};
 
 export default auth((req) => {
-  const { nextUrl } = req
-  const session = req.auth
+  const { nextUrl } = req;
+  const session = req.auth;
 
   // Verificar permissão de rota
   for (const [route, permissions] of Object.entries(ROUTE_PERMISSIONS)) {
     if (nextUrl.pathname.startsWith(route)) {
-      const hasPermission = permissions.some((p) =>
-        session?.user.permissions.includes(p)
-      )
+      const hasPermission = permissions.some((p) => session?.user.permissions.includes(p));
       if (!hasPermission) {
-        return NextResponse.redirect(new URL('/access-denied', nextUrl))
+        return NextResponse.redirect(new URL('/access-denied', nextUrl));
       }
     }
   }
 
-  return NextResponse.next()
-})
+  return NextResponse.next();
+});
 ```
 
 ### 3.2 Guarda por Componente
 
 ```tsx
 // components/auth/permission-guard.tsx
-'use client'
+'use client';
 
-import { useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react';
 
 interface PermissionGuardProps {
-  permission: string | string[]
-  children: React.ReactNode
-  fallback?: React.ReactNode
+  permission: string | string[];
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
 }
 
-export function PermissionGuard({
-  permission,
-  children,
-  fallback = null,
-}: PermissionGuardProps) {
-  const { data: session } = useSession()
+export function PermissionGuard({ permission, children, fallback = null }: PermissionGuardProps) {
+  const { data: session } = useSession();
 
-  if (!session) return null
+  if (!session) return null;
 
-  const permissions = Array.isArray(permission) ? permission : [permission]
-  const hasPermission = permissions.some((p) =>
-    session.user.permissions.includes(p)
-  )
+  const permissions = Array.isArray(permission) ? permission : [permission];
+  const hasPermission = permissions.some((p) => session.user.permissions.includes(p));
 
-  if (!hasPermission) return <>{fallback}</>
+  if (!hasPermission) return <>{fallback}</>;
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 // Uso
 <PermissionGuard permission="medication.administer">
   <Button onClick={handleAdminister}>Administrar medicação</Button>
-</PermissionGuard>
+</PermissionGuard>;
 ```
 
 ### 3.3 Guarda por Ação (Hook)
 
 ```tsx
 // hooks/use-permission.ts
-'use client'
+'use client';
 
-import { useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react';
 
 export function usePermission(permission: string | string[]): boolean {
-  const { data: session } = useSession()
+  const { data: session } = useSession();
 
-  if (!session) return false
+  if (!session) return false;
 
-  const permissions = Array.isArray(permission) ? permission : [permission]
-  return permissions.some((p) => session.user.permissions.includes(p))
+  const permissions = Array.isArray(permission) ? permission : [permission];
+  return permissions.some((p) => session.user.permissions.includes(p));
 }
 
 export function useRole(role: string | string[]): boolean {
-  const { data: session } = useSession()
+  const { data: session } = useSession();
 
-  if (!session) return false
+  if (!session) return false;
 
-  const roles = Array.isArray(role) ? role : [role]
-  return roles.includes(session.user.role)
+  const roles = Array.isArray(role) ? role : [role];
+  return roles.includes(session.user.role);
 }
 
 // Uso
 function MedicationActions() {
-  const canAdminister = usePermission('medication.administer')
-  const canPrescribe = usePermission('medication.prescribe')
+  const canAdminister = usePermission('medication.administer');
+  const canPrescribe = usePermission('medication.prescribe');
 
   return (
     <div>
       {canAdminister && <Button>Administrar</Button>}
       {canPrescribe && <Button>Prescrever</Button>}
     </div>
-  )
+  );
 }
 ```
 
@@ -278,13 +265,13 @@ function MedicationActions() {
 
 ```tsx
 function SessionIndicator() {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSession();
 
   if (status === 'loading') {
-    return <Skeleton className="h-8 w-32" />
+    return <Skeleton className="h-8 w-32" />;
   }
 
-  if (!session) return null
+  if (!session) return null;
 
   return (
     <DropdownMenu>
@@ -304,9 +291,7 @@ function SessionIndicator() {
         <DropdownMenuLabel>
           <p className="font-medium">{session.user.name}</p>
           <p className="text-xs text-muted-foreground">{session.user.email}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Unidade: {session.user.unit}
-          </p>
+          <p className="text-xs text-muted-foreground mt-1">Unidade: {session.user.unit}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
@@ -327,7 +312,7 @@ function SessionIndicator() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
 ```
 
@@ -335,36 +320,36 @@ function SessionIndicator() {
 
 ```tsx
 function SessionExpiryWatcher() {
-  const { data: session, update } = useSession()
-  const [showWarning, setShowWarning] = useState(false)
-  const [timeLeft, setTimeLeft] = useState<number | null>(null)
+  const { data: session, update } = useSession();
+  const [showWarning, setShowWarning] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!session) return
+    if (!session) return;
 
-    const expiresAt = new Date(session.expires).getTime()
-    const warningThreshold = 5 * 60 * 1000 // 5 minutos antes
+    const expiresAt = new Date(session.expires).getTime();
+    const warningThreshold = 5 * 60 * 1000; // 5 minutos antes
 
     const interval = setInterval(() => {
-      const now = Date.now()
-      const remaining = expiresAt - now
+      const now = Date.now();
+      const remaining = expiresAt - now;
 
       if (remaining <= 0) {
         // Sessão expirada — redirecionar
-        signOut({ callbackUrl: '/login?reason=expired' })
-        return
+        signOut({ callbackUrl: '/login?reason=expired' });
+        return;
       }
 
       if (remaining <= warningThreshold) {
-        setShowWarning(true)
-        setTimeLeft(Math.ceil(remaining / 1000))
+        setShowWarning(true);
+        setTimeLeft(Math.ceil(remaining / 1000));
       }
-    }, 1000)
+    }, 1000);
 
-    return () => clearInterval(interval)
-  }, [session])
+    return () => clearInterval(interval);
+  }, [session]);
 
-  if (!showWarning) return null
+  if (!showWarning) return null;
 
   return (
     <Dialog open={showWarning}>
@@ -379,16 +364,18 @@ function SessionExpiryWatcher() {
           <Button variant="outline" onClick={() => signOut({ callbackUrl: '/login' })}>
             Sair
           </Button>
-          <Button onClick={async () => {
-            await update() // Renova a sessão
-            setShowWarning(false)
-          }}>
+          <Button
+            onClick={async () => {
+              await update(); // Renova a sessão
+              setShowWarning(false);
+            }}
+          >
             Continuar conectado
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 ```
 
@@ -398,31 +385,27 @@ function SessionExpiryWatcher() {
 
 ### 5.1 Quando Reautenticar
 
-| Cenário | Motivo |
-|---|---|
-| Administrar medicação controlada | Ação de alto risco, confirmar identidade |
-| Alterar permissões de outro usuário | Ação administrativa sensível |
-| Acessar dados de paciente VIP | Acesso restrito, auditado |
-| Break-glass (acesso emergencial) | Override de permissão, requer justificativa |
-| Inatividade > 30 minutos | Tela pode estar desatendida |
-| Exportar dados sensíveis | Prevenção de vazamento |
+| Cenário                             | Motivo                                      |
+| ----------------------------------- | ------------------------------------------- |
+| Administrar medicação controlada    | Ação de alto risco, confirmar identidade    |
+| Alterar permissões de outro usuário | Ação administrativa sensível                |
+| Acessar dados de paciente VIP       | Acesso restrito, auditado                   |
+| Break-glass (acesso emergencial)    | Override de permissão, requer justificativa |
+| Inatividade > 30 minutos            | Tela pode estar desatendida                 |
+| Exportar dados sensíveis            | Prevenção de vazamento                      |
 
 ### 5.2 Dialog de Reautenticação
 
 ```tsx
-function ReauthDialog({
-  open,
-  onAuthenticated,
-  reason,
-}: ReauthDialogProps) {
-  const { data: session } = useSession()
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+function ReauthDialog({ open, onAuthenticated, reason }: ReauthDialogProps) {
+  const { data: session } = useSession();
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleReauth() {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
       const result = await fetch('/api/auth/reauth', {
@@ -432,18 +415,18 @@ function ReauthDialog({
           email: session?.user.email,
           password,
         }),
-      })
+      });
 
       if (result.ok) {
-        onAuthenticated()
-        setPassword('')
+        onAuthenticated();
+        setPassword('');
       } else {
-        setError('Senha incorreta')
+        setError('Senha incorreta');
       }
     } catch {
-      setError('Erro ao verificar credenciais')
+      setError('Erro ao verificar credenciais');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -495,7 +478,7 @@ function ReauthDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 ```
 
@@ -503,32 +486,32 @@ function ReauthDialog({
 
 ```tsx
 function useReauth() {
-  const [showReauth, setShowReauth] = useState(false)
-  const resolveRef = useRef<(() => void) | null>(null)
+  const [showReauth, setShowReauth] = useState(false);
+  const resolveRef = useRef<(() => void) | null>(null);
 
   async function requireReauth(reason?: string): Promise<boolean> {
     return new Promise((resolve) => {
-      resolveRef.current = () => resolve(true)
-      setShowReauth(true)
-    })
+      resolveRef.current = () => resolve(true);
+      setShowReauth(true);
+    });
   }
 
   function onAuthenticated() {
-    resolveRef.current?.()
-    setShowReauth(false)
+    resolveRef.current?.();
+    setShowReauth(false);
   }
 
-  return { showReauth, requireReauth, onAuthenticated }
+  return { showReauth, requireReauth, onAuthenticated };
 }
 
 // Uso
 function MedicationAdminButton({ medication }: Props) {
-  const { showReauth, requireReauth, onAuthenticated } = useReauth()
+  const { showReauth, requireReauth, onAuthenticated } = useReauth();
 
   async function handleAdmin() {
-    const confirmed = await requireReauth('Administração de medicação requer confirmação')
+    const confirmed = await requireReauth('Administração de medicação requer confirmação');
     if (confirmed) {
-      await administerMedication(medication.id)
+      await administerMedication(medication.id);
     }
   }
 
@@ -541,7 +524,7 @@ function MedicationAdminButton({ medication }: Props) {
         reason="Administração de medicação requer confirmação de identidade"
       />
     </>
-  )
+  );
 }
 ```
 
@@ -556,22 +539,17 @@ Break-glass é um mecanismo de acesso emergencial que permite overriding tempor�
 ### 6.2 Componente Break-Glass
 
 ```tsx
-function BreakGlassDialog({
-  open,
-  onOpenChange,
-  resource,
-  onActivate,
-}: BreakGlassProps) {
-  const [reason, setReason] = useState('')
-  const [acknowledged, setAcknowledged] = useState(false)
-  const [countdown, setCountdown] = useState(5)
+function BreakGlassDialog({ open, onOpenChange, resource, onActivate }: BreakGlassProps) {
+  const [reason, setReason] = useState('');
+  const [acknowledged, setAcknowledged] = useState(false);
+  const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
     if (open && countdown > 0) {
-      const timer = setTimeout(() => setCountdown((c) => c - 1), 1000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+      return () => clearTimeout(timer);
     }
-  }, [open, countdown])
+  }, [open, countdown]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -582,8 +560,8 @@ function BreakGlassDialog({
             Acesso Emergencial (Break-Glass)
           </DialogTitle>
           <DialogDescription>
-            Você está solicitando acesso emergencial a recurso protegido.
-            Este acesso será registrado em auditoria e revisado.
+            Você está solicitando acesso emergencial a recurso protegido. Este acesso será
+            registrado em auditoria e revisado.
           </DialogDescription>
         </DialogHeader>
 
@@ -593,8 +571,8 @@ function BreakGlassDialog({
           <AlertDescription>
             Recurso: <strong>{resource}</strong>
             <br />
-            Este acesso viola a política de permissões normal e será
-            reportado ao gestor de segurança.
+            Este acesso viola a política de permissões normal e será reportado ao gestor de
+            segurança.
           </AlertDescription>
         </Alert>
 
@@ -616,8 +594,8 @@ function BreakGlassDialog({
               onCheckedChange={(v) => setAcknowledged(!!v)}
             />
             <Label htmlFor="acknowledge" className="text-sm">
-              Confirmo que este acesso é necessário para atendimento
-              emergencial ao paciente e que será auditado.
+              Confirmo que este acesso é necessário para atendimento emergencial ao paciente e que
+              será auditado.
             </Label>
           </div>
         </div>
@@ -631,14 +609,12 @@ function BreakGlassDialog({
             onClick={() => onActivate(reason)}
             disabled={!acknowledged || !reason.trim() || countdown > 0}
           >
-            {countdown > 0
-              ? `Aguarde ${countdown}s`
-              : 'Ativar acesso emergencial'}
+            {countdown > 0 ? `Aguarde ${countdown}s` : 'Ativar acesso emergencial'}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 ```
 
@@ -670,14 +646,14 @@ function SwitchUserButton() {
       variant="ghost"
       size="sm"
       onClick={async () => {
-        await signOut({ redirect: false })
-        window.location.href = '/login?mode=switch'
+        await signOut({ redirect: false });
+        window.location.href = '/login?mode=switch';
       }}
     >
       <UserSwitch className="mr-2 h-4 w-4" />
       Trocar usuário
     </Button>
-  )
+  );
 }
 ```
 
@@ -687,12 +663,12 @@ function SwitchUserButton() {
 
 ### 8.1 Regras de Inatividade
 
-| Contexto | Timeout | Ação |
-|---|---|---|
-| Desktop (posto de enfermagem) | 30 minutos | Lock screen |
-| Mobile (pessoal) | 15 minutos | Lock screen |
-| Tela de medicação aberta | 10 minutos | Lock screen + alerta |
-| Após break-glass | 5 minutos | Logoff completo |
+| Contexto                      | Timeout    | Ação                 |
+| ----------------------------- | ---------- | -------------------- |
+| Desktop (posto de enfermagem) | 30 minutos | Lock screen          |
+| Mobile (pessoal)              | 15 minutos | Lock screen          |
+| Tela de medicação aberta      | 10 minutos | Lock screen + alerta |
+| Após break-glass              | 5 minutos  | Logoff completo      |
 
 ### 8.2 Detector de Inatividade
 
@@ -702,24 +678,24 @@ function InactivityDetector({
   onInactive,
 }: InactivityProps) {
   useEffect(() => {
-    let timer: NodeJS.Timeout
+    let timer: NodeJS.Timeout;
 
     function resetTimer() {
-      clearTimeout(timer)
-      timer = setTimeout(onInactive, timeout)
+      clearTimeout(timer);
+      timer = setTimeout(onInactive, timeout);
     }
 
-    const events = ['mousedown', 'keydown', 'touchstart', 'scroll']
-    events.forEach((event) => document.addEventListener(event, resetTimer))
-    resetTimer()
+    const events = ['mousedown', 'keydown', 'touchstart', 'scroll'];
+    events.forEach((event) => document.addEventListener(event, resetTimer));
+    resetTimer();
 
     return () => {
-      clearTimeout(timer)
-      events.forEach((event) => document.removeEventListener(event, resetTimer))
-    }
-  }, [timeout, onInactive])
+      clearTimeout(timer);
+      events.forEach((event) => document.removeEventListener(event, resetTimer));
+    };
+  }, [timeout, onInactive]);
 
-  return null
+  return null;
 }
 ```
 
@@ -731,8 +707,8 @@ function InactivityDetector({
 
 ```tsx
 function LockScreen({ userName, onUnlock }: LockScreenProps) {
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   async function handleUnlock() {
     try {
@@ -740,16 +716,16 @@ function LockScreen({ userName, onUnlock }: LockScreenProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
-      })
+      });
 
       if (result.ok) {
-        onUnlock()
+        onUnlock();
       } else {
-        setError('Senha incorreta')
-        setPassword('')
+        setError('Senha incorreta');
+        setPassword('');
       }
     } catch {
-      setError('Erro ao verificar credenciais')
+      setError('Erro ao verificar credenciais');
     }
   }
 
@@ -789,12 +765,10 @@ function LockScreen({ userName, onUnlock }: LockScreenProps) {
           </Button>
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          {new Date().toLocaleString('pt-BR')}
-        </p>
+        <p className="text-xs text-muted-foreground">{new Date().toLocaleString('pt-BR')}</p>
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -820,20 +794,20 @@ function BackgroundResumeHandler() {
         fetch('/api/auth/session')
           .then((res) => {
             if (res.status === 401) {
-              signOut({ callbackUrl: '/login?reason=expired' })
+              signOut({ callbackUrl: '/login?reason=expired' });
             }
           })
           .catch(() => {
             // Offline — não faz nada, mostra banner degradado
-          })
+          });
       }
     }
 
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [])
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
-  return null
+  return null;
 }
 ```
 
@@ -879,21 +853,21 @@ async jwt({ token }) {
 ```tsx
 function CrossTabSessionSync() {
   useEffect(() => {
-    const channel = new BroadcastChannel('velya-session')
+    const channel = new BroadcastChannel('velya-session');
 
     channel.addEventListener('message', (event) => {
       if (event.data.type === 'LOGOUT') {
-        signOut({ callbackUrl: '/login' })
+        signOut({ callbackUrl: '/login' });
       }
       if (event.data.type === 'LOGIN') {
-        window.location.reload()
+        window.location.reload();
       }
-    })
+    });
 
-    return () => channel.close()
-  }, [])
+    return () => channel.close();
+  }, []);
 
-  return null
+  return null;
 }
 ```
 
@@ -907,7 +881,7 @@ function CrossTabSessionSync() {
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams: { callbackUrl?: string; error?: string; reason?: string }
+  searchParams: { callbackUrl?: string; error?: string; reason?: string };
 }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -932,7 +906,7 @@ export default function LoginPage({
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
 ```
 
@@ -945,8 +919,8 @@ export default function AccessDeniedPage() {
       <ShieldOff className="h-16 w-16 text-destructive/50 mb-4" />
       <h1 className="text-2xl font-bold">Acesso negado</h1>
       <p className="text-muted-foreground mt-2 max-w-md">
-        Você não tem permissão para acessar este recurso.
-        Contate seu administrador se acredita que isto é um erro.
+        Você não tem permissão para acessar este recurso. Contate seu administrador se acredita que
+        isto é um erro.
       </p>
       <div className="flex gap-2 mt-6">
         <Button variant="outline" asChild>
@@ -957,7 +931,7 @@ export default function AccessDeniedPage() {
         </Button>
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -967,35 +941,35 @@ export default function AccessDeniedPage() {
 
 ### 12.1 Roles Hospitalares
 
-| Role | Descrição | Permissões Chave |
-|---|---|---|
-| `admin` | Administrador do sistema | Tudo |
-| `medical-director` | Diretor médico | Todas clínicas + gestão |
-| `physician` | Médico | Prescrever, diagnosticar, alta |
-| `nurse-lead` | Enfermeiro líder | Gestão de equipe, handoff |
-| `nurse` | Enfermeiro | Administrar medicação, registrar |
-| `nursing-tech` | Técnico de enfermagem | Registrar vitais, dor, chamadas |
-| `pharmacist` | Farmacêutico | Validar prescrições |
-| `receptionist` | Recepcionista | Admissão, agenda |
-| `observer` | Observador (auditor) | Somente leitura |
+| Role               | Descrição                | Permissões Chave                 |
+| ------------------ | ------------------------ | -------------------------------- |
+| `admin`            | Administrador do sistema | Tudo                             |
+| `medical-director` | Diretor médico           | Todas clínicas + gestão          |
+| `physician`        | Médico                   | Prescrever, diagnosticar, alta   |
+| `nurse-lead`       | Enfermeiro líder         | Gestão de equipe, handoff        |
+| `nurse`            | Enfermeiro               | Administrar medicação, registrar |
+| `nursing-tech`     | Técnico de enfermagem    | Registrar vitais, dor, chamadas  |
+| `pharmacist`       | Farmacêutico             | Validar prescrições              |
+| `receptionist`     | Recepcionista            | Admissão, agenda                 |
+| `observer`         | Observador (auditor)     | Somente leitura                  |
 
 ### 12.2 Verificação de Hierarquia
 
 ```tsx
 const ROLE_HIERARCHY: Record<string, number> = {
-  'admin': 100,
+  admin: 100,
   'medical-director': 90,
-  'physician': 80,
+  physician: 80,
   'nurse-lead': 70,
-  'nurse': 60,
+  nurse: 60,
   'nursing-tech': 50,
-  'pharmacist': 60,
-  'receptionist': 30,
-  'observer': 10,
-}
+  pharmacist: 60,
+  receptionist: 30,
+  observer: 10,
+};
 
 function hasMinimumRole(userRole: string, requiredRole: string): boolean {
-  return (ROLE_HIERARCHY[userRole] || 0) >= (ROLE_HIERARCHY[requiredRole] || 0)
+  return (ROLE_HIERARCHY[userRole] || 0) >= (ROLE_HIERARCHY[requiredRole] || 0);
 }
 ```
 
@@ -1003,15 +977,15 @@ function hasMinimumRole(userRole: string, requiredRole: string): boolean {
 
 ## 13. Métricas de Autenticação
 
-| Métrica | Monitorar |
-|---|---|
-| Login success rate | > 99% |
-| Login latency (P95) | < 2s |
-| Session expiry rate | Baseline tracking |
-| Break-glass activations | Alert if > 0 |
-| Failed login attempts | Alert if > 5 per user/hour |
-| Concurrent sessions per user | Track |
-| Reauth requests | Track by action type |
+| Métrica                      | Monitorar                  |
+| ---------------------------- | -------------------------- |
+| Login success rate           | > 99%                      |
+| Login latency (P95)          | < 2s                       |
+| Session expiry rate          | Baseline tracking          |
+| Break-glass activations      | Alert if > 0               |
+| Failed login attempts        | Alert if > 5 per user/hour |
+| Concurrent sessions per user | Track                      |
+| Reauth requests              | Track by action type       |
 
 ---
 

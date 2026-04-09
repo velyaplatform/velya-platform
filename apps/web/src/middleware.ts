@@ -44,7 +44,7 @@ export function middleware(request: NextRequest) {
     if (!sessionCookie) {
       return NextResponse.json(
         { error: 'Nao autenticado. Faca login primeiro.', code: 'UNAUTHORIZED' },
-        { status: 401 }
+        { status: 401 },
       );
     }
   }
@@ -53,18 +53,20 @@ export function middleware(request: NextRequest) {
   if (!path.startsWith('/_next/') && !path.includes('.') && path !== '/favicon.ico') {
     // Use edge-compatible logging (can't use fs in middleware)
     // This will be picked up by the container log aggregator
-    console.log(JSON.stringify({
-      audit: true,
-      level: 'info',
-      service: 'velya-web',
-      event: 'http_request',
-      requestId,
-      method: request.method,
-      path,
-      timestamp: new Date().toISOString(),
-      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-      userAgent: request.headers.get('user-agent')?.slice(0, 100) || 'unknown',
-    }));
+    console.log(
+      JSON.stringify({
+        audit: true,
+        level: 'info',
+        service: 'velya-web',
+        event: 'http_request',
+        requestId,
+        method: request.method,
+        path,
+        timestamp: new Date().toISOString(),
+        ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+        userAgent: request.headers.get('user-agent')?.slice(0, 100) || 'unknown',
+      }),
+    );
   }
 
   return response;

@@ -17,19 +17,19 @@ Nenhuma responsabilidade e transferida de um profissional para outro sem que o r
 
 ### 2.1 Tabela de Timeouts
 
-| Prioridade | Timeout para Aceite | Escalacao Nivel 1 | Escalacao Nivel 2 | Escalacao Nivel 3 |
-|---|---|---|---|---|
-| **Critico** | 5 minutos | Coordenador da unidade receptora (5 min) | Supervisao geral (10 min) | Plantonista backup automatico (15 min) |
-| **Urgente** | 15 minutos | Coordenador de enfermagem/medico (15 min) | Supervisao geral (30 min) | Diretoria de plantao (45 min) |
-| **Rotina** | 60 minutos | Supervisor do turno (60 min) | Coordenador da unidade (90 min) | Registro como gap + alerta (120 min) |
+| Prioridade  | Timeout para Aceite | Escalacao Nivel 1                         | Escalacao Nivel 2               | Escalacao Nivel 3                      |
+| ----------- | ------------------- | ----------------------------------------- | ------------------------------- | -------------------------------------- |
+| **Critico** | 5 minutos           | Coordenador da unidade receptora (5 min)  | Supervisao geral (10 min)       | Plantonista backup automatico (15 min) |
+| **Urgente** | 15 minutos          | Coordenador de enfermagem/medico (15 min) | Supervisao geral (30 min)       | Diretoria de plantao (45 min)          |
+| **Rotina**  | 60 minutos          | Supervisor do turno (60 min)              | Coordenador da unidade (90 min) | Registro como gap + alerta (120 min)   |
 
 ### 2.2 Criterios de Prioridade
 
-| Prioridade | Criterios |
-|---|---|
-| **Critico** | Paciente instavel (NEWS2 >= 7), resultado critico pendente, PCR recente, pos-operatorio imediato de cirurgia complexa, isolamento por doenca transmissivel aguda |
+| Prioridade  | Criterios                                                                                                                                                                   |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Critico** | Paciente instavel (NEWS2 >= 7), resultado critico pendente, PCR recente, pos-operatorio imediato de cirurgia complexa, isolamento por doenca transmissivel aguda            |
 | **Urgente** | Paciente com risco moderado (NEWS2 5-6), medicamento de alto risco em andamento, dor nao controlada (>= 7), dispositivo invasivo recente (< 24h), pendencia com SLA proximo |
-| **Rotina** | Paciente estavel, sem pendencias criticas, internacao > 48h sem intercorrencias, alta programada |
+| **Rotina**  | Paciente estavel, sem pendencias criticas, internacao > 48h sem intercorrencias, alta programada                                                                            |
 
 ---
 
@@ -145,12 +145,12 @@ EMISSOR                          SISTEMA                         RECEPTOR
 
 ### 4.2 Notificacoes em Cada Nivel
 
-| Nivel | Canal | Destinatarios | Conteudo |
-|---|---|---|---|
-| Envio inicial | Push + Badge + Som | Receptor | Resumo do handoff + lista de pacientes |
-| Nivel 1 | Push + SMS | Receptor + Supervisor | "Handoff pendente ha {X} min. {N} pacientes sem aceite." |
-| Nivel 2 | Push + SMS + Ligacao | Coordenadores | "Handoff critico nao aceito. Paciente {nome} em {unidade}. Intervencao necessaria." |
-| Nivel 3 | Todos + Dashboard | Diretoria + Backup | "Handoff nao aceito em {X} min. Backup automatico ativado." |
+| Nivel         | Canal                | Destinatarios         | Conteudo                                                                            |
+| ------------- | -------------------- | --------------------- | ----------------------------------------------------------------------------------- |
+| Envio inicial | Push + Badge + Som   | Receptor              | Resumo do handoff + lista de pacientes                                              |
+| Nivel 1       | Push + SMS           | Receptor + Supervisor | "Handoff pendente ha {X} min. {N} pacientes sem aceite."                            |
+| Nivel 2       | Push + SMS + Ligacao | Coordenadores         | "Handoff critico nao aceito. Paciente {nome} em {unidade}. Intervencao necessaria." |
+| Nivel 3       | Todos + Dashboard    | Diretoria + Backup    | "Handoff nao aceito em {X} min. Backup automatico ativado."                         |
 
 ---
 
@@ -158,14 +158,14 @@ EMISSOR                          SISTEMA                         RECEPTOR
 
 ### 5.1 Motivos Padrao de Recusa
 
-| Codigo | Motivo | Acao do Sistema |
-|---|---|---|
-| `CAPACITY` | "Capacidade excedida — ja com {N} pacientes" | Verifica ratio da unidade, busca alternativa |
-| `COMPETENCE` | "Paciente requer competencia que nao possuo" | Busca profissional com competencia adequada |
-| `CONFLICT` | "Conflito de interesse (familiar, conhecido)" | Busca alternativa, registra |
-| `INCOMPLETE` | "Informacoes insuficientes para aceite seguro" | Solicita complemento ao emissor |
-| `WRONG_RECIPIENT` | "Paciente deveria ir para outra unidade/equipe" | Redireciona conforme sugestao |
-| `SAFETY` | "Condicoes de seguranca inadequadas (leito, equip.)" | Escala para supervisao operacional |
+| Codigo            | Motivo                                               | Acao do Sistema                              |
+| ----------------- | ---------------------------------------------------- | -------------------------------------------- |
+| `CAPACITY`        | "Capacidade excedida — ja com {N} pacientes"         | Verifica ratio da unidade, busca alternativa |
+| `COMPETENCE`      | "Paciente requer competencia que nao possuo"         | Busca profissional com competencia adequada  |
+| `CONFLICT`        | "Conflito de interesse (familiar, conhecido)"        | Busca alternativa, registra                  |
+| `INCOMPLETE`      | "Informacoes insuficientes para aceite seguro"       | Solicita complemento ao emissor              |
+| `WRONG_RECIPIENT` | "Paciente deveria ir para outra unidade/equipe"      | Redireciona conforme sugestao                |
+| `SAFETY`          | "Condicoes de seguranca inadequadas (leito, equip.)" | Escala para supervisao operacional           |
 
 ### 5.2 Regras de Recusa
 
@@ -183,31 +183,31 @@ EMISSOR                          SISTEMA                         RECEPTOR
 
 O formato I-PASS e obrigatorio para handoffs clinicos (medico-medico, enfermeiro-enfermeiro):
 
-| Componente | Descricao | Campos no Sistema |
-|---|---|---|
-| **I** - Illness Severity | Gravidade: estavel, em observacao, instavel | Dropdown + auto-preenchido pelo NEWS2 |
-| **P** - Patient Summary | Resumo: diagnostico principal, historia relevante, plano | Texto livre + auto-sugestao do Twin |
-| **A** - Action List | Lista de pendencias e acoes para o proximo turno | Checklist (auto-populado das pendencias do Twin) |
-| **S** - Situation Awareness | O que observar: sinais de alerta, limiares, contingencias | Texto livre + alertas ativos do Twin |
-| **S** - Synthesis | Confirmacao de entendimento pelo receptor | Checkbox "Entendi e confirmo" + espaco para duvidas |
+| Componente                  | Descricao                                                 | Campos no Sistema                                   |
+| --------------------------- | --------------------------------------------------------- | --------------------------------------------------- |
+| **I** - Illness Severity    | Gravidade: estavel, em observacao, instavel               | Dropdown + auto-preenchido pelo NEWS2               |
+| **P** - Patient Summary     | Resumo: diagnostico principal, historia relevante, plano  | Texto livre + auto-sugestao do Twin                 |
+| **A** - Action List         | Lista de pendencias e acoes para o proximo turno          | Checklist (auto-populado das pendencias do Twin)    |
+| **S** - Situation Awareness | O que observar: sinais de alerta, limiares, contingencias | Texto livre + alertas ativos do Twin                |
+| **S** - Synthesis           | Confirmacao de entendimento pelo receptor                 | Checkbox "Entendi e confirmo" + espaco para duvidas |
 
 ### 6.2 SBAR para Handoff Operacional
 
 O formato SBAR e usado para acionamentos e escalacoes:
 
-| Componente | Descricao | Exemplo |
-|---|---|---|
-| **S** - Situation | O que esta acontecendo agora | "Paciente Joao, UTI-A leito 3, SpO2 caindo" |
-| **B** - Background | Contexto relevante | "Pos-op D1 de cirurgia abdominal, estava estavel" |
-| **A** - Assessment | Avaliacao de quem esta ligando | "Suspeito de TEP, NEWS2 = 8" |
-| **R** - Recommendation | O que e necessario | "Preciso avaliacaomedica imediata + angioTC" |
+| Componente             | Descricao                      | Exemplo                                           |
+| ---------------------- | ------------------------------ | ------------------------------------------------- |
+| **S** - Situation      | O que esta acontecendo agora   | "Paciente Joao, UTI-A leito 3, SpO2 caindo"       |
+| **B** - Background     | Contexto relevante             | "Pos-op D1 de cirurgia abdominal, estava estavel" |
+| **A** - Assessment     | Avaliacao de quem esta ligando | "Suspeito de TEP, NEWS2 = 8"                      |
+| **R** - Recommendation | O que e necessario             | "Preciso avaliacaomedica imediata + angioTC"      |
 
 ### 6.3 Closed-Loop Communication
 
 Independente do formato, todo handoff segue o principio de closed-loop:
 
 ```
-EMISSOR:  "Estou transferindo o paciente Joao, UTI-A leito 3, 
+EMISSOR:  "Estou transferindo o paciente Joao, UTI-A leito 3,
            pos-op D1, estavel, NEWS2=2. Pendencias: trocar CVP amanha,
            resultado de cultura pendente."
 
@@ -227,29 +227,29 @@ SISTEMA:  [Registra handoff.accepted, atualiza CareTeam, atualiza Twin]
 
 ### 7.1 Na Tela do Receptor
 
-| Indicador | Descricao | Condicao |
-|---|---|---|
-| Badge numerico vermelho | Numero de handoffs pendentes | Qualquer handoff pendente |
-| Banner amarelo | "Voce tem {N} handoffs aguardando aceite" | Handoff pendente > 50% do timeout |
-| Banner vermelho pulsante | "URGENTE: Handoff critico aguardando aceite" | Handoff critico pendente > 3 min |
-| Som de alerta | Notificacao sonora | Handoff critico recebido |
-| Modal bloqueante | "Aceite o handoff antes de continuar" | Handoff critico pendente > timeout |
+| Indicador                | Descricao                                    | Condicao                           |
+| ------------------------ | -------------------------------------------- | ---------------------------------- |
+| Badge numerico vermelho  | Numero de handoffs pendentes                 | Qualquer handoff pendente          |
+| Banner amarelo           | "Voce tem {N} handoffs aguardando aceite"    | Handoff pendente > 50% do timeout  |
+| Banner vermelho pulsante | "URGENTE: Handoff critico aguardando aceite" | Handoff critico pendente > 3 min   |
+| Som de alerta            | Notificacao sonora                           | Handoff critico recebido           |
+| Modal bloqueante         | "Aceite o handoff antes de continuar"        | Handoff critico pendente > timeout |
 
 ### 7.2 No Dashboard da Unidade
 
-| Indicador | Descricao |
-|---|---|
-| Semaforo por leito | Verde (com responsavel aceito), Amarelo (handoff pendente), Vermelho (sem responsavel / timeout) |
-| Lista de handoffs pendentes | Ordenada por prioridade e tempo de espera |
-| Contador de handoffs no turno | Aceitos, pendentes, recusados, escalados |
+| Indicador                     | Descricao                                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| Semaforo por leito            | Verde (com responsavel aceito), Amarelo (handoff pendente), Vermelho (sem responsavel / timeout) |
+| Lista de handoffs pendentes   | Ordenada por prioridade e tempo de espera                                                        |
+| Contador de handoffs no turno | Aceitos, pendentes, recusados, escalados                                                         |
 
 ### 7.3 No Command Center
 
-| Indicador | Descricao |
-|---|---|
-| Heatmap de handoffs pendentes | Por unidade, colorido por severidade |
-| Alerta sonoro | Quando qualquer unidade tem handoff critico em timeout |
-| Feed de escalacoes | Lista de handoffs escalados em tempo real |
+| Indicador                     | Descricao                                              |
+| ----------------------------- | ------------------------------------------------------ |
+| Heatmap de handoffs pendentes | Por unidade, colorido por severidade                   |
+| Alerta sonoro                 | Quando qualquer unidade tem handoff critico em timeout |
+| Feed de escalacoes            | Lista de handoffs escalados em tempo real              |
 
 ---
 
@@ -365,15 +365,15 @@ SISTEMA:  [Registra handoff.accepted, atualiza CareTeam, atualiza Twin]
 
 ### 9.1 KPIs de Handoff
 
-| Indicador | Meta | Formula |
-|---|---|---|
-| **Taxa de aceite no SLA** | > 95% | Handoffs aceitos dentro do timeout / Total de handoffs |
-| **Tempo medio de aceite** | < 50% do timeout | Media de (aceite.timestamp - envio.timestamp) |
-| **Taxa de recusa** | < 10% | Handoffs recusados / Total de handoffs |
-| **Taxa de escalacao** | < 5% | Handoffs escalados / Total de handoffs |
-| **Completude I-PASS** | > 90% | Handoffs com todos os campos I-PASS preenchidos / Total |
-| **Closed-loop confirmado** | > 95% | Handoffs com confirmacao do receptor / Total |
-| **Handoffs sem dono** | 0 | Pacientes sem responsavel em qualquer momento |
+| Indicador                  | Meta             | Formula                                                 |
+| -------------------------- | ---------------- | ------------------------------------------------------- |
+| **Taxa de aceite no SLA**  | > 95%            | Handoffs aceitos dentro do timeout / Total de handoffs  |
+| **Tempo medio de aceite**  | < 50% do timeout | Media de (aceite.timestamp - envio.timestamp)           |
+| **Taxa de recusa**         | < 10%            | Handoffs recusados / Total de handoffs                  |
+| **Taxa de escalacao**      | < 5%             | Handoffs escalados / Total de handoffs                  |
+| **Completude I-PASS**      | > 90%            | Handoffs com todos os campos I-PASS preenchidos / Total |
+| **Closed-loop confirmado** | > 95%            | Handoffs com confirmacao do receptor / Total            |
+| **Handoffs sem dono**      | 0                | Pacientes sem responsavel em qualquer momento           |
 
 ### 9.2 PromQL
 
@@ -479,6 +479,7 @@ sum by (unit, priority) (velya_handoff_pending_count)
 ### 11.1 Emissor sai antes do aceite
 
 Se o profissional que emitiu o handoff encerra sessao/sai do hospital antes do aceite:
+
 1. O sistema registra `shift.ended` para o emissor.
 2. A responsabilidade e transferida automaticamente para o coordenador da unidade.
 3. O coordenador recebe notificacao critica: "Profissional saiu com handoff pendente."
@@ -487,6 +488,7 @@ Se o profissional que emitiu o handoff encerra sessao/sai do hospital antes do a
 ### 11.2 Receptor indisponivel (emergencia)
 
 Se o receptor designado esta atendendo emergencia:
+
 1. O receptor pode marcar status "em emergencia" no sistema.
 2. O sistema busca automaticamente o proximo profissional disponivel na escala.
 3. O handoff e redirecionado sem penalizar o receptor original.
@@ -494,6 +496,7 @@ Se o receptor designado esta atendendo emergencia:
 ### 11.3 Multiplos pacientes
 
 Em handoffs de turno com multiplos pacientes:
+
 1. O receptor pode aceitar pacientes individualmente.
 2. Pacientes recusados sao redirecionados individualmente.
 3. O aceite parcial e registrado — o emissor permanece responsavel pelos nao aceitos.
@@ -501,6 +504,7 @@ Em handoffs de turno com multiplos pacientes:
 ### 11.4 Sistema fora do ar
 
 Se o sistema Velya estiver indisponivel:
+
 1. Handoff verbal e realizado com formulario impresso (contingencia).
 2. Ao retornar, ambos profissionais registram o handoff retroativamente (com justificativa "sistema indisponivel").
 3. O sistema aceita registro retroativo com flag `contingency_mode`.

@@ -111,14 +111,14 @@ Estatisticas sobre a execucao da query e renderizacao do painel.
 
 ### Metricas Disponiiveis
 
-| Metrica                    | Descricao                              | Valor Esperado     |
-|---------------------------|----------------------------------------|--------------------|
-| Total request time        | Tempo total da query                   | < 3s               |
-| Data processing time      | Tempo de processamento no Grafana      | < 500ms            |
-| Number of queries         | Quantas queries o painel executa       | 1-5                |
-| Number of rows            | Total de linhas retornadas             | Depende do contexto|
-| Data points received      | Pontos de dados do datasource          | Depende do step    |
-| Annotations               | Anotacoes carregadas                   | 0-100              |
+| Metrica              | Descricao                         | Valor Esperado      |
+| -------------------- | --------------------------------- | ------------------- |
+| Total request time   | Tempo total da query              | < 3s                |
+| Data processing time | Tempo de processamento no Grafana | < 500ms             |
+| Number of queries    | Quantas queries o painel executa  | 1-5                 |
+| Number of rows       | Total de linhas retornadas        | Depende do contexto |
+| Data points received | Pontos de dados do datasource     | Depende do step     |
+| Annotations          | Anotacoes carregadas              | 0-100               |
 
 ### Diagnostico por Stats
 
@@ -172,9 +172,9 @@ O modelo JSON completo do painel, incluindo toda a configuracao.
       "thresholds": {
         "mode": "absolute",
         "steps": [
-          {"color": "green", "value": null},
-          {"color": "yellow", "value": 1000},
-          {"color": "red", "value": 5000}
+          { "color": "green", "value": null },
+          { "color": "yellow", "value": 1000 },
+          { "color": "red", "value": 5000 }
         ]
       },
       "links": [],
@@ -214,12 +214,14 @@ O modelo JSON completo do painel, incluindo toda a configuracao.
 ### O Que Verificar no JSON
 
 **1. Datasource**
+
 ```
 Verificar que datasource.uid aponta para datasource correto
 Problema comum: datasource UID mudou apos reimport/recreate
 ```
 
 **2. Targets (Queries)**
+
 ```
 Verificar:
 - expr: a query esta correta?
@@ -229,6 +231,7 @@ Verificar:
 ```
 
 **3. Field Config**
+
 ```
 Verificar:
 - unit: unidade correta (reqps, bytes, percent, s, ms, etc.)
@@ -241,6 +244,7 @@ Verificar:
 ```
 
 **4. Overrides**
+
 ```
 Overrides podem esconder dados ou alterar visualizacao.
 Verificar cada override:
@@ -250,6 +254,7 @@ Verificar cada override:
 ```
 
 **5. Transformations**
+
 ```
 Verificar:
 - Tipo de cada transformacao
@@ -435,23 +440,23 @@ PAINEL COM PROBLEMA
 
 ## Checklist de Verificacao Rapida
 
-| # | Verificacao                                    | Onde Verificar          | OK? |
-|---|-----------------------------------------------|-------------------------|-----|
-| 1 | Dados retornados pelo datasource              | Inspector > Data        | [ ] |
-| 2 | Campos com tipos corretos (time, number)      | Inspector > Data        | [ ] |
-| 3 | Valores dentro do range esperado              | Inspector > Data        | [ ] |
-| 4 | Sem valores null/NaN inesperados              | Inspector > Data        | [ ] |
-| 5 | Query execution time < 3s                     | Inspector > Stats       | [ ] |
-| 6 | Datasource UID correto                        | Inspector > JSON        | [ ] |
-| 7 | Unit configurada corretamente                 | Inspector > JSON        | [ ] |
-| 8 | Min/Max fazem sentido                         | Inspector > JSON        | [ ] |
-| 9 | Thresholds configurados e visiveis            | Inspector > JSON        | [ ] |
-| 10| Legend format definido                        | Inspector > JSON        | [ ] |
-| 11| Overrides com matchers corretos               | Inspector > JSON        | [ ] |
-| 12| Transformacoes produzem resultado             | Inspector > JSON + Data | [ ] |
-| 13| Tooltip configurado (mode: multi)             | Inspector > JSON        | [ ] |
-| 14| Tipo de painel adequado para os dados         | Inspector > JSON + Data | [ ] |
-| 15| Links (data links) apontam para destinos OK   | Inspector > JSON        | [ ] |
+| #   | Verificacao                                 | Onde Verificar          | OK? |
+| --- | ------------------------------------------- | ----------------------- | --- |
+| 1   | Dados retornados pelo datasource            | Inspector > Data        | [ ] |
+| 2   | Campos com tipos corretos (time, number)    | Inspector > Data        | [ ] |
+| 3   | Valores dentro do range esperado            | Inspector > Data        | [ ] |
+| 4   | Sem valores null/NaN inesperados            | Inspector > Data        | [ ] |
+| 5   | Query execution time < 3s                   | Inspector > Stats       | [ ] |
+| 6   | Datasource UID correto                      | Inspector > JSON        | [ ] |
+| 7   | Unit configurada corretamente               | Inspector > JSON        | [ ] |
+| 8   | Min/Max fazem sentido                       | Inspector > JSON        | [ ] |
+| 9   | Thresholds configurados e visiveis          | Inspector > JSON        | [ ] |
+| 10  | Legend format definido                      | Inspector > JSON        | [ ] |
+| 11  | Overrides com matchers corretos             | Inspector > JSON        | [ ] |
+| 12  | Transformacoes produzem resultado           | Inspector > JSON + Data | [ ] |
+| 13  | Tooltip configurado (mode: multi)           | Inspector > JSON        | [ ] |
+| 14  | Tipo de painel adequado para os dados       | Inspector > JSON + Data | [ ] |
+| 15  | Links (data links) apontam para destinos OK | Inspector > JSON        | [ ] |
 
 ---
 

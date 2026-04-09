@@ -364,15 +364,15 @@ done
 
 ### 9.3 RTO
 
-| Fase | Tempo Estimado |
-|---|---|
-| Provisionar cluster | 10-15 min |
-| Instalar cert-manager | 2-3 min |
-| Configurar credenciais | 2-5 min |
-| Emitir certificados | 5-10 min |
-| Deploy de servicos | 10-15 min |
-| Verificacao | 5 min |
-| **Total** | **30-50 min** |
+| Fase                   | Tempo Estimado |
+| ---------------------- | -------------- |
+| Provisionar cluster    | 10-15 min      |
+| Instalar cert-manager  | 2-3 min        |
+| Configurar credenciais | 2-5 min        |
+| Emitir certificados    | 5-10 min       |
+| Deploy de servicos     | 10-15 min      |
+| Verificacao            | 5 min          |
+| **Total**              | **30-50 min**  |
 
 ### 9.4 Prevencao
 
@@ -419,7 +419,7 @@ kubectl apply -f infra/kubernetes/bootstrap/cert-manager-issuers.yaml
 
 # 4. Forcar renovacao de todos os certificados internos
 kubectl get certificate -A -l velya.health/cert-type=internal -o name | \
-  xargs -I {} kubectl delete {} 
+  xargs -I {} kubectl delete {}
 
 # 5. Redistribuir trust bundle
 kubectl rollout restart deployment -n velya-app
@@ -454,13 +454,13 @@ kubectl rollout restart deployment -n velya-app
 
 ### 11.1 Niveis de Escalonamento
 
-| Nivel | Condicao | Notificacao |
-|---|---|---|
-| P4 | Cert expirando > 30 dias, auto-renewal funcionando | Slack (info) |
-| P3 | Cert expirando < 30 dias, renewal falhou | Slack + email (warning) |
-| P2 | Cert expirando < 14 dias, acao necessaria | Slack + PagerDuty (critical) |
-| P1 | Cert expirando < 7 dias OU servico down | PagerDuty + War Room |
-| P0 | Multiplos certs expirados, servicos down | All hands + Stakeholders |
+| Nivel | Condicao                                           | Notificacao                  |
+| ----- | -------------------------------------------------- | ---------------------------- |
+| P4    | Cert expirando > 30 dias, auto-renewal funcionando | Slack (info)                 |
+| P3    | Cert expirando < 30 dias, renewal falhou           | Slack + email (warning)      |
+| P2    | Cert expirando < 14 dias, acao necessaria          | Slack + PagerDuty (critical) |
+| P1    | Cert expirando < 7 dias OU servico down            | PagerDuty + War Room         |
+| P0    | Multiplos certs expirados, servicos down           | All hands + Stakeholders     |
 
 ### 11.2 Template de Comunicacao
 
@@ -487,13 +487,13 @@ Atualizacao em: [Proximo update]
 
 ### 12.1 Testes Periodicos
 
-| Teste | Frequencia | Metodo |
-|---|---|---|
-| Renovacao forcada | Mensal | Deletar Secret e verificar re-emissao |
-| cert-manager restart | Trimestral | Rollout restart, verificar recuperacao |
-| Credenciais invalidas | Trimestral | Usar key errada, verificar alerta |
-| Cluster rebuild | Semestral | Destroy e rebuild de staging |
-| CA rotation | Anual | Rotacao planejada da intermediaria |
+| Teste                 | Frequencia | Metodo                                 |
+| --------------------- | ---------- | -------------------------------------- |
+| Renovacao forcada     | Mensal     | Deletar Secret e verificar re-emissao  |
+| cert-manager restart  | Trimestral | Rollout restart, verificar recuperacao |
+| Credenciais invalidas | Trimestral | Usar key errada, verificar alerta      |
+| Cluster rebuild       | Semestral  | Destroy e rebuild de staging           |
+| CA rotation           | Anual      | Rotacao planejada da intermediaria     |
 
 ### 12.2 Checklist de Teste
 
@@ -516,27 +516,27 @@ kubectl get pods -n cert-manager -w
 
 ## 13. Backup Checklist
 
-| Item | Metodo | Frequencia | Retencao |
-|---|---|---|---|
-| Root CA private key | Offline (cofre) | Na criacao | Permanente |
-| Root CA certificate | Git + offline | Na criacao | Permanente |
-| cert-manager values | Git | A cada mudanca | Permanente |
-| ClusterIssuer manifests | Git | A cada mudanca | Permanente |
-| Certificate manifests | Git | A cada mudanca | Permanente |
-| ACME account keys | Velero backup | Diario | 90 dias |
-| DNS credentials | AWS Secrets Manager | A cada rotacao | 90 dias |
-| Kubernetes Secrets (TLS) | Velero backup | Diario | 30 dias |
-| step-ca database | PV snapshot | Diario | 30 dias |
+| Item                     | Metodo              | Frequencia     | Retencao   |
+| ------------------------ | ------------------- | -------------- | ---------- |
+| Root CA private key      | Offline (cofre)     | Na criacao     | Permanente |
+| Root CA certificate      | Git + offline       | Na criacao     | Permanente |
+| cert-manager values      | Git                 | A cada mudanca | Permanente |
+| ClusterIssuer manifests  | Git                 | A cada mudanca | Permanente |
+| Certificate manifests    | Git                 | A cada mudanca | Permanente |
+| ACME account keys        | Velero backup       | Diario         | 90 dias    |
+| DNS credentials          | AWS Secrets Manager | A cada rotacao | 90 dias    |
+| Kubernetes Secrets (TLS) | Velero backup       | Diario         | 30 dias    |
+| step-ca database         | PV snapshot         | Diario         | 30 dias    |
 
 ---
 
 ## 14. Changelog
 
-| Data | Versao | Descricao |
-|---|---|---|
-| 2026-04-09 | 1.0 | Versao inicial do plano de disaster recovery |
+| Data       | Versao | Descricao                                    |
+| ---------- | ------ | -------------------------------------------- |
+| 2026-04-09 | 1.0    | Versao inicial do plano de disaster recovery |
 
 ---
 
-*Documento mantido pelo SRE Team e Platform Team. Revisao trimestral obrigatoria.
-Teste de DR semestral obrigatorio.*
+_Documento mantido pelo SRE Team e Platform Team. Revisao trimestral obrigatoria.
+Teste de DR semestral obrigatorio._

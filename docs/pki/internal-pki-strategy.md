@@ -31,14 +31,14 @@ Certificados publicos (Let's Encrypt) nao sao adequados para comunicacao interna
 
 ### 2.2 Beneficios
 
-| Beneficio | Descricao |
-|---|---|
-| Autenticacao mutua | Ambos os lados verificam identidade |
-| Criptografia | Todo trafego interno encriptado |
-| Certificados curtos | 24h elimina necessidade de revogacao |
-| Controle total | Organizacao controla toda a cadeia de confianca |
-| Performance | Emissao local sem latencia de rede externa |
-| Escalabilidade | Sem rate limits externos |
+| Beneficio           | Descricao                                       |
+| ------------------- | ----------------------------------------------- |
+| Autenticacao mutua  | Ambos os lados verificam identidade             |
+| Criptografia        | Todo trafego interno encriptado                 |
+| Certificados curtos | 24h elimina necessidade de revogacao            |
+| Controle total      | Organizacao controla toda a cadeia de confianca |
+| Performance         | Emissao local sem latencia de rede externa      |
+| Escalabilidade      | Sem rate limits externos                        |
 
 ---
 
@@ -81,13 +81,13 @@ Certificados publicos (Let's Encrypt) nao sao adequados para comunicacao interna
 
 ### 3.2 Componentes
 
-| Componente | Descricao | Namespace |
-|---|---|---|
-| step-ca | CA server (Smallstep) | step-ca |
-| cert-manager | Controller de certificados | cert-manager |
-| step-issuer | Plugin cert-manager para step-ca | cert-manager |
-| trust-manager | Distribuicao de CA bundle | cert-manager |
-| ConfigMap trust | CA chain para verificacao | Todos |
+| Componente      | Descricao                        | Namespace    |
+| --------------- | -------------------------------- | ------------ |
+| step-ca         | CA server (Smallstep)            | step-ca      |
+| cert-manager    | Controller de certificados       | cert-manager |
+| step-issuer     | Plugin cert-manager para step-ca | cert-manager |
+| trust-manager   | Distribuicao de CA bundle        | cert-manager |
+| ConfigMap trust | CA chain para verificacao        | Todos        |
 
 ---
 
@@ -113,12 +113,12 @@ bootstrap:
 
 ca:
   # Configuracao da CA
-  name: "Velya Internal CA"
+  name: 'Velya Internal CA'
   dns:
     - step-ca.step-ca.svc.cluster.local
     - step-ca.step-ca.svc
     - 127.0.0.1
-  address: ":9000"
+  address: ':9000'
 
   # Duracao dos certificados
   authority:
@@ -359,7 +359,7 @@ spec:
       key: ca.crt
     namespaceSelector:
       matchLabels:
-        velya.health/internal-tls: "enabled"
+        velya.health/internal-tls: 'enabled'
 ```
 
 ---
@@ -368,12 +368,12 @@ spec:
 
 ### 7.1 Por que 24 horas?
 
-| Duracao | Vantagem | Desvantagem |
-|---|---|---|
-| 90 dias | Menos renovacoes | Requer revogacao (CRL/OCSP) |
-| 7 dias | Revogacao menos critica | Mais renovacoes |
-| 24 horas | Elimina revogacao | Renovacao frequente |
-| 1 hora | Maximo isolamento | Alto overhead |
+| Duracao  | Vantagem                | Desvantagem                 |
+| -------- | ----------------------- | --------------------------- |
+| 90 dias  | Menos renovacoes        | Requer revogacao (CRL/OCSP) |
+| 7 dias   | Revogacao menos critica | Mais renovacoes             |
+| 24 horas | Elimina revogacao       | Renovacao frequente         |
+| 1 hora   | Maximo isolamento       | Alto overhead               |
 
 **Decisao**: 24 horas com renovacao a cada 16 horas oferece o melhor equilibrio
 entre seguranca (certificados efemeros) e overhead operacional (renovacao
@@ -458,7 +458,7 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              velya.health/mtls-client: "true"
+              velya.health/mtls-client: 'true'
       ports:
         - protocol: TCP
           port: 8443
@@ -466,7 +466,7 @@ spec:
     - to:
         - podSelector:
             matchLabels:
-              velya.health/mtls-server: "true"
+              velya.health/mtls-server: 'true'
       ports:
         - protocol: TCP
           port: 8443
@@ -485,13 +485,13 @@ spec:
 
 ### 10.1 Metricas do step-ca
 
-| Metrica | Descricao |
-|---|---|
-| step_ca_certificate_issued_total | Total de certificados emitidos |
-| step_ca_certificate_renewed_total | Total de renovacoes |
-| step_ca_certificate_failed_total | Total de falhas |
-| step_ca_request_duration_seconds | Latencia de emissao |
-| step_ca_active_certificates | Certificados ativos |
+| Metrica                           | Descricao                      |
+| --------------------------------- | ------------------------------ |
+| step_ca_certificate_issued_total  | Total de certificados emitidos |
+| step_ca_certificate_renewed_total | Total de renovacoes            |
+| step_ca_certificate_failed_total  | Total de falhas                |
+| step_ca_request_duration_seconds  | Latencia de emissao            |
+| step_ca_active_certificates       | Certificados ativos            |
 
 ### 10.2 Alertas
 
@@ -511,8 +511,8 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "step-ca CA server esta down"
-            description: "O servidor CA interno nao esta respondendo ha mais de 5 minutos."
+            summary: 'step-ca CA server esta down'
+            description: 'O servidor CA interno nao esta respondendo ha mais de 5 minutos.'
 
         - alert: InternalCertRenewalFailed
           expr: increase(step_ca_certificate_failed_total[1h]) > 0
@@ -520,8 +520,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Falha na emissao de certificado interno"
-            description: "Houve falhas na emissao de certificados internos na ultima hora."
+            summary: 'Falha na emissao de certificado interno'
+            description: 'Houve falhas na emissao de certificados internos na ultima hora.'
 
         - alert: InternalCAExpiringCritical
           expr: (step_ca_intermediate_cert_expiry_seconds - time()) < 86400 * 90
@@ -529,8 +529,8 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "CA intermediaria expirando em menos de 90 dias"
-            description: "A CA intermediaria precisa ser rotacionada."
+            summary: 'CA intermediaria expirando em menos de 90 dias'
+            description: 'A CA intermediaria precisa ser rotacionada.'
 ```
 
 ---
@@ -539,13 +539,13 @@ spec:
 
 ### 11.1 O que fazer backup
 
-| Item | Metodo | Frequencia |
-|---|---|---|
-| Root CA private key | Offline, cofre fisico | Criacao + rotacao |
-| Root CA certificate | Git (publico) | Criacao + rotacao |
-| Intermediate CA key | Sealed Secret ou Vault | Diario |
-| step-ca database | PV snapshot | Diario |
-| Trust bundle | Git (publico) | A cada mudanca |
+| Item                | Metodo                 | Frequencia        |
+| ------------------- | ---------------------- | ----------------- |
+| Root CA private key | Offline, cofre fisico  | Criacao + rotacao |
+| Root CA certificate | Git (publico)          | Criacao + rotacao |
+| Intermediate CA key | Sealed Secret ou Vault | Diario            |
+| step-ca database    | PV snapshot            | Diario            |
+| Trust bundle        | Git (publico)          | A cada mudanca    |
 
 ### 11.2 Recovery
 
@@ -595,10 +595,10 @@ Velya Platform com ate 100 servicos, cada renovando a cada 16 horas:
 
 ## 14. Changelog
 
-| Data | Versao | Descricao |
-|---|---|---|
-| 2026-04-09 | 1.0 | Versao inicial da estrategia PKI interna |
+| Data       | Versao | Descricao                                |
+| ---------- | ------ | ---------------------------------------- |
+| 2026-04-09 | 1.0    | Versao inicial da estrategia PKI interna |
 
 ---
 
-*Documento mantido pelo Platform Team. Revisao trimestral obrigatoria.*
+_Documento mantido pelo Platform Team. Revisao trimestral obrigatoria._

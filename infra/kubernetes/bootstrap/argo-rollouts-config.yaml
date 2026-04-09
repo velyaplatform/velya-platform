@@ -75,9 +75,9 @@ spec:
         app.kubernetes.io/name: patient-flow
         velya.io/service: patient-flow
       annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "3001"
-        prometheus.io/path: "/metrics"
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '3001'
+        prometheus.io/path: '/metrics'
     spec:
       automountServiceAccountToken: false
       securityContext:
@@ -93,13 +93,13 @@ spec:
               name: http
           env:
             - name: PORT
-              value: "3001"
+              value: '3001'
             - name: SERVICE_NAME
-              value: "patient-flow"
+              value: 'patient-flow'
             - name: SERVICE_VERSION
-              value: "0.1.0"
+              value: '0.1.0'
             - name: NODE_ENV
-              value: "development"
+              value: 'development'
           resources:
             requests:
               cpu: 100m
@@ -124,12 +124,12 @@ spec:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
             capabilities:
-              drop: ["ALL"]
+              drop: ['ALL']
   strategy:
     canary:
       steps:
         - setWeight: 10
-        - pause: {duration: 2m}
+        - pause: { duration: 2m }
         - analysis:
             templates:
               - templateName: velya-canary-analysis
@@ -137,9 +137,9 @@ spec:
               - name: service-name
                 value: patient-flow
         - setWeight: 25
-        - pause: {duration: 3m}
+        - pause: { duration: 3m }
         - setWeight: 50
-        - pause: {duration: 5m}
+        - pause: { duration: 5m }
         - analysis:
             templates:
               - templateName: velya-canary-analysis

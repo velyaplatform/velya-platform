@@ -13,14 +13,17 @@
 
 **Indicador de que está acontecendo**: A convenção existe como regra escrita mas não é enforçada. Não há linter de nome de agent no CI.
 
-**Impacto na operação real**: 
+**Impacto na operação real**:
+
 - Identificação de agents por ID é impossível sem conhecer a convenção não aplicada
 - Rastreabilidade de ações por agent fica comprometida
 - Logging e métricas de agent não podem ser agregadas por office ou role
 - Novos membros da equipe não conseguem inferir o propósito de um agent pelo nome
 
 **Controle institucional necessário**:
+
 1. Linter de nome de agent no CI:
+
 ```bash
 # scripts/lint-agent-names.sh
 for agent in .claude/agents/**/*.md; do
@@ -31,6 +34,7 @@ for agent in .claude/agents/**/*.md; do
   fi
 done
 ```
+
 2. Gate de CI que bloqueia PR com agent mal-nomeado
 3. Migração de todos os 17 agents com nomenclatura incorreta
 
@@ -43,11 +47,13 @@ done
 **Indicador de que está acontecendo**: Não há logs de execução de shadow mode. Não há relatório de comparação de decisões de agent vs. humano. Não há registro de accuracy threshold atingido.
 
 **Impacto na operação real**:
+
 - Agents que forem ativados não terão baseline de qualidade estabelecida
 - Primeiro uso em produção é o primeiro teste real — em ambiente clínico
 - Sem shadow mode, não há como detectar se um agent está "errado sistematicamente" antes que cause dano
 
 **Controle institucional necessário**:
+
 1. Criar framework técnico de shadow mode:
    - Agent executa em modo "read + suggest" — sem ações
    - Outputs registrados para comparação com decisões reais
@@ -59,6 +65,7 @@ done
 ### INST-003 — Offices Definidos Sem Charter Executável
 
 **Situação**: Os offices estão definidos conceitualmente, mas nenhum tem um charter com:
+
 - SLA de throughput (quantas tarefas por dia)
 - Capacidade declarada (quantos agents disponíveis)
 - Processo de escalação quando incapaz de atender
@@ -68,19 +75,28 @@ done
 **Indicador de que está acontecendo**: Não há `office-health-check` em nenhum dashboard. O backlog de um office pode crescer por dias sem detecção.
 
 **Impacto na operação real**:
+
 - Um office sobrecarregado acumula trabalho silenciosamente
 - A percepção é de que "os agents estão trabalhando" quando na verdade o trabalho está na fila sem processamento
 - Sem SLA, não há base para medir se o office está performando adequadamente
 
 **Controle institucional necessário**:
+
 ```markdown
 # Template de Charter de Office (obrigatório para cada office)
+
 ## Office: {nome}
+
 ## SLA de throughput: N tarefas/dia
+
 ## Capacidade máxima: X tarefas simultâneas
+
 ## Alerta de sobrecarga: backlog > Y tarefas por > Z horas
+
 ## Escalação: [humano responsável] quando backlog crítico
+
 ## Métricas de saúde: [lista de métricas e thresholds]
+
 ## Critério de "office falhando": [definição explícita]
 ```
 
@@ -93,11 +109,13 @@ done
 **Indicador de que está acontecendo**: Não há ServiceMonitor para agents. Não há dashboard de scorecard de agent. Os thresholds existem apenas no documento de governança.
 
 **Impacto na operação real**:
+
 - Governança de agents é theater — parece existir mas não tem dados reais
 - Um agent com 40% de validation pass rate (threshold: >90% = verde) continua sendo usado sem qualquer sinal de problema
 - Decisões de promoção/rebaixamento de agents são subjetivas, não baseadas em dados
 
 **Controle institucional necessário**:
+
 1. Implementar coleta automática de métricas de scorecard
 2. Dashboard de saúde de office com scorecards em tempo real
 3. Alertas automáticos para agents abaixo de thresholds
@@ -111,11 +129,13 @@ done
 **Indicador de que está acontecendo**: Não há pods de agentes em execução no cluster. Não há workflows Temporal de orquestração de agents ativos. A governança é completamente teórica.
 
 **Impacto na operação real**:
+
 - A capacidade de AI da plataforma depende de interação manual com Claude CLI — não é autônoma
 - Os benefícios prometidos de automação não são realizados
 - A governança elaborada não tem nada para governar atualmente
 
 **Controle institucional necessário**:
+
 1. Definir critérios claros para ativação de agents (o que precisa estar pronto antes)
 2. Executar piloto controlado com 1-2 agents em shadow mode antes de expandir
 3. Não ativar agents em produção clínica sem infraestrutura de observabilidade funcionando
@@ -131,17 +151,19 @@ done
 **Indicador de que está acontecendo**: Se tasks de agents fossem geradas hoje, elas existiriam no backlog sem dono humano. O agent que criou a task pode não existir mais amanhã (se o contexto de conversação acabar).
 
 **Impacto na operação real**:
+
 - Trabalho importante pode ficar pendente indefinidamente sem dono humano
 - Accountability é apenas do agent — não há humano responsável pelos resultados
 - Em caso de task incorreta ou prejudicial, não há dono para escalar
 
 **Controle institucional necessário**:
+
 ```typescript
 interface AgentTask {
   id: string;
   createdBy: { agentId: string; agentName: string };
   humanOwner: {
-    userId: string;  // Obrigatório — não pode ser nulo
+    userId: string; // Obrigatório — não pode ser nulo
     email: string;
     acceptedAt?: Date;
   };
@@ -159,11 +181,13 @@ interface AgentTask {
 **Indicador de que está acontecendo**: Perguntas sobre "por que X?" frequentemente têm como resposta "não sei, foi antes" ou "está no histórico de conversa de Claude".
 
 **Impacto na operação real**:
+
 - Conhecimento de contexto de decisão perdido quando pessoas saem ou contextos de conversa terminam
 - Decisões são revertidas ou contraditas por falta de entendimento do raciocínio original
 - Novos membros tomam decisões conflitantes por não saber que uma decisão já foi tomada
 
 **Controle institucional necessário**:
+
 - ADR obrigatório para toda decisão que afeta mais de um serviço ou que é irreversível
 - Gate no processo de PR: mudanças de arquitetura devem referenciar ADR existente ou criar novo
 
@@ -176,11 +200,13 @@ interface AgentTask {
 **Indicador de que está acontecendo**: Não há registro de "game day" ou drill de incidente executado. Não há revisão de runbook pós-incidente.
 
 **Impacto na operação real**:
+
 - Em incidente real, o respondedor segue o runbook e descobre que está desatualizado ou incompleto
 - Tempo de resolução de incidente aumenta drasticamente
 - A confiança do time no runbook deteriora — passam a não usar
 
 **Controle institucional necessário**:
+
 - Game day mensal: executar 2-3 cenários de incidente com runbook
 - Após cada game day: atualizar runbooks com gaps encontrados
 - Rotação de responsável pelo game day entre membros da equipe
@@ -194,6 +220,7 @@ interface AgentTask {
 **Situação**: O modelo de governança pressupõe que o coordinator agent distribui trabalho entre agents de office. Se o coordinator ficar sobrecarregado, todo o trabalho da empresa de agents acumula em um ponto único.
 
 **Indicador de que está acontecendo**:
+
 - Backlog crescendo em múltiplos offices simultaneamente
 - Tempo médio de handoff aumentando
 - Tasks novas não sendo distribuídas apesar de agents disponíveis
@@ -201,6 +228,7 @@ interface AgentTask {
 **Impacto na operação real**: A empresa digital de agents para de funcionar porque o ponto central de coordenação está saturado — mas ninguém sabe que o problema é o coordinator, não os agents.
 
 **Controle institucional necessário**:
+
 - Monitorar throughput do coordinator separadamente dos offices
 - Alerta se tasks pendentes no coordinator > threshold por > N minutos
 - Escalonamento horizontal do coordinator (múltiplas instâncias com particionamento por office)
@@ -212,6 +240,7 @@ interface AgentTask {
 **Situação**: Sem monitoramento de taxa de aprovação de validators, um validator que aprova tudo (por pressão de throughput, por preguiça, ou por bug) opera sem detecção.
 
 **Indicador de que está acontecendo**:
+
 - Taxa de aprovação de validator X: 99% por 2 semanas
 - Nenhuma rejection documentada com evidência
 - Tempo médio de review: 30 segundos (impossível para review real)
@@ -219,6 +248,7 @@ interface AgentTask {
 **Impacto na operação real**: A camada de qualidade e governança não existe efetivamente. Erros de agents passam para produção. Código incorreto é mergeado. Dados errados são processados.
 
 **Controle institucional necessário**:
+
 ```yaml
 # Alerta de validator com taxa suspeita
 - alert: ValidatorApprovalRateTooHigh
@@ -227,8 +257,8 @@ interface AgentTask {
     rate(agent_validations_total[1h]) > 0.95
   for: 2h
   annotations:
-    summary: "Validator {{ $labels.validator_id }} aprovando > 95% por 2h"
-    description: "Possível rubber-stamping — auditoria manual necessária"
+    summary: 'Validator {{ $labels.validator_id }} aprovando > 95% por 2h'
+    description: 'Possível rubber-stamping — auditoria manual necessária'
 ```
 
 ---
@@ -240,11 +270,13 @@ interface AgentTask {
 **Exemplo concreto**: Uma semana de alta sazonal faz o agent aprender "padrão de hospital é ter 95% de ocupação". Esse aprendizado contamina a baseline de todos os agents que usam esse contexto.
 
 **Indicador de que está acontecendo**:
+
 - Agents começam a tomar decisões ligeiramente diferentes do baseline anterior
 - Mudança de comportamento sem nenhuma mudança de código
 - Comportamento difere entre agents que usam a memória e agents sem acesso
 
 **Controle institucional necessário**:
+
 1. Revisão humana obrigatória de todo novo padrão antes de propagar
 2. Quarentena de 7 dias para novos padrões
 3. Versionamento de aprendizado: capaz de reverter para versão anterior
@@ -257,6 +289,7 @@ interface AgentTask {
 **Situação**: Não há Definition of Done específica para tasks executadas por agents. Um agent pode marcar uma task como "concluída" sem ter cumprido critérios mínimos de qualidade.
 
 **Indicador de que está acontecendo**:
+
 - Tasks marcadas como concluídas sem evidência de resultado
 - Outputs de tasks incompletos ou parciais aceitos pelo sistema
 - Auditoria de tasks concluídas revela que muitas são "concluídas" apenas formalmente
@@ -264,9 +297,12 @@ interface AgentTask {
 **Impacto na operação real**: O trabalho está sendo "feito" mas não está gerando valor real. O backlog parece diminuir, mas a qualidade do trabalho entregue é insuficiente.
 
 **Controle institucional necessário**:
+
 ```markdown
 # Definition of Done por tipo de task (exemplo)
+
 ## Task: Análise de prontidão de alta
+
 - [ ] Checklist de critérios clínicos verificado
 - [ ] Evidência documentada para cada critério
 - [ ] Confiança >= 0.80 registrada
@@ -279,19 +315,19 @@ interface AgentTask {
 
 ## Tabela Consolidada de Pontos Cegos Institucionais
 
-| ID | Ponto Cego | Impacto | Indicador Atual | Controle Necessário | Prioridade |
-|---|---|---|---|---|---|
-| INST-001 | Naming de agents sem enforcement | Rastreabilidade comprometida | 17 de 18 agents mal-nomeados | Linter no CI | Alta |
-| INST-002 | Shadow mode nunca executado | Qualidade de agents desconhecida | Zero relatórios de shadow | Framework técnico de shadow | Crítica |
-| INST-003 | Offices sem charter executável | Office sobrecarregado invisível | Nenhum charter tem SLA | Template de charter obrigatório | Alta |
-| INST-004 | Scorecards sem dados reais | Governança baseada em dados inexistentes | Nenhuma métrica coletada | Implementar coleta e dashboards | Crítica |
-| INST-005 | Nenhum agent em runtime real | Automação prometida não entregue | Zero agents ativos | Piloto controlado com critérios | Alta |
-| INST-006 | Tasks sem dono humano | Trabalho sem accountability | Estrutura não enforça humanOwner | Campo obrigatório + alerta | Alta |
-| INST-007 | Decisões sem ADR | Conhecimento perdido com pessoas | 13 ADRs para centenas de decisões | ADR obrigatório em PRs de arquitetura | Alta |
-| INST-008 | Runbooks não testados | Incidente leva mais tempo | Zero game days registrados | Game day mensal | Alta |
-| INST-009 | Coordinator como SPOF | Empresa de agents para de funcionar | Sem monitoramento de coordinator | Alerta de throughput + escalonamento | Média |
-| INST-010 | Validator como carimbo | Governança inoperante | Sem taxa de aprovação monitorada | Alerta de taxa suspeita + auditoria | Crítica |
-| INST-011 | Learning loop sem curadoria | Comportamento sistêmico incorreto | Sem versionamento de aprendizado | Revisão humana obrigatória | Alta |
-| INST-012 | Sem Definition of Done | Trabalho "feito" sem qualidade | Sem critérios por tipo de task | DoD por tipo de task | Alta |
+| ID       | Ponto Cego                       | Impacto                                  | Indicador Atual                   | Controle Necessário                   | Prioridade |
+| -------- | -------------------------------- | ---------------------------------------- | --------------------------------- | ------------------------------------- | ---------- |
+| INST-001 | Naming de agents sem enforcement | Rastreabilidade comprometida             | 17 de 18 agents mal-nomeados      | Linter no CI                          | Alta       |
+| INST-002 | Shadow mode nunca executado      | Qualidade de agents desconhecida         | Zero relatórios de shadow         | Framework técnico de shadow           | Crítica    |
+| INST-003 | Offices sem charter executável   | Office sobrecarregado invisível          | Nenhum charter tem SLA            | Template de charter obrigatório       | Alta       |
+| INST-004 | Scorecards sem dados reais       | Governança baseada em dados inexistentes | Nenhuma métrica coletada          | Implementar coleta e dashboards       | Crítica    |
+| INST-005 | Nenhum agent em runtime real     | Automação prometida não entregue         | Zero agents ativos                | Piloto controlado com critérios       | Alta       |
+| INST-006 | Tasks sem dono humano            | Trabalho sem accountability              | Estrutura não enforça humanOwner  | Campo obrigatório + alerta            | Alta       |
+| INST-007 | Decisões sem ADR                 | Conhecimento perdido com pessoas         | 13 ADRs para centenas de decisões | ADR obrigatório em PRs de arquitetura | Alta       |
+| INST-008 | Runbooks não testados            | Incidente leva mais tempo                | Zero game days registrados        | Game day mensal                       | Alta       |
+| INST-009 | Coordinator como SPOF            | Empresa de agents para de funcionar      | Sem monitoramento de coordinator  | Alerta de throughput + escalonamento  | Média      |
+| INST-010 | Validator como carimbo           | Governança inoperante                    | Sem taxa de aprovação monitorada  | Alerta de taxa suspeita + auditoria   | Crítica    |
+| INST-011 | Learning loop sem curadoria      | Comportamento sistêmico incorreto        | Sem versionamento de aprendizado  | Revisão humana obrigatória            | Alta       |
+| INST-012 | Sem Definition of Done           | Trabalho "feito" sem qualidade           | Sem critérios por tipo de task    | DoD por tipo de task                  | Alta       |
 
 > **Avaliação institucional**: A plataforma Velya tem uma governança sofisticada e bem documentada no papel, mas com zero enforcement técnico e zero evidência de execução real. O risco mais sério não é técnico — é que a aparência de governança cria uma sensação de segurança que não corresponde à realidade operacional. Isso é mais perigoso que não ter governança, porque reduz a vigilância.

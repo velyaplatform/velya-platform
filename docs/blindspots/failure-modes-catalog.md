@@ -15,12 +15,14 @@
 
 **Impacto clínico**: Se o patient-flow-service ou discharge-orchestrator crasham, fluxos de alta ficam presos sem processamento. Tarefas em andamento no momento do crash são perdidas (sem replay). Clínicos podem esperar resposta que nunca chega.
 
-**Detecção**: 
+**Detecção**:
+
 - Alerta: `kube_pod_container_status_restarts_total > 3` nos últimos 5 minutos
 - Alerta: `kube_pod_status_phase{phase="Failed"}`
 - Log: Buscar no Loki por `OOMKill` ou `exit code` nos últimos logs do container
 
 **Mitigação**:
+
 - Implementar `resources.limits` corretos para prevenir OOMKill
 - Readiness probe bem calibrada para evitar traffic durante startup
 - Horizontal Pod Autoscaler para garantir réplicas saudáveis sempre disponíveis
@@ -39,11 +41,13 @@
 **Impacto clínico**: Serviços críticos como api-gateway ou velya-web podem ser evictados durante pico de carga, tornando a interface inacessível para clínicos durante momento de alta demanda.
 
 **Detecção**:
+
 - Alerta: `kube_node_status_condition{condition="MemoryPressure",status="true"}`
 - Alerta: `kube_pod_status_reason{reason="Evicted"} > 0`
 - Monitorar: `node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.15`
 
 **Mitigação**:
+
 - Definir `resources.requests` e `limits` para todos os containers
 - Configurar `priorityClassName` para serviços críticos
 - Usar QoS class Guaranteed para serviços clínicos críticos
@@ -61,11 +65,13 @@
 **Impacto clínico**: Se patient-flow-service tem todas as réplicas no mesmo nó, e esse nó falha, o serviço fica indisponível por até 5 minutos sem detecção clara.
 
 **Detecção**:
+
 - Alerta: `kube_node_status_condition{condition="Ready",status="true"} == 0`
 - Alerta: Up metric do serviço cai para 0
 - `kubectl get nodes` mostra NotReady
 
 **Mitigação**:
+
 - Configurar `PodAntiAffinity` para distribuir réplicas entre nós
 - Reduzir `pod-eviction-timeout` no controller manager
 - Monitorar saúde de nós com alerta imediato
@@ -83,10 +89,12 @@
 **Impacto clínico**: Um novo pod de serviço crítico implantado durante incidente (para scaling manual) pode não subir, deixando o operador acreditando que o scaling foi bem-sucedido quando não foi.
 
 **Detecção**:
+
 - Alerta: `kube_pod_status_phase{phase="Pending"} > 0` por mais de 5 minutos
 - `kubectl describe pod <pod>` mostra eventos de scheduling failure
 
 **Mitigação**:
+
 - Usar `kubectl describe pod` como primeiro passo de troubleshooting
 - Configurar `resources.requests` realistas para garantir schedulability
 - Monitorar cluster capacity vs. requested resources
@@ -102,10 +110,12 @@
 **Impacto clínico**: discharge-orchestrator processando alta mais lentamente que o esperado. Clínico aguarda confirmação que demora 30 segundos em vez de 3.
 
 **Detecção**:
+
 - Métrica: `container_cpu_cfs_throttled_seconds_total` — alerta se throttling ratio > 25%
 - Alerta de latência p95 elevada no serviço
 
 **Mitigação**:
+
 - Medir CPU real em carga antes de definir limits
 - Usar `resources.requests.cpu` adequado para Guaranteed QoS
 - Considerar VPA para ajuste automático de requests/limits
@@ -123,11 +133,13 @@
 **Impacto clínico**: Eventos de alta de paciente publicados às 14h são processados às 16h. Clínico aguardando confirmação de alta nunca recebe porque o processamento está horas atrás.
 
 **Detecção**:
+
 - Métrica NATS: `nats_consumer_num_pending` — alerta se > 100 mensagens por > 5 minutos
 - Monitorar `nats_consumer_last_deliver_time`
 - `nats consumer info <stream> <consumer>` via CLI
 
 **Mitigação**:
+
 - Timeout por handler de evento com dead-letter se excedido
 - Horizontal scaling de consumers via KEDA com trigger de consumer lag
 - Dead-letter queue para mensagens que falham repetidamente
@@ -145,11 +157,13 @@
 **Impacto clínico**: Eventos de atualização de estado de paciente são perdidos permanentemente. O sistema fica com estado inconsistente sem saber.
 
 **Detecção**:
+
 - Monitorar `nats_stream_bytes` vs. `max_bytes` — alerta em 80%
 - Logs de erro de publicação no publisher
 - Alerta em `nats_stream_messages` vs. `max_msgs`
 
 **Mitigação**:
+
 - Configurar `max_bytes` adequado para retenção esperada
 - Não silenciar erros de publicação — propagar para circuit breaker
 - Configurar discard policy: `DiscardOld` para streams onde mensagens antigas são menos importantes que novas
@@ -165,10 +179,12 @@
 **Impacto clínico**: Histórico de eventos de um paciente truncado. Workflow de alta baseado em sequência de eventos opera com contexto incompleto.
 
 **Detecção**:
+
 - Monitorar `nats_stream_num_deleted` — alerta se aumenta inesperadamente
 - Verificar `nats_stream_first_seq` vs. `consumer_deliver_start_seq`
 
 **Mitigação**:
+
 - Usar `discard=new` para streams críticas clínicas (prefere rejeitar novos que perder histórico)
 - Dimensionar `max_bytes` para retenção necessária com margem de 2x
 - Alerta quando stream atinge 70% de capacidade
@@ -184,11 +200,13 @@
 **Impacto clínico**: Evento de início de workflow de alta perdido. O discharge-orchestrator nunca inicia o processo. O leito permanece ocupado desnecessariamente.
 
 **Detecção**:
+
 - Log de reconexão NATS: `nats: reconnected`
 - Monitorar gaps em sequence numbers de eventos
 - Alerta de reconexão frequente indica problema de rede
 
 **Mitigação**:
+
 - Usar `publish()` com espera de ack (`js.publish()` vs `nc.publish()`)
 - Implementar retry com idempotency key para publicações críticas
 - Configurar NATS clustering para alta disponibilidade
@@ -204,11 +222,13 @@
 **Impacto clínico**: Alta duplicada de paciente. Duas ordens de medicação criadas. Duas notificações enviadas ao familiar.
 
 **Detecção**:
+
 - Rastrear `event_id` processado por consumer — detectar duplicata antes de processar
 - Log de duplicata detectada
 - Monitorar taxa de eventos processados vs. eventos únicos
 
 **Mitigação**:
+
 - Implementar idempotency check em todos os consumers usando `event_id`
 - Usar exactly-once delivery do JetStream onde crítico (requer configuração adicional)
 - Transações idempotentes no banco com `ON CONFLICT DO NOTHING`
@@ -226,11 +246,13 @@
 **Impacto clínico**: Em pico de uso clínico, o serviço que deveria ter 10 réplicas fica com 1. Latência explode. Clínicos enfrentam interface lenta durante momento crítico.
 
 **Detecção**:
+
 - Monitorar status de ScaledObjects: `kubectl describe scaledobject -n velya-dev-core`
 - Alerta: `keda_scaler_errors_total > 0` (se KEDA expõe métricas)
 - Verificar réplicas atuais vs. esperadas para carga atual
 
 **Mitigação**:
+
 - Configurar fallback de scaling no ScaledObject: `fallback.replicas` com valor conservador
 - Garantir que ServiceMonitor existe antes de configurar ScaledObject que depende de métrica Velya
 - Alerta se réplicas ficam no mínimo por mais de 15 minutos durante horário clínico
@@ -246,10 +268,12 @@
 **Impacto clínico**: Experiência degradada intermitente para clínicos. Requests perdidos durante ciclos de scale down antes do graceful shutdown completar.
 
 **Detecção**:
+
 - Monitorar `kube_deployment_status_replicas` ao longo do tempo — pattern de oscilação
 - Alerta se número de scaling events > 10 em 1 hora para o mesmo serviço
 
 **Mitigação**:
+
 - Configurar `cooldownPeriod: 300` (5 minutos) nos ScaledObjects
 - Usar `stabilizationWindowSeconds` no HPA gerado pelo KEDA
 - Escolher threshold de trigger com margem para evitar oscilação
@@ -263,10 +287,12 @@
 **Como falha silenciosamente**: Scaling nunca acontece (ou sempre escala para max). O time assume que KEDA está funcionando porque o pod do operator está Running.
 
 **Detecção**:
+
 - `kubectl describe scaledobject` mostra eventos de erro
 - Verificar status.conditions do ScaledObject
 
 **Mitigação**:
+
 - Testar trigger expression no Prometheus antes de criar ScaledObject
 - Lint de ScaledObjects no CI com kube-linter
 - Review obrigatório de ScaledObjects em PRs
@@ -284,11 +310,13 @@
 **Impacto clínico**: Mudança de configuração crítica (novo secret, atualização de feature flag) nunca chega ao cluster. O time pensa que está deployado mas não está.
 
 **Detecção**:
+
 - Alerta: Application em estado OutOfSync por mais de 15 minutos
 - Alerta: Application health: Degraded
 - Notificação no Slack a cada sync failure
 
 **Mitigação**:
+
 - Configurar `notifications.argoproj.io` para notificações de sync failure
 - Habilitar self-heal para correção automática de drift simples
 - Validar manifests com `argocd app diff` antes de merge em main
@@ -304,10 +332,12 @@
 **Impacto clínico**: Configuração de um serviço revertida para versão antiga durante sincronização. Comportamento inesperado após deploy aparentemente não relacionado.
 
 **Detecção**:
+
 - ArgoCD UI mostra diff entre estado desejado (Git) e estado real (cluster)
 - Alerta de drift: `argocd_app_info{sync_status="OutOfSync"}`
 
 **Mitigação**:
+
 - Habilitar `self-heal: true` para aplicar configuração do Git automaticamente
 - Proibir `kubectl apply` manual em produção. Todas as mudanças via Git.
 - Audit log de mudanças manuais no cluster
@@ -325,11 +355,13 @@
 **Impacto clínico**: Toda a plataforma fica indisponível — todos os serviços dependem do banco. Clínicos não conseguem acessar dados de pacientes.
 
 **Detecção**:
+
 - Métrica: `pg_stat_activity_count` vs. `max_connections` — alerta em 80%
 - Log de erro: `FATAL: sorry, too many clients already`
 - Latência de queries aumenta antes do esgotamento
 
 **Mitigação**:
+
 - Implementar PgBouncer como connection pooler entre serviços e PostgreSQL
 - Configurar pool size por serviço considerando total de réplicas
 - Alerta quando conexões ativas > 80% de `max_connections`
@@ -347,11 +379,13 @@
 **Impacto clínico**: Operações de alta ficam lentas ou travam. Workflow de discharge-orchestrator aguarda commit que nunca vem.
 
 **Detecção**:
+
 - Query: `SELECT * FROM pg_stat_activity WHERE wait_event_type = 'Lock'`
 - Alerta: `pg_stat_activity_count{wait_event_type="Lock"} > 10`
 - Alerta de latência de queries (p95 > threshold)
 
 **Mitigação**:
+
 - Usar `NOWAIT` ou `SKIP LOCKED` para operações não críticas
 - Minimizar tamanho de transações
 - Configurar `deadlock_timeout` e `lock_timeout` por sessão
@@ -367,10 +401,12 @@
 **Impacto clínico**: Registros de atendimento, eventos de alta, tarefas clínicas param de ser gravados. Dados perdidos ou inconsistentes.
 
 **Detecção**:
+
 - Alerta: `kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.80`
 - Log do PostgreSQL: `could not extend file: No space left on device`
 
 **Mitigação**:
+
 - Alerta em 70% (warning) e 85% (critical) de uso de volume
 - Política de retenção de dados históricos
 - Volume auto-expansion em EKS com StorageClass adequada
@@ -388,10 +424,12 @@
 **Impacto clínico**: Interface web completamente inacessível para clínicos.
 
 **Detecção**:
+
 - Alerta: Pod nginx-ingress-controller em estado não-Running
 - Monitorar: `nginx_ingress_controller_requests` — se cai para zero
 
 **Mitigação**:
+
 - Configurar `priorityClassName: system-cluster-critical` para o controller
 - Garantir que o nó do ingress tem resources suficientes com margem
 - PodDisruptionBudget para o controller
@@ -407,11 +445,13 @@
 **Impacto clínico**: Serviço inacessível via URL pública mesmo estando funcionando internamente. **Já ocorreu no ambiente Velya — discovery real.**
 
 **Detecção**:
+
 - 504 nos logs do nginx-ingress
 - `kubectl logs -n ingress-nginx deployment/ingress-nginx-controller | grep "upstream"`
 - Teste: `curl -v http://velya.172.19.0.6.nip.io` retorna 504
 
 **Mitigação (já aplicada parcialmente)**:
+
 - Adicionar `nginx.ingress.kubernetes.io/service-upstream: "true"` em todos os Ingress resources
 - Criar template padrão de Ingress que inclui esta annotation
 - Validar no CI com kube-linter custom rule
@@ -429,11 +469,13 @@
 **Impacto clínico**: Perda total de observabilidade da plataforma no pior momento possível.
 
 **Detecção**:
+
 - Monitorar `prometheus_tsdb_symbol_table_size_bytes` — crescimento anormal
 - Alerta: `prometheus_tsdb_head_series > 1000000` (1 milhão de séries)
 - Query: `topk(10, count by (__name__, job) ({__name__=~".+"}))` para encontrar métricas com alta cardinalidade
 
 **Mitigação**:
+
 - Auditar labels de todas as métricas antes de adicionar ao código
 - Regra de code review: nunca usar IDs de alta cardinalidade como labels Prometheus
 - Configurar `--storage.tsdb.max-block-chunk-segment-size` com limite de cardinality
@@ -448,10 +490,12 @@
 **Como falha silenciosamente**: O pod é reiniciado. Dados em memória (últimas horas de séries temporais não persistidas) são perdidos. Há gap nos gráficos. Alertas podem não disparar durante o downtime.
 
 **Detecção**:
+
 - `kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}`
 - Gap nos gráficos de saúde da plataforma
 
 **Mitigação**:
+
 - Definir `resources.limits.memory` para Prometheus com folga (ex: 4Gi para ambiente atual)
 - Reduzir cardinalidade antes de aumentar memória
 - Usar recording rules para pré-computar queries pesadas
@@ -469,10 +513,12 @@
 **Impacto clínico**: Perda de visibilidade operacional durante incidente. O time não consegue diagnosticar a causa raiz.
 
 **Detecção**:
+
 - Grafana expõe métricas de saúde de datasources: `grafana_datasource_request_failed_total`
 - Alerta se datasource probe falha
 
 **Mitigação**:
+
 - Health check de datasource configurado e monitorado
 - Documentação clara de como verificar e reconectar datasource
 - Backup de credenciais de datasource no Kubernetes Secret, não hardcoded
@@ -490,11 +536,13 @@
 **Impacto clínico**: Clínico esperando análise de AI para decisão de alta fica sem resposta por 60 segundos, então recebe erro. Pode tentar novamente, causando múltiplas chamadas simultâneas ao provider.
 
 **Detecção**:
+
 - Implementar timeout explícito no AI Gateway (ex: 30 segundos)
 - Alerta: `ai_gateway_request_duration_seconds_p95 > 10`
 - Log de timeout com model, prompt_tokens estimados
 
 **Mitigação**:
+
 - Configurar timeout de 30 segundos máximo por chamada de inferência
 - Circuit breaker: se 3 timeouts em 1 minuto, abrir circuit por 30 segundos
 - Fallback: cache de resposta similar ou modo degradado
@@ -510,11 +558,13 @@
 **Impacto clínico**: Múltiplas features AI ficam indisponíveis simultaneamente durante picos de uso.
 
 **Detecção**:
+
 - Log de erro 429 com timestamp e model
 - Alerta: `ai_gateway_rate_limit_errors_total` crescendo
 - Dashboard de uso de tokens por minuto vs. limite
 
 **Mitigação**:
+
 - Implementar retry com exponential backoff + jitter para erros 429
 - Prioridade de chamadas: clínicas > operacionais > analytics
 - Cache de respostas para queries repetidas (ex: mesmo paciente, mesmo contexto)
@@ -531,10 +581,12 @@
 **Impacto clínico**: Análise de AI de alta hospitalar truncada — parte das informações clínicas não foi considerada na recomendação.
 
 **Detecção**:
+
 - Log de erro com tipo `context_length_exceeded`
 - Monitorar tamanho médio de contexto por tipo de request
 
 **Mitigação**:
+
 - Implementar compressão e summarização de contexto antes de enviar ao modelo
 - Monitorar tamanho de contexto e alertar se > 80% do limit do modelo
 - Escolher modelo com context window adequado para cada use case
@@ -552,11 +604,13 @@
 **Impacto clínico**: Recursos de computação esgotados em reprocessamento inútil. Novas mensagens (eventos clínicos recentes) ficam atrás de uma fila de redeliveries, aumentando latência para novos eventos.
 
 **Detecção**:
+
 - Monitorar `nats_consumer_num_redelivered` — crescimento anormal
 - Alerta: taxa de redelivery > 10% do throughput normal
 - Log de falhas de processamento repetidas com mesmo `event_id`
 
 **Mitigação**:
+
 - Configurar `maxDeliver` no consumer JetStream (ex: 3 tentativas)
 - Após N tentativas, mover para dead-letter stream para análise
 - Implementar backoff exponencial entre tentativas
@@ -566,18 +620,18 @@
 
 ## Resumo de Cobertura por Componente
 
-| Componente | Modos Catalogados | Críticos | Com Runbook |
-|---|---|---|---|
-| Kubernetes | 5 | 2 | 3 |
-| NATS JetStream | 5 | 3 | 1 |
-| KEDA | 3 | 1 | 0 |
-| ArgoCD | 2 | 1 | 0 |
-| PostgreSQL | 3 | 2 | 1 |
-| nginx-ingress | 2 | 1 | 0 |
-| Prometheus | 2 | 1 | 0 |
-| Grafana | 1 | 0 | 0 |
-| AI Gateway | 3 | 1 | 0 |
-| Fluxo NATS→Serviço | 1 | 1 | 0 |
-| **TOTAL** | **27** | **13** | **5** |
+| Componente         | Modos Catalogados | Críticos | Com Runbook |
+| ------------------ | ----------------- | -------- | ----------- |
+| Kubernetes         | 5                 | 2        | 3           |
+| NATS JetStream     | 5                 | 3        | 1           |
+| KEDA               | 3                 | 1        | 0           |
+| ArgoCD             | 2                 | 1        | 0           |
+| PostgreSQL         | 3                 | 2        | 1           |
+| nginx-ingress      | 2                 | 1        | 0           |
+| Prometheus         | 2                 | 1        | 0           |
+| Grafana            | 1                 | 0        | 0           |
+| AI Gateway         | 3                 | 1        | 0           |
+| Fluxo NATS→Serviço | 1                 | 1        | 0           |
+| **TOTAL**          | **27**            | **13**   | **5**       |
 
 > **Gap crítico**: Apenas 5 dos 27 modos de falha têm runbook documentado. Os 22 restantes precisam de runbook antes do go-live com dados reais.

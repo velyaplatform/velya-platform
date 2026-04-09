@@ -5,7 +5,7 @@
 **Classification**: Internal — Restricted  
 **Scope**: All MCP servers and tools available to Velya agents  
 **Authority**: AI Safety Team + Security Team + Clinical Medical Officer  
-**Review Cadence**: Monthly; whenever a new tool or MCP server is added; after any tool-related incident  
+**Review Cadence**: Monthly; whenever a new tool or MCP server is added; after any tool-related incident
 
 ---
 
@@ -24,6 +24,7 @@ This model defines a tiered trust system that classifies every tool by its poten
 **Definition**: Tools that only read data from internal Velya or Medplum systems. No writes. No external calls. No side effects.
 
 **Examples**:
+
 - `fhir_read_patient` — reads FHIR Patient resource by ID
 - `fhir_search_encounters` — searches active Encounters by ward
 - `fhir_read_vitals` — reads Observation resources for a patient
@@ -36,7 +37,7 @@ This model defines a tiered trust system that classifies every tool by its poten
 **Approval Requirements**: None — executes automatically on agent request  
 **Monitoring Requirements**: Basic usage logging (which agent, which patient handle, timestamp)  
 **Audit Requirements**: Daily audit log review for anomalous access patterns  
-**Rate Limiting**: 100 calls/minute per agent instance  
+**Rate Limiting**: 100 calls/minute per agent instance
 
 ---
 
@@ -45,6 +46,7 @@ This model defines a tiered trust system that classifies every tool by its poten
 **Definition**: Tools that write to internal Velya systems (not Medplum confirmed resources). Writes are reversible (can be undone or overwritten). No external notifications sent.
 
 **Examples**:
+
 - `memory_service_store` — stores patient context in agent memory (with TTL)
 - `task_inbox_update_priority` — updates priority of an existing task
 - `task_inbox_add_note` — adds a note to an existing task
@@ -56,7 +58,7 @@ This model defines a tiered trust system that classifies every tool by its poten
 **Approval Requirements**: None for automated execution; tool must verify agent has write scope for the resource type  
 **Monitoring Requirements**: Full tool invocation log with before/after state  
 **Audit Requirements**: All writes audited; weekly audit review per tool type  
-**Rate Limiting**: 50 calls/minute per agent instance  
+**Rate Limiting**: 50 calls/minute per agent instance
 
 ---
 
@@ -65,6 +67,7 @@ This model defines a tiered trust system that classifies every tool by its poten
 **Definition**: Tools that trigger communications to external systems or people. Messages can be retracted if caught quickly, but recipient may have already read/acted.
 
 **Examples**:
+
 - `notify_clinical_staff` — sends a push notification to a nurse or physician
 - `send_internal_alert` — posts an internal clinical alert to the task inbox
 - `send_pager_notification` — sends a pager notification (urgent)
@@ -75,7 +78,7 @@ This model defines a tiered trust system that classifies every tool by its poten
 **Approval Requirements**: Automated execution allowed ONLY if confidence > 0.85 AND output passes anomaly detection. Otherwise requires human confirmation.  
 **Monitoring Requirements**: Every invocation logged with recipient, message content, sender agent, patient handle  
 **Audit Requirements**: Real-time alert if > 10 notifications sent by a single agent in 5 minutes (possible loop); daily review  
-**Rate Limiting**: 10 calls/5-minutes per agent instance; hard limit 50/hour  
+**Rate Limiting**: 10 calls/5-minutes per agent instance; hard limit 50/hour
 
 ---
 
@@ -84,6 +87,7 @@ This model defines a tiered trust system that classifies every tool by its poten
 **Definition**: Tools whose effects cannot be undone once executed, or where reversal has significant overhead.
 
 **Examples**:
+
 - `fhir_update_encounter_status` — updates an Encounter status to 'finished' (discharge)
 - `fhir_create_clinical_order` — creates a clinical order in Medplum
 - `delete_task_from_inbox` — permanently removes a task
@@ -94,7 +98,7 @@ This model defines a tiered trust system that classifies every tool by its poten
 **Approval Requirements**: MANDATORY human approval token before tool invocation. Agent must present recommendation + evidence; human must explicitly confirm. Approval token is single-use with 5-minute expiry.  
 **Monitoring Requirements**: Real-time alert on every invocation; before/after state recorded  
 **Audit Requirements**: Every invocation appears in audit trail with human approver ID; clinical officer reviews weekly  
-**Rate Limiting**: 5 calls/hour per agent instance; human approval is rate-limiting anyway  
+**Rate Limiting**: 5 calls/hour per agent instance; human approval is rate-limiting anyway
 
 ---
 
@@ -103,6 +107,7 @@ This model defines a tiered trust system that classifies every tool by its poten
 **Definition**: Tools that directly affect patient clinical status, medication, or safety decisions. The consequences of an error are potentially clinical harm or adverse event.
 
 **Examples**:
+
 - `medication_reconciliation_finalize` — marks medication reconciliation as complete (pharmacist sign-off equivalent)
 - `discharge_patient_final` — executes final patient discharge from hospital
 - `escalate_deterioration_to_rapid_response` — triggers rapid response team activation
@@ -114,7 +119,7 @@ This model defines a tiered trust system that classifies every tool by its poten
 **Approval Requirements**: (1) Agent generates recommendation with full evidence chain. (2) Recommendation presented to relevant clinician (physician, charge nurse, pharmacist) via Velya UI. (3) Clinician explicitly confirms or overrides. (4) Clinician identity verified at confirmation time (re-authentication prompt). (5) Tool executes only with confirmed clinician approval token.  
 **Monitoring Requirements**: Immediate audit record; real-time notification to clinical supervisor; monthly clinical outcome review per action type  
 **Audit Requirements**: Every execution linked to: agent recommendation, evidence cited, clinician identity, clinician review time, clinician decision, outcome tracking for 30 days post-action  
-**Rate Limiting**: No automated rate limit — human approval is the gate. Alert if > 3 Tier 4 actions in 10 minutes for same patient (possible attack or error)  
+**Rate Limiting**: No automated rate limit — human approval is the gate. Alert if > 3 Tier 4 actions in 10 minutes for same patient (possible attack or error)
 
 ---
 
@@ -122,18 +127,18 @@ This model defines a tiered trust system that classifies every tool by its poten
 
 The following capabilities must NEVER be implemented as tools available to any Velya agent, regardless of tier:
 
-| Forbidden Capability | Reason |
-|---|---|
+| Forbidden Capability                                              | Reason                                                             |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------ |
 | Direct database modification (SQL UPDATE/DELETE outside FHIR API) | Bypasses FHIR access controls and audit trail; data integrity risk |
-| Access to other patients' data beyond the current workflow scope | Violates minimum necessary; PHI access beyond agent scope |
-| Reading or writing Kubernetes cluster configuration | Separation of AI and infrastructure planes |
-| Accessing secret values (API keys, database passwords) | Credential exfiltration risk |
-| Sending email to external addresses (outside hospital domain) | PHI exfiltration vector |
-| Making HTTP requests to arbitrary external URLs | Data exfiltration and SSRF risk |
-| Reading or modifying agent configuration or prompts | Self-modification prohibition |
-| Executing shell commands on any host | Remote code execution risk |
-| Modifying audit records | Audit trail integrity |
-| Granting or revoking permissions for other agents or users | Privilege escalation |
+| Access to other patients' data beyond the current workflow scope  | Violates minimum necessary; PHI access beyond agent scope          |
+| Reading or writing Kubernetes cluster configuration               | Separation of AI and infrastructure planes                         |
+| Accessing secret values (API keys, database passwords)            | Credential exfiltration risk                                       |
+| Sending email to external addresses (outside hospital domain)     | PHI exfiltration vector                                            |
+| Making HTTP requests to arbitrary external URLs                   | Data exfiltration and SSRF risk                                    |
+| Reading or modifying agent configuration or prompts               | Self-modification prohibition                                      |
+| Executing shell commands on any host                              | Remote code execution risk                                         |
+| Modifying audit records                                           | Audit trail integrity                                              |
+| Granting or revoking permissions for other agents or users        | Privilege escalation                                               |
 
 ---
 
@@ -151,15 +156,15 @@ interface MCPServerRequirements {
     rotationPeriodDays: number; // max 90
   };
   authorization: {
-    perToolGranularity: true;    // Each tool has its own authorization check
-    agentIdRequired: true;       // Tool must verify calling agent identity
-    patientScopeEnforced: true;  // Tool must verify agent has scope for patient
+    perToolGranularity: true; // Each tool has its own authorization check
+    agentIdRequired: true; // Tool must verify calling agent identity
+    patientScopeEnforced: true; // Tool must verify agent has scope for patient
   };
   audit: {
     logEveryInvocation: true;
-    logInputArgs: true;          // Sanitized — no PHI
-    logOutputSchema: true;       // Schema metadata, not full output
-    retentionDays: 2555;         // 7 years for HIPAA
+    logInputArgs: true; // Sanitized — no PHI
+    logOutputSchema: true; // Schema metadata, not full output
+    retentionDays: 2555; // 7 years for HIPAA
   };
   availability: {
     healthEndpoint: '/health';
@@ -177,10 +182,10 @@ All MCP servers must be registered in the platform/policy-engine tool registry b
 // platform/policy-engine/src/tool-registry/registry.ts
 
 interface ToolRegistryEntry {
-  toolId: string;               // e.g., 'fhir.patient.read'
-  mcpServer: string;            // e.g., 'medplum-mcp-server'
+  toolId: string; // e.g., 'fhir.patient.read'
+  mcpServer: string; // e.g., 'medplum-mcp-server'
   tier: 0 | 1 | 2 | 3 | 4;
-  allowedAgentIds: string[];    // Explicit list; no wildcards
+  allowedAgentIds: string[]; // Explicit list; no wildcards
   allowedPatientScopes: ('assigned' | 'ward' | 'all')[];
   requiresHumanApproval: boolean;
   maxCallsPerMinute: number;
@@ -188,7 +193,7 @@ interface ToolRegistryEntry {
   clinicalRationale: string;
   approvedBy: {
     technicalReviewer: string;
-    clinicalReviewer: string;  // Required for Tier 3 and 4
+    clinicalReviewer: string; // Required for Tier 3 and 4
     approvedDate: string;
   };
 }
@@ -202,20 +207,20 @@ All tool outputs (results returned to the agent) must be validated before the ag
 
 ### Validation Rules by Tier
 
-| Tier | Schema Validation | PHI Minimization | Anomaly Check | Clinical Entity Verify |
-|---|---|---|---|---|
-| Tier 0 | Required | Required | Optional | Recommended |
-| Tier 1 | Required | Required | Required | Required |
-| Tier 2 | Required | Required | Required | Required |
-| Tier 3 | Required | Required | Required | Required — before presenting to human |
-| Tier 4 | Required | Required | Required | Required — before presenting to clinician |
+| Tier   | Schema Validation | PHI Minimization | Anomaly Check | Clinical Entity Verify                    |
+| ------ | ----------------- | ---------------- | ------------- | ----------------------------------------- |
+| Tier 0 | Required          | Required         | Optional      | Recommended                               |
+| Tier 1 | Required          | Required         | Required      | Required                                  |
+| Tier 2 | Required          | Required         | Required      | Required                                  |
+| Tier 3 | Required          | Required         | Required      | Required — before presenting to human     |
+| Tier 4 | Required          | Required         | Required      | Required — before presenting to clinician |
 
 ### Tool Output PHI Minimization
 
 Tool output must not include PHI fields not required for the agent's declared task:
 
 ```typescript
-// Tool output for bed-allocation-agent: 
+// Tool output for bed-allocation-agent:
 // ALLOWED fields:
 {
   bedId: 'BED-7A-12',
@@ -245,19 +250,19 @@ metadata:
   name: mcp-tool-rate-limits
   namespace: velya-dev-platform
 data:
-  tier0-calls-per-minute: "100"
-  tier1-calls-per-minute: "50"
-  tier2-calls-per-5min: "10"
-  tier2-calls-per-hour: "50"
-  tier3-calls-per-hour: "5"  # human approval gate is primary rate limit
-  tier4-max-without-review: "3"  # alert if > 3 in 10 minutes for same patient
-  
+  tier0-calls-per-minute: '100'
+  tier1-calls-per-minute: '50'
+  tier2-calls-per-5min: '10'
+  tier2-calls-per-hour: '50'
+  tier3-calls-per-hour: '5' # human approval gate is primary rate limit
+  tier4-max-without-review: '3' # alert if > 3 in 10 minutes for same patient
+
   # Per-agent absolute limits (regardless of tier)
-  max-total-tool-calls-per-agent-per-hour: "500"
-  
+  max-total-tool-calls-per-agent-per-hour: '500'
+
   # Circuit breaker thresholds
-  circuit-breaker-error-threshold: "5"  # consecutive errors before open
-  circuit-breaker-recovery-timeout-seconds: "30"
+  circuit-breaker-error-threshold: '5' # consecutive errors before open
+  circuit-breaker-recovery-timeout-seconds: '30'
 ```
 
 ---
@@ -270,27 +275,27 @@ data:
 // platform/policy-engine/src/approval/approval-service.ts
 
 interface ApprovalRequest {
-  requestId: string;             // UUID
+  requestId: string; // UUID
   agentId: string;
   toolId: string;
   tier: 3 | 4;
   patientHandle: string;
-  recommendation: string;        // Human-readable recommendation
-  evidence: string[];            // List of evidence items agent used
+  recommendation: string; // Human-readable recommendation
+  evidence: string[]; // List of evidence items agent used
   confidence: number;
-  expiresAt: string;             // ISO 8601; must be within 5 minutes
+  expiresAt: string; // ISO 8601; must be within 5 minutes
 }
 
 interface ApprovalToken {
-  tokenId: string;               // UUID, single-use
+  tokenId: string; // UUID, single-use
   requestId: string;
-  approverId: string;            // Identity from JWT
+  approverId: string; // Identity from JWT
   approverRole: 'physician' | 'charge_nurse' | 'pharmacist' | 'clinical_officer';
   decision: 'approved' | 'overridden';
   overrideRationale: string | null;
   issuedAt: string;
-  expiresAt: string;             // 5 minutes from issuance
-  consumed: boolean;             // Becomes true when tool uses token
+  expiresAt: string; // 5 minutes from issuance
+  consumed: boolean; // Becomes true when tool uses token
 }
 ```
 
@@ -340,22 +345,22 @@ When a tool is being replaced or retired (non-emergency):
 
 As of 2026-04-08, no MCP server has been formally registered in the tool registry. The following tools are planned for the initial tool set:
 
-| Planned Tool | Server | Tier | Status |
-|---|---|---|---|
-| fhir_read_patient | medplum-mcp-server | 0 | Planned |
-| fhir_search_encounters | medplum-mcp-server | 0 | Planned |
-| fhir_read_vitals | medplum-mcp-server | 0 | Planned |
-| memory_service_get | memory-mcp-server | 0 | Planned |
-| memory_service_store | memory-mcp-server | 1 | Planned |
-| fhir_create_proposed_resource | medplum-mcp-server | 1 | Planned |
-| notify_clinical_staff | notification-mcp-server | 2 | Planned |
-| send_internal_alert | task-inbox-mcp-server | 2 | Planned |
-| fhir_update_encounter_status | medplum-mcp-server | 3 | Planned |
-| discharge_patient_final | discharge-mcp-server | 4 | Planned |
-| escalate_deterioration | alerting-mcp-server | 4 | Planned |
+| Planned Tool                  | Server                  | Tier | Status  |
+| ----------------------------- | ----------------------- | ---- | ------- |
+| fhir_read_patient             | medplum-mcp-server      | 0    | Planned |
+| fhir_search_encounters        | medplum-mcp-server      | 0    | Planned |
+| fhir_read_vitals              | medplum-mcp-server      | 0    | Planned |
+| memory_service_get            | memory-mcp-server       | 0    | Planned |
+| memory_service_store          | memory-mcp-server       | 1    | Planned |
+| fhir_create_proposed_resource | medplum-mcp-server      | 1    | Planned |
+| notify_clinical_staff         | notification-mcp-server | 2    | Planned |
+| send_internal_alert           | task-inbox-mcp-server   | 2    | Planned |
+| fhir_update_encounter_status  | medplum-mcp-server      | 3    | Planned |
+| discharge_patient_final       | discharge-mcp-server    | 4    | Planned |
+| escalate_deterioration        | alerting-mcp-server     | 4    | Planned |
 
 No Tier 3 or 4 tool may be activated without: formal registration, clinical reviewer approval, and a tested approval workflow.
 
 ---
 
-*This trust model is the authoritative specification for all agent tool access in Velya. Any deviation from this model for any tool is a security incident, not a feature request.*
+_This trust model is the authoritative specification for all agent tool access in Velya. Any deviation from this model for any tool is a security incident, not a feature request._

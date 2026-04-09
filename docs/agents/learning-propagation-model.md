@@ -54,13 +54,13 @@ Unexpected behavior detected during watchdog monitoring, chaos experiments, or s
 
 ### 3.1 Who Documents
 
-| Learning Event Type | Primary Documenter | Backup if Primary Unavailable |
-|---|---|---|
-| Incident | Agent that first detected the incident | Coordinator or Manager |
-| Regression | Agent that identified the recurrence | Office Manager |
-| Feedback | Agent that received the feedback | Coordinator |
-| Benchmark | Market Intelligence Office | PMO Office |
-| Anomaly | Watchdog that detected anomaly | Agent Runtime Supervision Manager |
+| Learning Event Type | Primary Documenter                     | Backup if Primary Unavailable     |
+| ------------------- | -------------------------------------- | --------------------------------- |
+| Incident            | Agent that first detected the incident | Coordinator or Manager            |
+| Regression          | Agent that identified the recurrence   | Office Manager                    |
+| Feedback            | Agent that received the feedback       | Coordinator                       |
+| Benchmark           | Market Intelligence Office             | PMO Office                        |
+| Anomaly             | Watchdog that detected anomaly         | Agent Runtime Supervision Manager |
 
 The Learning Report schema is defined in the Reporting Standard. All Learning Reports are filed within 24 hours of the triggering event.
 
@@ -73,6 +73,7 @@ Learning Reports must be specific and falsifiable. The following patterns are re
 - **Not generalizable:** "Agent X made a mistake" → May generate a correction report but not a learning report unless there is a broader lesson.
 
 A valid lesson must answer:
+
 1. What specifically happened?
 2. Why did it happen? (root cause, not symptoms)
 3. What would prevent it? (specific, implementable change)
@@ -82,6 +83,7 @@ A valid lesson must answer:
 ### 3.3 Storage
 
 All Learning Reports are stored in the Knowledge & Memory Office's learning repository with:
+
 - Full-text search indexing
 - Tags: domain, agent type, office, event type, severity, status
 - Linkage to: triggering event, evidence, affected agents, propagation records
@@ -95,14 +97,14 @@ Before a lesson is propagated, the Learning & Capability Development Office vali
 
 ### 4.1 Validation Criteria
 
-| Criterion | Question | Failure |
-|---|---|---|
-| Factual accuracy | Is the lesson based on what actually happened (evidenced)? | Lesson returned for revision |
-| Causal validity | Does the root cause correctly explain the event? | Lesson returned; deeper analysis requested |
-| Generalizability | Is this a specific edge case or a broadly applicable pattern? | May be filed locally rather than propagated |
-| Actionability | Does the lesson lead to a specific, implementable change? | Lesson returned as observation, not lesson |
-| Non-contradiction | Does this lesson contradict existing institutional knowledge? | Escalated to Learning Arbitration (see 4.2) |
-| Clinical safety | For clinical lessons: does this lesson improve or at minimum not degrade patient safety? | Blocked pending clinical review |
+| Criterion         | Question                                                                                 | Failure                                     |
+| ----------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Factual accuracy  | Is the lesson based on what actually happened (evidenced)?                               | Lesson returned for revision                |
+| Causal validity   | Does the root cause correctly explain the event?                                         | Lesson returned; deeper analysis requested  |
+| Generalizability  | Is this a specific edge case or a broadly applicable pattern?                            | May be filed locally rather than propagated |
+| Actionability     | Does the lesson lead to a specific, implementable change?                                | Lesson returned as observation, not lesson  |
+| Non-contradiction | Does this lesson contradict existing institutional knowledge?                            | Escalated to Learning Arbitration (see 4.2) |
+| Clinical safety   | For clinical lessons: does this lesson improve or at minimum not degrade patient safety? | Blocked pending clinical review             |
 
 Validation is completed within 48 hours of Learning Report receipt.
 
@@ -128,6 +130,7 @@ Contested lessons are not propagated until resolved.
 ### 5.1 Propagation Targets
 
 The Learning Office determines which agents and offices need to receive a lesson based on:
+
 - Which agent types are affected (all specialists of type X)
 - Which offices are affected (all offices doing Y)
 - Which risk domains are affected (all agents handling PHI, for example)
@@ -140,29 +143,29 @@ propagation_directive:
   directive_id: string
   learning_report_id: string
   lesson_title: string
-  lesson_summary: string           # max 200 words — the core lesson
+  lesson_summary: string # max 200 words — the core lesson
   change_required:
     change_type: enum [new_rule, skill_update, playbook_revision, template_change, contract_amendment, training_module, checklist_update]
     change_description: string
-    change_artifact_ref: string    # where the change is documented
+    change_artifact_ref: string # where the change is documented
   propagation_targets:
-    agents: list<string>           # specific agent IDs, or wildcard patterns
+    agents: list<string> # specific agent IDs, or wildcard patterns
     offices: list<string>
     role_types: list<string>
   acknowledgment_required_by: datetime
   demonstration_required_by: datetime
-  validation_method: string        # how absorption will be verified
+  validation_method: string # how absorption will be verified
   trainer_agent_assigned: string
 ```
 
 ### 5.3 Propagation Timeline
 
-| Lesson Priority | Propagation SLA |
-|---|---|
-| Urgent (patient safety, active regulatory risk) | 24 hours |
-| High (Critical domain findings, security) | 3 business days |
-| Medium (process improvements, validated patterns) | 5 business days |
-| Low (best practices, efficiency improvements) | 10 business days |
+| Lesson Priority                                   | Propagation SLA  |
+| ------------------------------------------------- | ---------------- |
+| Urgent (patient safety, active regulatory risk)   | 24 hours         |
+| High (Critical domain findings, security)         | 3 business days  |
+| Medium (process improvements, validated patterns) | 5 business days  |
+| Low (best practices, efficiency improvements)     | 10 business days |
 
 ---
 
@@ -170,29 +173,29 @@ propagation_directive:
 
 Validated lessons are classified into one of the following change types, which determines how they are implemented:
 
-| Change Type | Definition | Implementation Path |
-|---|---|---|
-| New rule | A prohibition or requirement that did not previously exist | Contract amendment for affected agents; validation checklist update |
-| Skill update | An improvement to how an agent executes an existing capability | Trainer agent delivers capability update; demonstration required |
-| Playbook revision | An update to a structured operational procedure | Playbook updated in Knowledge & Memory; agents notified |
-| Template change | An update to a report, evidence, or document template | Template updated; agents receive new version |
-| Contract amendment | A change to an agent's scope, permissions, or governance chain | Agent Factory processes amendment; ARB review if significant |
-| Training module | A new training scenario for the Simulation Office | Simulation Office creates and delivers; Trainer verifies |
-| Checklist update | An addition or modification to a validation or audit checklist | QA or Compliance Office updates checklist; validators notified |
+| Change Type        | Definition                                                     | Implementation Path                                                 |
+| ------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| New rule           | A prohibition or requirement that did not previously exist     | Contract amendment for affected agents; validation checklist update |
+| Skill update       | An improvement to how an agent executes an existing capability | Trainer agent delivers capability update; demonstration required    |
+| Playbook revision  | An update to a structured operational procedure                | Playbook updated in Knowledge & Memory; agents notified             |
+| Template change    | An update to a report, evidence, or document template          | Template updated; agents receive new version                        |
+| Contract amendment | A change to an agent's scope, permissions, or governance chain | Agent Factory processes amendment; ARB review if significant        |
+| Training module    | A new training scenario for the Simulation Office              | Simulation Office creates and delivers; Trainer verifies            |
+| Checklist update   | An addition or modification to a validation or audit checklist | QA or Compliance Office updates checklist; validators notified      |
 
 ---
 
 ## 7. Anti-Patterns
 
-| Anti-Pattern | Definition | Consequence |
-|---|---|---|
-| Lessons ignored | Agent acknowledges a lesson but does not demonstrate incorporation | Scorecard deduction; Learning Office escalation |
-| Lessons misapplied | Agent applies a lesson in the wrong context or with incorrect scope | Learning investigation; potential contract review |
-| Contradictory lessons | Two lessons are propagated that contradict each other without resolution | Contested flag; Learning Arbitration required |
-| Learning theater | Learning Report filed as compliance exercise with no substantive content | Learning Office rejects; escalation to manager |
-| Lesson overload | Too many lessons propagated simultaneously, degrading absorption quality | Learning Office paces propagation; prioritizes urgently |
-| Lessons without evidence | Lesson filed based on intuition or opinion, not documented evidence | Learning Office rejects pending evidence |
-| Lesson drift | Lesson is correctly absorbed initially but agents drift back to old behavior over time | Trainer agents monitor; recurrence triggers investigation |
+| Anti-Pattern             | Definition                                                                             | Consequence                                               |
+| ------------------------ | -------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Lessons ignored          | Agent acknowledges a lesson but does not demonstrate incorporation                     | Scorecard deduction; Learning Office escalation           |
+| Lessons misapplied       | Agent applies a lesson in the wrong context or with incorrect scope                    | Learning investigation; potential contract review         |
+| Contradictory lessons    | Two lessons are propagated that contradict each other without resolution               | Contested flag; Learning Arbitration required             |
+| Learning theater         | Learning Report filed as compliance exercise with no substantive content               | Learning Office rejects; escalation to manager            |
+| Lesson overload          | Too many lessons propagated simultaneously, degrading absorption quality               | Learning Office paces propagation; prioritizes urgently   |
+| Lessons without evidence | Lesson filed based on intuition or opinion, not documented evidence                    | Learning Office rejects pending evidence                  |
+| Lesson drift             | Lesson is correctly absorbed initially but agents drift back to old behavior over time | Trainer agents monitor; recurrence triggers investigation |
 
 ---
 
@@ -217,16 +220,17 @@ The Learning & Capability Development Office:
 
 ### 9.1 Memory Types
 
-| Memory Type | Scope | Owner | Access |
-|---|---|---|---|
-| Global Memory | Enterprise-wide — universal rules, constraints, governance | Knowledge & Memory Office | All agents (read); Learning Office (write) |
-| Office Memory | Office-specific processes, patterns, institutional history | Office Manager | Office agents (read); Manager (write) |
-| Process Memory | Specific workflow and procedure knowledge | Relevant coordinator agents | Process participants (read); Learning Office (write with validation) |
-| Agent Memory | Individual agent's learned patterns and history | Individual agent | Agent (read/write); Manager (read) |
+| Memory Type    | Scope                                                      | Owner                       | Access                                                               |
+| -------------- | ---------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------- |
+| Global Memory  | Enterprise-wide — universal rules, constraints, governance | Knowledge & Memory Office   | All agents (read); Learning Office (write)                           |
+| Office Memory  | Office-specific processes, patterns, institutional history | Office Manager              | Office agents (read); Manager (write)                                |
+| Process Memory | Specific workflow and procedure knowledge                  | Relevant coordinator agents | Process participants (read); Learning Office (write with validation) |
+| Agent Memory   | Individual agent's learned patterns and history            | Individual agent            | Agent (read/write); Manager (read)                                   |
 
 ### 9.2 Global Memory Contents
 
 Global memory contains:
+
 - The institutional governance documents (this document and all sibling documents)
 - Propagated rules (all active `new_rule` learning items)
 - Enterprise-wide policies
@@ -271,13 +275,13 @@ ARCHIVED
 
 The Knowledge & Memory Office audits institutional memory quarterly:
 
-| Audit Item | Frequency | Standard |
-|---|---|---|
-| Memory currency | Quarterly | >90% of items within their review cycle |
-| Memory integrity | Quarterly | All items hash-verified; no undetected modifications |
-| Memory completeness | Quarterly | All active processes have corresponding documentation |
+| Audit Item                     | Frequency | Standard                                               |
+| ------------------------------ | --------- | ------------------------------------------------------ |
+| Memory currency                | Quarterly | >90% of items within their review cycle                |
+| Memory integrity               | Quarterly | All items hash-verified; no undetected modifications   |
+| Memory completeness            | Quarterly | All active processes have corresponding documentation  |
 | Memory contradiction detection | Quarterly | No contradictory active items without resolution notes |
-| Access log review | Monthly | All memory access patterns within expected bounds |
-| Deprecation hygiene | Quarterly | No items overdue for deprecation review |
+| Access log review              | Monthly   | All memory access patterns within expected bounds      |
+| Deprecation hygiene            | Quarterly | No items overdue for deprecation review                |
 
 The Compliance & Audit Office audits the memory audit annually for regulatory purposes.

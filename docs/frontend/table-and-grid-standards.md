@@ -44,53 +44,53 @@ components/data/
 ```tsx
 interface DataTableProps<TData, TValue> {
   // Obrigatórios
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
 
   // Estado
-  isLoading?: boolean
-  isError?: boolean
-  onRetry?: () => void
-  emptyMessage?: string
-  emptyIcon?: LucideIcon
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
+  emptyMessage?: string;
+  emptyIcon?: LucideIcon;
 
   // Features
-  enableSorting?: boolean           // default: true
-  enableFiltering?: boolean         // default: true
-  enableColumnVisibility?: boolean  // default: true
-  enableRowSelection?: boolean      // default: false
-  enablePagination?: boolean        // default: true
-  enableVirtualization?: boolean    // default: false
+  enableSorting?: boolean; // default: true
+  enableFiltering?: boolean; // default: true
+  enableColumnVisibility?: boolean; // default: true
+  enableRowSelection?: boolean; // default: false
+  enablePagination?: boolean; // default: true
+  enableVirtualization?: boolean; // default: false
 
   // Toolbar
-  searchPlaceholder?: string
-  searchColumn?: string
-  filterableColumns?: FilterableColumn[]
-  toolbarActions?: React.ReactNode
+  searchPlaceholder?: string;
+  searchColumn?: string;
+  filterableColumns?: FilterableColumn[];
+  toolbarActions?: React.ReactNode;
 
   // Seleção
-  onSelectionChange?: (rows: TData[]) => void
-  bulkActions?: BulkAction<TData>[]
+  onSelectionChange?: (rows: TData[]) => void;
+  bulkActions?: BulkAction<TData>[];
 
   // Paginação
-  pageSize?: number                 // default: 20
-  pageSizeOptions?: number[]        // default: [10, 20, 50, 100]
+  pageSize?: number; // default: 20
+  pageSizeOptions?: number[]; // default: [10, 20, 50, 100]
 
   // Mobile
-  mobileCardRenderer?: (row: TData) => React.ReactNode
-  mobilePriorityColumns?: string[]
-  mobileBreakpoint?: 'sm' | 'md'   // default: 'md'
+  mobileCardRenderer?: (row: TData) => React.ReactNode;
+  mobilePriorityColumns?: string[];
+  mobileBreakpoint?: 'sm' | 'md'; // default: 'md'
 
   // Virtualização
-  estimateSize?: number             // default: 48
-  overscan?: number                 // default: 10
+  estimateSize?: number; // default: 48
+  overscan?: number; // default: 10
 }
 ```
 
 ### 2.3 Implementação Base
 
 ```tsx
-'use client'
+'use client';
 
 import {
   flexRender,
@@ -104,14 +104,21 @@ import {
   type ColumnFiltersState,
   type VisibilityState,
   type RowSelectionState,
-} from '@tanstack/react-table'
-import { useState } from 'react'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { DataTableToolbar } from './data-table-toolbar'
-import { DataTablePagination } from './data-table-pagination'
-import { DataTableSkeleton } from './data-table-skeleton'
-import { DataTableEmpty } from './data-table-empty'
-import { useMediaQuery } from '@/hooks/use-media-query'
+} from '@tanstack/react-table';
+import { useState } from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { DataTableToolbar } from './data-table-toolbar';
+import { DataTablePagination } from './data-table-pagination';
+import { DataTableSkeleton } from './data-table-skeleton';
+import { DataTableEmpty } from './data-table-empty';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 export function DataTable<TData, TValue>({
   columns,
@@ -136,14 +143,14 @@ export function DataTable<TData, TValue>({
   mobileCardRenderer,
   mobileBreakpoint = 'md',
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   const isMobile = useMediaQuery(
-    mobileBreakpoint === 'sm' ? '(max-width: 639px)' : '(max-width: 767px)'
-  )
+    mobileBreakpoint === 'sm' ? '(max-width: 639px)' : '(max-width: 767px)',
+  );
 
   const table = useReactTable({
     data,
@@ -173,11 +180,11 @@ export function DataTable<TData, TValue>({
     initialState: {
       pagination: { pageSize },
     },
-  })
+  });
 
   // Loading state
   if (isLoading) {
-    return <DataTableSkeleton columns={columns.length} rows={pageSize} />
+    return <DataTableSkeleton columns={columns.length} rows={pageSize} />;
   }
 
   // Error state
@@ -188,7 +195,7 @@ export function DataTable<TData, TValue>({
         description="Não foi possível carregar a tabela."
         onRetry={onRetry}
       />
-    )
+    );
   }
 
   // Mobile card view
@@ -205,15 +212,15 @@ export function DataTable<TData, TValue>({
         {table.getRowModel().rows.length === 0 ? (
           <DataTableEmpty message={emptyMessage} />
         ) : (
-          table.getRowModel().rows.map((row) => (
-            <div key={row.id}>
-              {mobileCardRenderer(row.original)}
-            </div>
-          ))
+          table
+            .getRowModel()
+            .rows.map((row) => <div key={row.id}>{mobileCardRenderer(row.original)}</div>)
         )}
-        {enablePagination && <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />}
+        {enablePagination && (
+          <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
+        )}
       </div>
-    )
+    );
   }
 
   // Desktop table view
@@ -235,10 +242,7 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="bg-muted/50">
                 {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="sticky top-0 bg-muted/50 backdrop-blur"
-                  >
+                  <TableHead key={header.id} className="sticky top-0 bg-muted/50 backdrop-blur">
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
@@ -275,7 +279,7 @@ export function DataTable<TData, TValue>({
 
       {enablePagination && <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />}
     </div>
-  )
+  );
 }
 ```
 
@@ -286,15 +290,15 @@ export function DataTable<TData, TValue>({
 ### 3.1 Column Header com Sort
 
 ```tsx
-import { Column } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Column } from '@tanstack/react-table';
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface DataTableColumnHeaderProps<TData, TValue> {
-  column: Column<TData, TValue>
-  title: string
-  className?: string
+  column: Column<TData, TValue>;
+  title: string;
+  className?: string;
 }
 
 export function DataTableColumnHeader<TData, TValue>({
@@ -303,7 +307,7 @@ export function DataTableColumnHeader<TData, TValue>({
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   if (!column.getCanSort()) {
-    return <div className={cn(className)}>{title}</div>
+    return <div className={cn(className)}>{title}</div>;
   }
 
   return (
@@ -322,7 +326,7 @@ export function DataTableColumnHeader<TData, TValue>({
         <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />
       )}
     </Button>
-  )
+  );
 }
 ```
 
@@ -348,7 +352,7 @@ function DataTableToolbar<TData>({
   searchColumn,
   filterableColumns,
 }: ToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0
+  const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
     <div className="flex items-center justify-between gap-2">
@@ -370,31 +374,23 @@ function DataTableToolbar<TData>({
           />
         ))}
         {isFiltered && (
-          <Button
-            variant="ghost"
-            onClick={() => table.resetColumnFilters()}
-            className="h-9 px-2"
-          >
+          <Button variant="ghost" onClick={() => table.resetColumnFilters()} className="h-9 px-2">
             Limpar filtros
             <X className="ml-2 h-4 w-4" />
           </Button>
         )}
       </div>
     </div>
-  )
+  );
 }
 ```
 
 ### 4.2 Filtro por Facetas
 
 ```tsx
-function DataTableFacetedFilter<TData>({
-  column,
-  title,
-  options,
-}: FacetedFilterProps<TData>) {
-  const facets = column?.getFacetedUniqueValues()
-  const selectedValues = new Set(column?.getFilterValue() as string[])
+function DataTableFacetedFilter<TData>({ column, title, options }: FacetedFilterProps<TData>) {
+  const facets = column?.getFacetedUniqueValues();
+  const selectedValues = new Set(column?.getFilterValue() as string[]);
 
   return (
     <Popover>
@@ -416,25 +412,27 @@ function DataTableFacetedFilter<TData>({
             <CommandEmpty>Sem resultados.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
-                const isSelected = selectedValues.has(option.value)
+                const isSelected = selectedValues.has(option.value);
                 return (
                   <CommandItem
                     key={option.value}
                     onSelect={() => {
                       if (isSelected) {
-                        selectedValues.delete(option.value)
+                        selectedValues.delete(option.value);
                       } else {
-                        selectedValues.add(option.value)
+                        selectedValues.add(option.value);
                       }
                       column?.setFilterValue(
-                        selectedValues.size ? Array.from(selectedValues) : undefined
-                      )
+                        selectedValues.size ? Array.from(selectedValues) : undefined,
+                      );
                     }}
                   >
-                    <div className={cn(
-                      'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border',
-                      isSelected ? 'bg-primary text-primary-foreground' : 'opacity-50'
-                    )}>
+                    <div
+                      className={cn(
+                        'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border',
+                        isSelected ? 'bg-primary text-primary-foreground' : 'opacity-50',
+                      )}
+                    >
                       {isSelected && <Check className="h-4 w-4" />}
                     </div>
                     {option.icon && <option.icon className="mr-2 h-4 w-4" />}
@@ -445,14 +443,14 @@ function DataTableFacetedFilter<TData>({
                       </span>
                     )}
                   </CommandItem>
-                )
+                );
               })}
             </CommandGroup>
           </CommandList>
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
 ```
 
@@ -473,7 +471,8 @@ function DataTableViewOptions<TData>({ table }: { table: Table<TData> }) {
       <DropdownMenuContent align="end" className="w-[200px]">
         <DropdownMenuLabel>Colunas visíveis</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {table.getAllColumns()
+        {table
+          .getAllColumns()
           .filter((col) => col.getCanHide())
           .map((column) => (
             <DropdownMenuCheckboxItem
@@ -487,7 +486,7 @@ function DataTableViewOptions<TData>({ table }: { table: Table<TData> }) {
           ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
 ```
 
@@ -528,19 +527,19 @@ function DataTableRowActions<TData>({ row, actions }: RowActionsProps<TData>) {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
 ```
 
 ### 6.2 Padrão de Ações por Domínio
 
-| Domínio | Ações Típicas |
-|---|---|
+| Domínio   | Ações Típicas                                          |
+| --------- | ------------------------------------------------------ |
 | Pacientes | Ver detalhes, Editar, Registrar dor, Registrar chamada |
-| Medicação | Administrar, Pular, Ver prescrição, Histórico |
-| Chamadas | Atender, Encaminhar, Registrar resolução |
-| Auditoria | Ver detalhes, Exportar, Filtrar por operador |
-| Workforce | Editar escala, Trocar turno, Ver perfil |
+| Medicação | Administrar, Pular, Ver prescrição, Histórico          |
+| Chamadas  | Atender, Encaminhar, Registrar resolução               |
+| Auditoria | Ver detalhes, Exportar, Filtrar por operador           |
+| Workforce | Editar escala, Trocar turno, Ver perfil                |
 
 ---
 
@@ -567,7 +566,7 @@ const selectionColumn: ColumnDef<any> = {
   ),
   enableSorting: false,
   enableHiding: false,
-}
+};
 ```
 
 ### 7.2 Barra de Bulk Actions
@@ -578,7 +577,7 @@ function BulkActionBar<TData>({
   actions,
   onClearSelection,
 }: BulkActionBarProps<TData>) {
-  if (selectedCount === 0) return null
+  if (selectedCount === 0) return null;
 
   return (
     <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2">
@@ -601,7 +600,7 @@ function BulkActionBar<TData>({
         Limpar seleção
       </Button>
     </div>
-  )
+  );
 }
 ```
 
@@ -613,12 +612,8 @@ function BulkActionBar<TData>({
 // Implementação via CSS
 <div className="max-h-[600px] overflow-auto rounded-lg border">
   <Table>
-    <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">
-      {/* headers */}
-    </TableHeader>
-    <TableBody>
-      {/* rows */}
-    </TableBody>
+    <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">{/* headers */}</TableHeader>
+    <TableBody>{/* rows */}</TableBody>
   </Table>
 </div>
 ```
@@ -663,7 +658,7 @@ function DataTableSkeleton({ columns, rows }: { columns: number; rows: number })
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }
 ```
 
@@ -674,11 +669,9 @@ function DataTableEmpty({ message, icon: Icon = Inbox }: DataTableEmptyProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12">
       <Icon className="h-10 w-10 text-muted-foreground/50 mb-3" />
-      <p className="text-sm text-muted-foreground">
-        {message || 'Nenhum registro encontrado'}
-      </p>
+      <p className="text-sm text-muted-foreground">{message || 'Nenhum registro encontrado'}</p>
     </div>
-  )
+  );
 }
 ```
 
@@ -689,9 +682,7 @@ function DataTableError({ message, onRetry }: DataTableErrorProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12 gap-3">
       <AlertTriangle className="h-10 w-10 text-destructive/50" />
-      <p className="text-sm text-muted-foreground">
-        {message || 'Erro ao carregar dados'}
-      </p>
+      <p className="text-sm text-muted-foreground">{message || 'Erro ao carregar dados'}</p>
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RefreshCw className="mr-2 h-4 w-4" />
@@ -699,7 +690,7 @@ function DataTableError({ message, onRetry }: DataTableErrorProps) {
         </Button>
       )}
     </div>
-  )
+  );
 }
 ```
 
@@ -709,30 +700,30 @@ function DataTableError({ message, onRetry }: DataTableErrorProps) {
 
 ### 10.1 Quando Virtualizar
 
-| Cenário | Virtualizar? |
-|---|---|
-| < 100 linhas | Não |
-| 100-500 linhas com paginação | Não |
-| 500+ linhas sem paginação | Sim |
-| Logs de auditoria (scroll infinito) | Sim |
-| Tabela com linhas expansíveis | Sim se > 200 linhas |
+| Cenário                             | Virtualizar?        |
+| ----------------------------------- | ------------------- |
+| < 100 linhas                        | Não                 |
+| 100-500 linhas com paginação        | Não                 |
+| 500+ linhas sem paginação           | Sim                 |
+| Logs de auditoria (scroll infinito) | Sim                 |
+| Tabela com linhas expansíveis       | Sim se > 200 linhas |
 
 ### 10.2 Implementação com TanStack Virtual
 
 ```tsx
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 function VirtualizedTable<TData>({ table }: { table: Table<TData> }) {
-  const parentRef = useRef<HTMLDivElement>(null)
+  const parentRef = useRef<HTMLDivElement>(null);
 
-  const { rows } = table.getRowModel()
+  const { rows } = table.getRowModel();
 
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 48, // altura estimada da row em px
     overscan: 10,
-  })
+  });
 
   return (
     <div ref={parentRef} className="max-h-[600px] overflow-auto rounded-lg border">
@@ -744,7 +735,7 @@ function VirtualizedTable<TData>({ table }: { table: Table<TData> }) {
           <tr style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
             <td colSpan={99} style={{ padding: 0 }}>
               {virtualizer.getVirtualItems().map((virtualRow) => {
-                const row = rows[virtualRow.index]
+                const row = rows[virtualRow.index];
                 return (
                   <TableRow
                     key={row.id}
@@ -764,14 +755,14 @@ function VirtualizedTable<TData>({ table }: { table: Table<TData> }) {
                       </TableCell>
                     ))}
                   </TableRow>
-                )
+                );
               })}
             </td>
           </tr>
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }
 ```
 
@@ -792,29 +783,29 @@ const columns: ColumnDef<Patient>[] = [
   {
     accessorKey: 'name',
     header: 'Nome',
-    meta: { priority: 'high' },          // Sempre visível
+    meta: { priority: 'high' }, // Sempre visível
   },
   {
     accessorKey: 'status',
     header: 'Status',
-    meta: { priority: 'high' },          // Sempre visível
+    meta: { priority: 'high' }, // Sempre visível
   },
   {
     accessorKey: 'room',
     header: 'Quarto',
-    meta: { priority: 'medium' },        // Tablet+
+    meta: { priority: 'medium' }, // Tablet+
   },
   {
     accessorKey: 'doctor',
     header: 'Médico',
-    meta: { priority: 'low' },           // Desktop only
+    meta: { priority: 'low' }, // Desktop only
   },
   {
     accessorKey: 'lastUpdate',
     header: 'Última atualização',
-    meta: { priority: 'low' },           // Desktop only
+    meta: { priority: 'low' }, // Desktop only
   },
-]
+];
 ```
 
 ### 11.2 Cards Derivados para Mobile
@@ -839,7 +830,7 @@ function PatientMobileCard({ patient }: { patient: Patient }) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 ```
 
@@ -863,12 +854,10 @@ function RowDetailDrawer<TData>({ row, columns, open, onClose }: RowDrawerProps<
             </div>
           ))}
         </div>
-        <SheetFooter>
-          {/* Ações da linha */}
-        </SheetFooter>
+        <SheetFooter>{/* Ações da linha */}</SheetFooter>
       </SheetContent>
     </Sheet>
-  )
+  );
 }
 ```
 
@@ -880,7 +869,7 @@ function RowDetailDrawer<TData>({ row, columns, open, onClose }: RowDrawerProps<
 
 ```tsx
 const patientColumns: ColumnDef<Patient>[] = [
-  { id: 'select', /* checkbox */ },
+  { id: 'select' /* checkbox */ },
   {
     accessorKey: 'name',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Paciente" />,
@@ -897,7 +886,9 @@ const patientColumns: ColumnDef<Patient>[] = [
   {
     accessorKey: 'status',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-    cell: ({ row }) => <StatusChip variant={row.original.status} label={row.original.statusLabel} />,
+    cell: ({ row }) => (
+      <StatusChip variant={row.original.status} label={row.original.statusLabel} />
+    ),
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   {
@@ -918,7 +909,7 @@ const patientColumns: ColumnDef<Patient>[] = [
     id: 'actions',
     cell: ({ row }) => <DataTableRowActions row={row} actions={patientActions} />,
   },
-]
+];
 ```
 
 ---
@@ -940,7 +931,9 @@ function DataTablePagination<TData>({ table, pageSizeOptions }: PaginationProps<
           </SelectTrigger>
           <SelectContent>
             {pageSizeOptions.map((size) => (
-              <SelectItem key={size} value={`${size}`}>{size}</SelectItem>
+              <SelectItem key={size} value={`${size}`}>
+                {size}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -951,26 +944,46 @@ function DataTablePagination<TData>({ table, pageSizeOptions }: PaginationProps<
           Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
         </span>
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" className="h-8 w-8"
-            onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => table.setPageIndex(0)}
+            disabled={!table.getCanPreviousPage()}
+          >
             <ChevronsLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8"
-            onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8"
-            onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+            disabled={!table.getCanNextPage()}
+          >
             <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -993,8 +1006,8 @@ function DataTablePagination<TData>({ table, pageSizeOptions }: PaginationProps<
 ```tsx
 // Anuncia mudanças para screen readers
 <div role="status" aria-live="polite" className="sr-only">
-  {table.getFilteredRowModel().rows.length} resultados encontrados.
-  Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}.
+  {table.getFilteredRowModel().rows.length} resultados encontrados. Página{' '}
+  {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}.
 </div>
 ```
 
@@ -1012,12 +1025,12 @@ function DataTablePagination<TData>({ table, pageSizeOptions }: PaginationProps<
 
 ### 15.2 Métricas
 
-| Métrica | Target |
-|---|---|
-| Render initial (100 rows) | < 50ms |
-| Sort toggle | < 100ms |
-| Filter apply | < 150ms |
-| Virtual scroll (10k rows) | 60fps |
+| Métrica                       | Target  |
+| ----------------------------- | ------- |
+| Render initial (100 rows)     | < 50ms  |
+| Sort toggle                   | < 100ms |
+| Filter apply                  | < 150ms |
+| Virtual scroll (10k rows)     | 60fps   |
 | Mobile card render (50 items) | < 100ms |
 
 ---

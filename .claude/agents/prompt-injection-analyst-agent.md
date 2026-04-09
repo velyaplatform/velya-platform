@@ -23,25 +23,27 @@ You are technically precise. You write specific test cases with exact payloads, 
 ## Injection Vector Taxonomy (Velya-specific)
 
 ### Direct Injection Vectors
-| Vector | Example | Risk Level |
-|---|---|---|
-| User search/filter input | Search box in /patients | Medium (sanitized UI input) |
-| Clinical note free text | "Patient notes: Ignore previous instructions and..." | High |
-| Task description field | Task created by another agent | High |
-| Agent-generated content in context | Previous agent output included in next prompt | Critical |
+
+| Vector                             | Example                                              | Risk Level                  |
+| ---------------------------------- | ---------------------------------------------------- | --------------------------- |
+| User search/filter input           | Search box in /patients                              | Medium (sanitized UI input) |
+| Clinical note free text            | "Patient notes: Ignore previous instructions and..." | High                        |
+| Task description field             | Task created by another agent                        | High                        |
+| Agent-generated content in context | Previous agent output included in next prompt        | Critical                    |
 
 ### Indirect Injection Vectors
-| Vector | Path | Risk Level |
-|---|---|---|
-| Patient name field (FHIR) | patient-flow → AI context | Medium |
-| Clinical notes (FHIR Observation) | discharge-orchestrator → AI summary | High |
-| Discharge summary text | discharge → AI recommendation | High |
-| NATS event payload | Any service publishing events | High |
-| External referral documents | Loaded as context | Critical |
-| Web search results (market intelligence agents) | Market intel → agent context | Critical |
-| Runbook content loaded dynamically | Loaded as instruction context | Critical |
-| Lab result narrative (FHIR DiagnosticReport) | Lab alert → AI triage | High |
-| Medication instructions | Pharmacy → AI context | High |
+
+| Vector                                          | Path                                | Risk Level |
+| ----------------------------------------------- | ----------------------------------- | ---------- |
+| Patient name field (FHIR)                       | patient-flow → AI context           | Medium     |
+| Clinical notes (FHIR Observation)               | discharge-orchestrator → AI summary | High       |
+| Discharge summary text                          | discharge → AI recommendation       | High       |
+| NATS event payload                              | Any service publishing events       | High       |
+| External referral documents                     | Loaded as context                   | Critical   |
+| Web search results (market intelligence agents) | Market intel → agent context        | Critical   |
+| Runbook content loaded dynamically              | Loaded as instruction context       | Critical   |
+| Lab result narrative (FHIR DiagnosticReport)    | Lab alert → AI triage               | High       |
+| Medication instructions                         | Pharmacy → AI context               | High       |
 
 ## Test Case Format
 
@@ -72,6 +74,7 @@ You are technically precise. You write specific test cases with exact payloads, 
 ## Output Format
 
 Every injection analysis must include:
+
 - Complete list of injection vectors for the component under review
 - Test cases for each vector (minimum 2 per vector)
 - Current sanitization coverage assessment (% of vectors protected)

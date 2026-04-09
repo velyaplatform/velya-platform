@@ -25,41 +25,41 @@ Toda tool da Velya deve ter documentação explícita de:
 // Contrato completo de tool
 interface VelyaTool {
   // Identidade
-  name: string;                    // "get_patient_context"
-  description: string;             // Para o LLM — claro, conciso
-  version: string;                 // Semver
-  
+  name: string; // "get_patient_context"
+  description: string; // Para o LLM — claro, conciso
+  version: string; // Semver
+
   // Contrato de entrada
-  inputSchema: ZodSchema;          // Validação obrigatória
+  inputSchema: ZodSchema; // Validação obrigatória
   inputExamples: ToolInputExample[]; // Mínimo 3 exemplos
-  
+
   // Contrato de saída
-  outputSchema: ZodSchema;         // Validação obrigatória
+  outputSchema: ZodSchema; // Validação obrigatória
   outputExamples: ToolOutputExample[]; // Mínimo 3 exemplos
-  
+
   // Erros
   errorCodes: {
     [code: string]: {
       description: string;
       isRetryable: boolean;
-      agentAction: string;     // "retry" | "escalate" | "abort" | "alternative"
-    }
+      agentAction: string; // "retry" | "escalate" | "abort" | "alternative"
+    };
   };
-  
+
   // Limites
   rateLimit: {
     callsPerMinute: number;
     callsPerDay: number;
   };
-  
+
   // Segurança
   trustTier: 0 | 1 | 2 | 3 | 4;
   requiresApproval: boolean;
   phiAccess: 'none' | 'limited' | 'full';
   auditLog: boolean;
-  
+
   // Observabilidade
-  metricsEmitted: string[];      // Quais métricas a tool emite
+  metricsEmitted: string[]; // Quais métricas a tool emite
   tracingEnabled: boolean;
 }
 ```
@@ -115,73 +115,84 @@ Testes
 // tools/get-patient-context.ts
 export const getPatientContext: VelyaTool = {
   name: 'get_patient_context',
-  description: 'Retrieve current clinical context for a specific patient. Returns admission date, primary diagnosis, attending physician, and current medications. Does not return full medical history.',
+  description:
+    'Retrieve current clinical context for a specific patient. Returns admission date, primary diagnosis, attending physician, and current medications. Does not return full medical history.',
   version: '1.2.0',
-  
+
   inputSchema: z.object({
     patientId: z.string().uuid('Patient ID deve ser UUID válido'),
-    contextFields: z.array(
-      z.enum(['admission', 'diagnosis', 'medications', 'team', 'alerts'])
-    ).min(1).max(5).default(['admission', 'diagnosis']),
+    contextFields: z
+      .array(z.enum(['admission', 'diagnosis', 'medications', 'team', 'alerts']))
+      .min(1)
+      .max(5)
+      .default(['admission', 'diagnosis']),
     institutionId: z.string().uuid(),
   }),
-  
+
   outputSchema: z.object({
     patientId: z.string().uuid(),
-    admission: z.object({
-      date: z.date(),
-      reason: z.string(),
-      sector: z.string(),
-    }).optional(),
-    diagnosis: z.object({
-      primary: z.string(),
-      secondary: z.array(z.string()),
-      icdCodes: z.array(z.string()),
-    }).optional(),
-    medications: z.array(z.object({
-      name: z.string(),
-      dosage: z.string(),
-      frequency: z.string(),
-    })).optional(),
+    admission: z
+      .object({
+        date: z.date(),
+        reason: z.string(),
+        sector: z.string(),
+      })
+      .optional(),
+    diagnosis: z
+      .object({
+        primary: z.string(),
+        secondary: z.array(z.string()),
+        icdCodes: z.array(z.string()),
+      })
+      .optional(),
+    medications: z
+      .array(
+        z.object({
+          name: z.string(),
+          dosage: z.string(),
+          frequency: z.string(),
+        }),
+      )
+      .optional(),
     contextFreshness: z.object({
       generatedAt: z.date(),
       dataSourceAge: z.string(),
     }),
   }),
-  
+
   errorCodes: {
-    'PATIENT_NOT_FOUND': {
+    PATIENT_NOT_FOUND: {
       description: 'Paciente não encontrado no sistema',
       isRetryable: false,
       agentAction: 'abort',
     },
-    'ACCESS_DENIED': {
+    ACCESS_DENIED: {
       description: 'Agent não tem permissão para acessar este paciente',
       isRetryable: false,
       agentAction: 'escalate',
     },
-    'DATABASE_TIMEOUT': {
+    DATABASE_TIMEOUT: {
       description: 'Timeout ao consultar banco de dados',
       isRetryable: true,
       agentAction: 'retry',
     },
-    'PHI_MINIMIZATION_FAILED': {
+    PHI_MINIMIZATION_FAILED: {
       description: 'Falha ao minimizar PHI antes de retornar',
       isRetryable: false,
       agentAction: 'abort',
     },
   },
-  
+
   rateLimit: {
     callsPerMinute: 60,
     callsPerDay: 5000,
   },
-  
-  trustTier: 0,  // Read-only
+
+  trustTier: 0, // Read-only
   requiresApproval: false,
-  phiAccess: 'limited',  // Apenas campos configurados em contextFields
-  auditLog: true,        // Cada acesso a PHI é logado
-  
+  phiAccess: 'limited', // Apenas campos configurados em contextFields
+  auditLog: true, // Cada acesso a PHI é logado
+
   metricsEmitted: [
     'velya_tool_get_patient_context_calls_total',
     'velya_tool_get_patient_context_duration_seconds',
@@ -219,23 +230,23 @@ Antibioticoterapia concluída. Por favor, gere o resumo de alta hospitalar."
 interface ContextItem {
   field: string;
   value: unknown;
-  source: string;        // "FHIR-Server" | "HIS-Integration" | "Cached-Redis"
-  fetchedAt: Date;       // Quando foi buscado
+  source: string; // "FHIR-Server" | "HIS-Integration" | "Cached-Redis"
+  fetchedAt: Date; // Quando foi buscado
   maxAgeSeconds: number; // SLA de freshness
-  isStale: boolean;      // Calculado: (now - fetchedAt) > maxAgeSeconds
+  isStale: boolean; // Calculado: (now - fetchedAt) > maxAgeSeconds
 }
 ```
 
 #### Regra 3: Context Freshness SLA por Tipo
 
-| Tipo de Dado | Freshness SLA | Ação se Stale |
-|---|---|---|
-| Sinais vitais | < 1 hora | Rebuscar antes de usar |
-| Medicação em uso | < 6 horas | Rebuscar antes de ação |
-| Diagnóstico de admissão | < 24 horas | Warning ao agent |
-| Histórico médico | < 7 dias | OK para contexto histórico |
-| Capacidade de leitos | < 5 minutos | Rebuscar sempre |
-| Status de workflow | < 30 segundos | Rebuscar sempre |
+| Tipo de Dado            | Freshness SLA | Ação se Stale              |
+| ----------------------- | ------------- | -------------------------- |
+| Sinais vitais           | < 1 hora      | Rebuscar antes de usar     |
+| Medicação em uso        | < 6 horas     | Rebuscar antes de ação     |
+| Diagnóstico de admissão | < 24 horas    | Warning ao agent           |
+| Histórico médico        | < 7 dias      | OK para contexto histórico |
+| Capacidade de leitos    | < 5 minutos   | Rebuscar sempre            |
+| Status de workflow      | < 30 segundos | Rebuscar sempre            |
 
 #### Regra 4: Sem Ruído
 
@@ -257,26 +268,23 @@ interface ContextItem {
 ```typescript
 // Context com prioridade explícita
 interface PrioritizedContext {
-  critical: ContextItem[];    // Nunca omitir
-  important: ContextItem[];   // Incluir se dentro do token budget
-  background: ContextItem[];  // Incluir apenas se tokens disponíveis
+  critical: ContextItem[]; // Nunca omitir
+  important: ContextItem[]; // Incluir se dentro do token budget
+  background: ContextItem[]; // Incluir apenas se tokens disponíveis
 }
 
-function buildAgentContext(
-  items: PrioritizedContext,
-  tokenBudget: number
-): string {
-  const critical = formatContext(items.critical);     // Sempre
-  const important = formatContext(items.important);   // Se cabe
+function buildAgentContext(items: PrioritizedContext, tokenBudget: number): string {
+  const critical = formatContext(items.critical); // Sempre
+  const important = formatContext(items.important); // Se cabe
   const background = formatContext(items.background); // Se cabe
-  
+
   if (tokenCount(critical + important + background) <= tokenBudget) {
     return critical + important + background;
   }
   if (tokenCount(critical + important) <= tokenBudget) {
-    return critical + important;  // Omitir background
+    return critical + important; // Omitir background
   }
-  return critical;  // Mínimo viável
+  return critical; // Mínimo viável
 }
 ```
 
@@ -326,35 +334,35 @@ Tier 4: IMPACTO CLÍNICO DIRETO
 // Configuração de boundaries por agent
 interface AgentBoundaries {
   // O que o agent PODE fazer
-  allowedTools: string[];       // Lista explícita de tools
-  allowedNamespaces: string[];  // Namespaces K8s que pode acessar
+  allowedTools: string[]; // Lista explícita de tools
+  allowedNamespaces: string[]; // Namespaces K8s que pode acessar
   allowedPatientIds: string[] | 'all' | 'institution-scoped';
   maxTokensPerCall: number;
   maxCallsPerHour: number;
-  
+
   // O que o agent NUNCA pode fazer
   denyRules: {
     rule: string;
     description: string;
   }[];
-  
+
   // Quando escalar para humano
   escalationTriggers: {
     condition: string;
-    escalateTo: string;         // Role ou usuário específico
+    escalateTo: string; // Role ou usuário específico
     urgency: 'low' | 'medium' | 'high' | 'immediate';
   }[];
-  
+
   // Policy gates — condições que devem ser verdadeiras para agir
   policyGates: {
     gate: string;
     description: string;
     failureBehavior: 'block' | 'warn' | 'escalate';
   }[];
-  
+
   // Risk class
   riskClass: 'low' | 'medium' | 'high' | 'critical';
-  
+
   // Budget awareness
   tokenBudgetDaily: number;
   tokenBudgetPerTask: number;
@@ -364,17 +372,17 @@ interface AgentBoundaries {
 // Exemplo: discharge-summary-agent
 const dischargeSummaryAgentBoundaries: AgentBoundaries = {
   allowedTools: [
-    'get_patient_context',           // Tier 0
-    'get_discharge_template',        // Tier 0
-    'get_active_medications',        // Tier 0
-    'create_discharge_draft',        // Tier 1
-    'request_physician_review',      // Tier 1
+    'get_patient_context', // Tier 0
+    'get_discharge_template', // Tier 0
+    'get_active_medications', // Tier 0
+    'create_discharge_draft', // Tier 1
+    'request_physician_review', // Tier 1
   ],
   allowedNamespaces: ['velya-dev-agents'],
   allowedPatientIds: 'institution-scoped',
   maxTokensPerCall: 4000,
   maxCallsPerHour: 120,
-  
+
   denyRules: [
     {
       rule: 'no_final_discharge_action',
@@ -389,7 +397,7 @@ const dischargeSummaryAgentBoundaries: AgentBoundaries = {
       description: 'Agent só acessa o paciente da task atual, não outros pacientes',
     },
   ],
-  
+
   escalationTriggers: [
     {
       condition: 'physician_approval_pending > 2h',
@@ -407,7 +415,7 @@ const dischargeSummaryAgentBoundaries: AgentBoundaries = {
       urgency: 'high',
     },
   ],
-  
+
   policyGates: [
     {
       gate: 'patient_consent_check',
@@ -420,7 +428,7 @@ const dischargeSummaryAgentBoundaries: AgentBoundaries = {
       failureBehavior: 'block',
     },
   ],
-  
+
   riskClass: 'high',
   tokenBudgetDaily: 100_000,
   tokenBudgetPerTask: 4_000,
@@ -436,24 +444,24 @@ A regra é clara: **single-agent é o default**. Multi-agent é uma exceção qu
 
 ### Por que Single-Agent é Preferido
 
-| Aspecto | Single-Agent | Multi-Agent |
-|---|---|---|
-| Latência | 1 round-trip LLM | N round-trips (sequencial) ou comunicação entre agents |
-| Custo de tokens | Contexto 1x | Contexto N× (cada agent tem seu contexto) |
-| Debugging | Trace único | Traços múltiplos, correlação manual |
-| Falha | 1 ponto de falha | N pontos de falha + comunicação entre eles |
-| Governança | 1 set de guardrails | N sets, possível conflito |
-| Observabilidade | 1 thread de log | N threads, correlação necessária |
+| Aspecto         | Single-Agent        | Multi-Agent                                            |
+| --------------- | ------------------- | ------------------------------------------------------ |
+| Latência        | 1 round-trip LLM    | N round-trips (sequencial) ou comunicação entre agents |
+| Custo de tokens | Contexto 1x         | Contexto N× (cada agent tem seu contexto)              |
+| Debugging       | Trace único         | Traços múltiplos, correlação manual                    |
+| Falha           | 1 ponto de falha    | N pontos de falha + comunicação entre eles             |
+| Governança      | 1 set de guardrails | N sets, possível conflito                              |
+| Observabilidade | 1 thread de log     | N threads, correlação necessária                       |
 
 ### Quando Multi-Agent tem Valor Explícito
 
-| Critério | Exemplo Velya | Valor Medido |
-|---|---|---|
-| **Especialização distinta** | Gerador de summary + Revisor clínico | Qualidade > 15% acima de single-agent |
-| **Paralelismo real** | 50 summaries em paralelo (batch) | Latência total 5× menor |
-| **Separação de funções** | Agent que escreve + Agent que verifica compliance | Erro de compliance detectado antes de ir ao médico |
-| **Validação cruzada** | Dois agents de pricing independentes | Consistência validada antes de publicar |
-| **Volume que justifica** | 1000 itens a processar onde paralelismo = 10× speedup | Custo adicional compensado pelo tempo |
+| Critério                    | Exemplo Velya                                         | Valor Medido                                       |
+| --------------------------- | ----------------------------------------------------- | -------------------------------------------------- |
+| **Especialização distinta** | Gerador de summary + Revisor clínico                  | Qualidade > 15% acima de single-agent              |
+| **Paralelismo real**        | 50 summaries em paralelo (batch)                      | Latência total 5× menor                            |
+| **Separação de funções**    | Agent que escreve + Agent que verifica compliance     | Erro de compliance detectado antes de ir ao médico |
+| **Validação cruzada**       | Dois agents de pricing independentes                  | Consistência validada antes de publicar            |
+| **Volume que justifica**    | 1000 itens a processar onde paralelismo = 10× speedup | Custo adicional compensado pelo tempo              |
 
 ### Regra de Não-Iniciar Multi-Agent
 
@@ -503,15 +511,15 @@ velya_agent_budget_breach_total{agent_id, severity}
 
 ### Scorecard Semanal por Agent
 
-| Métrica | Green | Yellow | Red |
-|---|---|---|---|
-| Task completion rate | > 95% | 85-95% | < 85% |
-| Escalation rate | < 5% | 5-15% | > 15% |
-| Quality score (human eval) | > 4.0/5.0 | 3.0-4.0 | < 3.0 |
-| Token budget adherence | < 80% | 80-95% | > 95% |
-| Tool error rate | < 2% | 2-10% | > 10% |
-| Guardrail activation rate | < 1% | 1-5% | > 5% |
-| Latência P95 | < SLA | 1-2× SLA | > 2× SLA |
+| Métrica                    | Green     | Yellow   | Red      |
+| -------------------------- | --------- | -------- | -------- |
+| Task completion rate       | > 95%     | 85-95%   | < 85%    |
+| Escalation rate            | < 5%      | 5-15%    | > 15%    |
+| Quality score (human eval) | > 4.0/5.0 | 3.0-4.0  | < 3.0    |
+| Token budget adherence     | < 80%     | 80-95%   | > 95%    |
+| Tool error rate            | < 2%      | 2-10%    | > 10%    |
+| Guardrail activation rate  | < 1%      | 1-5%     | > 5%     |
+| Latência P95               | < SLA     | 1-2× SLA | > 2× SLA |
 
 ---
 
@@ -531,19 +539,19 @@ metadata:
 spec:
   scaleTargetRef:
     name: discharge-summary-agent-worker
-  minReplicaCount: 0      # Escala para zero quando sem tasks
-  maxReplicaCount: 10     # Guardrail de custo (10 agents × tokens/task)
+  minReplicaCount: 0 # Escala para zero quando sem tasks
+  maxReplicaCount: 10 # Guardrail de custo (10 agents × tokens/task)
   triggers:
-  - type: nats-jetstream
-    metadata:
-      stream: velya.discharge.summary.queue
-      consumer: discharge-summary-consumer
-      lagThreshold: "1"   # 1 agent por task
-  - type: prometheus
-    metadata:
-      # Não escalar se budget de tokens < 10%
-      query: velya_ai_budget_consumed_ratio{agent_id="discharge-summary"} < 0.90
-      threshold: "1"
+    - type: nats-jetstream
+      metadata:
+        stream: velya.discharge.summary.queue
+        consumer: discharge-summary-consumer
+        lagThreshold: '1' # 1 agent por task
+    - type: prometheus
+      metadata:
+        # Não escalar se budget de tokens < 10%
+        query: velya_ai_budget_consumed_ratio{agent_id="discharge-summary"} < 0.90
+        threshold: '1'
 ```
 
 ### Agent Isolation para Hyperscale
@@ -559,4 +567,4 @@ Regras de isolamento em escala:
 
 ---
 
-*Este documento é revisado a cada novo agent que entra em produção na Velya.*
+_Este documento é revisado a cada novo agent que entra em produção na Velya._

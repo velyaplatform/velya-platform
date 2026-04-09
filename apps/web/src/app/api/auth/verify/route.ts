@@ -8,10 +8,7 @@ export async function POST(request: NextRequest) {
   const { email, code, resend } = body;
 
   if (!email) {
-    return NextResponse.json(
-      { error: 'Email obrigatorio' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Email obrigatorio' }, { status: 400 });
   }
 
   // Handle resend request
@@ -20,13 +17,15 @@ export async function POST(request: NextRequest) {
     if (!newCode) {
       return NextResponse.json(
         { error: 'Nao foi possivel reenviar o codigo. Verifique o email informado.' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const user = findUserByEmail(email);
     const emailSent = await sendVerificationCode(email, newCode, user?.nome || email);
-    console.log(`[VELYA-AUTH] Codigo reenviado para ${email}: ${newCode} (email: ${emailSent ? 'enviado' : 'na tela'})`);
+    console.log(
+      `[VELYA-AUTH] Codigo reenviado para ${email}: ${newCode} (email: ${emailSent ? 'enviado' : 'na tela'})`,
+    );
 
     audit({
       category: 'system',
@@ -47,10 +46,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!code) {
-    return NextResponse.json(
-      { error: 'Codigo de verificacao obrigatorio' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Codigo de verificacao obrigatorio' }, { status: 400 });
   }
 
   const success = verifyUser(email, code);
@@ -76,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { error: 'Codigo invalido ou expirado. Tente novamente.' },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

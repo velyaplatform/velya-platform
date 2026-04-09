@@ -14,15 +14,15 @@ esta acontecendo e deveria acontecer com o paciente durante sua internacao.
 
 ### Principios de UX
 
-| Principio | Descricao |
-|---|---|
-| **Action-First** | Itens que requerem acao aparecem primeiro e com destaque |
-| **Context-First** | Cada evento mostra quem, quando, onde, por que — sem clique adicional |
-| **Progressive Disclosure** | Nivel 1: resumo. Nivel 2: detalhes. Nivel 3: proveniencia/auditoria |
-| **Critical Now** | Alertas criticos sempre visiveis, nunca enterrados |
-| **Zero Ambiguity** | Autoria e horario sempre explicitos — nunca "sistema" sem detalhamento |
-| **Temporal Clarity** | Distinguir visualmente "quando aconteceu" vs "quando foi registrado" |
-| **Confidence Visual** | Indicadores de confianca/completude em cada segmento da timeline |
+| Principio                  | Descricao                                                              |
+| -------------------------- | ---------------------------------------------------------------------- |
+| **Action-First**           | Itens que requerem acao aparecem primeiro e com destaque               |
+| **Context-First**          | Cada evento mostra quem, quando, onde, por que — sem clique adicional  |
+| **Progressive Disclosure** | Nivel 1: resumo. Nivel 2: detalhes. Nivel 3: proveniencia/auditoria    |
+| **Critical Now**           | Alertas criticos sempre visiveis, nunca enterrados                     |
+| **Zero Ambiguity**         | Autoria e horario sempre explicitos — nunca "sistema" sem detalhamento |
+| **Temporal Clarity**       | Distinguir visualmente "quando aconteceu" vs "quando foi registrado"   |
+| **Confidence Visual**      | Indicadores de confianca/completude em cada segmento da timeline       |
 
 ---
 
@@ -91,6 +91,7 @@ Sempre visivel no topo, fixo ao scroll.
 ```
 
 **Regras do Header:**
+
 - Alergias severas sempre com badge vermelho pulsante
 - Isolamento com icone visual distinto
 - Risco de queda alto com indicador permanente
@@ -105,7 +106,7 @@ Snapshot compacto do estado atual do paciente — atualizado em tempo real.
 interface ExecutiveSummaryComponent {
   // Dados exibidos
   current_state: {
-    label: string;         // "Estavel", "Em observacao", "Critico"
+    label: string; // "Estavel", "Em observacao", "Critico"
     color: 'green' | 'yellow' | 'orange' | 'red';
     since: string;
   };
@@ -181,6 +182,7 @@ interface ExecutiveSummaryComponent {
 ```
 
 **Regras:**
+
 - Se handoff pendente sem aceitacao, mostrar badge de alerta laranja
 - Se nao ha responsavel definido para alguma funcao esperada, mostrar gap em vermelho
 - Clicar no nome do responsavel expande historico de custodia
@@ -210,6 +212,7 @@ Ordenados por severidade e urgencia. Sempre visivel.
 ```
 
 **Regras de Pendencias:**
+
 - Critico: fundo vermelho claro, borda vermelha, icone pulsante
 - Alto: fundo laranja claro, borda laranja
 - Medio: fundo amarelo claro, borda amarela
@@ -256,13 +259,21 @@ Ordenados por severidade e urgencia. Sempre visivel.
 
 ```typescript
 interface TimelineFilters {
-  event_types: string[];           // Filtro por tipo de evento
-  roles: AuthoredRole[];           // Filtro por papel do autor
-  categories: EventCategory[];     // Filtro por categoria
+  event_types: string[]; // Filtro por tipo de evento
+  roles: AuthoredRole[]; // Filtro por papel do autor
+  categories: EventCategory[]; // Filtro por categoria
   period: {
-    preset: 'last_1h' | 'last_4h' | 'last_8h' | 'last_12h'
-          | 'today' | 'yesterday' | 'last_3d' | 'last_7d'
-          | 'all' | 'custom';
+    preset:
+      | 'last_1h'
+      | 'last_4h'
+      | 'last_8h'
+      | 'last_12h'
+      | 'today'
+      | 'yesterday'
+      | 'last_3d'
+      | 'last_7d'
+      | 'all'
+      | 'custom';
     custom_start?: string;
     custom_end?: string;
   };
@@ -304,20 +315,21 @@ interface TimelineFilters {
 
 **Regras visuais por categoria:**
 
-| Categoria | Icone | Cor da borda | Background |
-|---|---|---|---|
-| clinical | Cruz verde | Verde | Branco |
-| operational | Engrenagem | Azul | Branco |
-| administrative | Documento | Cinza | Branco |
-| communication | Balao | Roxo | Branco |
-| device | Monitor | Azul escuro | Branco |
-| security | Cadeado | Cinza escuro | Cinza claro |
-| system | Servidor | Cinza | Cinza claro |
-| inferred | Lupa + onda | Laranja | Amarelo claro |
-| corrected | Lapis | Amarelo | Amarelo claro |
-| automated | Raio | Ciano | Branco |
+| Categoria      | Icone       | Cor da borda | Background    |
+| -------------- | ----------- | ------------ | ------------- |
+| clinical       | Cruz verde  | Verde        | Branco        |
+| operational    | Engrenagem  | Azul         | Branco        |
+| administrative | Documento   | Cinza        | Branco        |
+| communication  | Balao       | Roxo         | Branco        |
+| device         | Monitor     | Azul escuro  | Branco        |
+| security       | Cadeado     | Cinza escuro | Cinza claro   |
+| system         | Servidor    | Cinza        | Cinza claro   |
+| inferred       | Lupa + onda | Laranja      | Amarelo claro |
+| corrected      | Lapis       | Amarelo      | Amarelo claro |
+| automated      | Raio        | Ciano        | Branco        |
 
 **Indicadores especiais na linha do evento:**
+
 - `!!!` = Relevancia critica (fundo vermelho claro)
 - `!!` = Relevancia alta (fundo laranja claro)
 - `~~~` = Evento inferido por regra/IA
@@ -467,8 +479,15 @@ interface MedicationTimelineItem {
 
   schedule_slots: Array<{
     scheduled_at: string;
-    status: 'given' | 'delayed' | 'missed' | 'refused' | 'held'
-          | 'substituted' | 'future' | 'not_applicable';
+    status:
+      | 'given'
+      | 'delayed'
+      | 'missed'
+      | 'refused'
+      | 'held'
+      | 'substituted'
+      | 'future'
+      | 'not_applicable';
     actual_time?: string;
     delay_minutes?: number;
     performer?: string;
@@ -746,11 +765,11 @@ interface TimelineOrdering {
 
   // Opcoes de ordenacao
   options: [
-    'occurred_at_desc',    // Mais recente primeiro (padrao)
-    'occurred_at_asc',     // Mais antigo primeiro
-    'recorded_at_desc',    // Ultimo registrado primeiro
-    'clinical_relevance',  // Critico primeiro, depois alto, etc.
-    'pending_first',       // Pendencias primeiro
+    'occurred_at_desc', // Mais recente primeiro (padrao)
+    'occurred_at_asc', // Mais antigo primeiro
+    'recorded_at_desc', // Ultimo registrado primeiro
+    'clinical_relevance', // Critico primeiro, depois alto, etc.
+    'pending_first', // Pendencias primeiro
   ];
 
   // Regra de desempate
@@ -767,7 +786,7 @@ interface TimelineGrouping {
 
   // Dentro de cada grupo, mostrar separadores visuais
   group_header: {
-    label: string;          // "08/04/2026 - Tarde (12:00-18:00)"
+    label: string; // "08/04/2026 - Tarde (12:00-18:00)"
     event_count: number;
     shift_responsible: string;
     confidence_score: number;
@@ -830,28 +849,17 @@ interface TimelineLoadingStrategy {
   ];
 
   // Timelines especializadas: lazy load ao abrir tab
-  lazy_load: [
-    'medication_timeline',
-    'calls_pain_timeline',
-    'handoff_timeline',
-  ];
+  lazy_load: ['medication_timeline', 'calls_pain_timeline', 'handoff_timeline'];
 
   // Sidebar: carrega sob demanda ao clicar
-  on_demand: [
-    'provenance_panel',
-    'audit_panel',
-    'corrections_panel',
-    'analytics_panel',
-  ];
+  on_demand: ['provenance_panel', 'audit_panel', 'corrections_panel', 'analytics_panel'];
 
   // Real-time: WebSocket para atualizacoes
   realtime: {
-    connection: 'websocket',
-    subscribe: [
-      'patient.journey.{patient_id}.>',
-    ],
-    update_strategy: 'prepend_and_refresh_indicators',
-    debounce_ms: 1000,
+    connection: 'websocket';
+    subscribe: ['patient.journey.{patient_id}.>'];
+    update_strategy: 'prepend_and_refresh_indicators';
+    debounce_ms: 1000;
   };
 }
 ```
@@ -882,28 +890,28 @@ interface TimelineCacheStrategy {
 
 ### 9.1 Requisitos
 
-| Requisito | Implementacao |
-|---|---|
+| Requisito             | Implementacao                                           |
+| --------------------- | ------------------------------------------------------- |
 | Navegacao por teclado | Tab entre eventos, Enter para expandir, Esc para fechar |
-| Leitor de tela | ARIA labels em todos os indicadores visuais e graficos |
-| Contraste | WCAG AA minimo em todos os indicadores de cor |
-| Zoom | Layout responsivo ate 200% sem perda de funcionalidade |
-| Reducao de movimento | Opcao para desabilitar animacoes e pulsos |
-| Texto alternativo | Descricao textual para todos os graficos e diagramas |
+| Leitor de tela        | ARIA labels em todos os indicadores visuais e graficos  |
+| Contraste             | WCAG AA minimo em todos os indicadores de cor           |
+| Zoom                  | Layout responsivo ate 200% sem perda de funcionalidade  |
+| Reducao de movimento  | Opcao para desabilitar animacoes e pulsos               |
+| Texto alternativo     | Descricao textual para todos os graficos e diagramas    |
 
 ### 9.2 Atalhos de Teclado
 
-| Atalho | Acao |
-|---|---|
-| `J` / `K` | Navegar entre eventos (proximo / anterior) |
-| `Enter` | Expandir evento selecionado |
-| `Esc` | Fechar expansao / fechar sidebar |
-| `P` | Abrir painel de proveniencia do evento selecionado |
-| `A` | Abrir painel de auditoria |
-| `F` | Abrir filtros |
+| Atalho          | Acao                                                        |
+| --------------- | ----------------------------------------------------------- |
+| `J` / `K`       | Navegar entre eventos (proximo / anterior)                  |
+| `Enter`         | Expandir evento selecionado                                 |
+| `Esc`           | Fechar expansao / fechar sidebar                            |
+| `P`             | Abrir painel de proveniencia do evento selecionado          |
+| `A`             | Abrir painel de auditoria                                   |
+| `F`             | Abrir filtros                                               |
 | `1` / `2` / `3` | Alternar entre timelines (Principal / Medicacao / Chamados) |
-| `R` | Refresh manual |
-| `?` | Mostrar ajuda de atalhos |
+| `R`             | Refresh manual                                              |
+| `?`             | Mostrar ajuda de atalhos                                    |
 
 ---
 
@@ -913,8 +921,14 @@ interface TimelineCacheStrategy {
 
 ```typescript
 interface TimelineNotification {
-  type: 'new_event' | 'alert' | 'gap_detected' | 'handoff_pending'
-      | 'call_pending' | 'medication_due' | 'result_available';
+  type:
+    | 'new_event'
+    | 'alert'
+    | 'gap_detected'
+    | 'handoff_pending'
+    | 'call_pending'
+    | 'medication_due'
+    | 'result_available';
 
   display: {
     // Toast no topo da pagina
@@ -945,15 +959,15 @@ interface TimelineNotification {
 
 ### 10.2 Regras de Notificacao
 
-| Evento | Toast | Badge | Som | Persistente |
-|---|---|---|---|---|
-| Resultado critico | Sim (vermelho) | Sim | Sim | Sim |
-| Chamado do paciente | Sim (roxo) | Sim | Sim | Ate resposta |
-| Gap detectado (critico) | Sim (laranja) | Sim | Nao | Sim |
-| Handoff pendente > 10min | Sim (laranja) | Sim | Nao | Sim |
-| Novo evento clinico | Nao | Sim | Nao | Nao |
-| Correcao de evento | Nao | Sim | Nao | Nao |
-| Medicacao devida em 15min | Sim (azul) | Sim | Nao | Nao |
+| Evento                    | Toast          | Badge | Som | Persistente  |
+| ------------------------- | -------------- | ----- | --- | ------------ |
+| Resultado critico         | Sim (vermelho) | Sim   | Sim | Sim          |
+| Chamado do paciente       | Sim (roxo)     | Sim   | Sim | Ate resposta |
+| Gap detectado (critico)   | Sim (laranja)  | Sim   | Nao | Sim          |
+| Handoff pendente > 10min  | Sim (laranja)  | Sim   | Nao | Sim          |
+| Novo evento clinico       | Nao            | Sim   | Nao | Nao          |
+| Correcao de evento        | Nao            | Sim   | Nao | Nao          |
+| Medicacao devida em 15min | Sim (azul)     | Sim   | Nao | Nao          |
 
 ---
 
@@ -966,9 +980,9 @@ interface TimelineExportOptions {
   formats: ['pdf', 'csv', 'json', 'fhir_bundle'];
 
   scopes: [
-    'current_view',        // Apenas o que esta filtrado/visivel
-    'full_encounter',      // Todo o encontro
-    'date_range',          // Periodo especifico
+    'current_view', // Apenas o que esta filtrado/visivel
+    'full_encounter', // Todo o encontro
+    'date_range', // Periodo especifico
     'specific_categories', // Categorias selecionadas
   ];
 
@@ -995,12 +1009,12 @@ interface TimelineExportOptions {
 
 ### 12.1 Breakpoints
 
-| Breakpoint | Layout | Mudancas |
-|---|---|---|
-| Desktop (> 1440px) | Timeline + Sidebar lado a lado | Layout completo |
-| Laptop (1024-1440px) | Timeline + Sidebar colapsavel | Sidebar abre sobre a timeline |
-| Tablet (768-1024px) | Timeline tela cheia, sidebar em drawer | Header compactado |
-| Mobile (< 768px) | Timeline simplificada, cards empilhados | Filtros em bottom sheet |
+| Breakpoint           | Layout                                  | Mudancas                      |
+| -------------------- | --------------------------------------- | ----------------------------- |
+| Desktop (> 1440px)   | Timeline + Sidebar lado a lado          | Layout completo               |
+| Laptop (1024-1440px) | Timeline + Sidebar colapsavel           | Sidebar abre sobre a timeline |
+| Tablet (768-1024px)  | Timeline tela cheia, sidebar em drawer  | Header compactado             |
+| Mobile (< 768px)     | Timeline simplificada, cards empilhados | Filtros em bottom sheet       |
 
 ### 12.2 Mobile-specific
 

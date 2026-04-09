@@ -30,7 +30,7 @@ tempo:
   # Limites conservadores para dev
   global_overrides:
     max_traces_per_user: 10000
-    max_bytes_per_trace: 5242880  # 5MB
+    max_bytes_per_trace: 5242880 # 5MB
 
 persistence:
   enabled: true

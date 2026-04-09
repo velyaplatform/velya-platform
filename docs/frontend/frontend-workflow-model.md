@@ -40,6 +40,7 @@
 **Handoff points**: 2 (Bed Manager → Ward Nurse, Ward Nurse → System)
 
 **Failure modes**:
+
 - No beds available → Escalation to Discharge Tower to identify discharge candidates
 - Infection control mismatch → Alternative beds shown with reasons
 - Ward at capacity → Escalation to Site Manager via Exception Workboard
@@ -87,6 +88,7 @@
 **Blocker types**: Pharmacy (TTO), Transport, Family/Social, Paperwork, Outstanding results
 
 **Discharge Control Tower shows**:
+
 - Which patients are ready but blocked
 - Which specific blocker is preventing discharge
 - Time-to-clear prediction per blocker
@@ -127,6 +129,7 @@
 ```
 
 **Task escalation path**:
+
 - Task overdue by 15 min → Escalate to Charge Nurse
 - Task overdue by 30 min → Escalate to Exception Workboard
 - Task overdue by 60 min → Page-level escalation
@@ -166,6 +169,7 @@
 ```
 
 **Alert priority levels**:
+
 - Critical (red): Respond within 5 minutes
 - Urgent (amber): Respond within 15 minutes
 - Routine (grey): Respond within 60 minutes
@@ -177,33 +181,35 @@
 
 ## 2. Click Budget Per Flow
 
-| Flow | Action | User | Target Clicks |
-|---|---|---|---|
-| Patient Admission | Confirm bed assignment | Bed Manager | 2 |
-| Patient Admission | Acknowledge assignment | Ward Nurse | 1 |
-| Patient Admission | Update arrival status | Ward Nurse | 2 |
-| Discharge | Mark clinically ready | Attending | 2 |
-| Discharge | Trigger all blockers | Discharge Planner | 3 |
-| Discharge | Confirm discharge | Discharge Planner | 2 |
-| Discharge | Complete discharge checks | Ward Nurse | 2 |
-| Task | Acknowledge task | Any | 1 |
-| Task | Complete task | Any | 1–3 |
-| Task | Reassign task | Any | 3 |
-| Alert | Acknowledge + act on alert | Any | 2 |
-| Alert | Override alert with reason | Any | 3 |
-| Handoff | Open handoff for my shift | Any | 1 |
-| Handoff | Complete handoff | Any | 3 |
-| Explainability | Open explanation for recommendation | Any | 1 |
-| Role switch | Change workspace | Any | 2 |
+| Flow              | Action                              | User              | Target Clicks |
+| ----------------- | ----------------------------------- | ----------------- | ------------- |
+| Patient Admission | Confirm bed assignment              | Bed Manager       | 2             |
+| Patient Admission | Acknowledge assignment              | Ward Nurse        | 1             |
+| Patient Admission | Update arrival status               | Ward Nurse        | 2             |
+| Discharge         | Mark clinically ready               | Attending         | 2             |
+| Discharge         | Trigger all blockers                | Discharge Planner | 3             |
+| Discharge         | Confirm discharge                   | Discharge Planner | 2             |
+| Discharge         | Complete discharge checks           | Ward Nurse        | 2             |
+| Task              | Acknowledge task                    | Any               | 1             |
+| Task              | Complete task                       | Any               | 1–3           |
+| Task              | Reassign task                       | Any               | 3             |
+| Alert             | Acknowledge + act on alert          | Any               | 2             |
+| Alert             | Override alert with reason          | Any               | 3             |
+| Handoff           | Open handoff for my shift           | Any               | 1             |
+| Handoff           | Complete handoff                    | Any               | 3             |
+| Explainability    | Open explanation for recommendation | Any               | 1             |
+| Role switch       | Change workspace                    | Any               | 2             |
 
 ---
 
 ## 3. Context Switching Analysis
 
 ### Current State (without Velya)
+
 A Charge Nurse managing a 24-bed ward switches context an estimated 48 times per 8-hour shift between applications: EHR, bed management system, task list (paper or whiteboard), handover notes, staff allocation sheet, email, pager.
 
 Each context switch has:
+
 - Navigation overhead: 30–90 seconds
 - Memory load: "Where was I? What was I looking at?"
 - Error risk: Incomplete actions left in previous context
@@ -211,20 +217,22 @@ Each context switch has:
 **Total estimated context-switching overhead**: 40–80 minutes per shift.
 
 ### Velya Design Target
+
 All clinical operations accessible from a single interface. Context switch = tab change within the same application.
 
-| Scenario | Old (multiple apps) | Velya Target | Reduction |
-|---|---|---|---|
-| Check patient status + assign task | 5 min, 3 apps | 45 sec, 1 view | 85% |
-| Check bed availability + admit patient | 10 min, 2 apps | 2 min, 1 view | 80% |
-| Complete discharge tasks across departments | 30 min, 4 apps | 5 min, 1 view | 83% |
-| Shift handoff | 20 min, paper + verbal | 8 min, structured digital | 60% |
+| Scenario                                    | Old (multiple apps)    | Velya Target              | Reduction |
+| ------------------------------------------- | ---------------------- | ------------------------- | --------- |
+| Check patient status + assign task          | 5 min, 3 apps          | 45 sec, 1 view            | 85%       |
+| Check bed availability + admit patient      | 10 min, 2 apps         | 2 min, 1 view             | 80%       |
+| Complete discharge tasks across departments | 30 min, 4 apps         | 5 min, 1 view             | 83%       |
+| Shift handoff                               | 20 min, paper + verbal | 8 min, structured digital | 60%       |
 
 ---
 
 ## 4. Handoff Model
 
 ### Principles
+
 1. Handoff is never blank — system pre-populates from known state
 2. Handoff is structured — free text supplements structure, does not replace it
 3. Handoff is auditable — every handoff is timestamped and stored
@@ -272,17 +280,18 @@ Priority for Incoming Shift: [High / Normal / Watch]
 
 ### Degraded Mode Levels
 
-| Level | Condition | User Impact | System Behavior |
-|---|---|---|---|
-| Level 0 — Normal | All systems healthy | None | Full functionality |
-| Level 1 — Degraded | API latency > 3s | Slower updates | Stale data shown with timestamp |
+| Level                     | Condition                         | User Impact                   | System Behavior                     |
+| ------------------------- | --------------------------------- | ----------------------------- | ----------------------------------- |
+| Level 0 — Normal          | All systems healthy               | None                          | Full functionality                  |
+| Level 1 — Degraded        | API latency > 3s                  | Slower updates                | Stale data shown with timestamp     |
 | Level 2 — Partial Offline | One or more backend services down | Specific features unavailable | Feature disabled with clear message |
-| Level 3 — Offline | No API connectivity | Limited functionality | Local cache + queue mode |
-| Level 4 — Full Downtime | Planned maintenance | Downtime UI shown | Fallback procedures displayed |
+| Level 3 — Offline         | No API connectivity               | Limited functionality         | Local cache + queue mode            |
+| Level 4 — Full Downtime   | Planned maintenance               | Downtime UI shown             | Fallback procedures displayed       |
 
 ### Level 3 — Offline Mode Detail
 
 **Available in offline mode**:
+
 - Last-synced patient list (read only)
 - Task list (read from local cache)
 - Task completion (queued for sync)
@@ -291,6 +300,7 @@ Priority for Incoming Shift: [High / Normal / Watch]
 - Contact directory (cached)
 
 **NOT available in offline mode**:
+
 - New admissions (no real-time bed board data)
 - Live vital signs or monitoring data
 - AI recommendations (requires live model)
@@ -298,6 +308,7 @@ Priority for Incoming Shift: [High / Normal / Watch]
 - Cross-ward queries
 
 **User experience in offline mode**:
+
 - Orange banner: "Offline — showing data as of [timestamp]. Write actions will sync automatically."
 - Offline-capable actions show normally
 - Online-only actions are visually disabled with tooltip: "Requires connection"
@@ -307,6 +318,7 @@ Priority for Incoming Shift: [High / Normal / Watch]
 ### Downtime Runbook Integration
 
 When Level 4 (full downtime) is triggered, the UI displays:
+
 - Estimated time to recovery
 - Link to offline procedure document
 - Emergency contact numbers
@@ -316,17 +328,17 @@ When Level 4 (full downtime) is triggered, the UI displays:
 
 ## 6. Technical Architecture Requirements for Workflows
 
-| Requirement | Why | Implementation |
-|---|---|---|
-| Optimistic UI updates | 200ms response requirement | Update UI immediately, sync in background, rollback on error |
-| WebSocket or SSE | Real-time task routing | WebSocket preferred, SSE fallback |
-| Service worker + IndexedDB | Offline mode | PWA architecture |
-| Conflict resolution | Offline write sync | Last-write-wins with server authority |
-| Server-sent events for alerts | Push alerts without polling | SSE from task-inbox service |
-| Audit log for every user action | HIPAA, clinical governance | Every state-changing action logged with user + timestamp |
-| Session timeout with soft warning | Security | Warning at 14 min, logout at 15 min, with unsaved data protection |
-| Multi-tab coordination | Shared workstations | BroadcastChannel API for shared state |
+| Requirement                       | Why                         | Implementation                                                    |
+| --------------------------------- | --------------------------- | ----------------------------------------------------------------- |
+| Optimistic UI updates             | 200ms response requirement  | Update UI immediately, sync in background, rollback on error      |
+| WebSocket or SSE                  | Real-time task routing      | WebSocket preferred, SSE fallback                                 |
+| Service worker + IndexedDB        | Offline mode                | PWA architecture                                                  |
+| Conflict resolution               | Offline write sync          | Last-write-wins with server authority                             |
+| Server-sent events for alerts     | Push alerts without polling | SSE from task-inbox service                                       |
+| Audit log for every user action   | HIPAA, clinical governance  | Every state-changing action logged with user + timestamp          |
+| Session timeout with soft warning | Security                    | Warning at 14 min, logout at 15 min, with unsaved data protection |
+| Multi-tab coordination            | Shared workstations         | BroadcastChannel API for shared state                             |
 
 ---
 
-*Workflow model maintained by: Frontend Team + Clinical Product Owner. Validation of current state vs. this model is in `docs/validation/frontend-revolution-validation.md`.*
+_Workflow model maintained by: Frontend Team + Clinical Product Owner. Validation of current state vs. this model is in `docs/validation/frontend-revolution-validation.md`._

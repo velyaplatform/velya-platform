@@ -13,20 +13,20 @@ Este documento registra a decisão arquitetural (ADR) para o stack frontend da p
 
 ### Stack Selecionado
 
-| Camada | Tecnologia | Versão Mínima |
-|---|---|---|
-| Framework | Next.js (App Router) | 15.x |
-| Linguagem | TypeScript | 5.7+ |
-| UI Base | React | 19.x |
-| Estilização | Tailwind CSS | 4.x |
-| Componentes | shadcn/ui | latest |
-| Estado Servidor | TanStack Query | 5.x |
-| Tabelas | TanStack Table | 8.x |
-| Virtualização | TanStack Virtual | 3.x |
-| Formulários | React Hook Form | 7.x |
-| Validação | Zod | 3.x |
-| Autenticação | Auth.js (next-auth v5) | 5.x beta |
-| Gráficos | Recharts | 2.x |
+| Camada          | Tecnologia             | Versão Mínima |
+| --------------- | ---------------------- | ------------- |
+| Framework       | Next.js (App Router)   | 15.x          |
+| Linguagem       | TypeScript             | 5.7+          |
+| UI Base         | React                  | 19.x          |
+| Estilização     | Tailwind CSS           | 4.x           |
+| Componentes     | shadcn/ui              | latest        |
+| Estado Servidor | TanStack Query         | 5.x           |
+| Tabelas         | TanStack Table         | 8.x           |
+| Virtualização   | TanStack Virtual       | 3.x           |
+| Formulários     | React Hook Form        | 7.x           |
+| Validação       | Zod                    | 3.x           |
+| Autenticação    | Auth.js (next-auth v5) | 5.x beta      |
+| Gráficos        | Recharts               | 2.x           |
 
 ---
 
@@ -71,13 +71,13 @@ A plataforma Velya opera em ambiente hospitalar com as seguintes característica
 
 **Alternativas descartadas:**
 
-| Alternativa | Motivo da Rejeição |
-|---|---|
-| Remix | Ecossistema menor, menos integrações enterprise, comunidade hospitalar inexistente |
-| Vite + React SPA | Sem SSR nativo, SEO não aplicável mas perda de Server Components e streaming |
-| Angular | Curva de aprendizado alta, bundle size maior, menos adequado para composição de componentes |
-| Astro | Foco em conteúdo estático, não adequado para aplicações interativas complexas |
-| SvelteKit | Ecossistema menor, menos bibliotecas enterprise, risco de contratação |
+| Alternativa      | Motivo da Rejeição                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------- |
+| Remix            | Ecossistema menor, menos integrações enterprise, comunidade hospitalar inexistente          |
+| Vite + React SPA | Sem SSR nativo, SEO não aplicável mas perda de Server Components e streaming                |
+| Angular          | Curva de aprendizado alta, bundle size maior, menos adequado para composição de componentes |
+| Astro            | Foco em conteúdo estático, não adequado para aplicações interativas complexas               |
+| SvelteKit        | Ecossistema menor, menos bibliotecas enterprise, risco de contratação                       |
 
 ### 3.2 TypeScript Strict
 
@@ -93,11 +93,11 @@ A plataforma Velya opera em ambiente hospitalar com as seguintes característica
 
 **Alternativas descartadas:**
 
-| Alternativa | Motivo da Rejeição |
-|---|---|
-| JavaScript puro | Sem segurança de tipos, inaceitável em domínio hospitalar |
-| Flow | Ecossistema em declínio, tooling inferior |
-| ReScript | Comunidade pequena, curva de aprendizado, interop com React limitado |
+| Alternativa     | Motivo da Rejeição                                                   |
+| --------------- | -------------------------------------------------------------------- |
+| JavaScript puro | Sem segurança de tipos, inaceitável em domínio hospitalar            |
+| Flow            | Ecossistema em declínio, tooling inferior                            |
+| ReScript        | Comunidade pequena, curva de aprendizado, interop com React limitado |
 
 ### 3.3 Tailwind CSS
 
@@ -114,13 +114,13 @@ A plataforma Velya opera em ambiente hospitalar com as seguintes característica
 
 **Alternativas descartadas:**
 
-| Alternativa | Motivo da Rejeição |
-|---|---|
-| CSS Modules | Mais verboso, sem tokens centralizados, integração manual com design system |
-| Styled Components | Runtime JS, performance inferior em mobile, Server Components incompatível |
-| Emotion | Mesmos problemas de runtime que Styled Components |
-| Vanilla Extract | Build-time mas verboso, ecossistema menor |
-| Panda CSS | Promissor mas ecossistema imaturo para produção hospitalar |
+| Alternativa       | Motivo da Rejeição                                                          |
+| ----------------- | --------------------------------------------------------------------------- |
+| CSS Modules       | Mais verboso, sem tokens centralizados, integração manual com design system |
+| Styled Components | Runtime JS, performance inferior em mobile, Server Components incompatível  |
+| Emotion           | Mesmos problemas de runtime que Styled Components                           |
+| Vanilla Extract   | Build-time mas verboso, ecossistema menor                                   |
+| Panda CSS         | Promissor mas ecossistema imaturo para produção hospitalar                  |
 
 ### 3.4 shadcn/ui
 
@@ -137,13 +137,13 @@ A plataforma Velya opera em ambiente hospitalar com as seguintes característica
 
 **Alternativas descartadas:**
 
-| Alternativa | Motivo da Rejeição |
-|---|---|
+| Alternativa       | Motivo da Rejeição                                                             |
+| ----------------- | ------------------------------------------------------------------------------ |
 | MUI (Material UI) | Bundle grande, estilização via Emotion (runtime), design Google não hospitalar |
-| Ant Design | Design chinês, customização complexa, bundle pesado |
-| Chakra UI | Runtime CSS-in-JS, performance mobile inferior |
-| Mantine | Bom mas menos flexível que código próprio sobre Radix |
-| Headless UI | Menos componentes que Radix, sem variantes |
+| Ant Design        | Design chinês, customização complexa, bundle pesado                            |
+| Chakra UI         | Runtime CSS-in-JS, performance mobile inferior                                 |
+| Mantine           | Bom mas menos flexível que código próprio sobre Radix                          |
+| Headless UI       | Menos componentes que Radix, sem variantes                                     |
 
 ### 3.5 TanStack Query (React Query)
 
@@ -162,12 +162,12 @@ A plataforma Velya opera em ambiente hospitalar com as seguintes característica
 
 **Alternativas descartadas:**
 
-| Alternativa | Motivo da Rejeição |
-|---|---|
-| SWR | Menos features (sem mutations robustas, sem devtools completos) |
-| Redux Toolkit Query | Verboso, boilerplate excessivo, Redux desnecessário |
-| Apollo Client | GraphQL-only, backend Velya é REST/gRPC |
-| Zustand + fetch manual | Reinvenção da roda, sem cache/retry/invalidation nativos |
+| Alternativa            | Motivo da Rejeição                                              |
+| ---------------------- | --------------------------------------------------------------- |
+| SWR                    | Menos features (sem mutations robustas, sem devtools completos) |
+| Redux Toolkit Query    | Verboso, boilerplate excessivo, Redux desnecessário             |
+| Apollo Client          | GraphQL-only, backend Velya é REST/gRPC                         |
+| Zustand + fetch manual | Reinvenção da roda, sem cache/retry/invalidation nativos        |
 
 ### 3.6 TanStack Table
 
@@ -184,12 +184,12 @@ A plataforma Velya opera em ambiente hospitalar com as seguintes característica
 
 **Alternativas descartadas:**
 
-| Alternativa | Motivo da Rejeição |
-|---|---|
-| AG Grid | Licença cara, overhead para o uso hospitalar |
-| React Table (v7) | Deprecated em favor do TanStack Table |
-| Tabelas HTML manuais | Sem features, manutenção insustentável |
-| DataGrid MUI | Acoplado ao MUI, licença premium para features avançadas |
+| Alternativa          | Motivo da Rejeição                                       |
+| -------------------- | -------------------------------------------------------- |
+| AG Grid              | Licença cara, overhead para o uso hospitalar             |
+| React Table (v7)     | Deprecated em favor do TanStack Table                    |
+| Tabelas HTML manuais | Sem features, manutenção insustentável                   |
+| DataGrid MUI         | Acoplado ao MUI, licença premium para features avançadas |
 
 ### 3.7 React Hook Form + Zod
 
@@ -213,13 +213,13 @@ A plataforma Velya opera em ambiente hospitalar com as seguintes característica
 
 **Alternativas descartadas:**
 
-| Alternativa | Motivo da Rejeição |
-|---|---|
-| Formik | Performance inferior, mais re-renders |
-| React Final Form | Mantido por uma pessoa, risco de abandono |
-| Yup | Menos type-safe que Zod, API menos elegante |
-| io-ts | Mais funcional, curva de aprendizado alta |
-| Valibot | Promissor mas ecossistema menor |
+| Alternativa      | Motivo da Rejeição                          |
+| ---------------- | ------------------------------------------- |
+| Formik           | Performance inferior, mais re-renders       |
+| React Final Form | Mantido por uma pessoa, risco de abandono   |
+| Yup              | Menos type-safe que Zod, API menos elegante |
+| io-ts            | Mais funcional, curva de aprendizado alta   |
+| Valibot          | Promissor mas ecossistema menor             |
 
 ### 3.8 Auth.js (next-auth v5)
 
@@ -236,13 +236,13 @@ A plataforma Velya opera em ambiente hospitalar com as seguintes característica
 
 **Alternativas descartadas:**
 
-| Alternativa | Motivo da Rejeição |
-|---|---|
-| Clerk | SaaS externo, dados de autenticação fora do controle hospitalar |
-| Auth0 | Vendor lock-in, custo em escala, latência externa |
-| Supabase Auth | Acoplado ao Supabase, não aplicável |
-| Implementação manual JWT | Reinvenção da roda, superfície de ataque maior |
-| Keycloak | Server-side only, complexidade de deploy, UI padrão inadequada |
+| Alternativa              | Motivo da Rejeição                                              |
+| ------------------------ | --------------------------------------------------------------- |
+| Clerk                    | SaaS externo, dados de autenticação fora do controle hospitalar |
+| Auth0                    | Vendor lock-in, custo em escala, latência externa               |
+| Supabase Auth            | Acoplado ao Supabase, não aplicável                             |
+| Implementação manual JWT | Reinvenção da roda, superfície de ataque maior                  |
+| Keycloak                 | Server-side only, complexidade de deploy, UI padrão inadequada  |
 
 ### 3.9 Recharts
 
@@ -260,14 +260,14 @@ A plataforma Velya opera em ambiente hospitalar com as seguintes característica
 
 **Alternativas descartadas:**
 
-| Alternativa | Motivo da Rejeição |
-|---|---|
-| D3.js | Imperativo, curva alta, sem componentes React |
+| Alternativa                | Motivo da Rejeição                             |
+| -------------------------- | ---------------------------------------------- |
+| D3.js                      | Imperativo, curva alta, sem componentes React  |
 | Chart.js (react-chartjs-2) | Canvas-based, menos nítido, interação limitada |
-| Nivo | Bom mas bundle maior, API mais complexa |
-| Victory | Menos mantido, API verbosa |
-| Visx | Muito baixo nível, precisa construir tudo |
-| Tremor | Opinionated demais, menos flexível |
+| Nivo                       | Bom mas bundle maior, API mais complexa        |
+| Victory                    | Menos mantido, API verbosa                     |
+| Visx                       | Muito baixo nível, precisa construir tudo      |
+| Tremor                     | Opinionated demais, menos flexível             |
 
 ---
 
@@ -313,13 +313,13 @@ packages/
 
 ### 5.1 Riscos Identificados
 
-| Risco | Probabilidade | Impacto | Mitigação |
-|---|---|---|---|
-| Auth.js v5 em beta | Média | Alto | Abstração sobre Auth.js, possível troca por implementação própria |
-| TanStack Table complexidade | Baixa | Médio | Wrapper padronizado (`<DataTable />`) com defaults hospitalares |
-| Tailwind verbosidade | Baixa | Baixo | CVA + componentes shadcn/ui encapsulam classes |
-| Next.js breaking changes | Baixa | Médio | Canary testing, upgrade gradual, testes E2E |
-| Bundle size mobile | Média | Alto | Tree-shaking, lazy loading, performance budgets por rota |
+| Risco                       | Probabilidade | Impacto | Mitigação                                                         |
+| --------------------------- | ------------- | ------- | ----------------------------------------------------------------- |
+| Auth.js v5 em beta          | Média         | Alto    | Abstração sobre Auth.js, possível troca por implementação própria |
+| TanStack Table complexidade | Baixa         | Médio   | Wrapper padronizado (`<DataTable />`) com defaults hospitalares   |
+| Tailwind verbosidade        | Baixa         | Baixo   | CVA + componentes shadcn/ui encapsulam classes                    |
+| Next.js breaking changes    | Baixa         | Médio   | Canary testing, upgrade gradual, testes E2E                       |
+| Bundle size mobile          | Média         | Alto    | Tree-shaking, lazy loading, performance budgets por rota          |
 
 ### 5.2 Decisões Reversíveis
 
@@ -337,16 +337,16 @@ packages/
 
 ## 6. Critérios de Sucesso
 
-| Métrica | Target |
-|---|---|
-| LCP mobile 4G | < 2.5s |
-| FID | < 100ms |
-| CLS | < 0.1 |
-| Bundle JS por rota (gzipped) | < 150kb |
-| Cobertura de testes (linhas) | > 80% |
-| Acessibilidade (Lighthouse) | > 90 |
-| Build time | < 3 min |
-| Tempo para primeira interação (mobile) | < 4s |
+| Métrica                                | Target  |
+| -------------------------------------- | ------- |
+| LCP mobile 4G                          | < 2.5s  |
+| FID                                    | < 100ms |
+| CLS                                    | < 0.1   |
+| Bundle JS por rota (gzipped)           | < 150kb |
+| Cobertura de testes (linhas)           | > 80%   |
+| Acessibilidade (Lighthouse)            | > 90    |
+| Build time                             | < 3 min |
+| Tempo para primeira interação (mobile) | < 4s    |
 
 ---
 
@@ -366,6 +366,6 @@ packages/
 
 ## 8. Histórico de Revisões
 
-| Data | Versão | Alteração |
-|---|---|---|
-| 2026-04-09 | 1.0 | Decisão inicial documentada |
+| Data       | Versão | Alteração                   |
+| ---------- | ------ | --------------------------- |
+| 2026-04-09 | 1.0    | Decisão inicial documentada |

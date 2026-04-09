@@ -1,4 +1,5 @@
 # Human Factors Risk Model
+
 **Velya Hospital AI Platform — Clinical UI**
 **Document Type:** Human Factors Engineering Analysis
 **Date:** 2026-04-08
@@ -11,18 +12,18 @@
 
 Velya is used in a 24×7 hospital environment where the consequences of UI-induced error are clinical, not merely operational. This context differs from enterprise software in several critical dimensions:
 
-| Factor | Enterprise Software | Hospital Clinical Environment |
-|---|---|---|
-| Operating hours | Business hours | 24×7, including peak stress at 3am |
-| User cognitive state | Generally rested, variable stress | Frequently fatigued, high stress, emotionally charged |
-| Interruption rate | Low to medium | High — wards are interrupt-driven environments |
-| Decision speed | Minutes to hours | Seconds to minutes for critical decisions |
-| Error consequence | Financial, reputational | Patient harm, potential fatality |
-| Device diversity | Desktop, laptop | Mobile phones in wards, shared desktop terminals at nursing stations |
-| Environmental conditions | Office | Bright ward lights, glare on screens, noisy environments |
-| User training level | High — users trained on system | Variable — shift workers may have minimal platform training |
-| Concurrent tasks | One to a few | Frequently managing 5+ patients simultaneously |
-| Information freshness need | Hours to days | Minutes to immediate |
+| Factor                     | Enterprise Software               | Hospital Clinical Environment                                        |
+| -------------------------- | --------------------------------- | -------------------------------------------------------------------- |
+| Operating hours            | Business hours                    | 24×7, including peak stress at 3am                                   |
+| User cognitive state       | Generally rested, variable stress | Frequently fatigued, high stress, emotionally charged                |
+| Interruption rate          | Low to medium                     | High — wards are interrupt-driven environments                       |
+| Decision speed             | Minutes to hours                  | Seconds to minutes for critical decisions                            |
+| Error consequence          | Financial, reputational           | Patient harm, potential fatality                                     |
+| Device diversity           | Desktop, laptop                   | Mobile phones in wards, shared desktop terminals at nursing stations |
+| Environmental conditions   | Office                            | Bright ward lights, glare on screens, noisy environments             |
+| User training level        | High — users trained on system    | Variable — shift workers may have minimal platform training          |
+| Concurrent tasks           | One to a few                      | Frequently managing 5+ patients simultaneously                       |
+| Information freshness need | Hours to days                     | Minutes to immediate                                                 |
 
 This context requires that every UI decision be evaluated against the question: **what happens to patient care if this element causes a 15-second delay, a misread, or a missed alert?**
 
@@ -39,6 +40,7 @@ This context requires that every UI decision be evaluated against the question: 
 **Potential Patient Safety Impact:** Clinician accepts recommendation without understanding the basis. If the recommendation is wrong (due to stale data, hallucination, or missing context), the clinician has no mechanism to catch it.
 
 **Mitigation in UI Design:**
+
 - Every AI recommendation must display: confidence level (high/medium/low), the data it was based on with timestamps, and a one-sentence rationale
 - If any of these fields are absent, the recommendation must be displayed as "unverified suggestion" with a distinct visual style
 - Recommendation must not occupy visual space before these elements are loaded
@@ -54,6 +56,7 @@ This context requires that every UI decision be evaluated against the question: 
 **Potential Patient Safety Impact:** Critical patient condition buried in inbox noise. Clinical action delayed. Deteriorating patient not identified until condition is severe.
 
 **Mitigation in UI Design:**
+
 - Maximum 3 items visible in the "immediately urgent" view at any time (critical items only)
 - Inbox items above critical threshold are grouped and collapsed with a count badge
 - Critical items are persistent and cannot be hidden by scrolling or navigation
@@ -70,6 +73,7 @@ This context requires that every UI decision be evaluated against the question: 
 **Potential Patient Safety Impact:** Misinterpretation of a lab value (e.g., reading K+ as normal when it's critically elevated) leading to no action or wrong action.
 
 **Mitigation in UI Design:**
+
 - All numeric clinical values display reference range alongside the value
 - Values outside normal range are visually flagged at the value level (not just in a separate section)
 - Medication names display both generic and brand names
@@ -88,6 +92,7 @@ This context requires that every UI decision be evaluated against the question: 
 **Potential Patient Safety Impact:** Incoming clinician approaches patient with incorrect expectations. Fails to follow up on time-sensitive items. Misses pending specialist visit or medication effect assessment.
 
 **Mitigation in UI Design:**
+
 - Handoff screen includes a free-text "shift notes" field that persists for the incoming clinician's first view
 - Structured handoff checklist does not allow completion if time-sensitive items (expected specialist, medication changes in last 2 hours, pending lab results) are not explicitly addressed
 - Incoming clinician sees a "not yet reviewed" banner on patients they haven't opened since their shift started
@@ -103,6 +108,7 @@ This context requires that every UI decision be evaluated against the question: 
 **Potential Patient Safety Impact:** Incoming clinician does not see a late-shift medication change, a new lab result, or a discharge blocker added in the last 30 minutes of the previous shift.
 
 **Mitigation in UI Design:**
+
 - Every patient record displays a "last confirmed fresh at [timestamp]" indicator
 - If data is older than 5 minutes at shift handoff, a "DATA MAY BE STALE — VERIFY BEFORE HANDOFF CONFIRMATION" banner appears and blocks handoff completion
 - Handoff confirmation requires the departing clinician to attest data is current
@@ -118,6 +124,7 @@ This context requires that every UI decision be evaluated against the question: 
 **Potential Patient Safety Impact:** Delayed response to the most critical patient because they weren't the loudest.
 
 **Mitigation in UI Design:**
+
 - Shift start view is a dedicated "incoming shift briefing" screen — not the full dashboard
 - Briefing screen lists patients sorted by clinical acuity, not by alphabetical or room order
 - Most critical patient is shown first with a summary of outstanding actions
@@ -132,6 +139,7 @@ This context requires that every UI decision be evaluated against the question: 
 **Risk Description:** If velya-web surfaces every system notification, every AI recommendation, every task update, and every platform event in the same inbox with undifferentiated visual treatment, clinicians will habituate to the notification stream and stop reading it. This is the documented behavioral adaptation to alarm noise in ICU environments.
 
 **Specific Velya Risk Factors:**
+
 - Mixed audience in one inbox: ops events (service restarted) alongside clinical events (critical lab result)
 - No severity-based visual differentiation beyond color
 - AI recommendations of varying quality mixed with confirmed clinical data
@@ -142,6 +150,7 @@ This context requires that every UI decision be evaluated against the question: 
 ### 4.2 How Velya's Design Could Prevent Alert Fatigue
 
 **Positive design patterns:**
+
 - Role-scoped views ensure clinicians only see what requires their action
 - Critical alerts use a full-screen interrupt for life-threatening conditions, not just a badge update
 - Alert volume is tracked per user; sustained high volume triggers a review of alert sources
@@ -158,6 +167,7 @@ This context requires that every UI decision be evaluated against the question: 
 **Potential Patient Safety Impact:** Unsafe discharge of a patient whose deterioration risks were documented but not surfaced prominently.
 
 **Mitigation in UI Design:**
+
 - AI recommendation is hidden behind a deliberate reveal action ("View AI assessment") that requires the clinician to complete their own structured review first
 - AI confidence and data basis are shown simultaneously with the recommendation, never separately
 - UI tracks cases where AI recommendation was accepted without prior clinician review, and escalates to governance if the rate exceeds threshold
@@ -174,6 +184,7 @@ This context requires that every UI decision be evaluated against the question: 
 **Potential Patient Safety Impact:** Novel or edge-case patient presentation where AI recommendation is wrong, and clinician accepts it because AI has been right 95% of the time.
 
 **Mitigation in UI Design:**
+
 - Explicit "Uncertainty flag" on AI recommendations when patient context is atypical relative to training
 - Regular "AI in training mode" periods where AI recommendations are shown but clinician must complete independent assessment before AI recommendation is revealed — maintains clinical reasoning muscle
 - Governance dashboard showing individual clinician AI override rate; outliers (very low override rate) are flagged for review
@@ -189,6 +200,7 @@ This context requires that every UI decision be evaluated against the question: 
 **Potential Patient Safety Impact:** (a) leads to clinical decisions based on bad data. (b) leads to abandonment of the platform, removing all its clinical value, and potentially creating a return to manual processes that are even less reliable.
 
 **Mitigation in UI Design:**
+
 - Persistent degraded mode banner at the top of every screen — not dismissable, always visible
 - Banner specifies exactly what's affected: "Patient Flow data is unavailable — showing data from 14:23. Discharge data is current."
 - Banner distinguishes "data may be stale" from "data is definitely unavailable" from "all systems normal"
@@ -240,6 +252,7 @@ This context requires that every UI decision be evaluated against the question: 
 **Potential Patient Safety Impact:** Clinician returns to a workflow, believes they completed it, but actually stopped mid-way. A discharge checklist left at step 4 of 7 may have submitted a partial record, or the system may have timed out and reset progress.
 
 **Mitigation in UI Design:**
+
 - All multi-step workflows persist state automatically — no "save" action required
 - Returning to an incomplete workflow shows a clear "You left off at step 4 of 7" indicator
 - Session timeout does not lose form data — state is preserved server-side and restored on login
@@ -250,19 +263,19 @@ This context requires that every UI decision be evaluated against the question: 
 
 ## Risk Summary Table
 
-| Risk | Likelihood | Patient Safety Impact | Priority |
-|---|---|---|---|
-| Decision support adds cognitive load | High | High | Critical |
-| Too many concurrent alerts | High | High | Critical |
-| Information requiring excessive interpretation | Medium | Medium | High |
-| Context not transferred at handoff | Very High | High | Critical |
-| Stale data shown as current at handoff | Medium | High | Critical |
-| Incoming clinician overwhelmed at shift start | Very High | Medium | High |
-| Alert fatigue from mixed-audience inbox | High | High | Critical |
-| Confirmation bias from AI recommendation framing | High | High | Critical |
-| Over-reliance on AI recommendations | Medium-High | High | High |
-| Degraded mode not communicated | Medium | High | Critical |
-| Mobile small screen information density | High | Medium | High |
-| Outdoor/ward lighting and color visibility | High | Medium | High |
-| Touch target errors under stress | High | Medium | High |
-| Interruption recovery — lost context | Very High | Medium | High |
+| Risk                                             | Likelihood  | Patient Safety Impact | Priority |
+| ------------------------------------------------ | ----------- | --------------------- | -------- |
+| Decision support adds cognitive load             | High        | High                  | Critical |
+| Too many concurrent alerts                       | High        | High                  | Critical |
+| Information requiring excessive interpretation   | Medium      | Medium                | High     |
+| Context not transferred at handoff               | Very High   | High                  | Critical |
+| Stale data shown as current at handoff           | Medium      | High                  | Critical |
+| Incoming clinician overwhelmed at shift start    | Very High   | Medium                | High     |
+| Alert fatigue from mixed-audience inbox          | High        | High                  | Critical |
+| Confirmation bias from AI recommendation framing | High        | High                  | Critical |
+| Over-reliance on AI recommendations              | Medium-High | High                  | High     |
+| Degraded mode not communicated                   | Medium      | High                  | Critical |
+| Mobile small screen information density          | High        | Medium                | High     |
+| Outdoor/ward lighting and color visibility       | High        | Medium                | High     |
+| Touch target errors under stress                 | High        | Medium                | High     |
+| Interruption recovery — lost context             | Very High   | Medium                | High     |

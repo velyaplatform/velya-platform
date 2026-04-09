@@ -112,9 +112,7 @@ export default function SuggestionsPage() {
           }}
         >
           <div>
-            <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700 }}>
-              Gestão de Sugestões
-            </h2>
+            <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700 }}>Gestão de Sugestões</h2>
             <p style={{ margin: '0.25rem 0 0', color: '#6b7280', fontSize: '0.9rem' }}>
               {pendingCount} sugestão(ões) pendente(s)
             </p>

@@ -16,14 +16,50 @@ interface PageTest {
 
 const pages: PageTest[] = [
   // Desktop
-  { name: 'login-desktop', path: '/login', viewport: { width: 1440, height: 900 }, device: 'desktop', checks: ['form', 'inputs', 'button'] },
-  { name: 'register-desktop', path: '/register', viewport: { width: 1440, height: 900 }, device: 'desktop', checks: ['form', 'select', 'inputs'] },
-  { name: 'verify-desktop', path: '/verify?email=test@test.com&devCode=123456', viewport: { width: 1440, height: 900 }, device: 'desktop', checks: ['code-input'] },
+  {
+    name: 'login-desktop',
+    path: '/login',
+    viewport: { width: 1440, height: 900 },
+    device: 'desktop',
+    checks: ['form', 'inputs', 'button'],
+  },
+  {
+    name: 'register-desktop',
+    path: '/register',
+    viewport: { width: 1440, height: 900 },
+    device: 'desktop',
+    checks: ['form', 'select', 'inputs'],
+  },
+  {
+    name: 'verify-desktop',
+    path: '/verify?email=test@test.com&devCode=123456',
+    viewport: { width: 1440, height: 900 },
+    device: 'desktop',
+    checks: ['code-input'],
+  },
   // Mobile iPhone
-  { name: 'login-mobile', path: '/login', viewport: { width: 390, height: 844 }, device: 'iPhone 14', checks: ['form', 'touch-targets'] },
-  { name: 'register-mobile', path: '/register', viewport: { width: 390, height: 844 }, device: 'iPhone 14', checks: ['form', 'scroll'] },
+  {
+    name: 'login-mobile',
+    path: '/login',
+    viewport: { width: 390, height: 844 },
+    device: 'iPhone 14',
+    checks: ['form', 'touch-targets'],
+  },
+  {
+    name: 'register-mobile',
+    path: '/register',
+    viewport: { width: 390, height: 844 },
+    device: 'iPhone 14',
+    checks: ['form', 'scroll'],
+  },
   // Tablet
-  { name: 'login-tablet', path: '/login', viewport: { width: 768, height: 1024 }, device: 'iPad', checks: ['form', 'centered'] },
+  {
+    name: 'login-tablet',
+    path: '/login',
+    viewport: { width: 768, height: 1024 },
+    device: 'iPad',
+    checks: ['form', 'centered'],
+  },
 ];
 
 async function run() {
@@ -36,7 +72,10 @@ async function run() {
     const issues: string[] = [];
 
     try {
-      const response = await p.goto(`${BASE_URL}${page.path}`, { waitUntil: 'networkidle', timeout: 15000 });
+      const response = await p.goto(`${BASE_URL}${page.path}`, {
+        waitUntil: 'networkidle',
+        timeout: 15000,
+      });
 
       // Check HTTP status
       if (!response || response.status() !== 200) {
@@ -62,10 +101,14 @@ async function run() {
         elements.forEach((el) => {
           const rect = (el as HTMLElement).getBoundingClientRect();
           if (rect.width < 30 || rect.height < 30) {
-            issues.push(`Elemento pequeno demais: ${el.tagName}#${(el as HTMLElement).id || el.className?.toString().slice(0, 30)} (${Math.round(rect.width)}x${Math.round(rect.height)})`);
+            issues.push(
+              `Elemento pequeno demais: ${el.tagName}#${(el as HTMLElement).id || el.className?.toString().slice(0, 30)} (${Math.round(rect.width)}x${Math.round(rect.height)})`,
+            );
           }
           if (rect.left < 0 || rect.top < -10) {
-            issues.push(`Elemento fora da tela: ${el.tagName} (left=${Math.round(rect.left)}, top=${Math.round(rect.top)})`);
+            issues.push(
+              `Elemento fora da tela: ${el.tagName} (left=${Math.round(rect.left)}, top=${Math.round(rect.top)})`,
+            );
           }
         });
         return issues;
@@ -76,11 +119,15 @@ async function run() {
       if (page.device !== 'desktop') {
         const touchIssues = await p.evaluate(() => {
           const issues: string[] = [];
-          const interactiveElements = document.querySelectorAll('input, button, select, a, [role="button"]');
+          const interactiveElements = document.querySelectorAll(
+            'input, button, select, a, [role="button"]',
+          );
           interactiveElements.forEach((el) => {
             const rect = (el as HTMLElement).getBoundingClientRect();
             if (rect.height < 40 && rect.width > 0 && rect.height > 0) {
-              issues.push(`Touch target pequeno: ${el.tagName} "${(el as HTMLElement).textContent?.slice(0, 20)}" (h=${Math.round(rect.height)}px, min=44px)`);
+              issues.push(
+                `Touch target pequeno: ${el.tagName} "${(el as HTMLElement).textContent?.slice(0, 20)}" (h=${Math.round(rect.height)}px, min=44px)`,
+              );
             }
           });
           return issues;
@@ -96,7 +143,9 @@ async function run() {
           const style = getComputedStyle(el as HTMLElement);
           const fontSize = parseFloat(style.fontSize);
           if (fontSize < 10 && (el as HTMLElement).textContent?.trim()) {
-            issues.push(`Texto muito pequeno: "${(el as HTMLElement).textContent?.slice(0, 30)}" (${fontSize}px)`);
+            issues.push(
+              `Texto muito pequeno: "${(el as HTMLElement).textContent?.slice(0, 30)}" (${fontSize}px)`,
+            );
           }
         });
         return issues;
@@ -121,7 +170,6 @@ async function run() {
         issues,
         screenshot: screenshotPath,
       });
-
     } catch (err) {
       issues.push(`Erro: ${(err as Error).message}`);
       results.push({ name: page.name, status: 'ERROR', issues, screenshot: '' });

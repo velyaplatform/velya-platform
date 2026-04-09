@@ -37,7 +37,11 @@ function TaskRow({ priority, type, description, patient, assignee, due }: TaskRo
         : 'task-item-normal';
 
   const badgeClass =
-    priority === 'urgent' ? 'badge-urgent' : priority === 'warning' ? 'badge-warning' : 'badge-neutral';
+    priority === 'urgent'
+      ? 'badge-urgent'
+      : priority === 'warning'
+        ? 'badge-warning'
+        : 'badge-neutral';
 
   const badgeLabel = priority === 'urgent' ? 'URGENTE' : priority === 'warning' ? 'ALTO' : 'NORMAL';
 
@@ -84,7 +88,9 @@ function DischargeRow({ mrn, name, ward, los, targetDate, blockers, status }: Di
   const cfg = statusConfig[status];
 
   return (
-    <tr className={status === 'blocked' ? 'row-critical' : status === 'pending' ? 'row-warning' : ''}>
+    <tr
+      className={status === 'blocked' ? 'row-critical' : status === 'pending' ? 'row-warning' : ''}
+    >
       <td>
         <div className="font-semibold">{name}</div>
         <div className="text-xs text-tertiary">{mrn}</div>
@@ -131,7 +137,11 @@ interface ServiceStatusProps {
 function ServiceStatus({ name, status, url }: ServiceStatusProps) {
   const cfg = {
     healthy: { dot: 'status-dot-green', label: 'Saudável', card: 'service-card-healthy' },
-    degraded: { dot: 'status-dot-amber status-dot-pulse', label: 'Degradado', card: 'service-card-degraded' },
+    degraded: {
+      dot: 'status-dot-amber status-dot-pulse',
+      label: 'Degradado',
+      card: 'service-card-degraded',
+    },
     unknown: { dot: 'status-dot-grey', label: 'Desconhecido', card: 'service-card-unknown' },
   };
   const c = cfg[status];

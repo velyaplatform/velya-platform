@@ -3,7 +3,7 @@
 **Versão:** 1.0  
 **Cluster:** kind-velya-local (simulando AWS EKS)  
 **Namespaces relevantes:** velya-dev-agents, velya-dev-platform, velya-dev-observability  
-**Última revisão:** 2026-04-08  
+**Última revisão:** 2026-04-08
 
 ---
 
@@ -34,6 +34,7 @@ A Velya executa workloads contínuos, periódicos e event-driven em uma arquitet
 ### 2.1 Responsabilidade no Ecossistema Velya
 
 O Temporal gerencia workflows que precisam de:
+
 - **Durabilidade:** Sobrevivem a crashes de pods, reinicializações de cluster
 - **Estado longo:** Processos que duram minutos a horas (ex: processo de alta)
 - **Coordenação:** Múltiplas Activities com dependências e compensações
@@ -56,6 +57,7 @@ Namespace: velya-dev-platform
 ### 2.3 Workflows Ativos na Velya
 
 #### Discharge Workflow
+
 ```go
 package clinical
 
@@ -137,28 +139,29 @@ func DischargeWorkflow(ctx workflow.Context, req DischargeRequest) (*DischargeRe
 ```
 
 #### Patient Flow Routing Workflow
+
 ```go
 func PatientFlowWorkflow(ctx workflow.Context, req TransferRequest) error {
     // Verificação rápida de regras determinísticas
     available, err := workflow.ExecuteActivity(ctx, CheckBedAvailability, req).Get(ctx, nil)
     if err != nil { return err }
-    
+
     if available {
         // Path feliz: 80% dos casos
         return workflow.ExecuteActivity(ctx, ExecuteTransfer, req).Get(ctx, nil)
     }
-    
+
     // Path complexo: chamar agent para encontrar alternativa
     var agentProposal TransferProposal
     if err := workflow.ExecuteActivity(ctx, InvokePatientFlowAgent, req).Get(ctx, &agentProposal); err != nil {
         return err
     }
-    
+
     if agentProposal.RequiresHumanApproval {
         // Aguardar aprovação via sinal (timeout: 30 min)
         // ...
     }
-    
+
     return workflow.ExecuteActivity(ctx, ExecuteTransfer, agentProposal.TransferRequest).Get(ctx, nil)
 }
 ```
@@ -186,6 +189,7 @@ temporal schedule create \
 ### 3.1 Responsabilidade
 
 CronJobs Kubernetes são usados para rotinas que:
+
 - **Não precisam de estado persistente** entre execuções
 - **São idempotentes** e seguras para re-execução
 - **Têm lógica simples** que não justifica overhead do Temporal
@@ -201,7 +205,7 @@ metadata:
   name: heartbeat-sweep
   namespace: velya-dev-agents
 spec:
-  schedule: "*/5 * * * *"
+  schedule: '*/5 * * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -223,9 +227,9 @@ spec:
                       name: nats-credentials
                       key: url
                 - name: PROMETHEUS_URL
-                  value: "http://prometheus.velya-dev-observability.svc.cluster.local:9090"
+                  value: 'http://prometheus.velya-dev-observability.svc.cluster.local:9090'
                 - name: STALE_THRESHOLD_SECONDS
-                  value: "180"
+                  value: '180'
               resources:
                 requests:
                   cpu: 50m
@@ -241,7 +245,7 @@ metadata:
   name: cost-sweep
   namespace: velya-dev-agents
 spec:
-  schedule: "0 */6 * * *"
+  schedule: '0 */6 * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -258,11 +262,11 @@ spec:
               image: velya/cost-analyzer:1.0.5
               env:
                 - name: PROMETHEUS_URL
-                  value: "http://prometheus.velya-dev-observability.svc.cluster.local:9090"
+                  value: 'http://prometheus.velya-dev-observability.svc.cluster.local:9090'
                 - name: BUDGET_CONFIG_MAP
-                  value: "cost-budgets"
+                  value: 'cost-budgets'
                 - name: ALERT_THRESHOLD_PERCENT
-                  value: "80"
+                  value: '80'
               resources:
                 requests:
                   cpu: 100m
@@ -278,7 +282,7 @@ metadata:
   name: daily-report
   namespace: velya-dev-agents
 spec:
-  schedule: "0 2 * * *"
+  schedule: '0 2 * * *'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 5
@@ -295,9 +299,9 @@ spec:
               image: velya/report-generator:2.1.0
               env:
                 - name: LOKI_URL
-                  value: "http://loki.velya-dev-observability.svc.cluster.local:3100"
+                  value: 'http://loki.velya-dev-observability.svc.cluster.local:3100'
                 - name: REPORT_OUTPUT_QUEUE
-                  value: "velya.reports.daily"
+                  value: 'velya.reports.daily'
               resources:
                 requests:
                   cpu: 200m
@@ -313,7 +317,7 @@ metadata:
   name: market-intelligence-sweep
   namespace: velya-dev-agents
 spec:
-  schedule: "0 3 * * 1"
+  schedule: '0 3 * * 1'
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 4
   failedJobsHistoryLimit: 4
@@ -364,9 +368,9 @@ spec:
             severity: warning
             team: platform-health
           annotations:
-            summary: "CronJob falhou no namespace velya-dev-agents"
-            description: "Job {{ $labels.job_name }} falhou {{ $value }} vezes."
-        
+            summary: 'CronJob falhou no namespace velya-dev-agents'
+            description: 'Job {{ $labels.job_name }} falhou {{ $value }} vezes.'
+
         - alert: CronJobNotScheduled
           expr: |
             time() - kube_cronjob_next_schedule_time{namespace="velya-dev-agents"} > 3600
@@ -374,7 +378,7 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "CronJob não executou no tempo esperado"
+            summary: 'CronJob não executou no tempo esperado'
 ```
 
 ---
@@ -403,21 +407,21 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: task-inbox-worker
-  pollingInterval: 15       # Verificar lag a cada 15 segundos
-  cooldownPeriod: 120       # Aguardar 120s antes de scale down
-  minReplicaCount: 1        # Sempre manter pelo menos 1 réplica
-  maxReplicaCount: 8        # Máximo 8 réplicas (limite de quota)
+  pollingInterval: 15 # Verificar lag a cada 15 segundos
+  cooldownPeriod: 120 # Aguardar 120s antes de scale down
+  minReplicaCount: 1 # Sempre manter pelo menos 1 réplica
+  maxReplicaCount: 8 # Máximo 8 réplicas (limite de quota)
   fallback:
     failureThreshold: 3
-    replicas: 2             # Em caso de falha do KEDA, manter 2 réplicas
+    replicas: 2 # Em caso de falha do KEDA, manter 2 réplicas
   triggers:
     - type: nats-jetstream
       metadata:
-        natsServerMonitoringEndpoint: "nats-monitor.velya-dev-platform.svc.cluster.local:8222"
-        account: "$G"
+        natsServerMonitoringEndpoint: 'nats-monitor.velya-dev-platform.svc.cluster.local:8222'
+        account: '$G'
         stream: VELYA_AGENTS
         consumer: task-inbox-worker-consumer
-        lagThreshold: "5"   # 1 réplica extra por cada 5 mensagens de lag
+        lagThreshold: '5' # 1 réplica extra por cada 5 mensagens de lag
       authenticationRef:
         name: nats-trigger-auth
 ---
@@ -430,15 +434,15 @@ metadata:
 spec:
   scaleTargetRef:
     name: discharge-worker
-  minReplicaCount: 2        # Alta hospitalar: mínimo 2 réplicas sempre
+  minReplicaCount: 2 # Alta hospitalar: mínimo 2 réplicas sempre
   maxReplicaCount: 6
-  cooldownPeriod: 300       # Processo de alta: cooldown maior
+  cooldownPeriod: 300 # Processo de alta: cooldown maior
   triggers:
     - type: nats-jetstream
       metadata:
         stream: VELYA_AGENTS
         consumer: discharge-worker-consumer
-        lagThreshold: "3"   # Mais agressivo — alta é crítica
+        lagThreshold: '3' # Mais agressivo — alta é crítica
 ---
 # ScaledObject para validation-worker (CPU-based, não NATS)
 apiVersion: keda.sh/v1alpha1
@@ -454,11 +458,11 @@ spec:
   triggers:
     - type: prometheus
       metadata:
-        serverAddress: "http://prometheus.velya-dev-observability.svc.cluster.local:9090"
+        serverAddress: 'http://prometheus.velya-dev-observability.svc.cluster.local:9090'
         metricName: velya_validation_queue_depth
         query: |
           sum(velya_agent_queue_lag{agent="validation-worker"})
-        threshold: "10"
+        threshold: '10'
 ```
 
 ### 4.3 TriggerAuthentication para NATS
@@ -504,6 +508,7 @@ Lag de mensagens na fila NATS
 ### 5.1 Responsabilidade
 
 NATS JetStream é o sistema de mensageria que conecta todos os componentes da Velya:
+
 - Agents publicam e consomem mensagens
 - Workflows disparam eventos para filas
 - CronJobs publicam resultados
@@ -556,43 +561,43 @@ nats:
     streams:
       - name: VELYA_AGENTS
         subjects:
-          - "velya.agents.>"
+          - 'velya.agents.>'
         storage: file
         retention: limits
-        max_age: 72h          # 3 dias de retenção
+        max_age: 72h # 3 dias de retenção
         max_msgs: 1000000
-        max_bytes: 10737418240  # 10 GiB
-        replicas: 1            # kind local: 1 réplica
+        max_bytes: 10737418240 # 10 GiB
+        replicas: 1 # kind local: 1 réplica
         discard: old
-        
+
       - name: VELYA_DLQ
         subjects:
-          - "velya.agents.dlq.>"
+          - 'velya.agents.dlq.>'
         storage: file
         retention: limits
-        max_age: 720h          # 30 dias de retenção na DLQ
+        max_age: 720h # 30 dias de retenção na DLQ
         max_msgs: 100000
-        max_bytes: 1073741824  # 1 GiB
+        max_bytes: 1073741824 # 1 GiB
         replicas: 1
-        
+
       - name: VELYA_EVENTS
         subjects:
-          - "velya.events.>"
+          - 'velya.events.>'
         storage: file
         retention: limits
         max_age: 24h
         max_msgs: 500000
-        max_bytes: 5368709120  # 5 GiB
+        max_bytes: 5368709120 # 5 GiB
         replicas: 1
-        
+
       - name: VELYA_AUDIT
         subjects:
-          - "velya.audit.>"
+          - 'velya.audit.>'
         storage: file
         retention: limits
-        max_age: 8760h         # 1 ano de retenção de audit
+        max_age: 8760h # 1 ano de retenção de audit
         max_msgs: 10000000
-        max_bytes: 107374182400  # 100 GiB
+        max_bytes: 107374182400 # 100 GiB
         replicas: 1
 ```
 
@@ -604,23 +609,23 @@ consumers:
   - stream: VELYA_AGENTS
     name: task-inbox-worker-consumer
     durable: task-inbox-worker-consumer
-    filter_subject: "velya.agents.clinical-ops.task-classification"
+    filter_subject: 'velya.agents.clinical-ops.task-classification'
     ack_policy: explicit
-    ack_wait: 300s          # 5 minutos para processar e dar ack
-    max_deliver: 5          # Máximo 5 tentativas antes de DLQ
+    ack_wait: 300s # 5 minutos para processar e dar ack
+    max_deliver: 5 # Máximo 5 tentativas antes de DLQ
     deliver_policy: all
     replay_policy: instant
-    max_ack_pending: 10     # Máximo 10 mensagens em processamento simultâneo
+    max_ack_pending: 10 # Máximo 10 mensagens em processamento simultâneo
 
   - stream: VELYA_AGENTS
     name: discharge-worker-consumer
     durable: discharge-worker-consumer
-    filter_subject: "velya.agents.clinical-ops.discharge-trigger"
+    filter_subject: 'velya.agents.clinical-ops.discharge-trigger'
     ack_policy: explicit
-    ack_wait: 600s          # 10 minutos (alta pode ser demorada)
+    ack_wait: 600s # 10 minutos (alta pode ser demorada)
     max_deliver: 3
     deliver_policy: all
-    max_ack_pending: 5      # Máximo 5 altas simultâneas
+    max_ack_pending: 5 # Máximo 5 altas simultâneas
 ```
 
 ---
@@ -733,8 +738,8 @@ Workers retomam consumo normalmente
 # Fallback configurado: se NATS monitor fica inacessível,
 # KEDA mantém o número de réplicas do último estado conhecido
 fallback:
-  failureThreshold: 3      # 3 falhas consecutivas de polling
-  replicas: 2              # Manter 2 réplicas em modo fallback
+  failureThreshold: 3 # 3 falhas consecutivas de polling
+  replicas: 2 # Manter 2 réplicas em modo fallback
 ```
 
 ---
@@ -759,14 +764,14 @@ spec:
         cpu: 50m
         memory: 64Mi
       max:
-        cpu: "2"
+        cpu: '2'
         memory: 2Gi
       min:
         cpu: 25m
         memory: 32Mi
     - type: Pod
       max:
-        cpu: "4"
+        cpu: '4'
         memory: 4Gi
 ```
 
@@ -781,14 +786,14 @@ metadata:
   namespace: velya-dev-agents
 spec:
   hard:
-    requests.cpu: "4"
+    requests.cpu: '4'
     requests.memory: 8Gi
-    limits.cpu: "16"
+    limits.cpu: '16'
     limits.memory: 16Gi
-    count/pods: "50"
-    count/cronjobs.batch: "20"
-    count/jobs.batch: "30"
-    count/deployments.apps: "20"
+    count/pods: '50'
+    count/cronjobs.batch: '20'
+    count/jobs.batch: '30'
+    count/deployments.apps: '20'
 ```
 
 ---
@@ -797,15 +802,15 @@ spec:
 
 ### 9.1 Métricas de Runtime Expostas
 
-| Métrica | Tipo | Descrição |
-|---|---|---|
-| `velya_runtime_active_workflows` | Gauge | Workflows Temporal ativos |
-| `velya_runtime_active_workers` | Gauge | Workers KEDA em execução |
-| `velya_runtime_queue_depth` | Gauge | Mensagens pendentes por fila NATS |
-| `velya_runtime_dlq_size` | Gauge | Mensagens em DLQ por tipo |
-| `velya_runtime_cronjob_last_success` | Gauge | Timestamp do último sucesso por CronJob |
-| `velya_runtime_keda_replicas` | Gauge | Réplicas atuais por ScaledObject |
-| `velya_runtime_temporal_task_queue_lag` | Gauge | Lag de task queue Temporal |
+| Métrica                                 | Tipo  | Descrição                               |
+| --------------------------------------- | ----- | --------------------------------------- |
+| `velya_runtime_active_workflows`        | Gauge | Workflows Temporal ativos               |
+| `velya_runtime_active_workers`          | Gauge | Workers KEDA em execução                |
+| `velya_runtime_queue_depth`             | Gauge | Mensagens pendentes por fila NATS       |
+| `velya_runtime_dlq_size`                | Gauge | Mensagens em DLQ por tipo               |
+| `velya_runtime_cronjob_last_success`    | Gauge | Timestamp do último sucesso por CronJob |
+| `velya_runtime_keda_replicas`           | Gauge | Réplicas atuais por ScaledObject        |
+| `velya_runtime_temporal_task_queue_lag` | Gauge | Lag de task queue Temporal              |
 
 ### 9.2 Alertas Críticos de Runtime
 
@@ -816,7 +821,7 @@ spec:
   labels:
     severity: critical
   annotations:
-    summary: "Nenhum Temporal worker ativo para clinical-operations"
+    summary: 'Nenhum Temporal worker ativo para clinical-operations'
 
 - alert: NATSQueueBuildup
   expr: velya_runtime_queue_depth > 100
@@ -824,7 +829,7 @@ spec:
   labels:
     severity: warning
   annotations:
-    summary: "Fila NATS com >100 mensagens por 5 minutos"
+    summary: 'Fila NATS com >100 mensagens por 5 minutos'
 
 - alert: DLQGrowing
   expr: rate(velya_runtime_dlq_size[10m]) > 1
@@ -832,5 +837,5 @@ spec:
   labels:
     severity: warning
   annotations:
-    summary: "DLQ crescendo: mais de 1 mensagem/min entrando na fila morta"
+    summary: 'DLQ crescendo: mais de 1 mensagem/min entrando na fila morta'
 ```

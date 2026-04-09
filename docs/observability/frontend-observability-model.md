@@ -17,16 +17,16 @@ Em hospitais, o velya-web não é uma interface de consumidor comum. É uma ferr
 
 ### 1.1 Rotas Clínicas Críticas
 
-| Rota | Propósito clínico | Degradação impacta |
-|------|------------------|--------------------|
-| `/dashboard` | Visão geral operacional | Coordenadores de turno |
-| `/patients` | Lista de pacientes ativos | Toda a equipe clínica |
-| `/patients/[id]` | Detalhes e ações por paciente | Médicos e enfermeiros |
-| `/tasks` | Inbox de tarefas clínicas | Toda a equipe |
-| `/discharge` | Processo de alta médica | Médicos e coordenadores |
-| `/discharge/[id]` | Detalhes do processo de alta | Médicos, coordenadores |
-| `/handoff` | Passagem de turno | Coordenadores de turno |
-| `/system` | Painel de status do sistema | NOC, TI |
+| Rota              | Propósito clínico             | Degradação impacta      |
+| ----------------- | ----------------------------- | ----------------------- |
+| `/dashboard`      | Visão geral operacional       | Coordenadores de turno  |
+| `/patients`       | Lista de pacientes ativos     | Toda a equipe clínica   |
+| `/patients/[id]`  | Detalhes e ações por paciente | Médicos e enfermeiros   |
+| `/tasks`          | Inbox de tarefas clínicas     | Toda a equipe           |
+| `/discharge`      | Processo de alta médica       | Médicos e coordenadores |
+| `/discharge/[id]` | Detalhes do processo de alta  | Médicos, coordenadores  |
+| `/handoff`        | Passagem de turno             | Coordenadores de turno  |
+| `/system`         | Painel de status do sistema   | NOC, TI                 |
 
 ---
 
@@ -37,15 +37,18 @@ Em hospitais, o velya-web não é uma interface de consumidor comum. É uma ferr
 Implementados via `web-vitals` library + OTel para envio ao OTel Collector.
 
 #### LCP — Largest Contentful Paint
+
 **O que mede**: Tempo até o maior elemento de conteúdo visível ser renderizado.
 **SLO Velya**: P95 < 2.5s em rotas clínicas (`/patients`, `/tasks`, `/discharge`)
 **Limites**:
+
 - Bom: < 1.0s
 - Aceitável: 1.0s–2.5s
 - Ruim: > 2.5s → alerta Médio
 - Crítico para clínicas: > 4s → alerta Alto
 
 **Query Grafana**:
+
 ```promql
 histogram_quantile(0.95,
   rate(velya_web_lcp_seconds_bucket{route="/patients"}[$__rate_interval])
@@ -53,9 +56,11 @@ histogram_quantile(0.95,
 ```
 
 #### INP — Interaction to Next Paint
+
 **O que mede**: Responsividade a interações do usuário (clique, toque, teclado). Substitui FID desde 2024.
 **SLO Velya**: P95 < 200ms em todas as rotas
 **Limites**:
+
 - Bom: < 100ms
 - Aceitável: 100ms–200ms
 - Ruim: > 200ms → alerta Médio
@@ -63,9 +68,11 @@ histogram_quantile(0.95,
 **Por que crítico para a Velya**: Um botão que demora 500ms para responder em uma situação de urgência aumenta o estresse do clínico e pode levar a cliques duplos ou ações incorretas.
 
 #### CLS — Cumulative Layout Shift
+
 **O que mede**: Instabilidade visual (elementos pulando na tela).
 **SLO Velya**: Mediana < 0.05 em todas as rotas
 **Limites**:
+
 - Bom: < 0.05
 - Aceitável: 0.05–0.1
 - Ruim: > 0.1 → alerta Médio
@@ -123,7 +130,7 @@ export function useRoutePerformance(): void {
 
 const originalFetch = window.fetch;
 
-window.fetch = async function(input, init) {
+window.fetch = async function (input, init) {
   const startTime = performance.now();
   const url = typeof input === 'string' ? input : input.url;
   const endpoint = new URL(url).pathname;
@@ -151,7 +158,6 @@ window.fetch = async function(input, init) {
     }
 
     return response;
-
   } catch (error) {
     incrementCounter('velya_web_api_error_total', {
       endpoint,
@@ -398,7 +404,8 @@ if (typeof window !== 'undefined') {
 ```typescript
 // src/lib/metrics.ts — utilitários de envio de métricas ao OTel Collector via OTLP HTTP
 
-const OTEL_ENDPOINT = process.env.NEXT_PUBLIC_OTEL_ENDPOINT || 'http://otel-collector.velya-dev-observability:4318';
+const OTEL_ENDPOINT =
+  process.env.NEXT_PUBLIC_OTEL_ENDPOINT || 'http://otel-collector.velya-dev-observability:4318';
 
 interface MetricLabel {
   key: string;
@@ -416,15 +423,17 @@ export function incrementCounter(name: string, labels: Record<string, string> = 
   sendOTLPMetric({
     name,
     sum: {
-      dataPoints: [{
-        asInt: 1,
-        startTimeUnixNano: Date.now() * 1_000_000,
-        timeUnixNano: Date.now() * 1_000_000,
-        attributes: buildAttributes({
-          environment: process.env.NEXT_PUBLIC_ENV || 'dev',
-          ...labels,
-        }),
-      }],
+      dataPoints: [
+        {
+          asInt: 1,
+          startTimeUnixNano: Date.now() * 1_000_000,
+          timeUnixNano: Date.now() * 1_000_000,
+          attributes: buildAttributes({
+            environment: process.env.NEXT_PUBLIC_ENV || 'dev',
+            ...labels,
+          }),
+        },
+      ],
       aggregationTemporality: 2, // CUMULATIVE
       isMonotonic: true,
     },
@@ -435,28 +444,34 @@ export function setGauge(name: string, value: number, labels: Record<string, str
   sendOTLPMetric({
     name,
     gauge: {
-      dataPoints: [{
-        asDouble: value,
-        timeUnixNano: Date.now() * 1_000_000,
-        attributes: buildAttributes(labels),
-      }],
+      dataPoints: [
+        {
+          asDouble: value,
+          timeUnixNano: Date.now() * 1_000_000,
+          attributes: buildAttributes(labels),
+        },
+      ],
     },
   });
 }
 
 function sendOTLPMetric(metric: unknown): void {
   const payload = {
-    resourceMetrics: [{
-      resource: {
-        attributes: buildAttributes({
-          'service.name': 'velya-web',
-          'service.version': process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0',
-        }),
+    resourceMetrics: [
+      {
+        resource: {
+          attributes: buildAttributes({
+            'service.name': 'velya-web',
+            'service.version': process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0',
+          }),
+        },
+        scopeMetrics: [
+          {
+            metrics: [metric],
+          },
+        ],
       },
-      scopeMetrics: [{
-        metrics: [metric],
-      }],
-    }],
+    ],
   };
 
   fetch(`${OTEL_ENDPOINT}/v1/metrics`, {
@@ -476,12 +491,12 @@ function sendOTLPMetric(metric: unknown): void {
 
 ### Linha 1: KPIs Globais (4 Stat panels)
 
-| Painel | Métrica | Threshold |
-|--------|---------|-----------|
-| LCP P95 (todas rotas) | `histogram_quantile(0.95, rate(velya_web_lcp_seconds_bucket[5m]))` | Verde < 2.5s, Amarelo < 4s, Vermelho > 4s |
-| INP P95 (todas rotas) | `histogram_quantile(0.95, rate(velya_web_inp_milliseconds_bucket[5m]))` | Verde < 200ms, Vermelho > 500ms |
-| Erros JS / hora | `increase(velya_web_js_error_total[1h])` | Verde 0, Amarelo > 5, Vermelho > 20 |
-| Modo degradado ativo | `velya_degraded_mode_active{service="velya-web"}` | Verde 0, Vermelho 1 |
+| Painel                | Métrica                                                                 | Threshold                                 |
+| --------------------- | ----------------------------------------------------------------------- | ----------------------------------------- |
+| LCP P95 (todas rotas) | `histogram_quantile(0.95, rate(velya_web_lcp_seconds_bucket[5m]))`      | Verde < 2.5s, Amarelo < 4s, Vermelho > 4s |
+| INP P95 (todas rotas) | `histogram_quantile(0.95, rate(velya_web_inp_milliseconds_bucket[5m]))` | Verde < 200ms, Vermelho > 500ms           |
+| Erros JS / hora       | `increase(velya_web_js_error_total[1h])`                                | Verde 0, Amarelo > 5, Vermelho > 20       |
+| Modo degradado ativo  | `velya_degraded_mode_active{service="velya-web"}`                       | Verde 0, Vermelho 1                       |
 
 ### Linha 2: Core Web Vitals por Rota (Time Series)
 
@@ -511,6 +526,7 @@ function sendOTLPMetric(metric: unknown): void {
 ## 7. Plano de Implementação
 
 ### Fase 1 — Semana 1 (mínimo viável)
+
 1. Instalar `web-vitals` library: `npm install web-vitals`
 2. Criar `src/lib/metrics.ts` com funções de envio OTLP
 3. Implementar `initWebVitals()` e chamar em `layout.tsx`
@@ -518,12 +534,14 @@ function sendOTLPMetric(metric: unknown): void {
 5. Adicionar `global-error-handler.ts` ao `layout.tsx`
 
 ### Fase 2 — Semana 2 (instrumentação manual)
+
 1. Implementar fetch interceptor para métricas de API
 2. Adicionar `trackTaskClick` nos componentes de ação clínica
 3. Implementar abandono de fluxo no DischargeWizard e HandoffWizard
 4. Implementar DegradedModeBanner com métrica
 
 ### Fase 3 — Semana 3 (dashboards e alertas)
+
 1. Criar dashboard `velya-frontend-experience-overview` no Grafana
 2. Criar dashboard `velya-frontend-action-failure-board`
 3. Configurar alertas FRONT-001 a FRONT-005

@@ -2,7 +2,7 @@
 
 **Versão:** 1.0  
 **Cluster:** kind-velya-local (simulando AWS EKS)  
-**Última revisão:** 2026-04-08  
+**Última revisão:** 2026-04-08
 
 ---
 
@@ -11,6 +11,7 @@
 Este documento descreve os 20 cenários de falha obrigatórios que a Velya deve ser capaz de detectar, responder e verificar recuperação. Cada cenário inclui: descrição precisa do que falha, o gatilho que o sistema detecta, o impacto esperado no sistema, a resposta automática e/ou manual, e como verificar que o sistema se recuperou corretamente.
 
 Esses cenários são usados em:
+
 - Exercícios de gameday (trimestrais)
 - Testes de chaos engineering (mensais para S3/S4, trimestrais para S1/S2)
 - Validação de novos alertas antes de entrar em produção
@@ -27,16 +28,19 @@ Esses cenários são usados em:
 **Descrição:** O pod de um Worker Agent continua em execução mas para de enviar heartbeats — indica deadlock, loop infinito no código de heartbeat, ou perda de conectividade com NATS.
 
 **Trigger detectado:**
+
 ```promql
 (time() - velya_agent_heartbeat_timestamp{agent_name="task-inbox-worker"}) > 180
 ```
 
 **Impacto esperado:**
+
 - Tasks continuam sendo consumidas da fila (se o pod está vivo) ou param de ser processadas (se travado)
 - Watchdog perde visibilidade do estado do agent
 - Se o heartbeat for o único sinal de saúde, o sistema não sabe se o agent está processando ou travado
 
 **Resposta do sistema:**
+
 1. T+0s: Prometheus detecta ausência de heartbeat por 3 minutos
 2. T+0s: Alerta `AgentHeartbeatMissing` disparado para Slack `#velya-ops-alerts`
 3. T+60s: Watchdog verifica estado do pod via Kubernetes API
@@ -45,6 +49,7 @@ Esses cenários são usados em:
 6. T+5min: Se ainda silencioso após restart: incidente S2 criado, on-call notificado
 
 **Verificação de sucesso:**
+
 ```bash
 # Verificar que heartbeat voltou
 kubectl exec -n velya-dev-agents $(kubectl get pods -n velya-dev-agents -l app=task-inbox-worker -o name | head -1) -- curl -s localhost:9090/metrics | grep velya_agent_heartbeat_timestamp
@@ -61,17 +66,20 @@ curl -s http://localhost:9090/api/v1/alerts | jq '.data.alerts[] | select(.label
 **Descrição:** Mensagens na fila NATS `velya.agents.clinical-ops.task-classification` acumulam rapidamente porque o patient-flow-service degradou e o worker fica em timeout aguardando a tool `get_patient_context`.
 
 **Trigger detectado:**
+
 ```promql
 velya_agent_queue_lag{agent="task-inbox-worker"} > 100 AND
 rate(velya_agent_tasks_processed_total{agent="task-inbox-worker"}[10m]) < 0.1
 ```
 
 **Impacto esperado:**
+
 - Itens do inbox clínico acumulando sem classificação
 - Tempo de resposta para triagem de urgência aumentando
 - SLA de classificação < 3 minutos sendo violado
 
 **Resposta do sistema:**
+
 1. T+0s: Watchdog detecta lag > 50 com throughput zero por 5 minutos
 2. T+5min: Diagnóstico automático identifica timeout de `get_patient_context`
 3. T+5min: Alerta disparado com diagnóstico: "patient-flow-service parece degradado"
@@ -79,6 +87,7 @@ rate(velya_agent_tasks_processed_total{agent="task-inbox-worker"}[10m]) < 0.1
 5. T+30min: Se não resolvido: office entra em modo degraded, apenas tasks `priority: emergency` processadas
 
 **Verificação de sucesso:**
+
 ```bash
 # Verificar que lag está caindo
 nats consumer info VELYA_AGENTS task-inbox-worker-consumer --server nats://localhost:4222 | grep NumPending
@@ -95,16 +104,19 @@ kubectl exec -n velya-dev-core deployment/patient-flow-service -- curl -s localh
 **Descrição:** O CronJob `cost-sweep` está configurado com `concurrencyPolicy: Allow` (incorretamente) e duas instâncias sobrepõem, escrevendo relatórios conflitantes de custo.
 
 **Trigger detectado:**
+
 ```promql
 count(kube_job_status_active{namespace="velya-dev-agents", job_name=~"cost-sweep.*"}) > 1
 ```
 
 **Impacto esperado:**
+
 - Dois relatórios de custo contraditórios gerados para o mesmo período
 - Budget tracking incorreto para o FinOps Office
 - Possível race condition em escrita de ConfigMap de budgets
 
 **Resposta do sistema:**
+
 1. T+0s: Alerta `UnexpectedJobParallelism` disparado
 2. T+2min: Watchdog verifica se o overlap é intencional (consulta ConfigMap de overlap policy)
 3. T+2min: Se não intencional: termina a instância mais antiga (menor startTime)
@@ -112,6 +124,7 @@ count(kube_job_status_active{namespace="velya-dev-agents", job_name=~"cost-sweep
 5. T+10min: Abre issue para corrigir `concurrencyPolicy` para `Forbid`
 
 **Verificação de sucesso:**
+
 ```bash
 # Apenas 1 job ativo
 kubectl get jobs -n velya-dev-agents | grep cost-sweep | grep Running | wc -l
@@ -129,16 +142,19 @@ kubectl get cronjob cost-sweep -n velya-dev-agents -o jsonpath='{.spec.concurren
 **Descrição:** Um bug no `validation-worker` faz com que ele tente processar a mesma mensagem repetidamente sem dar ack, gerando storm de retries no NATS.
 
 **Trigger detectado:**
+
 ```promql
 velya_agent_retry_rate_percent{agent="validation-worker"} > 50
 ```
 
 **Impacto esperado:**
+
 - Budget de retries do Validation Office sendo consumido rapidamente
 - Potencial throttling de outras filas compartilhando o mesmo NATS
 - Logs inundados com stack traces do mesmo erro
 
 **Resposta do sistema:**
+
 1. T+0s: Watchdog detecta retry_rate > 50%
 2. T+10min: Circuit breaker ativado automaticamente: validation-worker pausado
 3. T+10min: Alerta disparado com tipo de erro mais comum
@@ -147,6 +163,7 @@ velya_agent_retry_rate_percent{agent="validation-worker"} > 50
 6. T+30min: On-call investiga e corrige o bug
 
 **Verificação de sucesso:**
+
 ```bash
 # Verificar que retry rate caiu
 curl -s http://localhost:9090/api/v1/query?query=velya_agent_retry_rate_percent{agent="validation-worker"} | jq '.data.result[0].value[1]'
@@ -164,17 +181,20 @@ kubectl get configmap agent-state -n velya-dev-agents -o jsonpath='{.data.valida
 **Descrição:** O `output-validator-agent` fica sobrecarregado porque o modelo LLM usado para validações está com latência muito alta (P99 de 30s vs normal de 5s).
 
 **Trigger detectado:**
+
 ```promql
 nats_consumer_num_pending{consumer="validation-required-consumer"} > 50 AND
 histogram_quantile(0.99, rate(velya_agent_task_duration_seconds_bucket{agent="output-validator-agent"}[10m])) > 20
 ```
 
 **Impacto esperado:**
+
 - Outputs de outros agents aguardando validação por tempo excessivo
 - Tasks clínicas que requerem validação antes de aplicação ficam presas
 - SLA de validação < 30s sendo violado para >30% das tarefas
 
 **Resposta do sistema:**
+
 1. T+0s: Watchdog detecta backlog crescente com latência alta
 2. T+5min: Diagnóstico automático: LLM API com latência anômala
 3. T+10min: Validador configura timeout reduzido para forçar fallback para modelo mais rápido (gpt-4o-mini)
@@ -182,6 +202,7 @@ histogram_quantile(0.99, rate(velya_agent_task_duration_seconds_bucket{agent="ou
 5. T+30min: Se modelo mais rápido tem accuracy < 0.80: validações suspensas, human review ativado para tasks críticas
 
 **Verificação de sucesso:**
+
 ```bash
 # Lag da fila de validação voltando ao normal
 nats consumer info VELYA_AGENTS validation-required-consumer | grep NumPending
@@ -199,16 +220,19 @@ curl -s "http://localhost:9090/api/v1/query?query=histogram_quantile(0.99,rate(v
 **Descrição:** O Loki fica indisponível temporariamente, fazendo o `audit-recorder-agent` falhar em todas as tentativas de gravar trilha de auditoria.
 
 **Trigger detectado:**
+
 ```promql
 rate(velya_agent_tasks_processed_total{agent="audit-recorder-agent", status="failure"}[5m]) > 0.5
 ```
 
 **Impacto esperado:**
+
 - Decisões de agents sendo executadas sem trilha de auditoria
 - Incidente de compliance: dados de auditoria podem ser perdidos permanentemente se o backlog não for recuperado após Loki voltar
 - Violação de requisito regulatório de auditabilidade de decisões clínicas
 
 **Resposta do sistema:**
+
 1. T+0s: audit-recorder-agent detecta falha de conexão com Loki
 2. T+0s: Audit events acumulados em buffer local em memória (capacidade: 1000 eventos)
 3. T+30s: Alerta S1: "Loki indisponível — audit trail em risco" + page on-call imediato
@@ -217,6 +241,7 @@ rate(velya_agent_tasks_processed_total{agent="audit-recorder-agent", status="fai
 6. T+Loki recovery: Replay automático do buffer para Loki (em ordem cronológica)
 
 **Verificação de sucesso:**
+
 ```bash
 # Verificar que Loki está respondendo
 curl -s http://localhost:3100/ready
@@ -237,17 +262,20 @@ kubectl logs -n velya-dev-agents -l app=audit-recorder-agent --since=5m | grep "
 **Descrição:** Um evento externo (grande internação em massa de pacientes por acidente) gera 5x o volume normal de tasks no Clinical Operations Office.
 
 **Trigger detectado:**
+
 ```promql
 rate(velya_office_messages_received_total{office="clinical-operations"}[30m]) >
 rate(velya_office_messages_received_total{office="clinical-operations"}[30m] offset 1d) * 4
 ```
 
 **Impacto esperado:**
+
 - Queue buildup progressivo no clinical-operations
 - SLA de classificação < 3 minutos violado para a maioria das tasks
 - Workers escalando ao máximo mas insuficientes para o volume
 
 **Resposta do sistema:**
+
 1. T+0s: Watchdog detecta spike de volume 4x
 2. T+5min: KEDA tenta escalar workers (até maxReplicaCount)
 3. T+10min: Se maxReplicaCount atingido e lag ainda crescendo: modo degraded ativado para o office
@@ -256,6 +284,7 @@ rate(velya_office_messages_received_total{office="clinical-operations"}[30m] off
 6. T+20min: Se necessário: aumentar temporariamente maxReplicaCount via patch
 
 **Verificação de sucesso:**
+
 ```bash
 # Verificar que queue lag está estabilizando
 velya_agent_queue_lag{agent="task-inbox-worker"} # Deve parar de crescer
@@ -273,16 +302,19 @@ kubectl get configmap velya-operating-mode -n velya-dev-platform -o jsonpath='{.
 **Descrição:** A DLQ `velya.agents.dlq.max-retries-exceeded` acumula mais de 200 mensagens em 1 hora sem nenhuma investigação iniciada.
 
 **Trigger detectado:**
+
 ```promql
 increase(nats_stream_total_messages{stream="VELYA_DLQ", subject=~".*max-retries.*"}[1h]) > 200
 ```
 
 **Impacto esperado:**
+
 - Tarefas clínicas potencialmente perdidas (dependendo do conteúdo da DLQ)
 - SLA de investigação de DLQ violado (2 horas para max-retries)
 - Budget de retries do office esgotado sem resolução
 
 **Resposta do sistema:**
+
 1. T+0s: Alerta `DLQGrowthRateHigh` disparado
 2. T+10min: DLQ analyzer agent classifica tipos de erro nas mensagens da DLQ
 3. T+15min: Se todos erros são do mesmo tipo: identificar causa raiz comum
@@ -291,6 +323,7 @@ increase(nats_stream_total_messages{stream="VELYA_DLQ", subject=~".*max-retries.
 6. T+4h: Se ainda não processada: incidente S2 formal criado
 
 **Verificação de sucesso:**
+
 ```bash
 # DLQ decrescendo ou estável (não crescendo)
 nats consumer info VELYA_DLQ dlq-max-retries-consumer | grep NumPending
@@ -307,16 +340,19 @@ nats consumer info VELYA_DLQ dlq-max-retries-consumer | grep NumPending
 **Descrição:** O custo de inferência LLM aumenta 5x em 2 horas devido a um loop de retry em um agent que chama o LLM em cada tentativa (incluindo retries que não deveriam chamar LLM).
 
 **Trigger detectado:**
+
 ```promql
 rate(velya_agent_llm_cost_usd_total[1h]) >
 rate(velya_agent_llm_cost_usd_total[1h] offset 1d) * 4
 ```
 
 **Impacto esperado:**
+
 - Budget mensal de LLM sendo consumido em 2 dias ao invés de 30
 - Custo anômalo que pode ultrapassar os limites de cartão/conta AWS
 
 **Resposta do sistema:**
+
 1. T+0s: Alerta `LLMCostSpikeDetected` disparado (4x acima de ontem)
 2. T+15min: Circuit breaker de LLM avaliado: se rate > $0.50/min, circuit breaker abre
 3. T+20min: FinOps agent identifica o agent causador via `velya_agent_llm_cost_usd_total by (agent)`
@@ -325,6 +361,7 @@ rate(velya_agent_llm_cost_usd_total[1h] offset 1d) * 4
 6. T+1h: Fix deployado (sem LLM em retries) + circuit breaker fechado
 
 **Verificação de sucesso:**
+
 ```bash
 # Custo de LLM voltando ao normal
 rate(velya_agent_llm_cost_usd_total[30m]) # Deve ser próximo à baseline
@@ -341,17 +378,20 @@ curl -s http://localhost:9090/api/v1/query?query=velya_llm_circuit_breaker_state
 **Descrição:** O `task-inbox-worker` completa a classificação e publica o resultado na fila de handoff para o `discharge-worker`, mas o discharge-worker nunca consome a mensagem porque seu consumer group perdeu a configuração.
 
 **Trigger detectado:**
+
 ```promql
 nats_consumer_num_pending{consumer="discharge-trigger-consumer"} > 0 AND
 increase(nats_consumer_num_ack_pending{consumer="discharge-trigger-consumer"}[30m]) == 0
 ```
 
 **Impacto esperado:**
+
 - Processos de alta hospitalar não iniciando após classificação concluída
 - Pacientes aguardando alta com workflow nunca iniciado
 - SLA de início de discharge workflow (< 5 minutos após ordem médica) violado
 
 **Resposta do sistema:**
+
 1. T+0s: Watchdog detecta mensagens pendentes sem ack por 30 minutos
 2. T+5min: Verifica estado do discharge-worker (pod health, consumer group status)
 3. T+5min: Se consumer group corrompido: recriar consumer via NATS CLI
@@ -359,6 +399,7 @@ increase(nats_consumer_num_ack_pending{consumer="discharge-trigger-consumer"}[30
 5. T+15min: Notificar Clinical Operations Office: processos de alta estão presos
 
 **Verificação de sucesso:**
+
 ```bash
 # Consumer group ativo e processando
 nats consumer info VELYA_AGENTS discharge-trigger-consumer
@@ -375,16 +416,19 @@ temporal workflow list --query 'WorkflowType="DischargeWorkflow" AND StartTime >
 **Descrição:** Múltiplos tasks adquiriram leases mas os workers que as adquiriram falharam antes de dar ack. Os leases expiraram mas ninguém os reliberou, e novas mensagens NATS não estão sendo entregues porque o sistema acha que já estão em processamento.
 
 **Trigger detectado:**
+
 ```promql
 velya_leases_expired_not_released_total > 10
 ```
 
 **Impacto esperado:**
+
 - Mensagens "fantasma" presas em estado de processamento
 - Fila aparenta ter mensagens em processo mas nenhum worker está de fato processando
 - Throughput zero apesar de workers disponíveis
 
 **Resposta do sistema:**
+
 1. T+0s: Lease sweeper (executa a cada 5 minutos) detecta leases expirados há > 2x o TTL
 2. T+5min: Lease sweeper libera automaticamente os leases expirados (deleta do KV VELYA_LEASES)
 3. T+5min: NATS reentrega as mensagens (max_deliver - tentativas já feitas)
@@ -392,6 +436,7 @@ velya_leases_expired_not_released_total > 10
 5. T+30min: Investigar por que os workers falharam sem liberar lease
 
 **Verificação de sucesso:**
+
 ```bash
 # Verificar que não há leases expirados no KV bucket
 nats kv status VELYA_LEASES
@@ -408,15 +453,18 @@ rate(velya_agent_tasks_processed_total{agent="task-inbox-worker"}[5m])
 **Descrição:** O `task-inbox-worker` começa a classificar 40% dos itens urgentes como baixa prioridade (falso negativo crítico em clínica). O Governance Agent detecta e aciona quarantine.
 
 **Trigger detectado:**
+
 - Governance Agent: `clinical_misclassification_rate > 0.20` por 30 minutos
 - Ou: 5 correções manuais de "BAIXA → CRITICA" em 1 hora
 
 **Impacto esperado:**
+
 - Pacientes com condição crítica recebendo atenção atrasada
 - Risco clínico real e imediato
 - Confiabilidade do sistema comprometida
 
 **Resposta do sistema:**
+
 1. T+0s: Governance Agent detecta padrão de misclassification
 2. T+0s: Imediato: task-inbox-worker quarantenado (L2 - hard isolation)
 3. T+0s: Fila de tasks roteada para revisão humana manual
@@ -426,6 +474,7 @@ rate(velya_agent_tasks_processed_total{agent="task-inbox-worker"}[5m])
 7. T+48h: Decisão formal: fix e shadow mode ou aposentadoria
 
 **Verificação de sucesso:**
+
 ```bash
 # Worker em quarantine
 kubectl get configmap agent-state -n velya-dev-agents -o jsonpath='{.data.task-inbox-worker\.state}'
@@ -444,17 +493,20 @@ kubectl get configmap agent-state -n velya-dev-agents -o jsonpath='{.data.task-i
 **Descrição:** Um learning event mal-formado com regra de validator incorreta foi aprovado sem revisão adequada e está sendo propagado para todos os agents. A regra errada rejeita 30% dos outputs válidos.
 
 **Trigger detectado:**
+
 ```promql
 rate(velya_agent_validations_failed_total[30m]) >
 rate(velya_agent_validations_failed_total[30m] offset 1h) * 3
 ```
 
 **Impacto esperado:**
+
 - Backlog de validações aumentando rapidamente
 - Tasks sendo bloqueadas desnecessariamente
 - Operadores clínicos recebendo escalações falsas
 
 **Resposta do sistema:**
+
 1. T+0s: Alerta `AgentValidationPassRateLow` disparado para múltiplos agents simultaneamente
 2. T+5min: Padrão temporal identificado: problema começou após propagação de validator rule
 3. T+5min: Rollback automático do ConfigMap `validator-rules` para versão anterior
@@ -462,6 +514,7 @@ rate(velya_agent_validations_failed_total[30m] offset 1h) * 3
 5. T+15min: Incidente S2 aberto: breach do processo de validação de learning events
 
 **Verificação de sucesso:**
+
 ```bash
 # Validation pass rate voltando ao normal
 rate(velya_agent_validations_passed_total[10m]) /
@@ -480,16 +533,19 @@ kubectl get configmap validator-rules -n velya-dev-agents -o jsonpath='{.metadat
 **Descrição:** O sistema entra em modo degraded automaticamente após falha do Temporal server, que afeta todos os workflows de alta hospitalar.
 
 **Trigger detectado:**
+
 ```promql
 up{job="temporal-server"} == 0
 ```
 
 **Impacto esperado:**
+
 - Todos os workflows de alta paralisados
 - Novos workflows não podem ser iniciados
 - Workflows em andamento ficam em estado pending até Temporal recuperar
 
 **Resposta do sistema:**
+
 1. T+0s: Prometheus detecta Temporal server down
 2. T+30s: Sistema entra em modo degraded automaticamente
 3. T+1min: Alerta S1 disparado + page on-call
@@ -498,6 +554,7 @@ up{job="temporal-server"} == 0
 6. T+15min: Se Temporal não recuperar: investigar pod (StatefulSet), PVC, PostgreSQL
 
 **Verificação de sucesso:**
+
 ```bash
 # Temporal server respondendo
 kubectl exec -n velya-dev-platform deployment/temporal-server -- \
@@ -521,11 +578,13 @@ kubectl get configmap velya-operating-mode -n velya-dev-platform -o jsonpath='{.
 **Trigger:** Planejado. Não é falha — é teste de resiliência do processo.
 
 **Impacto esperado:**
+
 - Mensagens acumulam na fila NATS durante a janela (máximo 30 minutos)
 - Nenhuma mensagem perdida
 - Após resume, workers processam backlog acumulado em ordem
 
 **Resposta do sistema:**
+
 1. T-4h: Notificação de manutenção planejada publicada
 2. T-30min: Sistema entra em modo maintenance
 3. T-30min: Workers pausados via ConfigMap
@@ -537,6 +596,7 @@ kubectl get configmap velya-operating-mode -n velya-dev-platform -o jsonpath='{.
 9. T+30min: Confirmar que backlog foi processado completamente
 
 **Verificação de sucesso:**
+
 ```bash
 # Nenhuma mensagem perdida
 nats stream info VELYA_AGENTS --json | jq '.state.messages'
@@ -559,11 +619,13 @@ rate(velya_agent_tasks_processed_total[5m])
 **Trigger:** Critérios de promoção atingidos: `shadow_days >= 7 AND accuracy >= 0.90 AND incidents == 0`
 
 **Impacto esperado:**
+
 - Transição transparente para usuários clínicos
 - Zero tasks perdidas durante o switch
 - Rollback rápido disponível se v2 degradar
 
 **Resposta do sistema:**
+
 1. T-0: Architecture Review Office aprova promoção
 2. T-0: Deployment v2 escalado para produção (blue-green)
 3. T-0: NATS: consumer do v1 suspenso, consumer do v2 ativado
@@ -572,6 +634,7 @@ rate(velya_agent_tasks_processed_total[5m])
 6. T+1h: Relatório de promoção publicado no Knowledge Office
 
 **Verificação de sucesso:**
+
 ```bash
 # v2 está processando tasks
 rate(velya_agent_tasks_processed_total{agent="task-inbox-classifier-v2"}[5m])
@@ -593,6 +656,7 @@ velya_agent_output_quality_score_rolling_1h{agent="task-inbox-classifier-v2"}
 **Descrição:** O `ops-watchdog` envia heartbeat com `health.status: healthy` mas na realidade não está executando nenhuma verificação de anomalia (bug no loop de checks).
 
 **Trigger detectado:**
+
 ```promql
 # Heartbeat presente mas anomaly checks não ocorrendo
 velya_watchdog_checks_executed_total rate == 0 AND
@@ -600,11 +664,13 @@ velya_agent_heartbeat_timestamp{agent="ops-watchdog"} recent
 ```
 
 **Impacto esperado:**
+
 - O sistema acredita que está sendo supervisionado
 - Anomalias reais não são detectadas
 - Falsa sensação de segurança
 
 **Resposta do sistema:**
+
 1. T+0s: Meta-Watchdog detecta ausência de anomaly checks por > 10 minutos
 2. T+2min: Alerta `FalseHealthyStatus` disparado
 3. T+5min: Meta-Watchdog ativa verificações mínimas de survival
@@ -612,6 +678,7 @@ velya_agent_heartbeat_timestamp{agent="ops-watchdog"} recent
 5. T+15min: Restart do ops-watchdog para forçar reinicialização do loop
 
 **Verificação de sucesso:**
+
 ```bash
 # Watchdog executando checks novamente
 rate(velya_watchdog_checks_executed_total[5m])
@@ -629,16 +696,19 @@ velya_meta_watchdog_agents_assumed
 **Descrição:** Uma refatoração de subjects NATS enviou mensagens para `velya.agents.clinical-ops.NEW-task-classification` ao invés de `velya.agents.clinical-ops.task-classification`. O consumer não existe para o novo subject.
 
 **Trigger detectado:**
+
 ```promql
 nats_stream_total_messages{stream="VELYA_DLQ", subject=~".*no-owner.*"} > 0
 ```
 
 **Impacto esperado:**
+
 - Tasks de classificação clínica sendo perdidas silenciosamente
 - Nenhum worker consumindo as mensagens
 - Inbox clínico não sendo processado
 
 **Resposta do sistema:**
+
 1. T+0s: NATS: mensagens sem consumer após `max_age` entram na DLQ no-owner
 2. T+5min: Alerta `DLQNoOwner` disparado — incidente S2 imediato
 3. T+5min: Platform Health Office investigado
@@ -646,6 +716,7 @@ nats_stream_total_messages{stream="VELYA_DLQ", subject=~".*no-owner.*"} > 0
 5. T+10min: Mensagens na DLQ no-owner reprocessadas para o subject correto
 
 **Verificação de sucesso:**
+
 ```bash
 # DLQ no-owner vazia
 nats consumer info VELYA_DLQ dlq-no-owner-consumer | grep NumPending
@@ -663,17 +734,20 @@ nats consumer info VELYA_AGENTS task-classification-consumer | grep NumPending
 **Descrição:** O cluster perde 1 dos 3 nós (falha de hardware simulada) e os pods são redistribuídos nos 2 nós restantes. Alguns pods ficam em Pending por falta de recursos.
 
 **Trigger detectado:**
+
 ```promql
 kube_node_status_condition{condition="Ready", status="true"} == 2  # Apenas 2 de 3 nós
 ```
 
 **Impacto esperado:**
+
 - Capacidade de compute reduzida em ~33%
 - Alguns pods de workers em Pending (sem recursos disponíveis)
 - Serviços críticos (realtime-app nodepool) mantidos com PDB
 - Serviços não-críticos (batch, analytics) evictados
 
 **Resposta do sistema:**
+
 1. T+0s: Kubernetes detecta node NotReady
 2. T+30s: Pods do node perdido marcados para eviction
 3. T+1min: Scheduler tenta realocar em outros nodes (limitado por recursos)
@@ -684,6 +758,7 @@ kube_node_status_condition{condition="Ready", status="true"} == 2  # Apenas 2 de
 8. T+30min: On-call avalia: substituir node (kind: novo container; EKS: Karpenter provisiona novo)
 
 **Verificação de sucesso:**
+
 ```bash
 # Serviços críticos ainda respondendo
 kubectl get pods -n velya-dev-core # Todos Running
@@ -704,17 +779,20 @@ kubectl get pods -n velya-dev-agents # Gradualmente passando de Pending para Run
 **Descrição:** Todos os pods do `temporal-worker-clinical` crasham simultaneamente após um OOM killer por memory leak, paralisando todos os workflows clínicos em andamento.
 
 **Trigger detectado:**
+
 ```promql
 kube_deployment_status_replicas_available{deployment="temporal-worker-clinical"} == 0
 ```
 
 **Impacto esperado:**
+
 - Todos os workflows de alta em andamento ficam em estado "suspended" no Temporal
 - Nenhum novo workflow pode ser iniciado
 - Activities já completadas são preservadas pelo Temporal (event sourcing)
 - Impacto clínico direto: altas hospitalares paralisadas
 
 **Resposta do sistema:**
+
 1. T+0s: Kubernetes detecta todos os pods em CrashLoopBackOff
 2. T+30s: Alerta `TemporalWorkerDown` disparado — severity CRITICAL + page imediato
 3. T+1min: Sistema clínico entra em modo manual: enfermagem notificada de processo manual de alta
@@ -725,6 +803,7 @@ kube_deployment_status_replicas_available{deployment="temporal-worker-clinical"}
 8. T+1h: Todos os workflows retomados, sistema em modo active
 
 **Verificação de sucesso:**
+
 ```bash
 # Temporal workers rodando
 kubectl get pods -n velya-dev-platform -l app=temporal-worker-clinical

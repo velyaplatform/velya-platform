@@ -20,15 +20,15 @@ Audit is the instrument of institutional integrity. Without it, governance is as
 
 ## 2. Audit vs. Validation: Distinction
 
-| Dimension | Validation | Audit |
-|---|---|---|
-| Question asked | "Is this work correct?" | "Was the process correctly followed?" |
-| Who is examined | The work product | The validation chain and evidence |
-| When it runs | Before work takes effect | After validation, before or after deployment |
-| Who performs it | Validator Agent | Auditor Agent |
-| Independence required from | Producing agent | Both producing agent and validator |
-| Output | Certification or rejection | Audit Report with findings |
-| Action on failure | Correction loop | Finding registry + escalation |
+| Dimension                  | Validation                 | Audit                                        |
+| -------------------------- | -------------------------- | -------------------------------------------- |
+| Question asked             | "Is this work correct?"    | "Was the process correctly followed?"        |
+| Who is examined            | The work product           | The validation chain and evidence            |
+| When it runs               | Before work takes effect   | After validation, before or after deployment |
+| Who performs it            | Validator Agent            | Auditor Agent                                |
+| Independence required from | Producing agent            | Both producing agent and validator           |
+| Output                     | Certification or rejection | Audit Report with findings                   |
+| Action on failure          | Correction loop            | Finding registry + escalation                |
 
 ---
 
@@ -36,13 +36,13 @@ Audit is the instrument of institutional integrity. Without it, governance is as
 
 ### 3.1 Risk-Class Triggers
 
-| Risk Class | Audit Required | Auditor Independence | Scheduling |
-|---|---|---|---|
-| Low | No | — | — |
-| Medium | Spot check (20% of tasks) | Different team within office | Post-completion |
-| High | Yes — every task | Different office | Post-validation, pre-deployment |
-| Critical | Yes — every task | Completely different office | Post-validation, pre-deployment |
-| Catastrophic | Yes — dual audit | Two separate offices | Pre-deployment + post-deployment |
+| Risk Class   | Audit Required            | Auditor Independence         | Scheduling                       |
+| ------------ | ------------------------- | ---------------------------- | -------------------------------- |
+| Low          | No                        | —                            | —                                |
+| Medium       | Spot check (20% of tasks) | Different team within office | Post-completion                  |
+| High         | Yes — every task          | Different office             | Post-validation, pre-deployment  |
+| Critical     | Yes — every task          | Completely different office  | Post-validation, pre-deployment  |
+| Catastrophic | Yes — dual audit          | Two separate offices         | Pre-deployment + post-deployment |
 
 ### 3.2 Event-Based Audit Triggers (Regardless of Risk Class)
 
@@ -59,12 +59,12 @@ Audit is the instrument of institutional integrity. Without it, governance is as
 
 ### 3.3 Scheduled Audits
 
-| Schedule | Scope | Owner |
-|---|---|---|
-| Weekly | Active High-risk agents (sample 25%) | Compliance & Audit Office |
-| Monthly | All offices — process adherence | Compliance & Audit Office |
+| Schedule  | Scope                                      | Owner                                |
+| --------- | ------------------------------------------ | ------------------------------------ |
+| Weekly    | Active High-risk agents (sample 25%)       | Compliance & Audit Office            |
+| Monthly   | All offices — process adherence            | Compliance & Audit Office            |
 | Quarterly | Full enterprise — HIPAA and SOC2 readiness | Compliance & Audit Office + External |
-| Annual | Comprehensive institutional audit | External Auditor (human) |
+| Annual    | Comprehensive institutional audit          | External Auditor (human)             |
 
 ---
 
@@ -162,25 +162,25 @@ The following must be logged for every significant action in the Velya enterpris
 
 ```yaml
 audit_log_entry:
-  entry_id: string              # UUID
-  timestamp: datetime           # nanosecond precision, UTC
-  agent_id: string              # canonical agent name
+  entry_id: string # UUID
+  timestamp: datetime # nanosecond precision, UTC
+  agent_id: string # canonical agent name
   office: string
-  action_type: string           # create, read, update, delete, execute, validate, audit, escalate, handoff
+  action_type: string # create, read, update, delete, execute, validate, audit, escalate, handoff
   action_description: string
-  target_resource: string       # what was acted upon
+  target_resource: string # what was acted upon
   target_resource_id: string
   task_id: string
   workflow_id: string
   correlation_id: string
-  outcome: string               # success, failure, partial
+  outcome: string # success, failure, partial
   risk_class: string
-  authorization_ref: string     # what authorized this action
+  authorization_ref: string # what authorized this action
   evidence_refs: list<string>
   contains_phi: bool
-  phi_access_justification: string  # if contains_phi = true
-  immutable: bool               # true = cannot be modified or deleted
-  hash_sha256: string           # hash of entry contents for integrity verification
+  phi_access_justification: string # if contains_phi = true
+  immutable: bool # true = cannot be modified or deleted
+  hash_sha256: string # hash of entry contents for integrity verification
 ```
 
 ### 6.2 Immutability Requirements
@@ -191,14 +191,14 @@ Audit logs are stored in a separate, append-only store with independent access c
 
 ### 6.3 Audit Log Retention
 
-| Content Type | Minimum Retention |
-|---|---|
-| Standard operational logs | 365 days |
-| High-risk action logs | 7 years |
-| PHI access logs | 7 years (HIPAA requirement) |
-| Security incident logs | 7 years |
-| Regulatory compliance logs | 7 years |
-| Clinical workflow logs | 7 years |
+| Content Type               | Minimum Retention           |
+| -------------------------- | --------------------------- |
+| Standard operational logs  | 365 days                    |
+| High-risk action logs      | 7 years                     |
+| PHI access logs            | 7 years (HIPAA requirement) |
+| Security incident logs     | 7 years                     |
+| Regulatory compliance logs | 7 years                     |
+| Clinical workflow logs     | 7 years                     |
 
 ---
 
@@ -212,7 +212,7 @@ audit_evidence_package:
   audit_id: string
   subject_task_id: string
   subject_agent: string
-  prepared_by: string           # auditor agent
+  prepared_by: string # auditor agent
   prepared_at: datetime
   contents:
     - item_id: string
@@ -236,7 +236,7 @@ hipaa_evidence_package:
   extends: audit_evidence_package
   phi_access_log_ref: string
   minimum_necessary_justification: string
-  phi_de_identification_evidence: string  # if PHI was de-identified in outputs
+  phi_de_identification_evidence: string # if PHI was de-identified in outputs
   baa_coverage_confirmed: bool
   encryption_at_rest_verified: bool
   encryption_in_transit_verified: bool
@@ -250,23 +250,23 @@ hipaa_evidence_package:
 
 ### 8.1 Finding Severity Classification
 
-| Severity | Definition | Consequence |
-|---|---|---|
-| Informational | Process improvement opportunity, no policy violation | Logged, reviewed in monthly PAR |
-| Low | Minor deviation, compensating controls present | Action item, 30-day remediation |
-| Medium | Policy deviation, no immediate risk | Action item, 14-day remediation, PAR filed |
-| High | Significant policy violation or evidence gap | Immediate escalation, 7-day remediation, manager review |
-| Critical | Serious compliance failure, regulatory exposure, or evidence integrity issue | Immediate executive notification, 48-hour remediation, potential quarantine |
+| Severity      | Definition                                                                   | Consequence                                                                 |
+| ------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Informational | Process improvement opportunity, no policy violation                         | Logged, reviewed in monthly PAR                                             |
+| Low           | Minor deviation, compensating controls present                               | Action item, 30-day remediation                                             |
+| Medium        | Policy deviation, no immediate risk                                          | Action item, 14-day remediation, PAR filed                                  |
+| High          | Significant policy violation or evidence gap                                 | Immediate escalation, 7-day remediation, manager review                     |
+| Critical      | Serious compliance failure, regulatory exposure, or evidence integrity issue | Immediate executive notification, 48-hour remediation, potential quarantine |
 
 ### 8.2 Consequence Matrix
 
-| Finding Severity | Agent Consequence | Manager Consequence | Office Consequence |
-|---|---|---|---|
-| Informational | Scorecard note | None | None |
-| Low | Scorecard deduction | Awareness notification | Aggregate tracking |
-| Medium | Scorecard deduction + correction plan required | Correction plan review | Office scorecard impact |
-| High | Probation consideration + mandatory PAR | Manager performance note | Executive notification |
-| Critical | Quarantine investigation triggered | Manager review required | Office intervention possible |
+| Finding Severity | Agent Consequence                              | Manager Consequence      | Office Consequence           |
+| ---------------- | ---------------------------------------------- | ------------------------ | ---------------------------- |
+| Informational    | Scorecard note                                 | None                     | None                         |
+| Low              | Scorecard deduction                            | Awareness notification   | Aggregate tracking           |
+| Medium           | Scorecard deduction + correction plan required | Correction plan review   | Office scorecard impact      |
+| High             | Probation consideration + mandatory PAR        | Manager performance note | Executive notification       |
+| Critical         | Quarantine investigation triggered             | Manager review required  | Office intervention possible |
 
 ---
 
@@ -289,14 +289,14 @@ The Compliance & Audit Office maintains continuous HIPAA audit readiness. The fo
 
 The following SOC2 Trust Service Criteria evidence is maintained continuously:
 
-| Criterion | Evidence Required | Responsible Office |
-|---|---|---|
-| CC6.1 Logical access controls | RBAC audit, permission review | Security Office |
-| CC6.2 Least privilege | Permission scope review for all agents | Security + Agent Factory |
-| CC6.3 External access | Network policy review, API gateway audit | Platform + Security |
-| CC7.2 Monitoring | Watchdog coverage report, alert log | Agent Runtime Supervision |
-| CC8.1 Change management | Change log, validation records | Service Management |
-| A1.1 Availability | SLO performance history | Reliability Office |
+| Criterion                     | Evidence Required                        | Responsible Office        |
+| ----------------------------- | ---------------------------------------- | ------------------------- |
+| CC6.1 Logical access controls | RBAC audit, permission review            | Security Office           |
+| CC6.2 Least privilege         | Permission scope review for all agents   | Security + Agent Factory  |
+| CC6.3 External access         | Network policy review, API gateway audit | Platform + Security       |
+| CC7.2 Monitoring              | Watchdog coverage report, alert log      | Agent Runtime Supervision |
+| CC8.1 Change management       | Change log, validation records           | Service Management        |
+| A1.1 Availability             | SLO performance history                  | Reliability Office        |
 
 ---
 
@@ -315,17 +315,18 @@ Every audit finding is registered in the Compliance Finding Registry within 4 ho
 
 ### 10.2 Finding Tracking Cadence
 
-| Severity | Review Cadence | Escalation on Miss |
-|---|---|---|
-| Informational | Monthly | None — aggregate report |
-| Low | Monthly | 30-day overdue → manager alert |
-| Medium | Weekly | 14-day overdue → manager escalation |
-| High | Daily | 7-day overdue → executive escalation |
-| Critical | Continuous | 48-hour overdue → immediate human escalation |
+| Severity      | Review Cadence | Escalation on Miss                           |
+| ------------- | -------------- | -------------------------------------------- |
+| Informational | Monthly        | None — aggregate report                      |
+| Low           | Monthly        | 30-day overdue → manager alert               |
+| Medium        | Weekly         | 14-day overdue → manager escalation          |
+| High          | Daily          | 7-day overdue → executive escalation         |
+| Critical      | Continuous     | 48-hour overdue → immediate human escalation |
 
 ### 10.3 Finding Closure Requirements
 
 A finding is closed only when:
+
 1. Remediation is complete
 2. Evidence of remediation is filed in the Evidence Store
 3. An auditor from a different office than the one that found the issue has independently verified the remediation
@@ -335,12 +336,12 @@ A finding is closed only when:
 
 ## 11. Auditor Scorecard Metrics
 
-| Metric | Definition | Target | Warning | Critical |
-|---|---|---|---|---|
-| Finding accuracy | % of findings confirmed valid on management review | >97% | 90-97% | <90% |
-| False positive rate | % of findings later overturned | <3% | 3-10% | >10% |
-| Evidence completeness | % of audits with fully complete evidence packages | 100% | 97-100% | <97% |
-| SLA adherence | % of audit reports delivered within SLA | >98% | 90-98% | <90% |
-| Independence compliance | % of audits where independence was properly confirmed | 100% | 100% = floor | N/A |
-| Finding registration timeliness | % of findings registered in finding registry within 4 hours | >99% | 95-99% | <95% |
-| Closure verification quality | % of closure verifications that detected inadequate remediation | Tracked, no threshold (used to assess auditor rigor) | — | — |
+| Metric                          | Definition                                                      | Target                                               | Warning      | Critical |
+| ------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------- | ------------ | -------- |
+| Finding accuracy                | % of findings confirmed valid on management review              | >97%                                                 | 90-97%       | <90%     |
+| False positive rate             | % of findings later overturned                                  | <3%                                                  | 3-10%        | >10%     |
+| Evidence completeness           | % of audits with fully complete evidence packages               | 100%                                                 | 97-100%      | <97%     |
+| SLA adherence                   | % of audit reports delivered within SLA                         | >98%                                                 | 90-98%       | <90%     |
+| Independence compliance         | % of audits where independence was properly confirmed           | 100%                                                 | 100% = floor | N/A      |
+| Finding registration timeliness | % of findings registered in finding registry within 4 hours     | >99%                                                 | 95-99%       | <95%     |
+| Closure verification quality    | % of closure verifications that detected inadequate remediation | Tracked, no threshold (used to assess auditor rigor) | —            | —        |

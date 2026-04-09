@@ -47,15 +47,15 @@ Execução: Pods sempre ativos com loops internos
 
 ### O que é verificado a cada 30s
 
-| Check | Instrumento | Ação se falhar |
-|---|---|---|
-| API Gateway health | Blackbox Exporter probe | Alerta + escalada |
-| NATS JetStream health | NATS monitoring endpoint | Alerta + escalada |
-| Temporal server health | Temporal health gRPC | Alerta + escalada |
-| Prometheus scrape health | Prometheus targets | Alerta |
-| Node memory pressure | cAdvisor | Alerta se > 85% |
-| Pod OOMKilled rate | Kubernetes events | Alerta se > 0 |
-| DLQ message count | NATS monitoring | Alerta se crescendo |
+| Check                    | Instrumento              | Ação se falhar      |
+| ------------------------ | ------------------------ | ------------------- |
+| API Gateway health       | Blackbox Exporter probe  | Alerta + escalada   |
+| NATS JetStream health    | NATS monitoring endpoint | Alerta + escalada   |
+| Temporal server health   | Temporal health gRPC     | Alerta + escalada   |
+| Prometheus scrape health | Prometheus targets       | Alerta              |
+| Node memory pressure     | cAdvisor                 | Alerta se > 85%     |
+| Pod OOMKilled rate       | Kubernetes events        | Alerta se > 0       |
+| DLQ message count        | NATS monitoring          | Alerta se crescendo |
 
 ### Deployment: health-sentinel
 
@@ -85,41 +85,41 @@ spec:
       terminationGracePeriodSeconds: 60
       serviceAccountName: health-sentinel-sa
       containers:
-      - name: sentinel
-        image: velya/health-sentinel:1.0.0
-        env:
-        - name: CHECK_INTERVAL_SECONDS
-          value: "30"
-        - name: PROMETHEUS_URL
-          value: http://prometheus-operated.velya-dev-observability.svc:9090
-        - name: ALERTMANAGER_URL
-          value: http://alertmanager-operated.velya-dev-observability.svc:9093
-        - name: NATS_MONITORING_URL
-          value: http://nats-monitoring.velya-dev-platform.svc:8222
-        - name: TEMPORAL_HOST
-          value: temporal-frontend.velya-dev-platform.svc:7233
-        resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8080
-          periodSeconds: 15
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 8080
-          periodSeconds: 5
-        lifecycle:
-          preStop:
-            exec:
-              command: ["/bin/sh", "-c", "sleep 30"]
+        - name: sentinel
+          image: velya/health-sentinel:1.0.0
+          env:
+            - name: CHECK_INTERVAL_SECONDS
+              value: '30'
+            - name: PROMETHEUS_URL
+              value: http://prometheus-operated.velya-dev-observability.svc:9090
+            - name: ALERTMANAGER_URL
+              value: http://alertmanager-operated.velya-dev-observability.svc:9093
+            - name: NATS_MONITORING_URL
+              value: http://nats-monitoring.velya-dev-platform.svc:8222
+            - name: TEMPORAL_HOST
+              value: temporal-frontend.velya-dev-platform.svc:7233
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 15
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            periodSeconds: 5
+          lifecycle:
+            preStop:
+              exec:
+                command: ['/bin/sh', '-c', 'sleep 30']
 ```
 
 ---
@@ -150,13 +150,13 @@ metadata:
     velya.io/loop: short
     velya.io/interval: 5min
 spec:
-  schedule: "*/5 * * * *"
-  concurrencyPolicy: Replace    # Substituir se ainda rodando
+  schedule: '*/5 * * * *'
+  concurrencyPolicy: Replace # Substituir se ainda rodando
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 2
   jobTemplate:
     spec:
-      backoffLimit: 0           # Não retry — próxima execução em 5min
+      backoffLimit: 0 # Não retry — próxima execução em 5min
       activeDeadlineSeconds: 240
       template:
         spec:
@@ -164,22 +164,22 @@ spec:
           restartPolicy: Never
           serviceAccountName: queue-ops-sa
           containers:
-          - name: repriorizer
-            image: velya/queue-repriorizer:1.0.0
-            env:
-            - name: NATS_URL
-              value: nats://nats.velya-dev-platform.svc:4222
-            - name: PROMETHEUS_URL
-              value: http://prometheus-operated.velya-dev-observability.svc:9090
-            - name: REWEIGHT_THRESHOLD
-              value: "500"     # Repriorizar se fila > 500 mensagens
-            resources:
-              requests:
-                cpu: 50m
-                memory: 64Mi
-              limits:
-                cpu: 200m
-                memory: 128Mi
+            - name: repriorizer
+              image: velya/queue-repriorizer:1.0.0
+              env:
+                - name: NATS_URL
+                  value: nats://nats.velya-dev-platform.svc:4222
+                - name: PROMETHEUS_URL
+                  value: http://prometheus-operated.velya-dev-observability.svc:9090
+                - name: REWEIGHT_THRESHOLD
+                  value: '500' # Repriorizar se fila > 500 mensagens
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 128Mi
 ```
 
 ### Temporal Schedule: Discharge Queue Poller
@@ -198,13 +198,13 @@ temporal schedule create \
 
 ### O que é verificado/executado a cada 5min
 
-| Ação | Responsável | Trigger |
-|---|---|---|
-| Verificar backlog de discharge queue | discharge-queue-poller | Schedule |
-| Repriorizar tarefas por urgência | queue-repriorizer | CronJob |
-| Detectar SLA breach iminente | sla-breach-sentinel | Continuous loop |
-| Verificar capacidade de workers | Prometheus query | KEDA |
-| Checar budget LLM (5min rolling) | budget-sentinel | Continuous loop |
+| Ação                                 | Responsável            | Trigger         |
+| ------------------------------------ | ---------------------- | --------------- |
+| Verificar backlog de discharge queue | discharge-queue-poller | Schedule        |
+| Repriorizar tarefas por urgência     | queue-repriorizer      | CronJob         |
+| Detectar SLA breach iminente         | sla-breach-sentinel    | Continuous loop |
+| Verificar capacidade de workers      | Prometheus query       | KEDA            |
+| Checar budget LLM (5min rolling)     | budget-sentinel        | Continuous loop |
 
 ---
 
@@ -226,10 +226,10 @@ metadata:
     velya.io/loop: hourly
     velya.io/interval: 60min
 spec:
-  schedule: "5 * * * *"          # 5 min após cada hora
-  timeZone: "America/Sao_Paulo"
+  schedule: '5 * * * *' # 5 min após cada hora
+  timeZone: 'America/Sao_Paulo'
   concurrencyPolicy: Replace
-  successfulJobsHistoryLimit: 24  # Manter 24h de histórico
+  successfulJobsHistoryLimit: 24 # Manter 24h de histórico
   failedJobsHistoryLimit: 5
   jobTemplate:
     spec:
@@ -241,26 +241,26 @@ spec:
           restartPolicy: OnFailure
           serviceAccountName: health-summary-sa
           containers:
-          - name: health-summary
-            image: velya/health-summary:1.0.0
-            env:
-            - name: PROMETHEUS_URL
-              value: http://prometheus-operated.velya-dev-observability.svc:9090
-            - name: OUTPUT_BUCKET
-              value: velya-ops-summaries
-            - name: OUTPUT_PATH
-              value: hourly/$(date +%Y/%m/%d/%H)/summary.json
-            - name: SLACK_CHANNEL
-              value: "#velya-platform-health"
-            - name: SLACK_ON_ANOMALY_ONLY
-              value: "true"    # Só notificar se houver anomalia
-            resources:
-              requests:
-                cpu: 100m
-                memory: 128Mi
-              limits:
-                cpu: 500m
-                memory: 256Mi
+            - name: health-summary
+              image: velya/health-summary:1.0.0
+              env:
+                - name: PROMETHEUS_URL
+                  value: http://prometheus-operated.velya-dev-observability.svc:9090
+                - name: OUTPUT_BUCKET
+                  value: velya-ops-summaries
+                - name: OUTPUT_PATH
+                  value: hourly/$(date +%Y/%m/%d/%H)/summary.json
+                - name: SLACK_CHANNEL
+                  value: '#velya-platform-health'
+                - name: SLACK_ON_ANOMALY_ONLY
+                  value: 'true' # Só notificar se houver anomalia
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
 ```
 
 ### CronJob: Quota Check
@@ -274,7 +274,7 @@ metadata:
   labels:
     velya.io/loop: hourly
 spec:
-  schedule: "10 * * * *"
+  schedule: '10 * * * *'
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -286,20 +286,20 @@ spec:
           restartPolicy: OnFailure
           serviceAccountName: quota-check-sa
           containers:
-          - name: quota-check
-            image: velya/quota-check:1.0.0
-            env:
-            - name: ALERT_THRESHOLD_PERCENT
-              value: "80"     # Alertar se namespace > 80% da quota
-            - name: NAMESPACES
-              value: "velya-dev-core,velya-dev-agents,velya-dev-platform,velya-dev-web"
-            resources:
-              requests:
-                cpu: 50m
-                memory: 64Mi
-              limits:
-                cpu: 100m
-                memory: 128Mi
+            - name: quota-check
+              image: velya/quota-check:1.0.0
+              env:
+                - name: ALERT_THRESHOLD_PERCENT
+                  value: '80' # Alertar se namespace > 80% da quota
+                - name: NAMESPACES
+                  value: 'velya-dev-core,velya-dev-agents,velya-dev-platform,velya-dev-web'
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
 ```
 
 ### Conteúdo do Health Summary Horário
@@ -311,7 +311,7 @@ spec:
   "environment": "dev",
   "cluster": "kind-velya-local",
   "status": "healthy | degraded | critical",
-  
+
   "services": {
     "api_gateway": {
       "status": "healthy",
@@ -323,32 +323,32 @@ spec:
     "patient_flow_service": {...},
     "discharge_orchestrator": {...}
   },
-  
+
   "queues": {
     "clinical_events": {"depth": 0, "dlq_count": 0},
     "discharge_queue": {"depth": 3, "dlq_count": 0},
     "notifications": {"depth": 0, "dlq_count": 0}
   },
-  
+
   "resources": {
     "namespaces": {
       "velya-dev-core": {"cpu_used_pct": 42, "memory_used_pct": 61},
       "velya-dev-agents": {"cpu_used_pct": 23, "memory_used_pct": 38}
     }
   },
-  
+
   "workflows": {
     "temporal_pending": 5,
     "temporal_running": 2,
     "temporal_failed_1h": 0
   },
-  
+
   "ai_budget": {
     "tokens_used_today": 125000,
     "tokens_budget_daily": 1000000,
     "remaining_pct": 87.5
   },
-  
+
   "anomalies": [],
   "recommendations": []
 }
@@ -364,14 +364,14 @@ Cost sweep, executive digest, backup de dados, relatório de SLO, análise de cu
 
 ### Horários do Loop Diário
 
-| Job | Horário | Prioridade |
-|---|---|---|
-| Database backup | 02:00 | Alta |
-| Cost sweep | 02:30 | Média |
-| SLO daily report | 06:00 | Alta |
-| Executive digest | 06:30 | Média |
-| Analytics pipeline | 04:00 | Baixa |
-| Agent scorecard | 07:00 | Média |
+| Job                | Horário | Prioridade |
+| ------------------ | ------- | ---------- |
+| Database backup    | 02:00   | Alta       |
+| Cost sweep         | 02:30   | Média      |
+| SLO daily report   | 06:00   | Alta       |
+| Executive digest   | 06:30   | Média      |
+| Analytics pipeline | 04:00   | Baixa      |
+| Agent scorecard    | 07:00   | Média      |
 
 ### CronJob: Executive Digest
 
@@ -383,12 +383,12 @@ metadata:
   namespace: velya-dev-platform
   labels:
     velya.io/loop: daily
-    velya.io/has-llm: "true"
+    velya.io/has-llm: 'true'
 spec:
-  schedule: "30 6 * * *"
-  timeZone: "America/Sao_Paulo"
+  schedule: '30 6 * * *'
+  timeZone: 'America/Sao_Paulo'
   concurrencyPolicy: Forbid
-  startingDeadlineSeconds: 7200   # Executar até 2h depois do schedule
+  startingDeadlineSeconds: 7200 # Executar até 2h depois do schedule
   successfulJobsHistoryLimit: 7
   failedJobsHistoryLimit: 3
   jobTemplate:
@@ -401,28 +401,28 @@ spec:
           restartPolicy: OnFailure
           serviceAccountName: digest-sa
           containers:
-          - name: digest-generator
-            image: velya/executive-digest:1.0.0
-            env:
-            - name: PROMETHEUS_URL
-              value: http://prometheus-operated.velya-dev-observability.svc:9090
-            - name: AI_GATEWAY_URL
-              value: http://ai-gateway.velya-dev-agents.svc:8080
-            - name: LLM_MODEL
-              value: claude-haiku-3    # Modelo mais barato para digest
-            - name: TOKEN_BUDGET
-              value: "10000"           # Budget baixo — digest é conciso
-            - name: OUTPUT_CHANNEL
-              value: "#velya-executive"
-            - name: LOOKBACK_HOURS
-              value: "24"
-            resources:
-              requests:
-                cpu: 200m
-                memory: 256Mi
-              limits:
-                cpu: 500m
-                memory: 512Mi
+            - name: digest-generator
+              image: velya/executive-digest:1.0.0
+              env:
+                - name: PROMETHEUS_URL
+                  value: http://prometheus-operated.velya-dev-observability.svc:9090
+                - name: AI_GATEWAY_URL
+                  value: http://ai-gateway.velya-dev-agents.svc:8080
+                - name: LLM_MODEL
+                  value: claude-haiku-3 # Modelo mais barato para digest
+                - name: TOKEN_BUDGET
+                  value: '10000' # Budget baixo — digest é conciso
+                - name: OUTPUT_CHANNEL
+                  value: '#velya-executive'
+                - name: LOOKBACK_HOURS
+                  value: '24'
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
 ```
 
 ### CronJob: SLO Daily Report
@@ -436,8 +436,8 @@ metadata:
   labels:
     velya.io/loop: daily
 spec:
-  schedule: "0 6 * * *"
-  timeZone: "America/Sao_Paulo"
+  schedule: '0 6 * * *'
+  timeZone: 'America/Sao_Paulo'
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -448,28 +448,28 @@ spec:
           priorityClassName: velya-batch
           restartPolicy: OnFailure
           containers:
-          - name: slo-report
-            image: velya/slo-reporter:1.0.0
-            env:
-            - name: PROMETHEUS_URL
-              value: http://prometheus-operated.velya-dev-observability.svc:9090
-            - name: REPORT_BUCKET
-              value: velya-ops-reports
-            - name: SERVICES
-              value: "api-gateway,patient-flow-service,task-inbox-service,velya-web"
-            - name: SLO_CONFIG_PATH
-              value: /etc/slo/slo-config.yaml
-            volumeMounts:
-            - name: slo-config
-              mountPath: /etc/slo
-            resources:
-              requests:
-                cpu: 100m
-                memory: 128Mi
+            - name: slo-report
+              image: velya/slo-reporter:1.0.0
+              env:
+                - name: PROMETHEUS_URL
+                  value: http://prometheus-operated.velya-dev-observability.svc:9090
+                - name: REPORT_BUCKET
+                  value: velya-ops-reports
+                - name: SERVICES
+                  value: 'api-gateway,patient-flow-service,task-inbox-service,velya-web'
+                - name: SLO_CONFIG_PATH
+                  value: /etc/slo/slo-config.yaml
+              volumeMounts:
+                - name: slo-config
+                  mountPath: /etc/slo
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
           volumes:
-          - name: slo-config
-            configMap:
-              name: slo-config
+            - name: slo-config
+              configMap:
+                name: slo-config
 ```
 
 ### ConfigMap: SLO Config
@@ -505,7 +505,7 @@ data:
               service="api-gateway"
             }[24h])
           )
-    
+
     - service: patient-flow-service
       slos:
       - name: availability
@@ -562,41 +562,41 @@ class ArchitectureReviewWorkflow:
             collect_weekly_metrics,
             schedule_to_close_timeout=timedelta(minutes=30)
         )
-        
+
         # 2. Análise de performance drift
         drift_analysis = await workflow.execute_activity(
             analyze_performance_drift,
             args=[metrics],
             schedule_to_close_timeout=timedelta(minutes=15)
         )
-        
+
         # 3. Análise de custo
         cost_analysis = await workflow.execute_activity(
             analyze_weekly_cost,
             args=[metrics],
             schedule_to_close_timeout=timedelta(minutes=15)
         )
-        
+
         # 4. Agent scorecard (paralelo com custo)
         agent_scorecard = await workflow.execute_activity(
             compute_agent_scorecards,
             schedule_to_close_timeout=timedelta(minutes=30)
         )
-        
+
         # 5. Síntese com LLM (apenas para insights — texto final)
         synthesis = await workflow.execute_activity(
             synthesize_architecture_review,
             args=[metrics, drift_analysis, cost_analysis, agent_scorecard],
             schedule_to_close_timeout=timedelta(minutes=30)
         )
-        
+
         # 6. Publicar relatório
         await workflow.execute_activity(
             publish_architecture_review,
             args=[synthesis],
             schedule_to_close_timeout=timedelta(minutes=10)
         )
-        
+
         return synthesis
 ```
 
@@ -616,16 +616,16 @@ metadata:
   name: velya-operation-mode
   namespace: velya-dev-platform
 data:
-  mode: "active"
-  since: "2026-04-08T00:00:00Z"
-  reason: ""
-  scheduled_maintenance: ""
-  
+  mode: 'active'
+  since: '2026-04-08T00:00:00Z'
+  reason: ''
+  scheduled_maintenance: ''
+
   # Configurações por modo
-  autoscaling_enabled: "true"
-  alert_routing: "normal"       # normal | critical-only | silent
-  llm_budget_multiplier: "1.0" # 1.0 normal, 0.5 degraded
-  queue_throughput_cap: "none"  # none | throttled | paused
+  autoscaling_enabled: 'true'
+  alert_routing: 'normal' # normal | critical-only | silent
+  llm_budget_multiplier: '1.0' # 1.0 normal, 0.5 degraded
+  queue_throughput_cap: 'none' # none | throttled | paused
 ```
 
 ### Paused
@@ -697,45 +697,44 @@ metadata:
   namespace: velya-dev-observability
 spec:
   groups:
-  - name: operational-loops
-    rules:
-    
-    - alert: CronJobFailed
-      expr: kube_job_status_failed > 0
-      for: 5m
-      labels:
-        severity: warning
-      annotations:
-        summary: "CronJob falhou: {{ $labels.job_name }}"
-    
-    - alert: CronJobMissedSchedule
-      expr: |
-        time() - kube_cronjob_status_last_schedule_time{
-          namespace=~"velya-.*"
-        } > 7200   # Mais de 2h desde última execução (threshold = 2x intervalo máximo)
-      for: 5m
-      labels:
-        severity: warning
-      annotations:
-        summary: "CronJob {{ $labels.cronjob }} não executou em 2h"
-    
-    - alert: SentinelDown
-      expr: up{job=~"health-sentinel|sla-breach-sentinel"} == 0
-      for: 2m
-      labels:
-        severity: critical
-      annotations:
-        summary: "Sentinel {{ $labels.job }} está down"
-    
-    - alert: OperationModeNotActive
-      expr: |
-        velya_operation_mode{mode="active"} == 0
-      for: 30m
-      labels:
-        severity: warning
-      annotations:
-        summary: "Sistema não está em modo active há 30 minutos"
-        description: "Modo atual: {{ $labels.current_mode }}. Verificar se manutenção foi concluída."
+    - name: operational-loops
+      rules:
+        - alert: CronJobFailed
+          expr: kube_job_status_failed > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'CronJob falhou: {{ $labels.job_name }}'
+
+        - alert: CronJobMissedSchedule
+          expr: |
+            time() - kube_cronjob_status_last_schedule_time{
+              namespace=~"velya-.*"
+            } > 7200   # Mais de 2h desde última execução (threshold = 2x intervalo máximo)
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'CronJob {{ $labels.cronjob }} não executou em 2h'
+
+        - alert: SentinelDown
+          expr: up{job=~"health-sentinel|sla-breach-sentinel"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'Sentinel {{ $labels.job }} está down'
+
+        - alert: OperationModeNotActive
+          expr: |
+            velya_operation_mode{mode="active"} == 0
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Sistema não está em modo active há 30 minutos'
+            description: 'Modo atual: {{ $labels.current_mode }}. Verificar se manutenção foi concluída.'
 ```
 
 ---
@@ -765,4 +764,4 @@ spec:
 
 ---
 
-*Este documento é atualizado quando novos loops operacionais são adicionados à plataforma.*
+_Este documento é atualizado quando novos loops operacionais são adicionados à plataforma._

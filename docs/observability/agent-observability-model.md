@@ -9,6 +9,7 @@
 ## 1. Princípio Fundamental
 
 Na empresa digital da Velya, agents executam tarefas que afetam diretamente o cuidado ao paciente:
+
 - O `discharge-coordinator-agent` coordena o processo de alta médica
 - O `task-router-agent` distribui tarefas clínicas urgentes
 - O `clinical-alert-agent` entrega alertas a profissionais de saúde
@@ -19,13 +20,13 @@ Na empresa digital da Velya, agents executam tarefas que afetam diretamente o cu
 
 ## 2. Taxonomia de Estados de um Agent
 
-| Estado | Descrição | Indicador |
-|--------|-----------|-----------|
-| `healthy` | Processando tarefas normalmente dentro dos SLOs | `time() - last_activity < 1800` AND `validation_pass_rate > 0.85` |
-| `degraded` | Ativo mas com performance abaixo dos SLOs | `validation_pass_rate < 0.85` OR `correction_loop > 2` |
-| `silent` | Sem atividade detectável por mais de 30 minutos | `time() - last_activity > 1800` |
-| `quarantined` | Removido de operação por watchdog ou validação | `velya_agent_quarantine_active == 1` |
-| `offline` | Worker Temporal parado, agent não está rodando | `up{job="agent-worker"} == 0` |
+| Estado        | Descrição                                       | Indicador                                                         |
+| ------------- | ----------------------------------------------- | ----------------------------------------------------------------- |
+| `healthy`     | Processando tarefas normalmente dentro dos SLOs | `time() - last_activity < 1800` AND `validation_pass_rate > 0.85` |
+| `degraded`    | Ativo mas com performance abaixo dos SLOs       | `validation_pass_rate < 0.85` OR `correction_loop > 2`            |
+| `silent`      | Sem atividade detectável por mais de 30 minutos | `time() - last_activity > 1800`                                   |
+| `quarantined` | Removido de operação por watchdog ou validação  | `velya_agent_quarantine_active == 1`                              |
+| `offline`     | Worker Temporal parado, agent não está rodando  | `up{job="agent-worker"} == 0`                                     |
 
 ---
 
@@ -65,7 +66,8 @@ const agentLastActivity = new Gauge({
 });
 
 // Atualizar ao final de cada tarefa:
-agentLastActivity.labels({ agent_name: 'discharge-coordinator-agent', office: 'clinical-office' })
+agentLastActivity
+  .labels({ agent_name: 'discharge-coordinator-agent', office: 'clinical-office' })
   .set(Date.now() / 1000);
 ```
 
@@ -166,16 +168,16 @@ const agentWatchdogIncidentTotal = new Counter({
 
 ### 4.1 Thresholds e Condições
 
-| Alarme | Condição | Severidade | SLA de Resposta | Owner |
-|--------|---------|-----------|----------------|-------|
-| Agent silencioso (warning) | `time() - velya_agent_last_activity_timestamp > 1800` | Médio | 4 horas | agents-office |
-| Agent silencioso (critical) | `time() - velya_agent_last_activity_timestamp > 3600` | Crítico | 5 minutos | agents-office |
-| Rejeição de validação > 30% | `pass_rate < 0.70 por 15 minutos` | Alto | 30 minutos | agents-office |
-| Loop de correção > 3 | `velya_agent_correction_loop_count > 3` | Alto | 30 minutos | agents-office |
-| Quarentena ativada | `increase(velya_agent_quarantine_total[5m]) > 0` | Crítico | 5 minutos | agents-office |
-| Evidence completeness < 70% | `velya_agent_evidence_completeness_ratio < 0.70` | Médio | 4 horas | agents-office |
-| Watchdog incident | `increase(velya_agent_watchdog_incident_total[10m]) > 0` | Alto | 30 minutos | agents-office |
-| Token consumption > 100K/hora | `rate(velya_ai_token_consumption_total[1h]) > 100000` | Alto | 30 minutos | agents-office |
+| Alarme                        | Condição                                                 | Severidade | SLA de Resposta | Owner         |
+| ----------------------------- | -------------------------------------------------------- | ---------- | --------------- | ------------- |
+| Agent silencioso (warning)    | `time() - velya_agent_last_activity_timestamp > 1800`    | Médio      | 4 horas         | agents-office |
+| Agent silencioso (critical)   | `time() - velya_agent_last_activity_timestamp > 3600`    | Crítico    | 5 minutos       | agents-office |
+| Rejeição de validação > 30%   | `pass_rate < 0.70 por 15 minutos`                        | Alto       | 30 minutos      | agents-office |
+| Loop de correção > 3          | `velya_agent_correction_loop_count > 3`                  | Alto       | 30 minutos      | agents-office |
+| Quarentena ativada            | `increase(velya_agent_quarantine_total[5m]) > 0`         | Crítico    | 5 minutos       | agents-office |
+| Evidence completeness < 70%   | `velya_agent_evidence_completeness_ratio < 0.70`         | Médio      | 4 horas         | agents-office |
+| Watchdog incident             | `increase(velya_agent_watchdog_incident_total[10m]) > 0` | Alto       | 30 minutos      | agents-office |
+| Token consumption > 100K/hora | `rate(velya_ai_token_consumption_total[1h]) > 100000`    | Alto       | 30 minutos      | agents-office |
 
 ### 4.2 Alertas PromQL completos
 
@@ -202,10 +204,10 @@ spec:
             domain: agents
             owner: agents-office
           annotations:
-            summary: "Agent {{ $labels.agent_name }} silencioso por > 60 minutos"
-            impact: "Tarefas do office {{ $labels.office }} não estão sendo processadas"
-            dashboard_url: "http://grafana/d/velya-agents-oversight-console"
-            runbook_url: "https://docs.velya/runbooks/agent-silent"
+            summary: 'Agent {{ $labels.agent_name }} silencioso por > 60 minutos'
+            impact: 'Tarefas do office {{ $labels.office }} não estão sendo processadas'
+            dashboard_url: 'http://grafana/d/velya-agents-oversight-console'
+            runbook_url: 'https://docs.velya/runbooks/agent-silent'
 
         - alert: VelyaAgentHighRejectionRate
           expr: |
@@ -219,8 +221,8 @@ spec:
             domain: agents
             owner: agents-office
           annotations:
-            summary: "Agent {{ $labels.agent_name }} com taxa de aprovação de validação de {{ $value | humanizePercentage }}"
-            impact: "Saídas de baixa qualidade sendo produzidas. Risco clínico se agent opera sobre dados de pacientes."
+            summary: 'Agent {{ $labels.agent_name }} com taxa de aprovação de validação de {{ $value | humanizePercentage }}'
+            impact: 'Saídas de baixa qualidade sendo produzidas. Risco clínico se agent opera sobre dados de pacientes.'
 
         - alert: VelyaAgentCorrectionLoop
           expr: velya_agent_correction_loop_count > 3
@@ -230,8 +232,8 @@ spec:
             domain: agents
             owner: agents-office
           annotations:
-            summary: "Agent {{ $labels.agent_name }} em loop de correção com {{ $value }} iterações"
-            impact: "Consumo excessivo de tokens e latência. Agent não converge para solução correta."
+            summary: 'Agent {{ $labels.agent_name }} em loop de correção com {{ $value }} iterações'
+            impact: 'Consumo excessivo de tokens e latência. Agent não converge para solução correta.'
 ```
 
 ---
@@ -241,27 +243,34 @@ spec:
 ### Linha 1: Estado Atual (Estado geral da empresa digital)
 
 **Painel 1 — Canvas: Visão dos Offices e Agents**
+
 - Layout visual: caixas representando offices (clinical-office, administrative-office, platform-office, agents-office)
 - Dentro de cada office: pontos coloridos por agent (verde=healthy, amarelo=degraded, vermelho=silent/quarantined)
 - Atualização em tempo real via gauge `velya_agent_quarantine_active` e derivada de `velya_agent_last_activity_timestamp`
 
 **Painel 2 — Stat: Agents Silenciosos Agora**
+
 ```promql
 count(time() - velya_agent_last_activity_timestamp > 1800)
 ```
+
 Threshold: verde = 0, vermelho > 0
 
 **Painel 3 — Stat: Agents em Quarentena**
+
 ```promql
 sum(velya_agent_quarantine_active)
 ```
+
 Threshold: verde = 0, vermelho > 0
 
 **Painel 4 — Stat: Taxa de Aprovação Média (todos os agents)**
+
 ```promql
 sum(rate(velya_agent_validation_result_total{result="pass"}[1h])) /
 sum(rate(velya_agent_validation_result_total[1h]))
 ```
+
 Threshold: verde > 0.90, amarelo > 0.80, vermelho < 0.80
 
 ---
@@ -280,6 +289,7 @@ clamp_max(
 ```
 
 **Configuração de cores**:
+
 - 0 → Verde (healthy)
 - 1 → Amarelo (degraded — silencioso 30-60min)
 - 2 → Vermelho (silent — silencioso > 60min)
@@ -301,13 +311,13 @@ Comparar com semana anterior usando anotações de deploy.
 
 ### Linha 4: Ranking de Agents por Taxa de Rejeição (Table)
 
-| Coluna | Métrica |
-|--------|---------|
-| Agent | `agent_name` label |
-| Office | `office` label |
+| Coluna           | Métrica                                           |
+| ---------------- | ------------------------------------------------- |
+| Agent            | `agent_name` label                                |
+| Office           | `office` label                                    |
 | Taxa de Rejeição | `1 - (rate(result=pass)[24h] / rate(total)[24h])` |
-| Último Output | `time() - velya_agent_last_activity_timestamp` |
-| Status | derivado de thresholds |
+| Último Output    | `time() - velya_agent_last_activity_timestamp`    |
+| Status           | derivado de thresholds                            |
 
 ```promql
 # Query para tabela — top agents por taxa de rejeição nas últimas 24h
@@ -361,6 +371,7 @@ Permite identificar agents com consumo anormal rapidamente.
 ### 6.1 De métricas de agent → logs do agent
 
 **Data Link em qualquer gráfico com `agent_name` label**:
+
 ```
 URL: /explore?orgId=1&left={"datasource":"loki","queries":[{"expr":"{namespace=\"velya-dev-agents\",service=\"${__field.labels.agent_name}\"}","refId":"A"}],"range":{"from":"${__from}","to":"${__to}"}}
 Título: Ver logs do agent
@@ -369,6 +380,7 @@ Título: Ver logs do agent
 ### 6.2 De evento de quarentena → decisões anteriores
 
 Quando um agent é quarentenado, investigar as decisões anteriores:
+
 ```logql
 {service="decision-log"} | json | agent_name="${agent_name}" | outcome="failure"
 ```
@@ -376,6 +388,7 @@ Quando um agent é quarentenado, investigar as decisões anteriores:
 ### 6.3 De silêncio de agent → tarefas pendentes na inbox
 
 Quando um agent fica silencioso, verificar o impacto na inbox:
+
 ```promql
 velya_task_inbox_depth{office="${office}"}
 ```
@@ -383,6 +396,7 @@ velya_task_inbox_depth{office="${office}"}
 ### 6.4 De loop de correção → trace do workflow
 
 Quando `velya_agent_correction_loop_count` > 3, abrir Tempo e buscar:
+
 - `velya.agent_name="${agent_name}"`
 - `velya.action=~"correction.*"`
 - Duração > 5 minutos
@@ -422,7 +436,7 @@ class MetricsActivityInboundInterceptor {
 
   async execute(input: ActivityInput, next: Next<ActivityInboundCallsInterceptor, 'execute'>) {
     const startTime = Date.now();
-    const taskType = input.headers['velya-task-type'] as string || 'unknown';
+    const taskType = (input.headers['velya-task-type'] as string) || 'unknown';
 
     try {
       const result = await next.execute(input);
@@ -434,7 +448,6 @@ class MetricsActivityInboundInterceptor {
       });
 
       return result;
-
     } catch (error) {
       this.metrics.recordTaskCompletion({
         status: 'failure',

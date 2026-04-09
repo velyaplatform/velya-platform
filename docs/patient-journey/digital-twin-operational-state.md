@@ -38,13 +38,13 @@ Cada campo do estado operacional e derivado de eventos do Work Event Ledger (ver
 
 ### 2.1 Principios de Projecao
 
-| Principio | Descricao |
-|---|---|
-| **Derivacao pura** | Todo campo e calculado a partir de eventos. Nenhuma entrada manual. |
-| **Idempotencia** | Reprojetar os mesmos eventos produz o mesmo estado. |
-| **Ordenacao causal** | Eventos sao processados na ordem causal (timestamp + causal links). |
+| Principio             | Descricao                                                            |
+| --------------------- | -------------------------------------------------------------------- |
+| **Derivacao pura**    | Todo campo e calculado a partir de eventos. Nenhuma entrada manual.  |
+| **Idempotencia**      | Reprojetar os mesmos eventos produz o mesmo estado.                  |
+| **Ordenacao causal**  | Eventos sao processados na ordem causal (timestamp + causal links).  |
 | **Snapshot + replay** | Snapshots periodicos (15min) + replay incremental para reconstrucao. |
-| **Versionamento** | Cada projecao carrega `projectionVersion` para compatibilidade. |
+| **Versionamento**     | Cada projecao carrega `projectionVersion` para compatibilidade.      |
 
 ---
 
@@ -151,7 +151,12 @@ export interface CurrentCarePlan {
   /** Dieta prescrita */
   diet: DietOrder;
   /** Mobilidade autorizada */
-  mobilityLevel: 'bed_rest' | 'bed_rest_with_movement' | 'chair' | 'ambulation_assisted' | 'ambulation_independent';
+  mobilityLevel:
+    | 'bed_rest'
+    | 'bed_rest_with_movement'
+    | 'chair'
+    | 'ambulation_assisted'
+    | 'ambulation_independent';
   /** Isolamento */
   isolationStatus: IsolationStatus;
   /** Dispositivos atuais (drenos, cateteres, monitores) */
@@ -212,7 +217,16 @@ export interface OperationalPriority {
 
 export interface PendingItem {
   id: string;
-  type: 'order' | 'result' | 'signature' | 'handoff' | 'assessment' | 'documentation' | 'communication' | 'consent' | 'procedure_scheduling';
+  type:
+    | 'order'
+    | 'result'
+    | 'signature'
+    | 'handoff'
+    | 'assessment'
+    | 'documentation'
+    | 'communication'
+    | 'consent'
+    | 'procedure_scheduling';
   description: string;
   createdAt: ISO8601DateTime;
   /** Tempo em espera (calculado) */
@@ -299,7 +313,15 @@ export interface PainIntervention {
 
 export interface ScheduledStep {
   id: string;
-  type: 'medication' | 'assessment' | 'procedure' | 'exam' | 'lab' | 'consultation' | 'therapy' | 'discharge_step';
+  type:
+    | 'medication'
+    | 'assessment'
+    | 'procedure'
+    | 'exam'
+    | 'lab'
+    | 'consultation'
+    | 'therapy'
+    | 'discharge_step';
   description: string;
   scheduledTime: ISO8601DateTime;
   /** Minutos ate o evento */
@@ -311,7 +333,15 @@ export interface ScheduledStep {
 
 export interface DelaySignal {
   id: string;
-  type: 'order_delay' | 'result_delay' | 'procedure_delay' | 'handoff_delay' | 'response_delay' | 'discharge_delay' | 'documentation_delay' | 'consultation_delay';
+  type:
+    | 'order_delay'
+    | 'result_delay'
+    | 'procedure_delay'
+    | 'handoff_delay'
+    | 'response_delay'
+    | 'discharge_delay'
+    | 'documentation_delay'
+    | 'consultation_delay';
   description: string;
   detectedAt: ISO8601DateTime;
   expectedTime: ISO8601DateTime;
@@ -480,12 +510,12 @@ interface FHIRReference<T extends string> {
 
 ### 4.1 Fontes de Dados
 
-| Fonte | Tipo de Evento | Frequencia |
-|---|---|---|
-| ADT (Admit-Discharge-Transfer) | `encounter.location.changed` | A cada movimentacao |
-| RTLS (Real-Time Location System) | `location.presence.detected` | Continuo (beacons) |
-| Registro manual de enfermagem | `location.manual.update` | Sob demanda |
-| Sistema de transporte | `transport.started` / `transport.completed` | A cada transporte |
+| Fonte                            | Tipo de Evento                              | Frequencia          |
+| -------------------------------- | ------------------------------------------- | ------------------- |
+| ADT (Admit-Discharge-Transfer)   | `encounter.location.changed`                | A cada movimentacao |
+| RTLS (Real-Time Location System) | `location.presence.detected`                | Continuo (beacons)  |
+| Registro manual de enfermagem    | `location.manual.update`                    | Sob demanda         |
+| Sistema de transporte            | `transport.started` / `transport.completed` | A cada transporte   |
 
 ### 4.2 Regras de Projecao
 
@@ -510,6 +540,7 @@ O plano atual e derivado do `CarePlan` FHIR ativo mais recente, enriquecido com:
 ### 5.1 Atualizacao do Plano
 
 O plano no twin e atualizado quando:
+
 - Nova evolucao medica e registrada (`DocumentReference` tipo `progress-note`).
 - Nova prescricao e emitida (`MedicationRequest`).
 - Ordem de dieta e alterada (`NutritionOrder`).
@@ -523,12 +554,12 @@ O plano no twin e atualizado quando:
 
 ### 6.1 Hierarquia de Prioridades
 
-| Nivel | Exemplos | SLA de Atencao |
-|---|---|---|
-| **Critical** | PCR, deterioracao aguda, resultado critico | Imediato |
-| **High** | Dor >= 7, medicamento atrasado, handoff pendente > timeout | 15 minutos |
-| **Medium** | Exame pendente, consulta solicitada, documentacao incompleta | 60 minutos |
-| **Low** | Pendencia administrativa, educacao paciente | 4 horas |
+| Nivel        | Exemplos                                                     | SLA de Atencao |
+| ------------ | ------------------------------------------------------------ | -------------- |
+| **Critical** | PCR, deterioracao aguda, resultado critico                   | Imediato       |
+| **High**     | Dor >= 7, medicamento atrasado, handoff pendente > timeout   | 15 minutos     |
+| **Medium**   | Exame pendente, consulta solicitada, documentacao incompleta | 60 minutos     |
+| **Low**      | Pendencia administrativa, educacao paciente                  | 4 horas        |
 
 ### 6.2 Geracao Automatica de Pendencias
 
@@ -554,11 +585,11 @@ function calculateOperationalRisk(state: PatientOperationalState): number {
   const factors: RiskFactor[] = [
     {
       name: 'pending_items_overdue',
-      weight: 0.20,
-      currentValue: state.pendingItems.filter(p => p.slaBreached).length,
+      weight: 0.2,
+      currentValue: state.pendingItems.filter((p) => p.slaBreached).length,
       threshold: 2,
       breached: false,
-      description: 'Pendencias com SLA violado'
+      description: 'Pendencias com SLA violado',
     },
     {
       name: 'pain_unaddressed',
@@ -566,7 +597,7 @@ function calculateOperationalRisk(state: PatientOperationalState): number {
       currentValue: state.painStatus.unaddressedPainAlert ? 1 : 0,
       threshold: 1,
       breached: false,
-      description: 'Dor sem intervencao'
+      description: 'Dor sem intervencao',
     },
     {
       name: 'deterioration_score',
@@ -574,32 +605,31 @@ function calculateOperationalRisk(state: PatientOperationalState): number {
       currentValue: state.deteriorationRisk.earlyWarningScore,
       threshold: 5,
       breached: false,
-      description: 'Score de deterioracao clinica'
+      description: 'Score de deterioracao clinica',
     },
     {
       name: 'handoff_pending',
       weight: 0.15,
-      currentValue: state.pendingItems
-        .filter(p => p.type === 'handoff' && p.slaBreached).length,
+      currentValue: state.pendingItems.filter((p) => p.type === 'handoff' && p.slaBreached).length,
       threshold: 1,
       breached: false,
-      description: 'Handoff pendente com timeout'
+      description: 'Handoff pendente com timeout',
     },
     {
       name: 'documentation_gaps',
-      weight: 0.10,
+      weight: 0.1,
       currentValue: 100 - state.documentationCompleteness.overallPercentage,
       threshold: 30,
       breached: false,
-      description: 'Gaps de documentacao'
+      description: 'Gaps de documentacao',
     },
     {
       name: 'delay_signals',
       weight: 0.15,
-      currentValue: state.delaySignals.filter(d => d.severity === 'critical').length,
+      currentValue: state.delaySignals.filter((d) => d.severity === 'critical').length,
       threshold: 1,
       breached: false,
-      description: 'Sinais de atraso critico'
+      description: 'Sinais de atraso critico',
     },
   ];
 
@@ -615,12 +645,12 @@ function calculateOperationalRisk(state: PatientOperationalState): number {
 
 ### 7.2 Classificacao
 
-| Score | Classificacao | Acao |
-|---|---|---|
-| 0-25 | Low | Monitoramento padrao |
-| 26-50 | Moderate | Revisao pelo enfermeiro em 30min |
-| 51-75 | High | Notificacao ao medico responsavel |
-| 76-100 | Critical | Escalacao imediata ao coordenador da unidade |
+| Score  | Classificacao | Acao                                         |
+| ------ | ------------- | -------------------------------------------- |
+| 0-25   | Low           | Monitoramento padrao                         |
+| 26-50  | Moderate      | Revisao pelo enfermeiro em 30min             |
+| 51-75  | High          | Notificacao ao medico responsavel            |
+| 76-100 | Critical      | Escalacao imediata ao coordenador da unidade |
 
 ---
 
@@ -638,6 +668,7 @@ O twin mantém as ultimas 20 chamadas (ou ultimas 12h, o que for maior). Cada ch
 ### 8.2 Correlacao Dor-Chamada
 
 O sistema correlaciona automaticamente:
+
 - Chamada seguida de registro de dor em janela de 15 minutos.
 - Multiplas chamadas em curto periodo como possivel indicador de dor nao controlada.
 - Dor >= 7 sem intervencao farmacologica em 30 minutos gera alerta `unaddressedPainAlert`.
@@ -659,20 +690,21 @@ O twin projeta os proximos eventos esperados com base em:
 
 Sinais de atraso sao detectados quando:
 
-| Tipo | Regra |
-|---|---|
-| `order_delay` | Ordem sem execucao apos SLA do tipo |
-| `result_delay` | Exame coletado/realizado sem resultado apos SLA |
-| `procedure_delay` | Procedimento agendado nao iniciado apos horario |
-| `handoff_delay` | Handoff sem aceite apos timeout |
-| `response_delay` | Chamada sem resposta apos 5 minutos |
-| `discharge_delay` | Todos os criterios de alta atendidos mas sem alta efetiva |
-| `documentation_delay` | Evolucao obrigatoria nao registrada no turno |
-| `consultation_delay` | Interconsulta solicitada sem atendimento apos SLA |
+| Tipo                  | Regra                                                     |
+| --------------------- | --------------------------------------------------------- |
+| `order_delay`         | Ordem sem execucao apos SLA do tipo                       |
+| `result_delay`        | Exame coletado/realizado sem resultado apos SLA           |
+| `procedure_delay`     | Procedimento agendado nao iniciado apos horario           |
+| `handoff_delay`       | Handoff sem aceite apos timeout                           |
+| `response_delay`      | Chamada sem resposta apos 5 minutos                       |
+| `discharge_delay`     | Todos os criterios de alta atendidos mas sem alta efetiva |
+| `documentation_delay` | Evolucao obrigatoria nao registrada no turno              |
+| `consultation_delay`  | Interconsulta solicitada sem atendimento apos SLA         |
 
 ### 9.3 Indicador de Abandono
 
 O twin detecta possivel abandono de tarefa quando:
+
 - Uma tarefa atribuida a um profissional nao tem nenhuma atualizacao por mais de 2x o SLA.
 - Um profissional atribuido nao registra nenhum evento no sistema por mais de 2 horas durante turno ativo.
 - Uma pendencia e reassignada mais de 3 vezes sem progresso.
@@ -685,22 +717,22 @@ O twin detecta possivel abandono de tarefa quando:
 
 O twin calcula o NEWS2 (National Early Warning Score 2) a partir dos ultimos sinais vitais:
 
-| Parametro | 3 | 2 | 1 | 0 | 1 | 2 | 3 |
-|---|---|---|---|---|---|---|---|
-| Freq. Resp. | <=8 | | 9-11 | 12-20 | | 21-24 | >=25 |
-| SpO2 (Esc 1) | <=91 | 92-93 | 94-95 | >=96 | | | |
-| PA Sistolica | <=90 | 91-100 | 101-110 | 111-219 | | | >=220 |
-| Freq. Cardiaca | <=40 | | 41-50 | 51-90 | 91-110 | 111-130 | >=131 |
-| Consciencia | | | | Alerta | | | CVPU |
-| Temperatura | <=35.0 | | 35.1-36.0 | 36.1-38.0 | 38.1-39.0 | >=39.1 | |
+| Parametro      | 3      | 2      | 1         | 0         | 1         | 2       | 3     |
+| -------------- | ------ | ------ | --------- | --------- | --------- | ------- | ----- |
+| Freq. Resp.    | <=8    |        | 9-11      | 12-20     |           | 21-24   | >=25  |
+| SpO2 (Esc 1)   | <=91   | 92-93  | 94-95     | >=96      |           |         |       |
+| PA Sistolica   | <=90   | 91-100 | 101-110   | 111-219   |           |         | >=220 |
+| Freq. Cardiaca | <=40   |        | 41-50     | 51-90     | 91-110    | 111-130 | >=131 |
+| Consciencia    |        |        |           | Alerta    |           |         | CVPU  |
+| Temperatura    | <=35.0 |        | 35.1-36.0 | 36.1-38.0 | 38.1-39.0 | >=39.1  |       |
 
 ### 10.2 Acoes por Score
 
-| Score NEWS2 | Classificacao | Acao Automatica |
-|---|---|---|
-| 0-4 | Low | Monitoramento de rotina |
-| 5-6 ou 3 em parametro unico | Medium | Notifica enfermeiro lider |
-| >= 7 | High | Notifica medico + enfermeiro lider + prepara time de resposta rapida |
+| Score NEWS2                 | Classificacao | Acao Automatica                                                      |
+| --------------------------- | ------------- | -------------------------------------------------------------------- |
+| 0-4                         | Low           | Monitoramento de rotina                                              |
+| 5-6 ou 3 em parametro unico | Medium        | Notifica enfermeiro lider                                            |
+| >= 7                        | High          | Notifica medico + enfermeiro lider + prepara time de resposta rapida |
 
 ---
 
@@ -708,22 +740,23 @@ O twin calcula o NEWS2 (National Early Warning Score 2) a partir dos ultimos sin
 
 ### 11.1 Secoes Obrigatorias por Tipo de Encontro
 
-| Secao | Internacao Clinica | Internacao Cirurgica | UTI |
-|---|---|---|---|
-| Anamnese de admissao | Obrigatorio | Obrigatorio | Obrigatorio |
-| Exame fisico de admissao | Obrigatorio | Obrigatorio | Obrigatorio |
-| Evolucao medica diaria | Obrigatorio | Obrigatorio | Obrigatorio (2x/dia) |
-| Prescricao medica | Obrigatorio | Obrigatorio | Obrigatorio |
-| Evolucao de enfermagem | Obrigatorio | Obrigatorio | Obrigatorio (por turno) |
-| Nota cirurgica | N/A | Obrigatorio | Se aplicavel |
-| Nota anestesica | N/A | Obrigatorio | Se aplicavel |
-| Plano de alta | Obrigatorio (D1) | Obrigatorio (D1) | N/A |
-| Resumo de alta | Na alta | Na alta | Na transferencia |
-| Consentimentos | Por procedimento | Obrigatorio | Por procedimento |
+| Secao                    | Internacao Clinica | Internacao Cirurgica | UTI                     |
+| ------------------------ | ------------------ | -------------------- | ----------------------- |
+| Anamnese de admissao     | Obrigatorio        | Obrigatorio          | Obrigatorio             |
+| Exame fisico de admissao | Obrigatorio        | Obrigatorio          | Obrigatorio             |
+| Evolucao medica diaria   | Obrigatorio        | Obrigatorio          | Obrigatorio (2x/dia)    |
+| Prescricao medica        | Obrigatorio        | Obrigatorio          | Obrigatorio             |
+| Evolucao de enfermagem   | Obrigatorio        | Obrigatorio          | Obrigatorio (por turno) |
+| Nota cirurgica           | N/A                | Obrigatorio          | Se aplicavel            |
+| Nota anestesica          | N/A                | Obrigatorio          | Se aplicavel            |
+| Plano de alta            | Obrigatorio (D1)   | Obrigatorio (D1)     | N/A                     |
+| Resumo de alta           | Na alta            | Na alta              | Na transferencia        |
+| Consentimentos           | Por procedimento   | Obrigatorio          | Por procedimento        |
 
 ### 11.2 Deteccao de Copy-Forward
 
 O twin detecta copy-forward comparando:
+
 - Similaridade textual (cosine similarity > 0.95) entre evolucoes consecutivas.
 - Dados clinicos identicos em evolucoes de dias diferentes.
 - Timestamps de exame fisico identicos em evolucoes de turnos diferentes.
@@ -751,6 +784,7 @@ WS   /ws/v1/units/{unitId}/operational-states
 ```
 
 Eventos WebSocket:
+
 - `state.updated` — estado atualizado (diff parcial).
 - `priority.changed` — prioridade adicionada/alterada.
 - `risk.escalated` — risco operacional escalou de nivel.
@@ -765,13 +799,13 @@ O acesso ao Digital Twin segue as regras de RBAC+ABAC descritas em `security-and
 
 ## 13. Performance e Escalabilidade
 
-| Metrica | Meta | Monitoramento |
-|---|---|---|
-| Latencia de projecao (evento -> estado) | < 500ms P95 | `velya_twin_projection_lag_seconds` |
-| Throughput de eventos | > 10.000 eventos/min | `velya_twin_events_processed_total` |
-| Tamanho do estado por paciente | < 50KB | `velya_twin_state_size_bytes` |
-| Tempo de reconstrucao via replay | < 30s para 30 dias | `velya_twin_replay_duration_seconds` |
-| Disponibilidade do cache Redis | 99.9% | `velya_twin_cache_availability` |
+| Metrica                                 | Meta                 | Monitoramento                        |
+| --------------------------------------- | -------------------- | ------------------------------------ |
+| Latencia de projecao (evento -> estado) | < 500ms P95          | `velya_twin_projection_lag_seconds`  |
+| Throughput de eventos                   | > 10.000 eventos/min | `velya_twin_events_processed_total`  |
+| Tamanho do estado por paciente          | < 50KB               | `velya_twin_state_size_bytes`        |
+| Tempo de reconstrucao via replay        | < 30s para 30 dias   | `velya_twin_replay_duration_seconds` |
+| Disponibilidade do cache Redis          | 99.9%                | `velya_twin_cache_availability`      |
 
 ### 13.1 PromQL para Monitoramento
 
@@ -793,14 +827,14 @@ sum by (unit) (velya_twin_pending_items_sla_breached)
 
 ## 14. Relacionamento com Outros Modulos
 
-| Modulo | Relacao |
-|---|---|
-| Work Event Ledger | Fonte de todos os eventos (upstream) |
-| Gap Detection Rules | Consome o twin para detectar gaps |
-| Journey Audit Dashboards | Visualiza o twin em dashboards |
-| Handoff Acceptance Standard | Twin reflete status de handoffs |
-| Shift Ownership Model | Twin reflete dono atual do turno |
-| Command Center | Agrega twins de todos os pacientes |
+| Modulo                      | Relacao                              |
+| --------------------------- | ------------------------------------ |
+| Work Event Ledger           | Fonte de todos os eventos (upstream) |
+| Gap Detection Rules         | Consome o twin para detectar gaps    |
+| Journey Audit Dashboards    | Visualiza o twin em dashboards       |
+| Handoff Acceptance Standard | Twin reflete status de handoffs      |
+| Shift Ownership Model       | Twin reflete dono atual do turno     |
+| Command Center              | Agrega twins de todos os pacientes   |
 
 ---
 

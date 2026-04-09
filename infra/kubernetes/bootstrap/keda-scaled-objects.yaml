@@ -25,6 +25,6 @@ spec:
       metadata:
         serverAddress: http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090
         metricName: velya_web_rps
-        threshold: "50"
+        threshold: '50'
         query: |
           sum(rate(http_requests_total{namespace="velya-dev-web",job="velya-web"}[2m]))

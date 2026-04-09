@@ -166,7 +166,10 @@ function VerifyForm() {
           </div>
 
           <div className="text-center py-1">
-            <Link href="/register" className="text-sm text-velya-subtle hover:text-velya-muted transition inline-block min-h-[44px] leading-[44px] px-4">
+            <Link
+              href="/register"
+              className="text-sm text-velya-subtle hover:text-velya-muted transition inline-block min-h-[44px] leading-[44px] px-4"
+            >
               Voltar ao cadastro
             </Link>
           </div>
