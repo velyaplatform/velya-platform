@@ -33,7 +33,6 @@ interface NavItemDef {
   label: string;
   badge?: number;
   section: string;
-  /** Access action required to see this item (optional extra gate) */
   requiredAction?: string;
 }
 
@@ -60,10 +59,11 @@ const SECTION_LABELS: Record<string, string> = {
 
 interface NavigationProps {
   currentRole: Role;
-  onRoleChange: (role: Role) => void;
+  userName: string;
+  onLogout: () => void;
 }
 
-export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
+export function Navigation({ currentRole, userName, onLogout }: NavigationProps) {
   const pathname = usePathname();
   const [suggestionText, setSuggestionText] = useState('');
   const [suggestionStatus, setSuggestionStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
@@ -104,7 +104,7 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
       await fetch('/api/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, author: currentRole }),
+        body: JSON.stringify({ text, author: `${userName} (${currentRole})` }),
       });
       setSuggestionText('');
       setSuggestionStatus('sent');
@@ -181,7 +181,7 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
         )}
       </nav>
 
-      {/* Suggestion box — visible to all roles */}
+      {/* Suggestion box */}
       <div
         style={{
           padding: '0.75rem 1rem',
@@ -276,28 +276,45 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
               </span>
             )}
           </div>
-          <select
-            value={currentRole}
-            onChange={(e) => onRoleChange(e.target.value as Role)}
+          <div
             style={{
-              background: 'transparent',
-              border: 'none',
               color: 'rgba(255,255,255,0.85)',
               fontSize: '0.875rem',
               fontWeight: 600,
-              cursor: 'pointer',
-              width: '100%',
-              outline: 'none',
-              fontFamily: 'inherit',
+              marginTop: '2px',
             }}
           >
-            {ROLES.map((role) => (
-              <option key={role} value={role} style={{ background: '#16213e', color: 'white' }}>
-                {role}
-              </option>
-            ))}
-          </select>
+            {currentRole}
+          </div>
+          <div
+            style={{
+              color: 'rgba(255,255,255,0.5)',
+              fontSize: '0.7rem',
+              marginTop: '2px',
+            }}
+          >
+            {userName}
+          </div>
         </div>
+
+        <button
+          onClick={onLogout}
+          style={{
+            width: '100%',
+            marginTop: '0.75rem',
+            background: 'rgba(239,68,68,0.15)',
+            border: '1px solid rgba(239,68,68,0.3)',
+            borderRadius: '8px',
+            padding: '0.5rem',
+            color: '#fca5a5',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          Sair
+        </button>
       </div>
     </aside>
   );

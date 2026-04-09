@@ -16,6 +16,9 @@ export interface VelyaSession {
   userName: string;
   role: string;
   professionalRole: string;
+  email: string;
+  setor: string;
+  conselhoProfissional?: string;
   loginTime: string;
   lastActivity: string;
   workstationId: string;
@@ -29,6 +32,9 @@ export function createSession(params: {
   userName: string;
   role: string;
   professionalRole: string;
+  email?: string;
+  setor?: string;
+  conselhoProfissional?: string;
   workstationId?: string;
   ipAddress?: string;
 }): VelyaSession {
@@ -40,6 +46,9 @@ export function createSession(params: {
     userName: params.userName,
     role: params.role,
     professionalRole: params.professionalRole,
+    email: params.email || '',
+    setor: params.setor || '',
+    conselhoProfissional: params.conselhoProfissional,
     loginTime: now.toISOString(),
     lastActivity: now.toISOString(),
     workstationId: params.workstationId || 'unknown',

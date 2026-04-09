@@ -15,16 +15,35 @@ export function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
+  // --- Public pages: login, register, verify ---
+  const publicPages = ['/login', '/register', '/verify'];
+  const isPublicPage = publicPages.some((p) => path === p || path.startsWith(p + '/'));
+
+  // --- Page-level auth enforcement ---
+  // If the request is for a page (not API, not static), check for session cookie.
+  // If not authenticated, redirect to /login.
+  if (
+    !isPublicPage &&
+    !path.startsWith('/api/') &&
+    !path.startsWith('/_next/') &&
+    !path.includes('.') &&
+    path !== '/favicon.ico'
+  ) {
+    const sessionCookie = request.cookies.get('velya_session');
+    if (!sessionCookie) {
+      const loginUrl = new URL('/login', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   // --- Auth enforcement for API routes ---
   // Public routes: /api/auth/* (login, logout, session check) and /api/health
   // All other API routes require a valid session cookie.
-  // Note: middleware runs in Edge runtime and cannot use fs, so we only check
-  // cookie presence here. Actual session validation happens in API route handlers.
   if (path.startsWith('/api/') && !path.startsWith('/api/auth/') && path !== '/api/health') {
     const sessionCookie = request.cookies.get('velya_session');
     if (!sessionCookie) {
       return NextResponse.json(
-        { error: 'Não autenticado. Faça login primeiro.', code: 'UNAUTHORIZED' },
+        { error: 'Nao autenticado. Faca login primeiro.', code: 'UNAUTHORIZED' },
         { status: 401 }
       );
     }

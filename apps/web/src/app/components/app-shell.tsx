@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Navigation, type Role } from './navigation';
 import { ROLE_DEFINITIONS, resolveUiRole } from '../../lib/access-control';
 
@@ -9,9 +10,53 @@ interface AppShellProps {
   pageTitle: string;
 }
 
+interface SessionData {
+  userName: string;
+  role: string;
+  professionalRole: string;
+  email: string;
+  setor: string;
+  conselhoProfissional?: string;
+}
+
 export function AppShell({ children, pageTitle }: AppShellProps) {
-  const [currentRole, setCurrentRole] = useState<Role>('Coordenador de Ala');
+  const router = useRouter();
+  const [sessionData, setSessionData] = useState<SessionData | null>(null);
+  const [sessionActive, setSessionActive] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState('');
+
+  // Check session on mount
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then((res) => {
+        if (!res.ok) {
+          router.push('/login');
+          return null;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data && data.authenticated) {
+          setSessionData({
+            userName: data.userName,
+            role: data.role,
+            professionalRole: data.professionalRole,
+            email: data.email || '',
+            setor: data.setor || '',
+            conselhoProfissional: data.conselhoProfissional,
+          });
+          setSessionActive(true);
+        } else {
+          router.push('/login');
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        router.push('/login');
+        setLoading(false);
+      });
+  }, [router]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -30,68 +75,33 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
     return () => clearInterval(timer);
   }, []);
 
-  const roleInitials: Record<Role, string> = {
-    'Coordenador de Ala': 'CA',
-    'Medico': 'MD',
-    'Enfermeiro(a)': 'EN',
-    'Tecnico de Enfermagem': 'TE',
-    'Planejador de Alta': 'PA',
-    'Farmaceutico': 'FM',
-    'Fisioterapeuta': 'FT',
-    'Recepcao': 'RC',
-    'Motorista': 'MT',
-    'Higienizacao': 'HG',
-    'Faturamento': 'FA',
-    'Diretor Clinico': 'DC',
-    'Administrador': 'AD',
-  };
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+  }
 
-  const roleNames: Record<Role, string> = {
-    'Coordenador de Ala': 'Alex Thornton',
-    'Medico': 'Dra. Sarah Chen',
-    'Enfermeiro(a)': 'Enf. Maria Lopez',
-    'Tecnico de Enfermagem': 'Tec. Ana Souza',
-    'Planejador de Alta': 'James Okafor',
-    'Farmaceutico': 'Farm. Pedro Lima',
-    'Fisioterapeuta': 'Ft. Carla Mendes',
-    'Recepcao': 'Julia Santos',
-    'Motorista': 'Carlos Ferreira',
-    'Higienizacao': 'Rosa Oliveira',
-    'Faturamento': 'Patricia Costa',
-    'Diretor Clinico': 'Dr. Ricardo Alves',
-    'Administrador': 'Admin Velya',
-  };
+  if (loading || !sessionData) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
+        <span style={{ color: '#64748b' }}>Carregando...</span>
+      </div>
+    );
+  }
 
+  const currentRole = sessionData.role as Role;
   const professionalRole = resolveUiRole(currentRole);
   const roleDef = ROLE_DEFINITIONS[professionalRole];
-  const councilBadge = roleDef?.professionalCouncil ?? null;
-  const [sessionActive, setSessionActive] = useState(false);
+  const councilBadge = sessionData.conselhoProfissional || roleDef?.professionalCouncil || null;
 
-  // Auto-login: quando o papel muda, cria sessão no backend
-  useEffect(() => {
-    const userName = roleNames[currentRole] || currentRole;
-    const userId = currentRole.toLowerCase().replace(/[^a-z0-9]/g, '-');
-
-    fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId,
-        userName,
-        role: currentRole,
-        pin: '1234',
-      }),
-    })
-      .then((res) => {
-        setSessionActive(res.ok);
-        if (!res.ok) console.warn('[auth] Login falhou para', currentRole);
-      })
-      .catch(() => setSessionActive(false));
-  }, [currentRole]);
+  // Compute initials from user name
+  const nameParts = sessionData.userName.split(' ').filter(Boolean);
+  const initials = nameParts.length >= 2
+    ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+    : sessionData.userName.slice(0, 2).toUpperCase();
 
   return (
     <div className="app-shell">
-      <Navigation currentRole={currentRole} onRoleChange={setCurrentRole} />
+      <Navigation currentRole={currentRole} userName={sessionData.userName} onLogout={handleLogout} />
       <div className="app-main">
         <header className="app-topbar">
           <span className="topbar-title">{pageTitle}</span>
@@ -102,9 +112,9 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
             </div>
             <div className="topbar-time">{currentTime}</div>
             <div className="topbar-user">
-              <div className="avatar">{roleInitials[currentRole]}</div>
+              <div className="avatar">{initials}</div>
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-                <span>{roleNames[currentRole]}</span>
+                <span>{sessionData.userName}</span>
                 {councilBadge && (
                   <span
                     style={{
@@ -137,8 +147,25 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
                   marginLeft: 6,
                   flexShrink: 0,
                 }}
-                title={sessionActive ? 'Sessão ativa' : 'Sem sessão'}
+                title={sessionActive ? 'Sessao ativa' : 'Sem sessao'}
               />
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  fontFamily: 'inherit',
+                  marginLeft: '0.5rem',
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '4px',
+                }}
+                title="Sair"
+              >
+                Sair
+              </button>
             </div>
           </div>
         </header>
