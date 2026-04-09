@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+@theme {
+  --color-velya-bg: #0a0f1a;
+  --color-velya-surface: #111827;
+  --color-velya-card: #1a2332;
+  --color-velya-border: #1e293b;
+  --color-velya-primary: #3b82f6;
+  --color-velya-success: #22c55e;
+  --color-velya-warning: #f59e0b;
+  --color-velya-danger: #ef4444;
+  --color-velya-text: #f8fafc;
+  --color-velya-muted: #94a3b8;
+  --color-velya-subtle: #64748b;
+}
+
 /* Velya Design System — Medical-Grade UI */
 
 :root {

@@ -218,9 +218,9 @@ export default function RegisterPage() {
             {loading ? 'Criando conta...' : 'Criar Conta'}
           </button>
 
-          <div className="text-center mt-2">
+          <div className="text-center mt-2 py-2">
             <span className="text-sm text-velya-subtle">Ja tem conta? </span>
-            <Link href="/login" className="text-sm font-medium text-blue-400 hover:text-blue-300 transition">
+            <Link href="/login" className="text-sm font-medium text-blue-400 hover:text-blue-300 transition inline-block min-h-[44px] leading-[44px]">
               Entrar
             </Link>
           </div>

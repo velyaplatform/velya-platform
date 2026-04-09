@@ -159,14 +159,14 @@ function VerifyForm() {
               type="button"
               onClick={handleResend}
               disabled={resending}
-              className="bg-transparent border-none text-blue-400 hover:text-blue-300 text-sm font-medium cursor-pointer underline transition disabled:opacity-60 disabled:cursor-not-allowed"
+              className="bg-transparent border-none text-blue-400 hover:text-blue-300 text-sm font-medium cursor-pointer underline transition disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] px-4"
             >
               {resending ? 'Reenviando...' : 'Reenviar codigo'}
             </button>
           </div>
 
-          <div className="text-center">
-            <Link href="/register" className="text-sm text-velya-subtle hover:text-velya-muted transition">
+          <div className="text-center py-1">
+            <Link href="/register" className="text-sm text-velya-subtle hover:text-velya-muted transition inline-block min-h-[44px] leading-[44px] px-4">
               Voltar ao cadastro
             </Link>
           </div>

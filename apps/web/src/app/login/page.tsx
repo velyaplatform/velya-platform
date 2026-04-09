@@ -97,9 +97,9 @@ export default function LoginPage() {
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
 
-          <div className="text-center mt-2">
+          <div className="text-center mt-2 py-2">
             <span className="text-sm text-velya-subtle">Nao tem conta? </span>
-            <Link href="/register" className="text-sm font-medium text-blue-400 hover:text-blue-300 transition">
+            <Link href="/register" className="text-sm font-medium text-blue-400 hover:text-blue-300 transition inline-block min-h-[44px] leading-[44px]">
               Cadastrar
             </Link>
           </div>
