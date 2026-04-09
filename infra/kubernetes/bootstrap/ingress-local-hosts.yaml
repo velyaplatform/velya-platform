@@ -1,11 +1,7 @@
-# Ingress resources com hosts .local para desenvolvimento sem IP na URL
-# Para funcionar, adicionar ao /etc/hosts do host:
-#   172.19.0.100  velya.local grafana.velya.local argocd.velya.local prometheus.velya.local
-#   172.19.0.100  patient-flow.velya.local discharge.velya.local task-inbox.velya.local
-#   172.19.0.100  ai-gateway.velya.local audit.velya.local agents.velya.local
-#   172.19.0.100  policy-engine.velya.local memory-service.velya.local decision-log.velya.local
+# Ingress resources com HTTPS + hosts .local para desenvolvimento
+# Certificados TLS emitidos pela CA interna via cert-manager
 #
-# Comando rápido:
+# Para funcionar, adicionar ao /etc/hosts do host:
 #   echo '172.19.0.100  velya.local grafana.velya.local argocd.velya.local prometheus.velya.local patient-flow.velya.local discharge.velya.local task-inbox.velya.local ai-gateway.velya.local audit.velya.local agents.velya.local policy-engine.velya.local memory-service.velya.local decision-log.velya.local' | sudo tee -a /etc/hosts
 
 ---
@@ -14,8 +10,14 @@ kind: Ingress
 metadata:
   name: velya-web-local
   namespace: velya-dev-web
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - velya.local
+      secretName: velya-local-tls
   rules:
     - host: velya.local
       http:
@@ -33,8 +35,14 @@ kind: Ingress
 metadata:
   name: grafana-local
   namespace: velya-dev-observability
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - grafana.velya.local
+      secretName: velya-local-tls
   rules:
     - host: grafana.velya.local
       http:
@@ -52,8 +60,15 @@ kind: Ingress
 metadata:
   name: argocd-local
   namespace: argocd
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - argocd.velya.local
+      secretName: velya-local-tls
   rules:
     - host: argocd.velya.local
       http:
@@ -64,15 +79,24 @@ spec:
               service:
                 name: argocd-server
                 port:
-                  number: 80
+                  number: 443
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: patient-flow-local
   namespace: velya-dev-core
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - patient-flow.velya.local
+        - discharge.velya.local
+        - task-inbox.velya.local
+        - audit.velya.local
+      secretName: velya-local-tls
   rules:
     - host: patient-flow.velya.local
       http:
@@ -84,15 +108,6 @@ spec:
                 name: patient-flow
                 port:
                   number: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: discharge-local
-  namespace: velya-dev-core
-spec:
-  ingressClassName: nginx
-  rules:
     - host: discharge.velya.local
       http:
         paths:
@@ -103,15 +118,6 @@ spec:
                 name: discharge-orchestrator
                 port:
                   number: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: task-inbox-local
-  namespace: velya-dev-core
-spec:
-  ingressClassName: nginx
-  rules:
     - host: task-inbox.velya.local
       http:
         paths:
@@ -122,15 +128,6 @@ spec:
                 name: task-inbox
                 port:
                   number: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: audit-local
-  namespace: velya-dev-core
-spec:
-  ingressClassName: nginx
-  rules:
     - host: audit.velya.local
       http:
         paths:
@@ -145,10 +142,19 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ai-gateway-local
+  name: platform-local
   namespace: velya-dev-platform
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - ai-gateway.velya.local
+        - policy-engine.velya.local
+        - memory-service.velya.local
+        - decision-log.velya.local
+      secretName: velya-local-tls
   rules:
     - host: ai-gateway.velya.local
       http:
@@ -160,34 +166,6 @@ spec:
                 name: ai-gateway
                 port:
                   number: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: agents-local
-  namespace: velya-dev-agents
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: agents.velya.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: agent-orchestrator
-                port:
-                  number: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: policy-engine-local
-  namespace: velya-dev-platform
-spec:
-  ingressClassName: nginx
-  rules:
     - host: policy-engine.velya.local
       http:
         paths:
@@ -198,15 +176,6 @@ spec:
                 name: policy-engine
                 port:
                   number: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: memory-service-local
-  namespace: velya-dev-platform
-spec:
-  ingressClassName: nginx
-  rules:
     - host: memory-service.velya.local
       http:
         paths:
@@ -217,15 +186,6 @@ spec:
                 name: memory-service
                 port:
                   number: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: decision-log-local
-  namespace: velya-dev-platform
-spec:
-  ingressClassName: nginx
-  rules:
     - host: decision-log.velya.local
       http:
         paths:
@@ -234,5 +194,30 @@ spec:
             backend:
               service:
                 name: decision-log-service
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: agents-local
+  namespace: velya-dev-agents
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - agents.velya.local
+      secretName: velya-local-tls
+  rules:
+    - host: agents.velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: agent-orchestrator
                 port:
                   number: 80
