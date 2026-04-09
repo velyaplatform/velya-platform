@@ -290,12 +290,12 @@ export function Navigation({
               onKeyDown={handleKeyDown}
               placeholder={'\uD83D\uDCA1 Sugerir melhoria...'}
               disabled={suggestionStatus === 'sending'}
-              className="flex-1 bg-white/[0.06] border border-white/[0.12] rounded-md px-2.5 py-1.5 text-white/85 text-[0.78rem] outline-none font-[inherit] placeholder:text-white/40"
+              className="flex-1 bg-white/[0.06] border border-white/[0.12] rounded-lg px-3 py-3 text-white/85 text-sm outline-none font-[inherit] placeholder:text-white/40 min-h-[44px]"
             />
             <button
               onClick={handleSuggestionSubmit}
               disabled={!suggestionText.trim() || suggestionStatus === 'sending'}
-              className={`bg-white/10 border-none rounded-md px-2 py-1.5 text-white/70 text-[0.85rem] leading-none ${
+              className={`bg-white/10 border-none rounded-lg px-3 py-3 text-white/70 text-sm leading-none min-h-[44px] ${
                 suggestionText.trim() ? 'cursor-pointer hover:bg-white/20' : 'cursor-default'
               }`}
             >
