@@ -1,0 +1,159 @@
+# Silent Failure Matrix — Velya Platform
+
+**Version**: 1.0  
+**Date**: 2026-04-08  
+**Classification**: Internal — Restricted  
+**Purpose**: Catalog of failure modes that could occur without triggering any visible alarm, dashboard indicator, or error log  
+**Definition**: A silent failure is a system failure where the system continues to appear operational while producing incorrect, stale, or harmful outputs  
+**Review Cadence**: Quarterly; after any incident; after any new service or agent is deployed  
+
+---
+
+## Why Silent Failures Are Especially Dangerous in Clinical Systems
+
+In a hospital, a system that fails loudly is preferable to one that fails silently. A loud failure (service crash, 500 error, alert firing) triggers human investigation. A silent failure may persist for hours, shifts, or days while clinical staff makes decisions based on stale, incorrect, or missing information. In the Velya platform, silent failures in the AI/agent layer carry the highest risk because clinicians may trust AI recommendations without knowing the underlying system is degraded.
+
+---
+
+## Category 1: Infrastructure Silent Failures
+
+| ID | Failure | How It Can Occur | Detection Method | Detection Latency | Impact if Undetected | Remediation | Required Alert/Monitor |
+|---|---|---|---|---|---|---|---|
+| SF-INFRA-001 | KEDA ScaledObject source metric unavailable | KEDA is configured to scale based on a NATS message lag metric; the NATS exporter pod crashes or becomes unreachable; KEDA silently stops scaling decisions | KEDA controller logs show metric fetch errors; ScaledObject status shows LastActiveTime stale | 5–60 minutes depending on polling interval | Services remain at minimum replica count during load surge; clinical services become unresponsive under real hospital load | Prometheus alert on KEDA controller error logs; alert on ScaledObject `lastActiveTime` older than 2× polling interval | `keda_scaler_errors_total > 0` for > 5 minutes |
+| SF-INFRA-002 | ArgoCD sync drift — cluster diverges from git without alarm | Manual kubectl apply updates a resource; ArgoCD is configured without self-heal; resource in cluster no longer matches git; no alert fires because ArgoCD app is in Synced state from last sync | ArgoCD OutOfSync status; periodic drift detection job | Potentially hours or days until next manual sync | Security misconfiguration persists undetected; resource quota removed allowing runaway resource consumption | ArgoCD self-heal enabled on all applications; alert on OutOfSync status > 5 minutes | ArgoCD OutOfSync alert with immediate notification |
+| SF-INFRA-003 | Prometheus metrics scraping stopped for a service | velya-patient-flow pod has a label mismatch with its ServiceMonitor selector; Prometheus silently skips the target; all dashboards show no data (appear as empty, not as error) | Prometheus target list shows target down; absence-of-data alert | 5 minutes if absence alert configured; otherwise indefinitely | Zero visibility into service health; SLO compliance unknown; alert rules for that service never fire | Absence-of-data alert: `absent(up{job="patient-flow-service"})` fires if no data for 5 minutes | Prometheus target health check per service; alert on missing scrape |
+| SF-INFRA-004 | Loki ingestion stopped — logs appear to accumulate but are silently dropped | Loki hits its storage limit or ingestion rate limit; Promtail continues to push logs; Loki silently drops log lines; Grafana shows no logs but no error visible | Loki `loki_ingester_streams_dropped_total` metric; Promtail send error metrics | 10–30 minutes | PHI-related events, security incidents, and audit-relevant logs permanently lost; compliance gap | Loki ingestion rate alert; Promtail drop rate alert; Loki storage usage alert at 80% | `loki_ingester_streams_dropped_total` > 0 for 2 minutes |
+| SF-INFRA-005 | Node disk pressure silent degradation | A node approaches disk full state due to accumulated container logs, temporary files, or core dumps; kubelet marks node as DiskPressure=True but pods continue running (not evicted immediately); pod writes fail silently | Node condition DiskPressure; node disk usage metric | 5 minutes if node condition alert configured | Pods begin failing writes (database WAL, log files, NATS journal) with silent errors; data corruption risk | Node disk usage alert at 85% and 95%; kubelet DiskPressure condition alert | `node_filesystem_avail_bytes / node_filesystem_size_bytes < 0.15` |
+| SF-INFRA-006 | Backup job succeeds but produces corrupt backup file | Velunette/Velero backup job completes with exit code 0; backup file is written to S3; file is actually corrupt (partial write, compression error, interrupted upload); no restore test run | Backup file integrity verification step; restore test | Indefinitely until a restore is attempted | Catastrophic data loss during actual disaster; no valid recovery point | Post-backup integrity check: download and verify backup header; monthly restore test to staging | Backup integrity verification job must alert on checksum mismatch |
+| SF-INFRA-007 | ESO external secret sync stopped | ExternalSecrets Operator loses connectivity to LocalStack/AWS Secrets Manager; ESO silently stops syncing; Kubernetes Secrets retain stale values; pods continue using old credentials | ESO sync error metrics; ExternalSecret status lastSyncTime stale | 1 hour (ESO refreshInterval) | Services using rotated credentials begin failing authentication; if rotation completed, services start returning 401/500 | Alert on ESO sync failure per ExternalSecret; alert on lastSyncTime > 2h | `externalsecrets_sync_calls_error` > 0 for 10 minutes |
+| SF-INFRA-008 | MetalLB speaker election failure — VIP becomes unreachable | MetalLB L2 speaker pods fail on the node holding the VIP; no speaker takes over (split-brain or all speakers failed); external VIP becomes unreachable; pods continue running | MetalLB speaker health; VIP connectivity probe from external | 30 seconds to 5 minutes | All ingress traffic fails; clinical staff cannot access Velya; complete operational blackout | MetalLB speaker health alert; external VIP probe from outside cluster every 30s | External blackbox probe on velya.hospital.local every 30s |
+
+---
+
+## Category 2: Agent Silent Failures
+
+| ID | Failure | How It Can Occur | Detection Method | Detection Latency | Impact if Undetected | Remediation | Required Alert/Monitor |
+|---|---|---|---|---|---|---|---|
+| SF-AGENT-001 | Agent decision loop — agent repeatedly makes same decision with high confidence | Discharge-coordinator-agent repeatedly recommends discharge for a patient who has already been discharged; FHIR state not refreshed between iterations; agent loops on stale context | Decision-log-service: detect repeated identical decisions for same patient within 1 hour | 15 minutes to several hours without monitoring | Repeated notifications sent to clinical staff causing alert fatigue; agent API costs spiral; clinical team ignores all agent notifications | Agent idempotency check: do not re-recommend action already confirmed within same shift; alert on repeated identical decision | `velya_agent_duplicate_decision_total` > 3 for same patient in 60 minutes |
+| SF-AGENT-002 | Stale agent memory — agent acts on patient state from previous admission | Memory-service caches patient context; cache TTL expires but eviction fails; next patient in same bed has different MRN; agent retrieves previous patient's context; agent recommends actions appropriate for wrong patient | Memory-service cache key validation: verify patient MRN matches current bed occupant | Indefinitely without explicit cache validation | Agent recommends discharge for wrong patient; clinical harm if recommendation acted upon | Cache keyed on patient MRN + admission ID (not bed ID alone); memory TTL hard max of 24h; FHIR verification of patient identity before any agent action | Alert on memory-service cache hit age > 4h for clinical records |
+| SF-AGENT-003 | Agent silently dequeues tasks but produces no output | Agent runtime consumes NATS message from task-inbox queue; NestJS exception in processing throws and is caught by global handler; exception logged to stdout only; no acknowledgment failure; task is consumed and silently discarded | NATS consumer DLQ message count; task completion rate per agent | 30 minutes without DLQ monitoring | Clinical tasks silently dropped — discharge readiness assessments, medication reconciliation tasks, bed assignment requests | NATS consumer NACK with retry count; DLQ alert; task completion rate per agent alert | `nats_consumer_ack_failed_total` > 0 for 5 minutes per consumer |
+| SF-AGENT-004 | AI confidence score always high despite incorrect answers | LLM returns `confidence: 0.95` in structured output regardless of actual uncertainty; agent passes confidence threshold check and acts without human review; model has learned to output high confidence by default | Aggregate confidence score distribution monitoring; compare confidence vs. correction rate over time | Weeks to months without statistical tracking | Clinical staff never sees recommendations flagged for review; incorrect AI decisions bypass human review gate | Track confidence distribution per agent over rolling 7-day window; alert if > 95% of decisions above threshold (indicates calibration failure) | Calibration monitoring dashboard; confidence distribution alert |
+| SF-AGENT-005 | Agent-to-agent message published but wrong subject namespace | Agent-orchestrator publishes discharge.ready event to wrong NATS subject (`velya.discharge.ready` instead of `clinical.discharge.ready`); subscriber never receives it; discharge workflow never triggers | NATS subject subscription audit; message routing verification tests | Hours to days if not tested | Discharge workflow permanently stuck for all patients assigned to that orchestrator session | NATS subject namespace contract tests: verify publisher and subscriber use matching subjects; alert on unconsumed messages on known subjects | Contract tests per NATS subject pair in CI |
+| SF-AGENT-006 | Policy-engine returns stale policy decision due to cache | Policy-engine caches allow/deny decisions with 10-minute TTL; a clinical policy is updated (e.g., new contraindication added); agent continues acting on old cached policy for up to 10 minutes | Policy-engine cache invalidation event; policy version tracking | Up to 10 minutes (cache TTL) | Agent takes action that the updated policy would have blocked; patient safety risk during policy transition | Policy updates must push cache invalidation event; policy-engine alert when cache version diverges from Medplum policy version | Alert on policy cache version mismatch |
+
+---
+
+## Category 3: Clinical Silent Failures
+
+| ID | Failure | How It Can Occur | Detection Method | Detection Latency | Impact if Undetected | Remediation | Required Alert/Monitor |
+|---|---|---|---|---|---|---|---|
+| SF-CLIN-001 | Missed critical patient deterioration alert | Early-warning-agent successfully detects deterioration pattern from Vitals FHIR Observation resources; publishes alert to NATS; task-inbox-service is at capacity or has a bug and silently drops the alert; no task created; nurse never notified | Task creation rate from deterioration alerts; alert-to-task latency; DLQ monitoring | 5–60 minutes without monitoring | Patient deterioration unaddressed; clinical outcome worsened; potentially preventable adverse event | End-to-end alert delivery test every 15 minutes; synthetic deterioration alert injected into NATS, verify task appears in task-inbox within 60s | Synthetic health check: inject test alert, verify task created |
+| SF-CLIN-002 | Discharge blocker silently invisible — patient ready but discharge never triggered | discharge-orchestrator checks criteria; one criterion (pharmacy clearance) is blocked; criteria update event published by pharmacy system is never received (NATS consumer not running or wrong subscription); orchestrator never re-checks; patient marked as criteria-pending indefinitely | Discharge criteria completion rate; patients pending discharge > 6h without resolution | 6–48 hours | Patient occupies bed longer than medically necessary; bed availability reduced; ED overflow impact | Alert on patients pending discharge > target (e.g., 4h post criteria check); synthetic discharge flow test daily | Alert on discharge pending > 4h without progress |
+| SF-CLIN-003 | Follow-up task not triggered after AI recommendation | Bed-allocation-agent recommends a bed; publishes `bed.assigned` event; task-inbox-service subscriber for bed assignment follow-up has stopped (pod restart, CrashLoopBackOff between message publish and consume); follow-up task never created; porter never notified | Task creation rate per event type; dead letter queue; consumer health | 15–120 minutes | Patient cannot be moved to assigned bed; bed counts inconsistent with physical reality; ED cannot accept new patients | Consumer health monitoring per NATS subscription; alert on consumer lag > 10 messages for > 5 minutes | `nats_consumer_pending_messages > 10` sustained 5 minutes |
+| SF-CLIN-004 | Medication reconciliation failure — incorrect medication list persists | Medication-reconciliation-agent fails to retrieve medication records from pharmacy system due to timeout; records a partial reconciliation as complete; Medplum FHIR MedicationStatement shows outdated drugs as current | Reconciliation completion confidence score; reconciliation source verification | Until next reconciliation cycle or clinical review | Patient receives wrong medication or misses required medication due to stale reconciliation | Reconciliation must record source, timestamp, and completeness score; alert on low-confidence reconciliation | Alert on medication reconciliation confidence < 0.85 |
+| SF-CLIN-005 | Shift handover context loss — night team acts on stale day-shift state | Night clinical staff uses Velya; agent memory was built during day shift; patient condition changed significantly during afternoon; agent memory not refreshed; agent provides recommendations based on 8-hour-old state | Agent context freshness timestamp; FHIR resource version vs. agent context version | At handover time | Clinical team makes decisions on stale patient state; contraindicated actions recommended based on outdated information | Agent context must include FHIR resource version; alert when context age > 4h for active patient; force refresh at shift boundary | Alert on agent context age > 4h for any active patient |
+
+---
+
+## Category 4: Data Silent Failures
+
+| ID | Failure | How It Can Occur | Detection Method | Detection Latency | Impact if Undetected | Remediation | Required Alert/Monitor |
+|---|---|---|---|---|---|---|---|
+| SF-DATA-001 | NATS event lost without dead letter — no DLQ configured | Consumer processes a JetStream message and throws an exception; default NACKing behavior retries but consumer remains failed; after max retries, message is dropped; no DLQ configured to catch it | NATS JetStream `NumPending` and `NumAckPending` metrics; consumer error log | 30 minutes (max retry window) | Clinical event (admission, discharge, critical alert) permanently lost; downstream workflows never triggered | Configure DLQ per NATS stream; alert on any DLQ message; replay capability documented in runbook | `nats_jetstream_consumer_num_pending > 0` on DLQ subject |
+| SF-DATA-002 | Stale FHIR data served as current from memory-service cache | Memory-service cached patient FHIR bundle; patient's clinical status changed (new diagnosis, allergy added, discharged); cache was not invalidated because Medplum subscription event was missed; subsequent agent queries served stale data | FHIR resource version comparison: memory-service version vs. Medplum current version | Until cache expiry (potentially hours) | Clinical decisions made on outdated patient data; missed allergy; wrong discharge criteria | Hard TTL max of 1h for clinical FHIR cache; version check on cache hit: if FHIR version > cached version, refresh | Alert on FHIR cache staleness > 1h for active admissions |
+| SF-DATA-003 | FHIR subscription delivery failure — Medplum webhook not reaching audit-service | Medplum publishes FHIR change notifications to audit-service webhook URL; audit-service endpoint is down for maintenance; Medplum retries but eventually gives up; change events silently lost | Medplum subscription delivery log; audit-service webhook receipt counter | 1–4 hours (Medplum retry window) | FHIR changes not captured in audit trail; compliance gap; PHI access events unrecorded | Audit-service webhook must be high-availability (multiple replicas, PDB); alert on webhook delivery failure in Medplum; Medplum webhook dead letter | Alert on Medplum subscription delivery error in Medplum admin log |
+| SF-DATA-004 | PostgreSQL replication lag causes stale reads in patient-flow-service | patient-flow-service reads from a PostgreSQL read replica; primary-to-replica lag grows due to heavy write load; service reads stale patient state (different from write state by several seconds); race condition in patient admission flow | PostgreSQL replication lag metric (seconds behind master) | Seconds to minutes; impact depends on lag | Patient registered as admitted in write path; read path returns 404; double-admission or missing patient risk | Alert on replication lag > 5 seconds; route time-critical reads to primary; implement read-your-own-writes for same session | `pg_stat_replication_replay_lag_seconds > 5` |
+| SF-DATA-005 | Temporal workflow history corruption — silently completes with wrong state | Temporal workflow for discharge completes all activities; one activity result was swapped (wrong return value mapped to activity name); workflow records success; Medplum resource updated with incorrect value; no exception thrown | Activity result schema validation; end-to-end workflow outcome verification | Until clinical review reveals discrepancy | Patient discharged with incorrect reason code; wrong follow-up triggered; billing error | Activity results must be validated against Zod schema; workflow output must be verified against intent before Medplum write | Activity result schema validation test in CI |
+
+---
+
+## Category 5: Security Silent Failures
+
+| ID | Failure | How It Can Occur | Detection Method | Detection Latency | Impact if Undetected | Remediation | Required Alert/Monitor |
+|---|---|---|---|---|---|---|---|
+| SF-SEC-001 | Secret rotation failed silently — old credentials remain active | AWS Secrets Manager rotation Lambda fails (timeout, permission error, RDS connection failure during rotation); rotation is marked as "in progress" but not completed; Secrets Manager retains old value; no alert fires; ESO continues syncing old credential | CloudTrail: rotation failure event; Secrets Manager rotation status; ESO lastSyncTime | 24–72 hours if not monitored | Secrets remain unrotated past policy deadline; compromise window extended; compliance violation | Alert on Secrets Manager rotation failure; rotation success metric; rotation age metric per secret | CloudWatch alarm on Secrets Manager rotation failure event |
+| SF-SEC-002 | New CVE published affecting deployed image — no detection until next scan | Trivy scan runs at build time only; image deployed to production; critical CVE published after build; no continuous scanning; cluster continues running vulnerable image | Grype/Trivy continuous scanning against SBOM; ECR enhanced scanning | Days to weeks if no continuous scanning | Exploitable vulnerability in production; attacker may already be exploiting it before team is aware | ECR enhanced scanning (automatic re-scan on new CVE publication); daily Trivy scan job against deployed images; alert on new critical CVE match | Daily Trivy scan CronJob; alert on CRITICAL CVE match in deployed image |
+| SF-SEC-003 | Privileged container deployed via admitted manifest — silent runtime privilege | A deployment manifest with `privileged: true` or `allowPrivilegeEscalation: true` passes Kubernetes admission (no OPA/Kyverno configured); container runs as root with full host access; no alert fires | Kyverno policy violation report; Falco runtime security event | Indefinitely without admission control | Container breakout to host node; full cluster compromise via privileged pod | Kyverno ClusterPolicy: deny privileged containers; Falco runtime alert on privilege escalation | Kyverno audit mode scan of all running pods; alert on policy violation |
+| SF-SEC-004 | NetworkPolicy defined but not enforced — lateral movement undetected | kindnet CNI does not enforce NetworkPolicy; 12 NetworkPolicy objects are defined; engineers believe traffic is restricted; a compromised pod sends traffic to any other pod across namespaces; no alert fires | NetworkPolicy enforcement verification test; CNI capability check | Indefinitely — enforcement was never in place | Complete lateral movement freedom for any compromised pod in cluster; full blast radius for any single pod compromise | Verify CNI supports NetworkPolicy (Calico, Cilium, or EKS VPC CNI with policy support); run enforcement test: verify blocked traffic is actually blocked | NetworkPolicy enforcement test in CI; alert on unexpected cross-namespace traffic |
+| SF-SEC-005 | Anthropic API key exposed via log — no PHI scrubbing in Promtail | NestJS service logs an HTTP request including Authorization header; Promtail ships log to Loki; Loki stores plaintext API key; no PHI/secret scrubbing in Promtail pipeline stages | Loki query for known API key format patterns; Promtail pipeline log scrubbing verification | Indefinitely if Loki is compromised | API key accessible to anyone with Loki read access; all Grafana users see API key; uncontrolled API access | Promtail pipeline stage: drop or mask Authorization headers; NestJS interceptor to strip sensitive headers from logs | Automated scan of Loki index for API key patterns periodically |
+| SF-SEC-006 | ArgoCD sync secret visible in ArgoCD UI — repo access credential exposed | ArgoCD repository secret stored as Kubernetes Secret; ArgoCD UI shows repository configuration including credential; any user with ArgoCD viewer role can see the secret via the UI "Repo Settings" page | ArgoCD UI audit; verify viewer role cannot see secrets | Until next ArgoCD UI audit | GitHub repository credential stolen; attacker can push to repository; supply chain compromised | Verify ArgoCD viewer role cannot access "Repo Settings"; use ArgoCD Operator with sealed secrets for repo credentials | Periodic ArgoCD RBAC audit; test viewer role cannot see repo secrets |
+
+---
+
+## Category 6: Frontend Silent Failures
+
+| ID | Failure | How It Can Occur | Detection Method | Detection Latency | Impact if Undetected | Remediation | Required Alert/Monitor |
+|---|---|---|---|---|---|---|---|
+| SF-FE-001 | Degraded mode active but user unaware — UI shows cached data without indication | api-gateway returns a cached response when Medplum is unreachable; Next.js renders the page without any degraded mode banner; clinical staff interprets the data as current; no indication that the backend is unreachable | Error boundary monitoring; explicit degraded mode state in API response header; UI degraded mode banner | Immediately if implemented; indefinitely if not | Clinical staff makes decisions on stale data believing it is current; patient harm risk | Every API response must include a `X-Data-Freshness` header; frontend must display degraded mode banner when freshness > threshold | Frontend degraded mode test: simulate backend failure; verify banner appears within 10s |
+| SF-FE-002 | JavaScript exception silently swallowed in clinical workflow | A React component in the discharge workflow throws a TypeError; a catch block logs to console but does not re-throw or report; the button that the clinician clicked appears to succeed (no error shown); discharge workflow never completed | Sentry/error tracking integration; unhandled promise rejection tracking; workflow completion rate | Until user notices workflow had no effect | Clinical action appears to succeed but does not; discharge never triggered; bed not freed; clinician unaware | All catch blocks must: log to structured logger, publish error event to backend, display user-facing error message | Sentry integration with alerts on unhandled exceptions in clinical components |
+| SF-FE-003 | WebSocket disconnects silently — real-time updates stop | velya-web establishes WebSocket to api-gateway for real-time patient state updates; WebSocket connection drops due to network hiccup; Next.js does not auto-reconnect; UI continues showing data from last received update; timestamps not shown | WebSocket connection state indicator in UI; heartbeat mechanism | Until user refreshes the page | Clinical staff viewing stale patient census; bed assignments may be wrong; deterioration alerts not received | WebSocket heartbeat with 30s timeout; auto-reconnect with exponential backoff; connection status indicator in UI header | UI: connection status indicator always visible; alert on WebSocket error rate > 5/minute |
+| SF-FE-004 | Pagination silently truncates patient list | patient-flow-service paginates to 100 patients per page by default; ward has 102 patients; last 2 patients never displayed; no "load more" indicator implemented; clinical staff believes they see all patients | Patient count in UI vs. count from API total field; pagination completeness test | Indefinitely | Two patients invisible to clinical staff; deterioration alert for invisible patient never seen | UI must display total count vs. shown count; implement pagination or infinite scroll; alert when total > page size | Automated test: compare patient count in UI with API total |
+| SF-FE-005 | Content Security Policy blocks legitimate API calls silently | CSP header configured; new API endpoint added at different subdomain not included in connect-src; browser silently blocks the fetch call; error appears in browser console (not visible to user); feature appears broken with no error message | Browser console monitoring (not practical); CSP violation report endpoint; functional test of each API integration | Until QA testing or user report | Feature appears to work in dev (no CSP) but silently fails in production; clinical workflow blocked | CSP violation reporting endpoint (`report-to` directive); Sentry CSP violation tracking | Alert on CSP violation reports > 10/hour |
+
+---
+
+## Silent Failure Coverage Requirements
+
+The following monitors are required before production certification. None currently exist for Velya services.
+
+### Required Prometheus Alerts
+
+```yaml
+# Example structure — implement in infra/kubernetes/monitoring/velya-alerts.yaml
+
+- alert: VelyaAgentDuplicateDecision
+  expr: increase(velya_agent_duplicate_decision_total[1h]) > 3
+  for: 0m
+  annotations:
+    summary: "Agent making repeated identical decisions — possible loop"
+
+- alert: VelyaServiceMetricsMissing
+  expr: absent(up{job=~"velya-.*"})
+  for: 5m
+  annotations:
+    summary: "Velya service metrics absent — scraping stopped"
+
+- alert: VelyaNATSConsumerLag
+  expr: nats_consumer_num_pending > 10
+  for: 5m
+  annotations:
+    summary: "NATS consumer lagging — events may be dropped"
+
+- alert: VelyaDischargePendingTooLong
+  expr: velya_discharge_pending_duration_minutes > 240
+  for: 0m
+  annotations:
+    summary: "Patient discharge pending > 4 hours — possible blocker"
+
+- alert: VelyaCriticalAlertUnacknowledged
+  expr: velya_critical_alert_unacknowledged_minutes > 5
+  for: 0m
+  annotations:
+    summary: "Critical deterioration alert unacknowledged — escalate immediately"
+
+- alert: VelyaMemoryCacheStaleness
+  expr: velya_memory_cache_age_hours{context_type="clinical"} > 4
+  for: 0m
+  annotations:
+    summary: "Agent clinical context stale > 4 hours — force refresh"
+
+- alert: VelyaLokiDropping
+  expr: increase(loki_ingester_streams_dropped_total[5m]) > 0
+  for: 2m
+  annotations:
+    summary: "Loki dropping log streams — audit logs may be incomplete"
+```
+
+### Required Synthetic Health Checks
+
+| Check Name | What It Verifies | Frequency | Alert Threshold |
+|---|---|---|---|
+| synthetic-deterioration-alert | Inject test alert → verify task created in task-inbox | Every 15 minutes | Alert if no task within 60s |
+| synthetic-discharge-flow | Trigger synthetic discharge → verify workflow completes | Every 30 minutes | Alert if not complete within 5m |
+| synthetic-agent-round-trip | Call agent with test patient → verify decision logged | Every 10 minutes | Alert if no decision log entry within 30s |
+| fhir-connectivity-check | Query Medplum FHIR healthcheck | Every 60 seconds | Alert if unreachable for 3 consecutive checks |
+| external-vip-probe | HTTP request to velya.hospital.local from external probe | Every 30 seconds | Alert if 3 consecutive failures |
+
+---
+
+*This matrix is a living document. Any new agent, service, or NATS subject introduced must be accompanied by an analysis of its silent failure modes and the required monitoring to detect them.*
