@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { AppShell } from '../components/app-shell';
 
 interface Patient {
@@ -555,7 +556,7 @@ export default function PatientsPage() {
                     </td>
                     <td>
                       <div className="flex gap-2">
-                        <button className="btn btn-sm btn-primary">Ver</button>
+                        <Link href={`/patients/${patient.mrn}`} className="btn btn-sm btn-primary no-underline">Ver</Link>
                         <button className="btn btn-sm btn-outline">Tarefas</button>
                       </div>
                     </td>
