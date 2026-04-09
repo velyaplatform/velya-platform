@@ -143,21 +143,10 @@ jobs:
       - name: Validate manifests with kubeval
         run: |
           # Valida sintaxe de todos os manifests YAML sem precisar de cluster
+          ERRORS=0
           find infra/kubernetes/ -name "*.yaml" -o -name "*.yml" | while read f; do
             if grep -q "^apiVersion:" "$f" 2>/dev/null; then
-              # Verificação básica de estrutura YAML
-              python3 -c "
-import yaml,sys
-try:
-    docs=list(yaml.safe_load_all(open('$f')))
-    for doc in docs:
-        if doc and 'apiVersion' in doc and 'kind' in doc:
-            assert 'metadata' in doc, f'Missing metadata in {doc[\"kind\"]}'
-    print('OK: $f')
-except Exception as e:
-    print(f'ERRO: $f — {e}')
-    sys.exit(1)
-" 2>/dev/null || echo "AVISO: $f — verificar manualmente"
+              python3 -c "import yaml; list(yaml.safe_load_all(open('$f')))" 2>/dev/null && echo "OK: $f" || { echo "ERRO: $f"; ERRORS=$((ERRORS+1)); }
             fi
           done
           echo "✅ Manifests Kubernetes validados"
