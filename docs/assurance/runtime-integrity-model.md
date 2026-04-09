@@ -1,945 +1,935 @@
 # Modelo de Integridade em Runtime - Velya Platform
 
-## Visao Geral
-
-Este documento define o que deve ser monitorado durante a operacao da Velya Platform, incluindo metricas especificas, queries PromQL, thresholds de alerta e acoes de resposta. O modelo cobre: health checks, heartbeats, drift detection, SLOs, filas, latencia, erros, saturacao, DLQ, fallbacks e schedules.
-
----
-
-## 1. Health Checks com Verificacao de Dependencias
-
-### Problema com health checks simples
-Um HTTP 200 no `/healthz` nao garante que o servico esta funcional. O servico pode retornar 200 mas estar desconectado do banco de dados, do NATS ou do Temporal.
-
-### Implementacao de health check com dependencias
-
-```go
-// Exemplo: patient-flow health check (Go)
-package health
-
-import (
-    "context"
-    "encoding/json"
-    "net/http"
-    "time"
-)
-
-type DependencyStatus struct {
-    Name    string `json:"name"`
-    Status  string `json:"status"` // "ok", "degraded", "down"
-    Latency string `json:"latency"`
-    Error   string `json:"error,omitempty"`
-}
-
-type HealthResponse struct {
-    Status       string             `json:"status"`
-    Service      string             `json:"service"`
-    Version      string             `json:"version"`
-    Uptime       string             `json:"uptime"`
-    Dependencies []DependencyStatus `json:"dependencies"`
-}
-
-func (h *HealthHandler) ReadinessCheck(w http.ResponseWriter, r *http.Request) {
-    ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-    defer cancel()
-
-    deps := []DependencyStatus{}
-    allOk := true
-
-    // Verificar PostgreSQL
-    dbStart := time.Now()
-    if err := h.db.PingContext(ctx); err != nil {
-        deps = append(deps, DependencyStatus{
-            Name: "postgresql", Status: "down", Error: err.Error(),
-        })
-        allOk = false
-    } else {
-        deps = append(deps, DependencyStatus{
-            Name: "postgresql", Status: "ok",
-            Latency: time.Since(dbStart).String(),
-        })
-    }
-
-    // Verificar NATS JetStream
-    natsStart := time.Now()
-    if _, err := h.nats.JetStream(); err != nil {
-        deps = append(deps, DependencyStatus{
-            Name: "nats-jetstream", Status: "down", Error: err.Error(),
-        })
-        allOk = false
-    } else {
-        deps = append(deps, DependencyStatus{
-            Name: "nats-jetstream", Status: "ok",
-            Latency: time.Since(natsStart).String(),
-        })
-    }
-
-    // Verificar Temporal
-    temporalStart := time.Now()
-    if _, err := h.temporal.CheckHealth(ctx, nil); err != nil {
-        deps = append(deps, DependencyStatus{
-            Name: "temporal", Status: "degraded", Error: err.Error(),
-        })
-        // Temporal degradado nao torna o servico unready
-        // pois pode operar em modo de fallback
-    } else {
-        deps = append(deps, DependencyStatus{
-            Name: "temporal", Status: "ok",
-            Latency: time.Since(temporalStart).String(),
-        })
-    }
-
-    resp := HealthResponse{
-        Service:      "patient-flow",
-        Version:      h.version,
-        Uptime:       time.Since(h.startTime).String(),
-        Dependencies: deps,
-    }
-
-    if allOk {
-        resp.Status = "ok"
-        w.WriteHeader(http.StatusOK)
-    } else {
-        resp.Status = "unhealthy"
-        w.WriteHeader(http.StatusServiceUnavailable)
-    }
-
-    json.NewEncoder(w).Encode(resp)
-}
-```
-
-### Metricas e alertas
-
-| Metrica | Query PromQL | Threshold de alerta | Acao |
-|---|---|---|---|
-| Dependencia down | `health_dependency_status{status="down"}` | == 1 por > 30s | Alerta P2, verificar dependencia |
-| Health check latencia | `health_check_duration_seconds{quantile="0.99"}` | > 3s | Investigar dependencia lenta |
-| Readiness falha consecutiva | `kube_pod_status_ready{condition="false", namespace=~"velya.*"}` | > 0 por > 60s | Verificar logs do pod |
+> Definicao completa do que deve ser monitorado em runtime, como monitorar,
+> quando alertar e como responder.
+> Classificacao: Interno | Ultima atualizacao: 2026-04-08
 
 ---
 
-## 2. Heartbeat Freshness
+## 1. Visao Geral
 
-### Conceito
-Agentes e workers devem emitir heartbeats periodicos. Se um heartbeat nao e recebido dentro do intervalo esperado, o componente e considerado stale.
+O modelo de integridade em runtime define **12 categorias de monitoramento** que operam
+continuamente sobre todos os servicos Velya. Cada categoria tem metricas especificas,
+queries PromQL, thresholds de alerta e acoes de resposta definidas.
 
-### Metricas
+### Categorias
 
-```yaml
-# prometheus-rules.yml
-groups:
-  - name: velya-heartbeat-freshness
-    rules:
-      # Recording rule: tempo desde o ultimo heartbeat
-      - record: velya:heartbeat_age_seconds
-        expr: |
-          time() - max by (service, instance) (
-            velya_heartbeat_timestamp_seconds
-          )
-
-      # Alerta: heartbeat atrasado para agentes
-      - alert: AgentHeartbeatStale
-        expr: |
-          velya:heartbeat_age_seconds{service=~"agent-.*|claude-agent-.*"} > 60
-        for: 2m
-        labels:
-          severity: warning
-          team: agents
-        annotations:
-          summary: "Heartbeat stale para {{ $labels.service }} em {{ $labels.instance }}"
-          description: "Ultimo heartbeat recebido ha {{ $value }}s (limite: 60s)"
-          runbook: "docs/runbooks/agent-heartbeat-stale.md"
-
-      # Alerta: heartbeat atrasado para workers Temporal
-      - alert: TemporalWorkerHeartbeatStale
-        expr: |
-          velya:heartbeat_age_seconds{service=~".*-worker"} > 120
-        for: 3m
-        labels:
-          severity: critical
-          team: core
-        annotations:
-          summary: "Worker Temporal {{ $labels.service }} sem heartbeat"
-          description: "Ultimo heartbeat ha {{ $value }}s. Workflows podem estar travados."
-          runbook: "docs/runbooks/temporal-worker-stale.md"
-```
+| # | Categoria | Descricao |
+|---|---|---|
+| 1 | Health Checks com Verificacao de Dependencias | Probes que verificam dependencias reais |
+| 2 | Frescor de Heartbeat | Sinais periodicos de que o servico esta ativo e processando |
+| 3 | Padroes de Watchdog | Detectar quando um processo para de funcionar silenciosamente |
+| 4 | Deteccao de Drift GitOps | Diferenca entre estado declarado e estado real no cluster |
+| 5 | Deteccao de Anomalias | Desvios estatisticos do comportamento normal |
+| 6 | Monitoramento de SLOs | Error budget, burn rate, compliance |
+| 7 | Aging de Filas | Mensagens envelhecendo em filas NATS JetStream |
+| 8 | Rastreamento de Latencia | Distribuicao de latencia por servico e endpoint |
+| 9 | Rastreamento de Erros | Taxa e categorias de erros |
+| 10 | Rastreamento de Saturacao | CPU, memoria, disco, conexoes |
+| 11 | Visibilidade de DLQ | Mensagens em dead-letter queues |
+| 12 | Saude de Schedules e Fallbacks | Cron jobs, fallbacks ativados, circuit breakers |
 
 ---
 
-## 3. Drift Detection (GitOps vs Actual)
+## 2. Categoria 1: Health Checks com Verificacao de Dependencias
 
-### Conceito
-O estado real do cluster deve corresponder ao estado declarado no Git (ArgoCD). Qualquer divergencia (drift) indica uma mudanca nao autorizada ou um problema de sincronizacao.
+### Principio
 
-### Metricas ArgoCD
+Health checks **nao podem** retornar HTTP 200 sem verificar dependencias reais.
+Um servico que retorna "healthy" enquanto seu banco de dados esta inacessivel
+e uma violacao de integridade.
 
-| Metrica | Query PromQL | Threshold | Acao |
-|---|---|---|---|
-| App out of sync | `argocd_app_info{sync_status="OutOfSync", dest_namespace=~"velya.*"}` | == 1 por > 5m | Investigar drift, auto-sync deve resolver |
-| App degraded | `argocd_app_info{health_status="Degraded", dest_namespace=~"velya.*"}` | == 1 por > 2m | Alerta P2, verificar pods |
-| App missing | `argocd_app_info{health_status="Missing", dest_namespace=~"velya.*"}` | == 1 | Alerta P1, recurso deletado |
-| Sync failures | `argocd_app_sync_total{phase="Error", dest_namespace=~"velya.*"}` | > 0 por > 10m | Verificar logs ArgoCD |
-
-### Alertas de drift
+### Implementacao por Servico
 
 ```yaml
-groups:
-  - name: velya-gitops-drift
-    rules:
-      - alert: ArgoAppOutOfSync
-        expr: |
-          argocd_app_info{
-            sync_status="OutOfSync",
-            dest_namespace=~"velya-dev-.*"
-          } == 1
-        for: 5m
-        labels:
-          severity: warning
-          team: platform
-        annotations:
-          summary: "ArgoCD app {{ $labels.name }} out of sync"
-          description: "A aplicacao {{ $labels.name }} no namespace {{ $labels.dest_namespace }} esta fora de sincronia com o Git ha mais de 5 minutos."
-          action: "Verificar se auto-sync esta habilitado. Se drift manual, reverter."
+health_check_spec:
+  patient-flow:
+    liveness: /health/live
+    liveness_checks:
+      - "Event loop responsivo (responde em < 100ms)"
+      - "Processo nao esta em deadlock"
+    readiness: /health/ready
+    readiness_checks:
+      - "PostgreSQL acessivel (SELECT 1)"
+      - "NATS JetStream conectado"
+      - "Redis cache acessivel"
+      - "Tempo de resposta do DB < 100ms"
+    startup: /health/startup
+    startup_checks:
+      - "Migrations executadas"
+      - "Configuracao carregada"
+      - "Conexoes de pool inicializadas"
 
-      - alert: ArgoAppDegraded
-        expr: |
-          argocd_app_info{
-            health_status="Degraded",
-            dest_namespace=~"velya-dev-.*"
-          } == 1
-        for: 2m
-        labels:
-          severity: critical
-          team: platform
-        annotations:
-          summary: "ArgoCD app {{ $labels.name }} degraded"
-          description: "A aplicacao {{ $labels.name }} esta em estado degradado. Pods podem nao estar saudaveis."
+  discharge-orchestrator:
+    readiness_checks:
+      - "PostgreSQL acessivel"
+      - "Temporal Server conectado e worker registrado"
+      - "NATS JetStream conectado"
+      - "patient-flow API acessivel"
 
-      # Drift detection customizado: comparar configmaps
-      - alert: ConfigMapDrift
-        expr: |
-          velya_configmap_hash{namespace=~"velya-dev-.*"}
-          !=
-          velya_configmap_expected_hash{namespace=~"velya-dev-.*"}
-        for: 1m
-        labels:
-          severity: critical
-          team: platform
-        annotations:
-          summary: "ConfigMap {{ $labels.configmap }} driftou do valor esperado"
-          description: "ConfigMap foi modificado fora do GitOps. ArgoCD deve corrigir automaticamente."
+  ai-gateway:
+    readiness_checks:
+      - "PostgreSQL acessivel"
+      - "Pelo menos 1 provider LLM acessivel (Anthropic ou fallback)"
+      - "Guardrails configuracao carregada"
+      - "prompt-registry acessivel"
+      - "Token budget disponivel"
+
+  task-inbox:
+    readiness_checks:
+      - "PostgreSQL acessivel"
+      - "NATS JetStream conectado"
+      - "WebSocket server ativo"
+
+  velya-web:
+    readiness_checks:
+      - "Servidor HTTP ativo"
+      - "Assets estaticos servidos corretamente"
+      - "api-gateway acessivel (opcional, degrada gracefully)"
 ```
 
----
-
-## 4. SLO Monitoring
-
-### SLOs definidos por servico
-
-| Servico | SLI | SLO | Error Budget (30 dias) |
-|---|---|---|---|
-| patient-flow | Disponibilidade (requests com sucesso / total) | 99.9% | 43.2 min |
-| patient-flow | Latencia P99 < 2s | 99.5% | 3.6 horas |
-| discharge-orchestrator | Workflows completados com sucesso | 99.5% | 3.6 horas |
-| task-inbox | Mensagens processadas < 5s | 99.0% | 7.2 horas |
-| ai-gateway | Inferencia disponivel | 99.0% | 7.2 horas |
-| velya-web | LCP < 2.5s | 95.0% | 36 horas |
-
-### Recording rules para SLOs
+### Metricas e Alertas
 
 ```yaml
-groups:
-  - name: velya-slo-recording
-    rules:
-      # patient-flow: disponibilidade
-      - record: velya:sli:patient_flow_availability
-        expr: |
-          sum(rate(http_requests_total{
-            service="patient-flow",
-            status!~"5.."
-          }[5m]))
-          /
-          sum(rate(http_requests_total{
-            service="patient-flow"
-          }[5m]))
+# Metrica: health check com detalhes de dependencias
+- name: velya_health_dependency_status
+  description: "Status de cada dependencia verificada pelo health check"
+  type: gauge
+  labels: [service, dependency, status]
+  values: "1 = healthy, 0 = unhealthy"
 
-      # patient-flow: latencia
-      - record: velya:sli:patient_flow_latency_good
-        expr: |
-          sum(rate(http_request_duration_seconds_bucket{
-            service="patient-flow",
-            le="2.0"
-          }[5m]))
-          /
-          sum(rate(http_request_duration_seconds_count{
-            service="patient-flow"
-          }[5m]))
-
-      # discharge-orchestrator: workflow success
-      - record: velya:sli:discharge_workflow_success
-        expr: |
-          sum(rate(temporal_workflow_completed_total{
-            namespace="velya",
-            workflow_type=~"discharge.*"
-          }[5m]))
-          /
-          (
-            sum(rate(temporal_workflow_completed_total{
-              namespace="velya",
-              workflow_type=~"discharge.*"
-            }[5m]))
-            +
-            sum(rate(temporal_workflow_failed_total{
-              namespace="velya",
-              workflow_type=~"discharge.*"
-            }[5m]))
-          )
-
-      # task-inbox: processamento rapido
-      - record: velya:sli:task_inbox_fast_processing
-        expr: |
-          sum(rate(task_processing_duration_seconds_bucket{
-            service="task-inbox",
-            le="5.0"
-          }[5m]))
-          /
-          sum(rate(task_processing_duration_seconds_count{
-            service="task-inbox"
-          }[5m]))
-
-      # Error budget remaining (30 dias)
-      - record: velya:error_budget:patient_flow_remaining
-        expr: |
-          1 - (
-            (1 - velya:sli:patient_flow_availability)
-            /
-            (1 - 0.999)
-          )
-
-      - record: velya:error_budget:discharge_remaining
-        expr: |
-          1 - (
-            (1 - velya:sli:discharge_workflow_success)
-            /
-            (1 - 0.995)
-          )
-```
-
-### Alertas de error budget
-
-```yaml
-groups:
-  - name: velya-slo-alerts
-    rules:
-      # Error budget queimando rapido (burn rate alto)
-      - alert: PatientFlowErrorBudgetBurnHigh
-        expr: |
-          (
-            1 - velya:sli:patient_flow_availability
-          ) / (1 - 0.999) > 14.4
-        for: 5m
-        labels:
-          severity: critical
-          team: core
-          slo: patient-flow-availability
-        annotations:
-          summary: "patient-flow esta queimando error budget 14.4x mais rapido que o permitido"
-          description: "Na taxa atual, o error budget de 30 dias sera esgotado em menos de 2 dias."
-          action: "Investigar imediatamente. Considerar rollback do ultimo deploy."
-
-      # Error budget queimando moderadamente
-      - alert: PatientFlowErrorBudgetBurnModerate
-        expr: |
-          (
-            1 - velya:sli:patient_flow_availability
-          ) / (1 - 0.999) > 6
-        for: 30m
-        labels:
-          severity: warning
-          team: core
-          slo: patient-flow-availability
-        annotations:
-          summary: "patient-flow esta queimando error budget 6x mais rapido que o permitido"
-          description: "Na taxa atual, o error budget sera esgotado em menos de 5 dias."
-
-      # Error budget esgotado
-      - alert: PatientFlowErrorBudgetExhausted
-        expr: |
-          velya:error_budget:patient_flow_remaining < 0
-        for: 1m
-        labels:
-          severity: critical
-          team: core
-          slo: patient-flow-availability
-        annotations:
-          summary: "Error budget de patient-flow ESGOTADO"
-          description: "SLO de 99.9% de disponibilidade foi violado no periodo de 30 dias. Suspender deploys nao-urgentes."
-          action: "Ativar deploy freeze para patient-flow ate estabilizar."
-```
-
----
-
-## 5. Queue Aging (NATS JetStream)
-
-### Metricas de filas
-
-| Metrica | Query PromQL | Threshold | Severidade | Acao |
-|---|---|---|---|---|
-| Consumer lag | `nats_consumer_num_pending{stream=~"velya.*"}` | > 1000 msgs | Warning | Verificar consumer, considerar scale |
-| Consumer lag critico | `nats_consumer_num_pending{stream=~"velya.*"}` | > 10000 msgs | Critical | Scale imediato, investigar backpressure |
-| Mensagem mais antiga | `nats_consumer_num_ack_pending{stream=~"velya.*"}` | > 100 | Warning | Verificar processing time |
-| Stream utilization | `nats_server_jetstream_stream_bytes{stream=~"velya.*"}` | > 80% do limite | Warning | Verificar retention policy |
-| Delivery failures | `rate(nats_consumer_num_redelivered{stream=~"velya.*"}[5m])` | > 10/min | Warning | Verificar DLQ, logs do consumer |
-
-### Alertas NATS
-
-```yaml
-groups:
-  - name: velya-nats-health
-    rules:
-      - alert: NATSConsumerLagHigh
-        expr: |
-          nats_consumer_num_pending{
-            stream=~"velya-.*"
-          } > 1000
-        for: 5m
-        labels:
-          severity: warning
-          team: platform
-        annotations:
-          summary: "NATS consumer lag alto: {{ $labels.stream }}/{{ $labels.consumer }}"
-          description: "{{ $value }} mensagens pendentes. Consumer pode estar lento ou parado."
-          action: |
-            1. Verificar se consumer pods estao rodando: kubectl get pods -n velya-dev-core -l app={{ $labels.consumer }}
-            2. Verificar logs do consumer
-            3. Se necessario, escalar consumer via KEDA
-
-      - alert: NATSConsumerLagCritical
-        expr: |
-          nats_consumer_num_pending{
-            stream=~"velya-.*"
-          } > 10000
-        for: 2m
-        labels:
-          severity: critical
-          team: platform
-        annotations:
-          summary: "NATS consumer lag CRITICO: {{ $labels.stream }}/{{ $labels.consumer }}"
-          description: "{{ $value }} mensagens pendentes. Risco de perda de mensagens se stream atingir limite."
-          action: "Escalar consumer imediatamente. Verificar se ha deadlock ou erro sistematico."
-
-      - alert: NATSHighRedeliveryRate
-        expr: |
-          rate(nats_consumer_num_redelivered{
-            stream=~"velya-.*"
-          }[5m]) > 10
-        for: 3m
-        labels:
-          severity: warning
-          team: core
-        annotations:
-          summary: "Alta taxa de redelivery em {{ $labels.stream }}/{{ $labels.consumer }}"
-          description: "{{ $value }} redeliveries/seg. Mensagens estao falhando repetidamente."
-          action: "Verificar DLQ. Mensagens podem estar com formato invalido ou dependencia down."
-```
-
-### KEDA ScaledObject para autoscaling baseado em fila
-
-```yaml
-apiVersion: keda.sh/v1alpha1
-kind: ScaledObject
-metadata:
-  name: task-inbox-scaler
-  namespace: velya-dev-core
+# PromQL: Dependencia indisponivel
+- alert: VelyaDependencyUnhealthy
+  expr: |
+    velya_health_dependency_status{status="unhealthy"} == 0
+  for: 1m
   labels:
-    app: task-inbox
-spec:
-  scaleTargetRef:
-    name: task-inbox
-  pollingInterval: 15
-  cooldownPeriod: 60
-  minReplicaCount: 1
-  maxReplicaCount: 10
-  triggers:
-    - type: nats-jetstream
-      metadata:
-        natsServerMonitoringEndpoint: "nats.velya-dev-platform:8222"
-        account: "$G"
-        stream: "velya-tasks"
-        consumer: "task-inbox-consumer"
-        lagThreshold: "500"
-        activationLagThreshold: "10"
+    severity: warning
+  annotations:
+    summary: "Dependencia {{ $labels.dependency }} do servico {{ $labels.service }} indisponivel"
+    runbook: "https://runbooks.velya.internal/{{ $labels.service }}/dependency-{{ $labels.dependency }}"
+
+# PromQL: Servico com readiness falhando
+- alert: VelyaReadinessFailing
+  expr: |
+    kube_pod_status_ready{
+      namespace=~"velya-dev-.*",
+      condition="true"
+    } == 0
+  for: 2m
+  labels:
+    severity: critical
+  annotations:
+    summary: "Pod {{ $labels.pod }} com readiness falhando por mais de 2 minutos"
+    action: "Verificar logs do pod e status das dependencias"
 ```
 
 ---
 
-## 6. Latencia, Erros e Saturacao (RED/USE)
+## 3. Categoria 2: Frescor de Heartbeat
 
-### Metricas RED (Rate, Errors, Duration)
+Cada servico emite um heartbeat periodico que inclui timestamp e metadados.
+Se o heartbeat nao chega no tempo esperado, o servico e considerado "stale".
 
 ```yaml
-groups:
-  - name: velya-red-metrics
-    rules:
-      # Rate: requisicoes por segundo por servico
-      - record: velya:http_request_rate:5m
-        expr: |
-          sum by (service) (
-            rate(http_requests_total{namespace=~"velya-dev-.*"}[5m])
-          )
+heartbeat_config:
+  interval: 30s
+  staleness_threshold: 90s  # 3x o intervalo
+  
+  metric:
+    name: velya_heartbeat_last_timestamp_seconds
+    type: gauge
+    labels: [service, instance]
 
-      # Errors: taxa de erro por servico
-      - record: velya:http_error_rate:5m
-        expr: |
-          sum by (service) (
-            rate(http_requests_total{namespace=~"velya-dev-.*", status=~"5.."}[5m])
-          )
+  # PromQL: Heartbeat stale
+  alert:
+    name: VelyaHeartbeatStale
+    expr: |
+      time() - velya_heartbeat_last_timestamp_seconds > 90
+    for: 0m  # alerta imediato
+    labels:
+      severity: critical
+    annotations:
+      summary: "Heartbeat de {{ $labels.service }} ({{ $labels.instance }}) esta stale"
+      description: "Ultimo heartbeat ha {{ $value | humanizeDuration }}"
+      action: "Verificar se o processo esta rodando. Possivel deadlock ou crash silencioso."
+
+  # Implementacao no servico (TypeScript)
+  code_example: |
+    // Emitir heartbeat a cada 30 segundos
+    import { Counter, Gauge } from 'prom-client';
+    
+    const heartbeatGauge = new Gauge({
+      name: 'velya_heartbeat_last_timestamp_seconds',
+      help: 'Timestamp do ultimo heartbeat',
+      labelNames: ['service', 'instance'],
+    });
+    
+    setInterval(() => {
+      heartbeatGauge.set(
+        { service: process.env.OTEL_SERVICE_NAME, instance: process.env.HOSTNAME },
+        Date.now() / 1000
+      );
+    }, 30_000);
+```
+
+---
+
+## 4. Categoria 3: Padroes de Watchdog
+
+Watchdog detecta processos que param de funcionar silenciosamente (nao crasham, mas nao processam).
+
+```yaml
+watchdog_patterns:
+  # Watchdog 1: Worker de fila parou de processar
+  nats_consumer_watchdog:
+    metric: velya_nats_messages_processed_total
+    check: |
+      # Se o consumer tem mensagens pendentes mas nao processa nenhuma por 5 minutos
+      increase(velya_nats_messages_processed_total{service="$SERVICE"}[5m]) == 0
+      AND
+      nats_consumer_num_pending{stream="$STREAM", consumer="$CONSUMER"} > 0
+    alert:
+      name: VelyaWorkerStalled
+      for: 5m
+      severity: critical
+      action: "Worker parou de processar mensagens. Verificar deadlock, memory leak, ou blocked I/O."
+
+  # Watchdog 2: Temporal worker parou de executar atividades
+  temporal_worker_watchdog:
+    metric: temporal_activity_execution_total
+    check: |
+      increase(temporal_activity_execution_total{
+        namespace="velya",
+        task_queue=~"discharge-.*"
+      }[10m]) == 0
+      AND
+      temporal_workflow_task_schedule_to_start_latency_count{
+        namespace="velya",
+        task_queue=~"discharge-.*"
+      } > 0
+    alert:
+      name: VelyaTemporalWorkerStalled
+      for: 5m
+      severity: critical
+      action: "Temporal worker nao esta executando atividades. Verificar conexao com Temporal Server."
+
+  # Watchdog 3: Agente de IA parou de responder
+  ai_agent_watchdog:
+    metric: velya_ai_inference_total
+    check: |
+      increase(velya_ai_inference_total{service="ai-gateway"}[10m]) == 0
+      AND
+      increase(http_requests_total{service="ai-gateway"}[10m]) > 0
+    alert:
+      name: VelyaAIAgentStalled
+      for: 5m
+      severity: high
+      action: "ai-gateway recebe requests mas nao faz inferencias. Verificar provider de LLM."
+```
+
+---
+
+## 5. Categoria 4: Deteccao de Drift GitOps
+
+```yaml
+drift_detection:
+  tool: "ArgoCD"
+  
+  # ArgoCD detecta drift automaticamente
+  metric: argocd_app_info
+  
+  alerts:
+    - name: VelyaGitOpsDriftDetected
+      expr: |
+        argocd_app_info{
+          namespace=~"velya-dev-.*",
+          sync_status="OutOfSync"
+        } == 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Drift detectado: app {{ $labels.name }} esta OutOfSync"
+        action: "Verificar se houve mudanca manual. ArgoCD deve ser a unica fonte de deploy."
+
+    - name: VelyaGitOpsDriftPersistent
+      expr: |
+        argocd_app_info{
+          namespace=~"velya-dev-.*",
+          sync_status="OutOfSync"
+        } == 1
+      for: 30m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Drift persistente: app {{ $labels.name }} OutOfSync por mais de 30 minutos"
+        action: "Drift nao foi corrigido. Possivel mudanca manual nao revertida. Investigar."
+
+    - name: VelyaGitOpsHealthDegraded
+      expr: |
+        argocd_app_info{
+          namespace=~"velya-dev-.*",
+          health_status=~"Degraded|Missing"
+        } == 1
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "App {{ $labels.name }} com health {{ $labels.health_status }}"
+
+  # CronJob para verificacao ativa de drift
+  verification_job:
+    schedule: "*/10 * * * *"  # a cada 10 minutos
+    checks:
+      - "Comparar replicas declaradas vs replicas reais"
+      - "Comparar image tags declarados vs tags rodando"
+      - "Comparar ConfigMaps/Secrets declarados vs aplicados"
+      - "Verificar resources nao gerenciados no namespace"
+```
+
+---
+
+## 6. Categoria 5: Deteccao de Anomalias
+
+```yaml
+anomaly_detection:
+  # Anomalia 1: Spike de requests
+  request_spike:
+    metric: http_requests_total
+    query: |
+      (
+        rate(http_requests_total{service="$SERVICE"}[5m])
+        /
+        avg_over_time(rate(http_requests_total{service="$SERVICE"}[5m])[1h:5m])
+      ) > 3
+    threshold: "3x a media da ultima hora"
+    alert:
+      name: VelyaRequestSpike
+      severity: warning
+      action: "Verificar se e trafego legitimo ou ataque. Verificar logs de acesso."
+
+  # Anomalia 2: Aumento subito de latencia
+  latency_spike:
+    metric: http_request_duration_seconds
+    query: |
+      (
+        histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{service="$SERVICE"}[5m]))
+        /
+        avg_over_time(
+          histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{service="$SERVICE"}[5m]))[1h:5m]
+        )
+      ) > 2
+    threshold: "2x a media da ultima hora"
+    alert:
+      name: VelyaLatencySpike
+      severity: warning
+
+  # Anomalia 3: Mudanca no padrao de erros
+  error_pattern_change:
+    metric: http_requests_total
+    query: |
+      (
+        sum(rate(http_requests_total{service="$SERVICE", status=~"5.."}[5m]))
+        -
+        avg_over_time(
+          sum(rate(http_requests_total{service="$SERVICE", status=~"5.."}[5m]))[24h:5m]
+        )
+      )
+      /
+      stddev_over_time(
+        sum(rate(http_requests_total{service="$SERVICE", status=~"5.."}[5m]))[24h:5m]
+      ) > 3
+    threshold: "3 desvios padrao acima da media de 24h"
+    alert:
+      name: VelyaErrorPatternAnomaly
+      severity: warning
+
+  # Anomalia 4: Uso de tokens de IA anomalo
+  ai_token_anomaly:
+    metric: velya_ai_tokens_used_total
+    query: |
+      sum(rate(velya_ai_tokens_used_total[5m])) * 300
+      >
+      3 * avg_over_time(sum(rate(velya_ai_tokens_used_total[5m]))[24h:5m]) * 300
+    threshold: "3x a media de 24h"
+    alert:
+      name: VelyaAITokenAnomaly
+      severity: high
+      action: "Possivel loop de agente ou prompt injection. Verificar logs do ai-gateway."
+```
+
+---
+
+## 7. Categoria 6: Monitoramento de SLOs
+
+```yaml
+slo_monitoring:
+  patient-flow:
+    availability:
+      target: 99.95%
+      window: 30d
+      budget_total: "21.6 minutos/mes"
+      
+      # Error budget restante
+      query_budget_remaining: |
+        1 - (
+          sum(rate(http_requests_total{service="patient-flow", status=~"5.."}[30d]))
           /
-          sum by (service) (
-            rate(http_requests_total{namespace=~"velya-dev-.*"}[5m])
-          )
+          sum(rate(http_requests_total{service="patient-flow"}[30d]))
+        ) / (1 - 0.9995)
+      
+      # Burn rate (quao rapido esta queimando o budget)
+      query_burn_rate_1h: |
+        (
+          sum(rate(http_requests_total{service="patient-flow", status=~"5.."}[1h]))
+          /
+          sum(rate(http_requests_total{service="patient-flow"}[1h]))
+        ) / (1 - 0.9995)
+      
+      alerts:
+        - name: VelyaSLOBudgetBurnRateCritical
+          expr: |
+            velya_slo_burn_rate_1h{service="patient-flow"} > 14.4
+            AND
+            velya_slo_burn_rate_6h{service="patient-flow"} > 6
+          for: 2m
+          severity: critical
+          description: "Budget sera esgotado em menos de 1 hora"
+          action: "Acionar on-call imediatamente. Possivel rollback necessario."
 
-      # Duration: latencia P50, P95, P99 por servico
-      - record: velya:http_latency_p50:5m
-        expr: |
-          histogram_quantile(0.50,
-            sum by (service, le) (
-              rate(http_request_duration_seconds_bucket{namespace=~"velya-dev-.*"}[5m])
-            )
-          )
+        - name: VelyaSLOBudgetBurnRateHigh
+          expr: |
+            velya_slo_burn_rate_1h{service="patient-flow"} > 6
+            AND
+            velya_slo_burn_rate_6h{service="patient-flow"} > 3
+          for: 5m
+          severity: warning
+          description: "Budget sera esgotado em menos de 6 horas"
 
-      - record: velya:http_latency_p95:5m
-        expr: |
-          histogram_quantile(0.95,
-            sum by (service, le) (
-              rate(http_request_duration_seconds_bucket{namespace=~"velya-dev-.*"}[5m])
-            )
-          )
+        - name: VelyaSLOBudgetLow
+          expr: |
+            velya_slo_budget_remaining_ratio{service="patient-flow"} < 0.2
+          for: 0m
+          severity: warning
+          description: "Menos de 20% do error budget restante. Deploys bloqueados."
 
-      - record: velya:http_latency_p99:5m
+    latency:
+      target_p99: 500ms
+      window: 30d
+      query: |
+        histogram_quantile(0.99,
+          sum(rate(http_request_duration_seconds_bucket{service="patient-flow"}[30d])) by (le)
+        )
+      alert:
+        name: VelyaLatencySLOBreach
         expr: |
           histogram_quantile(0.99,
-            sum by (service, le) (
-              rate(http_request_duration_seconds_bucket{namespace=~"velya-dev-.*"}[5m])
-            )
-          )
-```
-
-### Metricas USE (Utilization, Saturation, Errors) para recursos
-
-```yaml
-groups:
-  - name: velya-use-metrics
-    rules:
-      # CPU Utilization
-      - record: velya:cpu_utilization
-        expr: |
-          sum by (namespace, pod) (
-            rate(container_cpu_usage_seconds_total{
-              namespace=~"velya-dev-.*"
-            }[5m])
-          )
-          /
-          sum by (namespace, pod) (
-            kube_pod_container_resource_limits{
-              namespace=~"velya-dev-.*",
-              resource="cpu"
-            }
-          )
-
-      # Memory Utilization
-      - record: velya:memory_utilization
-        expr: |
-          sum by (namespace, pod) (
-            container_memory_working_set_bytes{
-              namespace=~"velya-dev-.*"
-            }
-          )
-          /
-          sum by (namespace, pod) (
-            kube_pod_container_resource_limits{
-              namespace=~"velya-dev-.*",
-              resource="memory"
-            }
-          )
-
-      # CPU Saturation (throttling)
-      - record: velya:cpu_throttle_rate
-        expr: |
-          sum by (namespace, pod) (
-            rate(container_cpu_cfs_throttled_periods_total{
-              namespace=~"velya-dev-.*"
-            }[5m])
-          )
-          /
-          sum by (namespace, pod) (
-            rate(container_cpu_cfs_periods_total{
-              namespace=~"velya-dev-.*"
-            }[5m])
-          )
-```
-
-### Alertas RED/USE
-
-```yaml
-groups:
-  - name: velya-red-use-alerts
-    rules:
-      - alert: HighErrorRate
-        expr: velya:http_error_rate:5m > 0.05
-        for: 2m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Taxa de erro alta para {{ $labels.service }}: {{ $value | humanizePercentage }}"
-
-      - alert: HighLatencyP99
-        expr: velya:http_latency_p99:5m > 5.0
+            sum(rate(http_request_duration_seconds_bucket{service="patient-flow"}[1h])) by (le)
+          ) > 0.5
         for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Latencia P99 alta para {{ $labels.service }}: {{ $value }}s"
+        severity: warning
 
-      - alert: CPUThrottling
-        expr: velya:cpu_throttle_rate > 0.25
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "CPU throttling alto para {{ $labels.pod }}: {{ $value | humanizePercentage }}"
-          action: "Considerar aumentar CPU limit ou otimizar codigo."
+  discharge-orchestrator:
+    availability:
+      target: 99.9%
+      window: 30d
+    workflow_success:
+      target: 99.5%
+      query: |
+        sum(rate(temporal_workflow_completed_total{
+          workflow_type="DischargeWorkflow", status="Completed"
+        }[30d]))
+        /
+        sum(rate(temporal_workflow_completed_total{
+          workflow_type="DischargeWorkflow"
+        }[30d]))
 
-      - alert: MemoryNearLimit
-        expr: velya:memory_utilization > 0.90
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Memoria proxima do limite para {{ $labels.pod }}: {{ $value | humanizePercentage }}"
-          action: "Monitorar. Se persistir, aumentar memory limit ou investigar leak."
-
-      - alert: MemoryOOMRisk
-        expr: velya:memory_utilization > 0.95
-        for: 1m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Risco de OOM para {{ $labels.pod }}: {{ $value | humanizePercentage }}"
-          action: "Acao imediata. Pod sera killed pelo OOM Killer. Investigar memory leak."
+  ai-gateway:
+    availability:
+      target: 99.9%
+      window: 30d
+    fallback_rate:
+      target: "< 5%"
+      query: |
+        sum(rate(velya_ai_fallback_activated_total[30d]))
+        /
+        sum(rate(velya_ai_inference_total[30d]))
 ```
 
 ---
 
-## 7. DLQ (Dead Letter Queue) Visibility
-
-### Metricas DLQ
+## 8. Categoria 7: Aging de Filas
 
 ```yaml
-groups:
-  - name: velya-dlq
-    rules:
-      # Contagem de mensagens na DLQ
-      - record: velya:dlq_messages_total
+queue_aging:
+  nats_jetstream:
+    # Idade da mensagem mais antiga nao processada
+    metric: nats_consumer_num_pending
+    
+    streams:
+      patient-events:
+        consumers:
+          - patient-flow-consumer
+          - discharge-orchestrator-consumer
+          - notification-hub-consumer
+        max_pending_age: 5m
+        max_pending_count: 1000
+
+      discharge-events:
+        consumers:
+          - discharge-orchestrator-consumer
+        max_pending_age: 2m
+        max_pending_count: 500
+
+      task-events:
+        consumers:
+          - task-inbox-consumer
+        max_pending_age: 5m
+        max_pending_count: 2000
+
+      ai-requests:
+        consumers:
+          - ai-gateway-consumer
+        max_pending_age: 30s
+        max_pending_count: 100
+
+    alerts:
+      - name: VelyaQueueAging
         expr: |
           nats_consumer_num_pending{
-            stream=~"velya-.*-dlq"
-          }
-
-      # Taxa de entrada na DLQ
-      - record: velya:dlq_ingress_rate:5m
-        expr: |
-          rate(nats_consumer_delivered_total{
-            stream=~"velya-.*-dlq"
-          }[5m])
-
-      - alert: DLQMessagesAccumulating
-        expr: |
-          velya:dlq_messages_total > 10
+            stream=~"patient-events|discharge-events|task-events|ai-requests"
+          } > 1000
         for: 5m
-        labels:
-          severity: warning
-          team: core
-        annotations:
-          summary: "DLQ acumulando mensagens: {{ $labels.stream }}"
-          description: "{{ $value }} mensagens na DLQ. Indica falhas sistematicas no processamento."
-          action: |
-            1. Verificar formato das mensagens na DLQ
-            2. Verificar logs de erro do consumer original
-            3. Corrigir e reprocessar manualmente se necessario
+        severity: warning
+        action: "Verificar consumer. Possivel slowdown ou consumer parado."
 
-      - alert: DLQMessagesHigh
+      - name: VelyaQueueAgingCritical
         expr: |
-          velya:dlq_messages_total > 100
-        for: 2m
-        labels:
-          severity: critical
-          team: core
-        annotations:
-          summary: "DLQ com volume CRITICO: {{ $labels.stream }}"
-          description: "{{ $value }} mensagens na DLQ. Possivel falha sistemica."
+          time() - nats_consumer_last_delivery_timestamp{
+            stream=~"patient-events|discharge-events"
+          } > 300
+        for: 0m
+        severity: critical
+        action: "Consumer nao entrega mensagens ha 5+ minutos. Verificar imediatamente."
+
+      - name: VelyaQueueBackpressure
+        expr: |
+          rate(nats_consumer_num_pending{
+            stream=~"patient-events|discharge-events"
+          }[5m]) > 100
+        for: 5m
+        severity: warning
+        action: "Fila crescendo rapidamente. Consumer nao acompanha producao."
 ```
 
 ---
 
-## 8. Fallback Activation Monitoring
-
-### Metricas de fallback e circuit breaker
+## 9. Categoria 8: Rastreamento de Latencia
 
 ```yaml
-groups:
-  - name: velya-fallback
-    rules:
-      # Circuit breaker estado
-      - record: velya:circuit_breaker_state
-        expr: |
-          velya_circuit_breaker_state{namespace=~"velya-dev-.*"}
+latency_tracking:
+  per_service:
+    patient-flow:
+      endpoints:
+        - path: "/api/patients"
+          method: "GET"
+          p50_target: 50ms
+          p95_target: 200ms
+          p99_target: 500ms
+        - path: "/api/patients"
+          method: "POST"
+          p50_target: 100ms
+          p95_target: 300ms
+          p99_target: 500ms
+        - path: "/api/patients/:id/admit"
+          method: "POST"
+          p50_target: 200ms
+          p95_target: 500ms
+          p99_target: 1000ms
 
-      # Taxa de ativacao de fallback
-      - record: velya:fallback_activation_rate:5m
-        expr: |
-          rate(velya_fallback_activations_total{
+    ai-gateway:
+      endpoints:
+        - path: "/api/inference"
+          method: "POST"
+          p50_target: 1000ms
+          p95_target: 3000ms
+          p99_target: 5000ms
+        - path: "/api/inference/stream"
+          method: "POST"
+          p50_target: 500ms  # time to first token
+          p95_target: 1500ms
+          p99_target: 3000ms
+
+  # PromQL generico por servico
+  queries:
+    p50: |
+      histogram_quantile(0.50,
+        sum(rate(http_request_duration_seconds_bucket{
+          service="{{ .service }}",
+          path="{{ .path }}"
+        }[5m])) by (le)
+      )
+    p95: |
+      histogram_quantile(0.95,
+        sum(rate(http_request_duration_seconds_bucket{
+          service="{{ .service }}",
+          path="{{ .path }}"
+        }[5m])) by (le)
+      )
+    p99: |
+      histogram_quantile(0.99,
+        sum(rate(http_request_duration_seconds_bucket{
+          service="{{ .service }}",
+          path="{{ .path }}"
+        }[5m])) by (le)
+      )
+
+  alerts:
+    - name: VelyaLatencyP99Breach
+      expr: |
+        histogram_quantile(0.99,
+          sum(rate(http_request_duration_seconds_bucket{
             namespace=~"velya-dev-.*"
-          }[5m])
-
-      - alert: CircuitBreakerOpen
-        expr: |
-          velya_circuit_breaker_state{
-            namespace=~"velya-dev-.*"
-          } == 2  # 0=closed, 1=half-open, 2=open
-        for: 1m
-        labels:
-          severity: warning
-          team: core
-        annotations:
-          summary: "Circuit breaker ABERTO: {{ $labels.service }} -> {{ $labels.dependency }}"
-          description: "Dependencia {{ $labels.dependency }} esta indisponivel. Servico {{ $labels.service }} esta usando fallback."
-          action: "Verificar saude da dependencia {{ $labels.dependency }}."
-
-      - alert: FallbackActivationHigh
-        expr: |
-          velya:fallback_activation_rate:5m > 0.1  # mais de 1 fallback a cada 10 segundos
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Alta taxa de fallback para {{ $labels.service }}"
-          description: "{{ $value }} fallbacks/seg. Dependencia pode estar instavel."
-
-      - alert: FallbackActivationSustained
-        expr: |
-          velya:fallback_activation_rate:5m > 0.01
-        for: 30m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Fallback sustentado por 30+ minutos para {{ $labels.service }}"
-          description: "Servico operando em modo degradado por tempo prolongado. Investigar dependencia."
+          }[5m])) by (le, service)
+        ) > on(service) group_left()
+        velya_latency_target_p99_seconds
+      for: 5m
+      severity: warning
 ```
 
 ---
 
-## 9. Schedule Health (CronJobs e Temporal Schedules)
-
-### Metricas de schedules
+## 10. Categoria 9: Rastreamento de Erros
 
 ```yaml
-groups:
-  - name: velya-schedule-health
-    rules:
-      # CronJob nao executou no horario
-      - alert: CronJobMissedSchedule
-        expr: |
-          time() - kube_cronjob_status_last_schedule_time{
-            namespace=~"velya-dev-.*"
-          } > kube_cronjob_spec_schedule_interval_seconds{
-            namespace=~"velya-dev-.*"
-          } * 1.5
-        for: 5m
-        labels:
-          severity: warning
-          team: platform
-        annotations:
-          summary: "CronJob {{ $labels.cronjob }} perdeu execucao programada"
-          description: "Ultima execucao ha {{ $value }}s. Verificar se ha pods pendentes ou resource starvation."
+error_tracking:
+  classification:
+    client_errors: "4xx (exceto 401, 403, 404, 429)"
+    server_errors: "5xx"
+    timeout_errors: "504, context deadline exceeded"
+    dependency_errors: "erros de conexao com DB, NATS, Temporal"
 
-      # CronJob falhando
-      - alert: CronJobFailing
-        expr: |
-          kube_job_failed{
-            namespace=~"velya-dev-.*"
-          } > 0
-        for: 1m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Job {{ $labels.job_name }} falhou"
-          description: "Verificar logs: kubectl logs -n {{ $labels.namespace }} job/{{ $labels.job_name }}"
+  queries:
+    error_rate_by_service: |
+      sum(rate(http_requests_total{
+        service="{{ .service }}",
+        status=~"5.."
+      }[5m]))
+      /
+      sum(rate(http_requests_total{
+        service="{{ .service }}"
+      }[5m]))
 
-      # Temporal schedule nao executando
-      - alert: TemporalScheduleMissed
-        expr: |
-          time() - temporal_schedule_last_run_timestamp{
-            namespace="velya"
-          } > temporal_schedule_interval_seconds{
-            namespace="velya"
-          } * 2
-        for: 5m
-        labels:
-          severity: warning
-          team: core
-        annotations:
-          summary: "Temporal schedule {{ $labels.schedule_id }} nao executou no horario"
-```
+    error_rate_by_status_code: |
+      sum(rate(http_requests_total{
+        service="{{ .service }}",
+        status=~"5.."
+      }[5m])) by (status)
 
----
+    error_breakdown_by_endpoint: |
+      sum(rate(http_requests_total{
+        service="{{ .service }}",
+        status=~"5.."
+      }[5m])) by (path, method, status)
 
-## 10. Anomaly Detection
-
-### Deteccao de anomalias baseada em desvio historico
-
-```yaml
-groups:
-  - name: velya-anomaly-detection
-    rules:
-      # Desvio de latencia em relacao ao baseline (media 7 dias)
-      - alert: LatencyAnomaly
-        expr: |
-          (
-            velya:http_latency_p99:5m
-            -
-            avg_over_time(velya:http_latency_p99:5m[7d])
-          )
+  alerts:
+    - name: VelyaErrorRateHigh
+      expr: |
+        (
+          sum(rate(http_requests_total{
+            namespace=~"velya-dev-.*",
+            status=~"5.."
+          }[5m])) by (service)
           /
-          stddev_over_time(velya:http_latency_p99:5m[7d])
-          > 3
+          sum(rate(http_requests_total{
+            namespace=~"velya-dev-.*"
+          }[5m])) by (service)
+        ) > 0.01
+      for: 2m
+      severity: warning
+      action: "Error rate acima de 1%. Verificar logs e traces."
+
+    - name: VelyaErrorRateCritical
+      expr: |
+        (
+          sum(rate(http_requests_total{
+            namespace=~"velya-dev-.*",
+            status=~"5.."
+          }[5m])) by (service)
+          /
+          sum(rate(http_requests_total{
+            namespace=~"velya-dev-.*"
+          }[5m])) by (service)
+        ) > 0.05
+      for: 1m
+      severity: critical
+      action: "Error rate acima de 5%. Possivel incidente. Verificar rollback."
+
+    - name: VelyaNoTraffic
+      expr: |
+        sum(rate(http_requests_total{
+          service=~"patient-flow|discharge-orchestrator|task-inbox",
+          namespace=~"velya-dev-.*"
+        }[5m])) by (service) == 0
+      for: 5m
+      severity: critical
+      action: "Servico nao recebe trafego. Verificar Ingress, Service e pods."
+```
+
+---
+
+## 11. Categoria 10: Rastreamento de Saturacao
+
+```yaml
+saturation_tracking:
+  cpu:
+    query: |
+      sum(rate(container_cpu_usage_seconds_total{
+        namespace=~"velya-dev-.*",
+        container!=""
+      }[5m])) by (pod, namespace)
+      /
+      sum(kube_pod_container_resource_limits{
+        namespace=~"velya-dev-.*",
+        resource="cpu"
+      }) by (pod, namespace)
+    alert_threshold: 0.80
+    critical_threshold: 0.95
+    alert:
+      name: VelyaCPUSaturation
+      severity: warning
+
+  memory:
+    query: |
+      sum(container_memory_working_set_bytes{
+        namespace=~"velya-dev-.*",
+        container!=""
+      }) by (pod, namespace)
+      /
+      sum(kube_pod_container_resource_limits{
+        namespace=~"velya-dev-.*",
+        resource="memory"
+      }) by (pod, namespace)
+    alert_threshold: 0.80
+    critical_threshold: 0.95
+    alert:
+      name: VelyaMemorySaturation
+      severity: warning
+
+  connections:
+    # Conexoes de banco de dados
+    db_connections:
+      query: |
+        velya_db_pool_active_connections{service="{{ .service }}"}
+        /
+        velya_db_pool_max_connections{service="{{ .service }}"}
+      alert_threshold: 0.75
+      alert:
+        name: VelyaDBConnectionPoolSaturation
+        severity: warning
+        action: "Pool de conexoes quase esgotado. Verificar leaks ou queries lentas."
+
+    # Conexoes NATS
+    nats_connections:
+      query: |
+        nats_server_connections{namespace="velya-dev-platform"}
+        /
+        nats_server_max_connections{namespace="velya-dev-platform"}
+      alert_threshold: 0.70
+
+  disk:
+    query: |
+      (
+        kubelet_volume_stats_capacity_bytes{namespace=~"velya-dev-.*"}
+        -
+        kubelet_volume_stats_available_bytes{namespace=~"velya-dev-.*"}
+      )
+      /
+      kubelet_volume_stats_capacity_bytes{namespace=~"velya-dev-.*"}
+    alert_threshold: 0.80
+    critical_threshold: 0.90
+```
+
+---
+
+## 12. Categoria 11: Visibilidade de DLQ
+
+```yaml
+dlq_monitoring:
+  nats_jetstream:
+    # Mensagens que falharam apos max retries vao para DLQ
+    streams:
+      - name: "patient-events-dlq"
+        source_stream: "patient-events"
+        max_retries_before_dlq: 5
+      - name: "discharge-events-dlq"
+        source_stream: "discharge-events"
+        max_retries_before_dlq: 3
+      - name: "task-events-dlq"
+        source_stream: "task-events"
+        max_retries_before_dlq: 5
+
+    metric:
+      name: velya_dlq_messages_total
+      type: counter
+      labels: [stream, source_stream, error_type]
+
+    query_dlq_count: |
+      sum(nats_stream_messages_total{stream=~".*-dlq"}) by (stream)
+
+    alerts:
+      - name: VelyaDLQNotEmpty
+        expr: |
+          nats_stream_messages_total{stream=~".*-dlq"} > 0
+        for: 0m
+        severity: warning
+        action: |
+          DLQ tem mensagens. Investigar:
+          1. Verificar tipo de erro nos headers da mensagem
+          2. Verificar se e transitorio (retry manual) ou permanente (bug)
+          3. Se permanente, criar ticket e corrigir handler
+          4. Reprocessar mensagens apos correcao
+
+      - name: VelyaDLQGrowing
+        expr: |
+          rate(nats_stream_messages_total{stream=~".*-dlq"}[5m]) > 0
         for: 10m
-        labels:
-          severity: warning
-          type: anomaly
-        annotations:
-          summary: "Anomalia de latencia detectada para {{ $labels.service }}"
-          description: "Latencia esta {{ $value }} desvios-padrao acima do baseline de 7 dias."
+        severity: critical
+        action: "DLQ crescendo ativamente. Problema sistematico. Investigar handler imediatamente."
 
-      # Desvio de taxa de requisicoes (possivel ataque ou mudanca de trafego)
-      - alert: TrafficAnomaly
-        expr: |
-          (
-            velya:http_request_rate:5m
-            -
-            avg_over_time(velya:http_request_rate:5m[7d])
-          )
-          /
-          stddev_over_time(velya:http_request_rate:5m[7d])
-          > 4
-        for: 5m
-        labels:
-          severity: warning
-          type: anomaly
-        annotations:
-          summary: "Anomalia de trafego para {{ $labels.service }}"
-          description: "Taxa de requisicoes {{ $value }} desvios-padrao acima do normal."
-
-      # Queda subita de trafego (possivel problema no upstream)
-      - alert: TrafficDropAnomaly
-        expr: |
-          (
-            avg_over_time(velya:http_request_rate:5m[7d])
-            -
-            velya:http_request_rate:5m
-          )
-          /
-          avg_over_time(velya:http_request_rate:5m[7d])
-          > 0.5
-        for: 10m
-        labels:
-          severity: warning
-          type: anomaly
-        annotations:
-          summary: "Queda de trafego > 50% para {{ $labels.service }}"
-          description: "Trafego atual esta {{ $value | humanizePercentage }} abaixo do baseline."
+    # CronJob para alertar sobre mensagens antigas na DLQ
+    stale_dlq_check:
+      schedule: "0 */6 * * *"  # a cada 6 horas
+      max_message_age: 24h
+      action: "Se mensagem na DLQ por mais de 24h sem ticket, criar ticket automaticamente"
 ```
 
 ---
 
-## Dashboard Consolidado
+## 13. Categoria 12: Saude de Schedules e Fallbacks
 
-### Grafana Dashboard: Velya Runtime Integrity
+```yaml
+schedule_health:
+  # Verificar que CronJobs executaram no tempo esperado
+  cronjobs:
+    - name: "velya-cleanup-expired-sessions"
+      namespace: "velya-dev-platform"
+      expected_schedule: "0 */4 * * *"  # a cada 4h
+      max_duration: 300s
+      alert_if_missed: true
+
+    - name: "velya-slo-report"
+      namespace: "velya-dev-observability"
+      expected_schedule: "0 8 * * *"  # diariamente as 8h
+      max_duration: 60s
+      alert_if_missed: true
+
+    - name: "velya-healing-budget-reset"
+      namespace: "velya-dev-platform"
+      expected_schedule: "0 * * * *"  # a cada hora
+      max_duration: 30s
+      alert_if_missed: true
+
+  alerts:
+    - name: VelyaCronJobMissed
+      expr: |
+        time() - kube_cronjob_status_last_schedule_time{
+          namespace=~"velya-dev-.*"
+        } > 2 * kube_cronjob_spec_schedule_interval_seconds
+      for: 0m
+      severity: warning
+      action: "CronJob nao executou no horario esperado."
+
+    - name: VelyaCronJobFailed
+      expr: |
+        kube_job_status_failed{namespace=~"velya-dev-.*"} > 0
+      for: 0m
+      severity: warning
+
+fallback_monitoring:
+  # Monitorar quando fallbacks sao ativados
+  circuit_breakers:
+    metric: velya_circuit_breaker_state
+    labels: [service, dependency, state]
+    states: [closed, half_open, open]
+    
+    alert:
+      name: VelyaCircuitBreakerOpen
+      expr: |
+        velya_circuit_breaker_state{state="open"} == 1
+      for: 0m
+      severity: high
+      action: |
+        Circuit breaker aberto para {{ $labels.dependency }}.
+        Servico {{ $labels.service }} esta em modo de fallback.
+        Verificar saude da dependencia.
+
+  fallback_activation:
+    metric: velya_fallback_activated_total
+    labels: [service, fallback_type, reason]
+    
+    alert:
+      name: VelyaFallbackActivated
+      expr: |
+        increase(velya_fallback_activated_total[5m]) > 0
+      for: 0m
+      severity: warning
+      action: "Fallback ativado. Verificar servico primario."
+
+    alert_sustained:
+      name: VelyaFallbackSustained
+      expr: |
+        velya_fallback_active{service=~".*"} == 1
+      for: 15m
+      severity: high
+      action: "Fallback ativo por mais de 15 minutos. Dependencia pode estar com problema persistente."
+```
+
+---
+
+## 14. Dashboard Grafana - Visao Consolidada
 
 ```json
 {
   "dashboard": {
-    "title": "Velya - Runtime Integrity Overview",
-    "tags": ["velya", "runtime", "integrity"],
-    "refresh": "15s",
-    "panels": [
+    "title": "Velya Runtime Integrity",
+    "uid": "velya-runtime-integrity",
+    "rows": [
       {
-        "title": "Service Health Matrix",
-        "type": "table",
-        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0},
-        "targets": [
-          {
-            "expr": "velya:http_error_rate:5m",
-            "legendFormat": "Error Rate: {{service}}"
-          },
-          {
-            "expr": "velya:http_latency_p99:5m",
-            "legendFormat": "P99: {{service}}"
-          },
-          {
-            "expr": "velya:http_request_rate:5m",
-            "legendFormat": "RPS: {{service}}"
-          }
+        "title": "Saude Geral",
+        "panels": [
+          { "title": "Servicos Saudaveis", "type": "stat", "query": "count(up{namespace=~'velya-dev-.*'} == 1)" },
+          { "title": "Servicos com Problema", "type": "stat", "query": "count(up{namespace=~'velya-dev-.*'} == 0)" },
+          { "title": "Alertas Ativos", "type": "stat", "query": "count(ALERTS{namespace=~'velya-dev-.*', alertstate='firing'})" },
+          { "title": "SLO Budget Restante", "type": "gauge", "query": "min(velya_slo_budget_remaining_ratio)" }
         ]
       },
       {
-        "title": "Error Budget Remaining (30d)",
-        "type": "gauge",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
-        "targets": [
-          {
-            "expr": "velya:error_budget:patient_flow_remaining * 100",
-            "legendFormat": "patient-flow"
-          },
-          {
-            "expr": "velya:error_budget:discharge_remaining * 100",
-            "legendFormat": "discharge-orchestrator"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "thresholds": {
-              "steps": [
-                {"color": "red", "value": 0},
-                {"color": "yellow", "value": 25},
-                {"color": "green", "value": 50}
-              ]
-            },
-            "unit": "percent"
-          }
-        }
-      },
-      {
-        "title": "NATS Consumer Lag",
-        "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
-        "targets": [
-          {
-            "expr": "nats_consumer_num_pending{stream=~\"velya-.*\"}",
-            "legendFormat": "{{stream}}/{{consumer}}"
-          }
+        "title": "Error Rate por Servico",
+        "panels": [
+          { "title": "Error Rate", "type": "timeseries", "query": "sum(rate(http_requests_total{namespace=~'velya-dev-.*', status=~'5..'}[5m])) by (service) / sum(rate(http_requests_total{namespace=~'velya-dev-.*'}[5m])) by (service)" }
         ]
       },
       {
-        "title": "Active Alerts",
-        "type": "alertlist",
-        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
-        "options": {
-          "alertName": "velya",
-          "showOptions": "current",
-          "sortOrder": 1,
-          "stateFilter": ["alerting", "pending"]
-        }
+        "title": "Latencia P99 por Servico",
+        "panels": [
+          { "title": "P99 Latency", "type": "timeseries", "query": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{namespace=~'velya-dev-.*'}[5m])) by (le, service))" }
+        ]
+      },
+      {
+        "title": "Filas e DLQ",
+        "panels": [
+          { "title": "Mensagens Pendentes", "type": "timeseries", "query": "nats_consumer_num_pending{stream=~'patient-events|discharge-events|task-events|ai-requests'}" },
+          { "title": "Mensagens em DLQ", "type": "stat", "query": "sum(nats_stream_messages_total{stream=~'.*-dlq'}) by (stream)" }
+        ]
+      },
+      {
+        "title": "Saturacao",
+        "panels": [
+          { "title": "CPU Usage", "type": "timeseries", "query": "sum(rate(container_cpu_usage_seconds_total{namespace=~'velya-dev-.*'}[5m])) by (pod) / sum(kube_pod_container_resource_limits{namespace=~'velya-dev-.*', resource='cpu'}) by (pod)" },
+          { "title": "Memory Usage", "type": "timeseries", "query": "sum(container_memory_working_set_bytes{namespace=~'velya-dev-.*'}) by (pod) / sum(kube_pod_container_resource_limits{namespace=~'velya-dev-.*', resource='memory'}) by (pod)" }
+        ]
       }
     ]
   }
@@ -948,19 +938,11 @@ groups:
 
 ---
 
-## Checklist de Integridade Runtime
+## 15. Documentos Relacionados
 
-Para cada servico Velya, verificar:
-
-- [ ] Health check verifica dependencias (nao apenas HTTP 200)
-- [ ] Heartbeat implementado com intervalo < 60s
-- [ ] ArgoCD app com auto-sync habilitado e drift monitoring
-- [ ] SLO definido com error budget e burn rate alerts
-- [ ] Filas NATS com consumer lag monitoring e KEDA scaler
-- [ ] Metricas RED (Rate, Errors, Duration) expostas via OpenTelemetry
-- [ ] Metricas USE (Utilization, Saturation, Errors) via cAdvisor/kube-state-metrics
-- [ ] DLQ configurada com alertas de acumulo
-- [ ] Circuit breakers com metricas de estado
-- [ ] Fallback monitoring com alerta de ativacao sustentada
-- [ ] Schedules (CronJob/Temporal) com missed execution alerts
-- [ ] Dashboard Grafana dedicado com todas as metricas acima
+| Documento | Descricao |
+|---|---|
+| `layered-assurance-model.md` | Modelo completo (L6 = Runtime) |
+| `auto-remediation-safety-model.md` | Acoes de resposta a alertas |
+| `self-healing-model.md` | Self-healing automatico |
+| `progressive-delivery-strategy.md` | Analysis templates durante rollout |

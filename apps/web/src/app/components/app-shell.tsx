@@ -34,6 +34,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
     'Médico': 'MD',
     'Enfermeiro(a)': 'EN',
     'Planejador de Alta': 'PA',
+    'Administrador': 'AD',
   };
 
   const roleNames: Record<Role, string> = {
@@ -41,6 +42,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
     'Médico': 'Dra. Sarah Chen',
     'Enfermeiro(a)': 'Enf. Maria Lopez',
     'Planejador de Alta': 'James Okafor',
+    'Administrador': 'Admin Velya',
   };
 
   return (
