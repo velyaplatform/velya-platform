@@ -305,28 +305,11 @@ export function Navigation({
         )}
       </div>
 
-      <div className="px-3 py-5 border-t border-white/[0.08]">
-        <div className="bg-blue-600/20 border border-blue-600/40 rounded-lg px-3 py-2 text-white/85 text-xs">
-          <div className="text-white/45 text-[10px] uppercase tracking-wider mb-0.5 flex items-center flex-wrap gap-1">
-            Funcao Ativa
-            <span
-              className={`${accessLevelBg} text-white text-[0.65rem] px-1.5 py-px rounded font-bold uppercase tracking-wider`}
-            >
-              {accessLevelLabel}
-            </span>
-            {roleDef?.professionalCouncil && (
-              <span className="bg-blue-500/30 text-blue-300 text-[0.6rem] px-1.5 py-px rounded font-semibold">
-                {roleDef.professionalCouncil}
-              </span>
-            )}
-          </div>
-          <div className="text-white/85 text-sm font-semibold mt-0.5">{currentRole}</div>
-          <div className="text-white/50 text-[0.7rem] mt-0.5">{userName}</div>
-        </div>
-
+      {/* Spacer + Sair button */}
+      <div className="px-3 pt-6 pb-5 mt-auto">
         <button
           onClick={onLogout}
-          className="w-full mt-3 bg-red-500/15 border border-red-500/30 rounded-lg py-2 px-4 text-red-300 text-[0.8rem] font-semibold cursor-pointer font-[inherit] hover:bg-red-500/25 transition-colors"
+          className="w-full bg-red-500/15 border border-red-500/30 rounded-lg py-2 px-4 text-red-300 text-[0.8rem] font-semibold cursor-pointer font-[inherit] hover:bg-red-500/25 transition-colors"
         >
           Sair
         </button>

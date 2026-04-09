@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '../../components/app-shell';
@@ -800,8 +800,55 @@ export default function PatientJourneyPage() {
   const [selectedCategories, setSelectedCategories] = useState<Set<EventCategory>>(
     new Set(ALL_CATEGORIES),
   );
+  const [realEvents, setRealEvents] = useState<TimelineEvent[]>([]);
 
   const journey = JOURNEYS[patientId];
+
+  // Fetch real events from API
+  useEffect(() => {
+    if (!patientId) return;
+    fetch(`/api/patients/events?patientId=${encodeURIComponent(patientId)}`)
+      .then((res) => {
+        if (!res.ok) return { events: [] };
+        return res.json();
+      })
+      .then((data) => {
+        if (data.events && Array.isArray(data.events)) {
+          const mapped: TimelineEvent[] = data.events.map(
+            (e: {
+              id: string;
+              category: string;
+              title: string;
+              description: string;
+              author: string;
+              role: string;
+              location: string;
+              timestamp: string;
+              priority: string;
+            }) => ({
+              id: e.id,
+              timestamp: new Date(e.timestamp).toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              category: e.category as EventCategory,
+              title: e.title,
+              description: e.description || '',
+              author: e.author || 'unknown',
+              role: e.role || '',
+              location: e.location || '',
+              pending: e.priority === 'critico',
+            }),
+          );
+          setRealEvents(mapped);
+        }
+      })
+      .catch(() => {
+        // Silently fail — mock data still shown
+      });
+  }, [patientId]);
 
   function toggleCategory(cat: EventCategory) {
     setSelectedCategories((prev) => {
@@ -823,10 +870,15 @@ export default function PatientJourneyPage() {
     setSelectedCategories(new Set());
   }
 
+  // Merge mock events with real events
+  const allEvents = useMemo(() => {
+    const mockEvents = journey ? journey.events : [];
+    return [...mockEvents, ...realEvents];
+  }, [journey, realEvents]);
+
   const filteredEvents = useMemo(() => {
-    if (!journey) return [];
-    return journey.events.filter((e) => selectedCategories.has(e.category));
-  }, [journey, selectedCategories]);
+    return allEvents.filter((e) => selectedCategories.has(e.category));
+  }, [allEvents, selectedCategories]);
 
   if (!journey) {
     return (
@@ -853,17 +905,23 @@ export default function PatientJourneyPage() {
     );
   }
 
-  const pendingEvents = journey.events.filter((e) => e.pending);
+  const pendingEvents = allEvents.filter((e) => e.pending);
 
   return (
     <AppShell pageTitle="Jornada do Paciente">
-      {/* Back button */}
-      <div className="mb-4">
+      {/* Back button + Register event */}
+      <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
         <Link
           href="/patients"
           className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 no-underline font-medium"
         >
-          \u2190 Voltar para Pacientes
+          {'\u2190'} Voltar para Pacientes
+        </Link>
+        <Link
+          href={`/patients/${patientId}/register-event`}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold no-underline hover:bg-blue-700 transition-colors shadow-sm"
+        >
+          {'\u2795'} Registrar Evento
         </Link>
       </div>
 
@@ -1044,7 +1102,7 @@ export default function PatientJourneyPage() {
 
       {/* Footer count */}
       <div className="text-xs text-slate-400 mt-6 text-right">
-        Exibindo {filteredEvents.length} de {journey.events.length} eventos
+        Exibindo {filteredEvents.length} de {allEvents.length} eventos
       </div>
     </AppShell>
   );
