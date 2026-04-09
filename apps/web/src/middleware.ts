@@ -15,6 +15,21 @@ export function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
+  // --- Auth enforcement for API routes ---
+  // Public routes: /api/auth/* (login, logout, session check) and /api/health
+  // All other API routes require a valid session cookie.
+  // Note: middleware runs in Edge runtime and cannot use fs, so we only check
+  // cookie presence here. Actual session validation happens in API route handlers.
+  if (path.startsWith('/api/') && !path.startsWith('/api/auth/') && path !== '/api/health') {
+    const sessionCookie = request.cookies.get('velya_session');
+    if (!sessionCookie) {
+      return NextResponse.json(
+        { error: 'Não autenticado. Faça login primeiro.', code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
+  }
+
   // Only audit meaningful requests (skip static assets)
   if (!path.startsWith('/_next/') && !path.includes('.') && path !== '/favicon.ico') {
     // Use edge-compatible logging (can't use fs in middleware)
