@@ -68,5 +68,5 @@ function retryPendingErrors() {
     ).then(() => {
       localStorage.removeItem('velya_pending_errors');
     });
-  } catch {}
+  } catch { /* fetch error */ }
 }

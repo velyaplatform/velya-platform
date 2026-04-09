@@ -5,7 +5,6 @@ import {
   ROLE_DEFINITIONS,
   isAllowed,
   canAccessDataClass,
-  getNavigationSections,
   getAuditLevel,
   resolveUiRole,
   type AuthContext,

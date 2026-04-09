@@ -51,10 +51,19 @@ jobs:
           PATCH=$(echo "$LATEST" | sed 's/v[0-9]*\.[0-9]*\.\([0-9]*\)/\1/')
 
           # Determine bump type from commit message keywords
-          MSG="${{ github.event.head_commit.message }}"
-          if echo "$MSG" | grep -qiE '^\s*(feat!|fix!|BREAKING CHANGE)'; then
+          # Use heredoc to safely handle special characters (<, >, :, quotes, parentheses)
+          MSG=$(cat <<'COMMIT_MSG_EOF'
+          ${{ github.event.head_commit.message }}
+          COMMIT_MSG_EOF
+          )
+          # Also read from git log as fallback (safe from shell expansion)
+          MSG_SAFE="$(git log -1 --pretty=%s 2>/dev/null || true)"
+          if [ -z "$MSG_SAFE" ]; then
+            MSG_SAFE="patch"
+          fi
+          if printf '%s' "$MSG_SAFE" | grep -qiE '^\s*(feat!|fix!|BREAKING CHANGE)'; then
             MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
-          elif echo "$MSG" | grep -qiE '^\s*feat(\(.*\))?:'; then
+          elif printf '%s' "$MSG_SAFE" | grep -qiE '^\s*feat(\(.*\))?:'; then
             MINOR=$((MINOR + 1)); PATCH=0
           else
             PATCH=$((PATCH + 1))

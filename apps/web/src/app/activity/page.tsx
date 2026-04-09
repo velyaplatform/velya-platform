@@ -101,7 +101,7 @@ export default function ActivityPage() {
       if (res.ok) {
         setStats(await res.json());
       }
-    } catch {}
+    } catch { /* fetch error */ }
   }, []);
 
   const fetchItems = useCallback(async () => {
@@ -119,7 +119,7 @@ export default function ActivityPage() {
               if (!res.ok) return [];
               const json = await res.json();
               return (json[tab.dataKey] || []) as PlatformEvent[];
-            } catch {
+            } catch { /* fetch error */
               return [];
             }
           })
@@ -140,7 +140,7 @@ export default function ActivityPage() {
           setItems((json[tab.dataKey] || []) as PlatformEvent[]);
         }
       }
-    } catch {}
+    } catch { /* fetch error */ }
     setLoading(false);
     setLastRefresh(new Date().toLocaleTimeString('pt-BR'));
   }, [activeTab, severityFilter]);
@@ -154,7 +154,7 @@ export default function ActivityPage() {
       });
       setItems(prev => prev.map(e => e.id === event.id ? { ...e, acked: true } : e));
       fetchStats();
-    } catch {}
+    } catch { /* fetch error */ }
   }, [fetchStats]);
 
   useEffect(() => {
