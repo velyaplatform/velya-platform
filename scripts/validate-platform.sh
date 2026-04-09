@@ -8,7 +8,7 @@ set -euo pipefail
 # Configuração
 FRONTEND_BASE="${VELYA_FRONTEND_URL:-http://velya.172.19.0.6.nip.io}"
 GRAFANA_BASE="${VELYA_GRAFANA_URL:-http://grafana.172.19.0.6.nip.io}"
-ARGOCD_BASE="${VELYA_ARGOCD_URL:-https://localhost:8080}"
+ARGOCD_BASE="${VELYA_ARGOCD_URL:-http://argocd.172.19.0.6.nip.io}"
 PROMETHEUS_BASE="http://prometheus-kube-prometheus-prometheus.velya-dev-observability.svc.cluster.local:9090"
 TIMEOUT=10
 FAILURES=0
@@ -111,7 +111,7 @@ echo ""
 # ============================================================
 echo "## KUBERNETES — Cluster kind-velya-local"
 # ============================================================
-KUBE_CTX="--context kind-velya-local"
+KUBE_CTX="${KUBERNETES_CONTEXT:---context kind-velya-local}"
 
 # Nodes (pelo menos 1 node Ready)
 NODE_COUNT=$(kubectl get nodes $KUBE_CTX --no-headers 2>/dev/null | grep -c Ready || echo 0)

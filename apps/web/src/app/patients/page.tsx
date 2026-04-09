@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AppShell } from '../components/app-shell';
 
 interface Patient {
@@ -355,30 +355,38 @@ export default function PatientsPage() {
   const [wardFilter, setWardFilter] = useState<string>('all');
   const [riskFilter, setRiskFilter] = useState<string>('all');
 
-  const wards = Array.from(new Set(MOCK_PATIENTS.map((p) => p.ward))).sort();
+  const wards = useMemo(
+    () => Array.from(new Set(MOCK_PATIENTS.map((p) => p.ward))).sort(),
+    []
+  );
 
-  const filtered = MOCK_PATIENTS.filter((p) => {
-    const matchesSearch =
-      searchQuery === '' ||
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.mrn.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesStatus = statusFilter === 'all' || p.dischargeStatus === statusFilter;
-    const matchesWard = wardFilter === 'all' || p.ward === wardFilter;
-    const matchesRisk = riskFilter === 'all' || p.riskLevel === riskFilter;
-
-    return matchesSearch && matchesStatus && matchesWard && matchesRisk;
-  });
-
-  // Ordenar: bloqueados primeiro, depois em risco, depois no prazo
-  const sorted = [...filtered].sort((a, b) => {
+  const sorted = useMemo(() => {
+    const filtered = MOCK_PATIENTS.filter((p) => {
+      const matchesSearch =
+        searchQuery === '' ||
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.mrn.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || p.dischargeStatus === statusFilter;
+      const matchesWard = wardFilter === 'all' || p.ward === wardFilter;
+      const matchesRisk = riskFilter === 'all' || p.riskLevel === riskFilter;
+      return matchesSearch && matchesStatus && matchesWard && matchesRisk;
+    });
     const order = { blocked: 0, 'at-risk': 1, 'on-track': 2, discharged: 3 };
-    return order[a.dischargeStatus] - order[b.dischargeStatus];
-  });
+    return [...filtered].sort((a, b) => order[a.dischargeStatus] - order[b.dischargeStatus]);
+  }, [searchQuery, statusFilter, wardFilter, riskFilter]);
 
-  const blockedCount = MOCK_PATIENTS.filter((p) => p.dischargeStatus === 'blocked').length;
-  const atRiskCount = MOCK_PATIENTS.filter((p) => p.dischargeStatus === 'at-risk').length;
-  const onTrackCount = MOCK_PATIENTS.filter((p) => p.dischargeStatus === 'on-track').length;
+  const blockedCount = useMemo(
+    () => MOCK_PATIENTS.filter((p) => p.dischargeStatus === 'blocked').length,
+    []
+  );
+  const atRiskCount = useMemo(
+    () => MOCK_PATIENTS.filter((p) => p.dischargeStatus === 'at-risk').length,
+    []
+  );
+  const onTrackCount = useMemo(
+    () => MOCK_PATIENTS.filter((p) => p.dischargeStatus === 'on-track').length,
+    []
+  );
 
   return (
     <AppShell pageTitle="Lista de Pacientes">

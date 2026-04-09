@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AppShell } from '../components/app-shell';
 
 type DischargeStatus = 'ready' | 'blocked' | 'pending' | 'in-progress';
@@ -237,15 +237,19 @@ export default function DischargePage() {
   const [wardFilter, setWardFilter] = useState<string>('all');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  const wards = Array.from(new Set(DISCHARGE_PATIENTS.map((p) => p.ward))).sort();
+  const wards = useMemo(
+    () => Array.from(new Set(DISCHARGE_PATIENTS.map((p) => p.ward))).sort(),
+    []
+  );
 
-  const filtered = DISCHARGE_PATIENTS.filter((p) => {
-    const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
-    const matchesWard = wardFilter === 'all' || p.ward === wardFilter;
-    return matchesStatus && matchesWard;
-  });
-
-  const sorted = [...filtered].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+  const sorted = useMemo(() => {
+    const filtered = DISCHARGE_PATIENTS.filter((p) => {
+      const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
+      const matchesWard = wardFilter === 'all' || p.ward === wardFilter;
+      return matchesStatus && matchesWard;
+    });
+    return [...filtered].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+  }, [statusFilter, wardFilter]);
 
   const toggleSelect = (mrn: string) => {
     setSelected((prev) => {

@@ -1,0 +1,155 @@
+# PodDisruptionBudgets — Velya Platform
+# Garante alta disponibilidade durante manutenções, atualizações e evicções de nós.
+# Regra: minAvailable: 1 para todos os serviços críticos.
+# Referência: docs/agents/continuous-runtime-architecture.md
+
+# --- velya-dev-core ---
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: patient-flow-pdb
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: core
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: patient-flow
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: task-inbox-pdb
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: core
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: task-inbox
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: discharge-orchestrator-pdb
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: core
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: discharge-orchestrator
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: audit-service-pdb
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: core
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: audit-service
+
+---
+# --- velya-dev-platform ---
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ai-gateway-pdb
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: platform
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: ai-gateway
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: memory-service-pdb
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: platform
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: memory-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: policy-engine-pdb
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: platform
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: policy-engine
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: decision-log-service-pdb
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: platform
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: decision-log-service
+
+---
+# --- velya-dev-web ---
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: velya-web-pdb
+  namespace: velya-dev-web
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: web
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: velya-web
+
+---
+# --- velya-dev-agents ---
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: agent-orchestrator-pdb
+  namespace: velya-dev-agents
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: agents
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: agent-orchestrator

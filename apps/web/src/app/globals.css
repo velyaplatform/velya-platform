@@ -570,10 +570,10 @@ body {
 }
 
 /* Patient row colors */
-.row-critical td { background: #fff5f5; }
-.row-critical:hover td { background: #fee2e2; }
-.row-warning td { background: #fffdf0; }
-.row-warning:hover td { background: #fef9c3; }
+.row-critical td { background: var(--color-critical-bg); }
+.row-critical:hover td { background: var(--color-critical-border); }
+.row-warning td { background: var(--color-warning-bg); }
+.row-warning:hover td { background: var(--color-warning-border); }
 
 /* Search/Filter bar */
 .filter-bar {
