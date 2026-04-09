@@ -1,537 +1,791 @@
 # Modelo de Seguranca para Auto-Remediacao - Velya Platform
 
-## Visao Geral
-
-Este documento define o que pode e o que NAO pode ser auto-remediado na Velya Platform. O principio fundamental e: **auto-remediacao so e permitida quando a acao e reversivel, o blast radius e conhecido, existe validacao pos-acao, timeout definido e rollback disponivel**.
-
----
-
-## Arvore de Decisao para Auto-Remediacao
-
-```
-                    [ANOMALIA DETECTADA]
-                           |
-                    A acao de remediacao
-                    e REVERSIVEL?
-                      /          \
-                    NAO           SIM
-                     |             |
-                [BLOQUEAR]    O BLAST RADIUS
-                Escalar        e CONHECIDO?
-                para humano      /        \
-                              NAO          SIM
-                               |            |
-                          [BLOQUEAR]    Existe VALIDACAO
-                          Escalar       POS-ACAO?
-                          para humano     /        \
-                                       NAO          SIM
-                                        |            |
-                                   [BLOQUEAR]    Existe TIMEOUT
-                                   Escalar        definido?
-                                   para humano      /       \
-                                                 NAO         SIM
-                                                  |           |
-                                             [BLOQUEAR]   Existe ROLLBACK
-                                             Definir       se healing falhar?
-                                             timeout         /          \
-                                             e retornar   NAO            SIM
-                                                           |              |
-                                                      [BLOQUEAR]    O HEALING BUDGET
-                                                      Implementar   foi excedido?
-                                                      rollback         /        \
-                                                                    SIM          NAO
-                                                                     |            |
-                                                                [BLOQUEAR]   [PERMITIR
-                                                                Cooling       AUTO-REMEDIACAO]
-                                                                period             |
-                                                                              Executar acao
-                                                                              Validar resultado
-                                                                              Registrar evento
-```
-
-### Fluxo detalhado em pseudocodigo
-
-```python
-def avaliar_remediacao(anomalia, acao_proposta):
-    """
-    Avalia se uma acao de auto-remediacao pode ser executada.
-    Retorna (permitido: bool, motivo: str)
-    """
-    # Gate 1: Reversibilidade
-    if not acao_proposta.is_reversible:
-        return False, "Acao irreversivel requer aprovacao humana"
-
-    # Gate 2: Blast radius
-    if acao_proposta.blast_radius == "unknown":
-        return False, "Blast radius desconhecido"
-    if acao_proposta.blast_radius == "cluster-wide":
-        return False, "Blast radius cluster-wide requer aprovacao humana"
-
-    # Gate 3: Validacao pos-acao
-    if not acao_proposta.has_post_validation:
-        return False, "Sem validacao pos-acao definida"
-
-    # Gate 4: Timeout
-    if not acao_proposta.has_timeout:
-        return False, "Sem timeout definido"
-    if acao_proposta.timeout > timedelta(minutes=10):
-        return False, "Timeout > 10 min requer aprovacao humana"
-
-    # Gate 5: Rollback
-    if not acao_proposta.has_rollback:
-        return False, "Sem rollback definido"
-
-    # Gate 6: Healing budget
-    servico = anomalia.service
-    healings_recentes = count_healings(servico, window=timedelta(hours=1))
-    budget = get_healing_budget(servico)
-    if healings_recentes >= budget:
-        return False, f"Healing budget excedido ({healings_recentes}/{budget} na ultima hora)"
-
-    # Gate 7: Horario
-    if is_peak_hours() and acao_proposta.risk_level == "medium":
-        return False, "Acao de risco medio bloqueada em horario de pico"
-
-    return True, "Auto-remediacao permitida"
-```
+> Define o que PODE e o que NAO PODE ser remediado automaticamente,
+> com arvore de decisao, limites de blast radius e garantias de seguranca.
+> Classificacao: Interno | Ultima atualizacao: 2026-04-08
 
 ---
 
-## Categorias de Auto-Remediacao
+## 1. Visao Geral
 
-### Categoria 1: Infraestrutura
+Auto-remediacao e a capacidade do sistema de corrigir problemas sem intervencao humana.
+Este documento define os **limites de seguranca** para acoes automaticas, garantindo que
+a remediacao nunca cause mais dano que o problema original.
 
-#### Acoes PERMITIDAS
+### Principios de Seguranca
 
-| Acao | Condicao | Blast Radius | Timeout | Validacao | Budget |
-|---|---|---|---|---|---|
-| **Restart de pod** | CrashLoopBackOff ou OOMKilled | 1 pod | 2 min | Pod running + readiness ok | 3/hora |
-| **Reschedule de pod** | Node com pressao de recursos | 1 pod | 5 min | Pod scheduled + running | 2/hora |
-| **Scale out (HPA)** | CPU/memory > threshold | Namespace | 3 min | Replicas desejadas = atuais | 5/hora |
-| **Scale out (KEDA)** | Queue lag > threshold | Namespace | 3 min | Consumer lag diminuindo | 5/hora |
-| **Scale in (gradual)** | Carga abaixo do minimo por 15min | Namespace | 10 min | Metricas estaveis apos scale | 2/hora |
-| **Node drain (controlado)** | Node NotReady ou problematico | 1 node | 10 min | Pods rescheduled com sucesso | 1/hora |
-| **PV expansion** | Disco > 85% usado | 1 PV | 5 min | PV com novo tamanho | 1/hora |
-
-```yaml
-# HPA para patient-flow com scale automatico
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: patient-flow-hpa
-  namespace: velya-dev-core
-  labels:
-    app: patient-flow
-spec:
-  scaleTargetRef:
-    apiVersion: argoproj.io/v1alpha1
-    kind: Rollout
-    name: patient-flow
-  minReplicas: 2
-  maxReplicas: 8
-  behavior:
-    scaleUp:
-      stabilizationWindowSeconds: 60
-      policies:
-        - type: Pods
-          value: 2
-          periodSeconds: 60
-    scaleDown:
-      stabilizationWindowSeconds: 300
-      policies:
-        - type: Pods
-          value: 1
-          periodSeconds: 120
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 70
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: 80
-```
-
-```yaml
-# VPA para recomendacao de resources (modo recommendation only)
-apiVersion: autoscaling.k8s.io/v1
-kind: VerticalPodAutoscaler
-metadata:
-  name: patient-flow-vpa
-  namespace: velya-dev-core
-spec:
-  targetRef:
-    apiVersion: argoproj.io/v1alpha1
-    kind: Rollout
-    name: patient-flow
-  updatePolicy:
-    updateMode: "Off"  # Apenas recomendacao, nao aplica automaticamente
-  resourcePolicy:
-    containerPolicies:
-      - containerName: patient-flow
-        minAllowed:
-          cpu: 100m
-          memory: 128Mi
-        maxAllowed:
-          cpu: 2
-          memory: 4Gi
-```
-
-#### Acoes PROIBIDAS para auto-remediacao (infraestrutura)
-
-| Acao | Justificativa | Alternativa |
-|---|---|---|
-| **Delete de PV/PVC** | Perda de dados irreversivel | Escalar para humano, backup primeiro |
-| **Cordon de node sem drain** | Pods podem ficar stuck | Usar drain controlado |
-| **Alteracao de RBAC** | Escalacao de privilegio | Requer PR e review |
-| **Modificacao de NetworkPolicy** | Pode expor servicos | Requer PR e review |
-| **Delete de namespace** | Destroi todos os recursos | Nunca automatizado |
-| **Resize de node group** | Impacto financeiro e de capacidade | Requer aprovacao |
-| **Alteracao de DNS** | Impacto em roteamento global | Requer aprovacao |
-| **Rotacao de certificados** | Pode causar downtime se mal feita | Processo manual com checklist |
-
----
-
-### Categoria 2: Aplicacao
-
-#### Acoes PERMITIDAS
-
-| Acao | Condicao | Blast Radius | Timeout | Validacao | Budget |
-|---|---|---|---|---|---|
-| **Reconnect ao banco** | Connection pool esgotado ou timeout | 1 servico | 30s | Query de teste retorna OK | 5/hora |
-| **Reconnect ao NATS** | Conexao perdida | 1 consumer | 15s | Consumer recebendo msgs | 5/hora |
-| **Reconnect ao Temporal** | Worker desconectado | 1 worker | 30s | Worker registrado | 5/hora |
-| **Ativar fallback** | Dependencia indisponivel | 1 servico | Imediato | Servico respondendo | Ilimitado |
-| **Circuit breaker open** | Taxa de erro > 50% na dependencia | 1 circuito | Conforme config | Erro isolado | Ilimitado |
-| **Circuit breaker half-open** | Timeout do open expirou | 1 circuito | 30s | Probe request sucesso | Ilimitado |
-| **Retry com backoff** | Erro transiente (5xx, timeout) | 1 request | Conforme policy | Request bem-sucedido | Ilimitado |
-| **Cache invalidation** | Dados stale detectados | 1 cache | 5s | Cache refreshed | 3/hora |
-| **Flush de connection pool** | Conexoes corrompidas | 1 pool | 10s | Novas conexoes OK | 2/hora |
-
-```go
-// Exemplo: Circuit breaker para dependencia PostgreSQL no patient-flow
-package resilience
-
-import (
-    "time"
-    "github.com/sony/gobreaker"
-    "github.com/prometheus/client_golang/prometheus"
-)
-
-var (
-    circuitBreakerState = prometheus.NewGaugeVec(
-        prometheus.GaugeOpts{
-            Name: "velya_circuit_breaker_state",
-            Help: "Estado do circuit breaker (0=closed, 1=half-open, 2=open)",
-        },
-        []string{"service", "dependency"},
-    )
-    fallbackActivations = prometheus.NewCounterVec(
-        prometheus.CounterOpts{
-            Name: "velya_fallback_activations_total",
-            Help: "Total de ativacoes de fallback",
-        },
-        []string{"service", "dependency", "reason"},
-    )
-)
-
-func NewDatabaseCircuitBreaker(serviceName string) *gobreaker.CircuitBreaker {
-    settings := gobreaker.Settings{
-        Name:        serviceName + "-db",
-        MaxRequests: 3,                    // Requests permitidos em half-open
-        Interval:    10 * time.Second,     // Intervalo para resetar contadores
-        Timeout:     30 * time.Second,     // Tempo em open antes de ir para half-open
-        ReadyToTrip: func(counts gobreaker.Counts) bool {
-            failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
-            return counts.Requests >= 10 && failureRatio >= 0.5
-        },
-        OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
-            stateValue := float64(0)
-            switch to {
-            case gobreaker.StateHalfOpen:
-                stateValue = 1
-            case gobreaker.StateOpen:
-                stateValue = 2
-                fallbackActivations.WithLabelValues(
-                    serviceName, "postgresql", "circuit_breaker_open",
-                ).Inc()
-            }
-            circuitBreakerState.WithLabelValues(
-                serviceName, "postgresql",
-            ).Set(stateValue)
-        },
-    }
-    return gobreaker.NewCircuitBreaker(settings)
-}
-```
-
-#### Acoes PROIBIDAS para auto-remediacao (aplicacao)
-
-| Acao | Justificativa | Alternativa |
-|---|---|---|
-| **Alterar schema de banco** | Migracoes devem ser versionadas e revisadas | Pipeline de migracao |
-| **Purgar dados** | Perda de dados irreversivel | Requer aprovacao humana |
-| **Alterar configuracao de negocio** | Impacto em regras hospitalares | Requer aprovacao clinica |
-| **Reprocessar mensagens da DLQ** | Pode duplicar efeitos colaterais | Requer analise humana |
-| **Alterar rate limits** | Pode expor a ataques ou degradar servico | Requer PR e review |
-| **Desabilitar autenticacao/autorizacao** | Exposicao de dados de pacientes | Nunca automatizado |
-| **Bypass de validacao de dados** | Dados invalidos no sistema | Nunca automatizado |
-
----
-
-### Categoria 3: Agentes (Claude Agent SDK)
-
-#### Acoes PERMITIDAS
-
-| Acao | Condicao | Blast Radius | Timeout | Validacao | Budget |
-|---|---|---|---|---|---|
-| **Restart de agente stateless** | Agente nao respondendo (heartbeat stale) | 1 agente | 60s | Heartbeat retomado | 3/hora |
-| **Quarentena de agente noisy** | Agente gerando erros excessivos | 1 agente | Indefinido | Humano revisa | 1/hora |
-| **Reducao de permissoes** | Agente fazendo chamadas nao autorizadas | 1 agente | Imediato | Permissoes reduzidas | 2/hora |
-| **Swap de coordinator** | Agent-coordinator nao respondendo | 1 coordinator | 2 min | Novo coordinator ativo | 1/hora |
-| **Throttle de agente** | Agente consumindo muitos recursos | 1 agente | 5 min | Uso de recursos normalizado | 3/hora |
-| **Cancelamento de task** | Task travada alem do timeout | 1 task | 30s | Task marcada como cancelled | 5/hora |
-| **Rollback de agente** | Nova versao do agente instavel | 1 agente | 3 min | Versao anterior ativa | 1/hora |
-
-```yaml
-# Configuracao de limites para agentes Claude
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: agent-safety-config
-  namespace: velya-dev-agents
-data:
-  safety-config.yaml: |
-    agents:
-      defaults:
-        max_concurrent_tasks: 5
-        max_task_duration: 300s
-        max_api_calls_per_minute: 60
-        max_memory_mb: 512
-        heartbeat_interval: 30s
-        heartbeat_stale_threshold: 90s
-        
-      overrides:
-        ai-gateway:
-          max_concurrent_tasks: 10
-          max_task_duration: 600s
-          max_api_calls_per_minute: 120
-          max_memory_mb: 2048
-          
-        agent-coordinator:
-          max_concurrent_tasks: 20
-          max_task_duration: 120s
-          max_api_calls_per_minute: 200
-          max_memory_mb: 1024
-
-    quarantine:
-      error_threshold: 10  # erros em 5 minutos
-      error_window: 300s
-      quarantine_duration: 1800s  # 30 minutos
-      auto_release: false  # requer aprovacao humana
-
-    throttle:
-      cpu_threshold: 0.8
-      memory_threshold: 0.85
-      throttle_factor: 0.5  # reduz capacidade em 50%
-      recovery_window: 300s
-```
-
-#### Processo de quarentena de agente
-
-```
-[AGENTE COM ERROS EXCESSIVOS]
-          |
-    Erros > 10 em 5 min?
-      /          \
-    NAO           SIM
-     |             |
-  [MONITORAR]  [QUARENTENAR]
-                   |
-           1. Parar de enviar novas tasks
-           2. Aguardar tasks em andamento (max 60s)
-           3. Cancelar tasks restantes
-           4. Marcar agente como "quarantined"
-           5. Enviar alerta para time de agentes
-           6. Registrar evento de quarentena
-                   |
-           [AGUARDAR REVIEW HUMANO]
-                   |
-           Humano revisa logs e decide:
-             /         |          \
-          LIBERAR   REINICIAR   DESATIVAR
-             |         |           |
-          Remover   Restart     Desabilitar
-          quarentena  e monitorar  permanentemente
-```
-
-#### Acoes PROIBIDAS para auto-remediacao (agentes)
-
-| Acao | Justificativa | Alternativa |
-|---|---|---|
-| **Alterar prompts de agente** | Pode mudar comportamento clinico | Requer review de especialista |
-| **Escalar permissoes de agente** | Principio do menor privilegio | Requer aprovacao de seguranca |
-| **Conectar agente a novo data source** | Exposicao potencial de dados | Requer aprovacao humana |
-| **Alterar modelo base do agente** | Impacto em qualidade de respostas | Requer testes extensivos |
-| **Reprocessar outputs de agente** | Pode duplicar acoes clinicas | Requer revisao clinica |
-| **Desabilitar logging de agente** | Perda de auditoria | Nunca automatizado |
-| **Permitir egress para novos endpoints** | Exfiltracao de dados | Requer review de seguranca |
-
----
-
-## Limites Globais de Auto-Remediacao
-
-### Limites por escopo
-
-| Escopo | Limite | Janela | Acao ao exceder |
-|---|---|---|---|
-| Por pod | 3 restarts | 1 hora | Marcar como "needs-investigation", escalar |
-| Por servico | 5 acoes de healing | 1 hora | Cooling period de 30 min, escalar |
-| Por namespace | 10 acoes de healing | 1 hora | Deploy freeze no namespace, escalar |
-| Cluster-wide | 20 acoes de healing | 1 hora | Escalar para SRE Lead, modo manual |
-
-### Limites por horario
-
-| Horario | Restricao |
+| Principio | Descricao |
 |---|---|
-| Dias uteis 8h-18h | Todas as acoes permitidas seguem o modelo |
-| Dias uteis 18h-22h | Apenas acoes de risco baixo (restart, reconnect) |
-| Noite (22h-8h) | Apenas restart e circuit breaker, todas as outras escalam |
-| Fins de semana | Apenas restart e circuit breaker, todas as outras escalam |
-| Feriados | Apenas restart, todas as outras escalam |
+| **Primum non nocere** | A remediacao nao pode causar mais dano que o problema |
+| **Reversibilidade** | Toda acao automatica deve ser reversivel |
+| **Blast radius conhecido** | O impacto maximo da acao deve ser previsivel |
+| **Validacao pos-acao** | Toda remediacao deve verificar se resolveu o problema |
+| **Timeout obrigatorio** | Toda acao tem prazo maximo; se nao resolveu, escala |
+| **Budget de healing** | Numero maximo de remedicoes por hora por servico |
+| **Auditoria** | Toda acao e registrada com contexto completo |
 
 ---
 
-## Registro de Eventos de Remediacao
+## 2. Arvore de Decisao: Permitir ou Bloquear
 
-### Formato do registro
+```
+  PROBLEMA DETECTADO
+       |
+       v
+  [1] A acao proposta e REVERSIVEL?
+       |
+       +-- NAO --> BLOQUEAR. Escalar para humano.
+       |           Exemplos: delete PVC, drop table, revoke credentials
+       |
+       +-- SIM --> [2] O BLAST RADIUS e conhecido e limitado?
+                        |
+                        +-- NAO --> BLOQUEAR. Escalar para humano.
+                        |           Exemplos: scale down global, network policy change
+                        |
+                        +-- SIM --> [3] Existe VALIDACAO POS-ACAO definida?
+                                        |
+                                        +-- NAO --> BLOQUEAR. Implementar validacao primeiro.
+                                        |           Nao remediar sem como verificar se funcionou.
+                                        |
+                                        +-- SIM --> [4] Existe TIMEOUT definido?
+                                                        |
+                                                        +-- NAO --> BLOQUEAR. Definir timeout primeiro.
+                                                        |
+                                                        +-- SIM --> [5] Existe ROLLBACK se a remediacao falhar?
+                                                                        |
+                                                                        +-- NAO --> BLOQUEAR.
+                                                                        |
+                                                                        +-- SIM --> [6] O BUDGET DE HEALING permite?
+                                                                                        |
+                                                                                        +-- NAO --> BLOQUEAR. Budget esgotado.
+                                                                                        |           Escalar para humano.
+                                                                                        |
+                                                                                        +-- SIM --> PERMITIR auto-remediacao.
+                                                                                                    Executar com logging completo.
+```
+
+### Diagrama compacto:
+
+```
+  REVERSIVEL? --NAO--> BLOQUEAR
+       |
+      SIM
+       |
+  BLAST RADIUS CONHECIDO? --NAO--> BLOQUEAR
+       |
+      SIM
+       |
+  VALIDACAO POS-ACAO? --NAO--> BLOQUEAR
+       |
+      SIM
+       |
+  TIMEOUT? --NAO--> BLOQUEAR
+       |
+      SIM
+       |
+  ROLLBACK? --NAO--> BLOQUEAR
+       |
+      SIM
+       |
+  BUDGET DISPONIVEL? --NAO--> BLOQUEAR
+       |
+      SIM
+       |
+  ==> PERMITIR
+```
+
+---
+
+## 3. Acoes PERMITIDAS: Infraestrutura
+
+### 3.1 Pod Restart
 
 ```yaml
-# Exemplo de evento de remediacao
-remediation_event:
-  id: "rem-2026-0408-001"
-  timestamp: "2026-04-08T14:35:22-03:00"
+action: pod_restart
+category: infrastructure
+permission: ALLOWED
+conditions:
+  - "Pod em CrashLoopBackOff"
+  - "Pod com OOMKilled"
+  - "Liveness probe falhando por > 3 ciclos"
+
+safety_checks:
+  reversible: true  # pod retorna ao estado anterior do container
+  blast_radius: "1 pod (nao afeta outros pods do mesmo deployment)"
+  post_validation:
+    check: "Pod esta Running e readiness probe passando"
+    timeout: 120s
+  rollback: "Nao necessario; restart e idempotente"
   
-  anomaly:
-    type: "pod_crash_loop"
+limits:
+  max_restarts_per_pod: 5
+  max_restarts_per_service_per_hour: 10
+  cooldown_between_restarts: 30s
+
+implementation:
+  trigger: |
+    # Prometheus alert rule
+    kube_pod_container_status_waiting_reason{
+      namespace=~"velya-dev-.*",
+      reason="CrashLoopBackOff"
+    } == 1
+  
+  action: |
+    kubectl delete pod $POD_NAME -n $NAMESPACE --grace-period=30
+  
+  post_validation: |
+    # Aguardar pod ficar Ready
+    kubectl wait pod -l app.kubernetes.io/name=$SERVICE \
+      -n $NAMESPACE --for=condition=Ready --timeout=120s
+```
+
+### 3.2 Pod Reschedule
+
+```yaml
+action: pod_reschedule
+category: infrastructure
+permission: ALLOWED
+conditions:
+  - "Node com pressao de recursos (DiskPressure, MemoryPressure)"
+  - "Pod pending por > 5 minutos"
+  - "Node notReady"
+
+safety_checks:
+  reversible: true
+  blast_radius: "1 pod, rescheduled para outro node"
+  post_validation:
+    check: "Pod Running em novo node"
+    timeout: 300s
+  rollback: "Pod pode ser movido de volta se necessario"
+
+limits:
+  max_reschedules_per_service_per_hour: 5
+  min_available_during_reschedule: "PodDisruptionBudget.minAvailable"
+
+implementation:
+  pdb_required: true
+  pdb_spec: |
+    apiVersion: policy/v1
+    kind: PodDisruptionBudget
+    metadata:
+      name: patient-flow-pdb
+      namespace: velya-dev-core
+    spec:
+      minAvailable: 2
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: patient-flow
+```
+
+### 3.3 Scale Out (Horizontal)
+
+```yaml
+action: horizontal_scale_out
+category: infrastructure
+permission: ALLOWED
+conditions:
+  - "CPU usage > 80% por > 3 minutos"
+  - "Memory usage > 80% por > 3 minutos"
+  - "Queue depth crescendo e consumer nao acompanha"
+  - "KEDA trigger ativado"
+
+safety_checks:
+  reversible: true  # scale down automatico quando demanda cai
+  blast_radius: "Adiciona pods, nao remove"
+  post_validation:
+    check: "Novos pods estao Ready e metricas de saturacao reduziram"
+    timeout: 300s
+  rollback: "KEDA/HPA reduz replicas automaticamente quando demanda cai"
+
+limits:
+  max_replicas_per_service:
+    patient-flow: 10
+    discharge-orchestrator: 8
+    task-inbox: 8
+    ai-gateway: 8
+    velya-web: 6
+    notification-hub: 5
+  scale_step: "+1 pod por vez (suave) ou +50% (agressivo para picos)"
+  cooldown_after_scale: 300s
+
+implementation:
+  hpa_spec: |
+    apiVersion: autoscaling/v2
+    kind: HorizontalPodAutoscaler
+    metadata:
+      name: patient-flow-hpa
+      namespace: velya-dev-core
+    spec:
+      scaleTargetRef:
+        apiVersion: argoproj.io/v1alpha1
+        kind: Rollout
+        name: patient-flow
+      minReplicas: 3
+      maxReplicas: 10
+      metrics:
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              type: Utilization
+              averageUtilization: 70
+        - type: Resource
+          resource:
+            name: memory
+            target:
+              type: Utilization
+              averageUtilization: 75
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 60
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 120
+
+  keda_spec: |
+    apiVersion: keda.sh/v1alpha1
+    kind: ScaledObject
+    metadata:
+      name: task-inbox-scaler
+      namespace: velya-dev-core
+    spec:
+      scaleTargetRef:
+        apiVersion: argoproj.io/v1alpha1
+        kind: Rollout
+        name: task-inbox
+      minReplicaCount: 2
+      maxReplicaCount: 8
+      cooldownPeriod: 300
+      triggers:
+        - type: nats-jetstream
+          metadata:
+            natsServerMonitoringEndpoint: "nats.velya-dev-platform:8222"
+            account: "$G"
+            stream: "task-events"
+            consumer: "task-inbox-consumer"
+            lagThreshold: "100"
+            activationLagThreshold: "10"
+```
+
+---
+
+## 4. Acoes PERMITIDAS: Aplicacao
+
+### 4.1 Reconexao Automatica
+
+```yaml
+action: auto_reconnection
+category: application
+permission: ALLOWED
+conditions:
+  - "Conexao com banco de dados perdida"
+  - "Conexao com NATS perdida"
+  - "Conexao com Temporal perdida"
+  - "Conexao com Redis perdida"
+
+safety_checks:
+  reversible: true
+  blast_radius: "Apenas o servico afetado"
+  post_validation:
+    check: "Conexao restabelecida e health check passando"
+    timeout: 60s
+  rollback: "Se reconexao falhar, servico entra em estado unhealthy (readiness fail)"
+
+limits:
+  max_reconnection_attempts: 10
+  backoff_strategy: "exponential com jitter"
+  initial_backoff: 1s
+  max_backoff: 30s
+
+implementation: |
+  // Exemplo TypeScript com reconexao exponential backoff
+  import { ConnectionPool } from '@velya/database';
+  
+  const pool = new ConnectionPool({
+    connectionString: process.env.DATABASE_URL,
+    maxRetries: 10,
+    retryBackoff: {
+      type: 'exponential',
+      initialMs: 1000,
+      maxMs: 30000,
+      jitter: true,
+    },
+    onReconnect: () => {
+      metrics.reconnectionTotal.inc({ service: 'patient-flow', dependency: 'postgres' });
+      logger.warn('Reconexao com banco de dados estabelecida');
+    },
+    onReconnectFailed: () => {
+      metrics.reconnectionFailedTotal.inc({ service: 'patient-flow', dependency: 'postgres' });
+      logger.error('Falha na reconexao com banco de dados. Servico ficara unhealthy.');
+      healthCheck.setUnhealthy('database');
+    },
+  });
+```
+
+### 4.2 Ativacao de Fallback
+
+```yaml
+action: fallback_activation
+category: application
+permission: ALLOWED
+conditions:
+  - "Dependencia primaria indisponivel por > 30s"
+  - "Circuit breaker abriu"
+  - "Timeout em chamada para dependencia"
+
+safety_checks:
+  reversible: true  # fallback desativado quando primario volta
+  blast_radius: "Servico opera em modo degradado, mas funcional"
+  post_validation:
+    check: "Servico respondendo (mesmo em modo degradado)"
+    timeout: 30s
+  rollback: "Automatico quando circuit breaker fecha"
+
+fallback_definitions:
+  ai-gateway:
+    primary: "Anthropic Claude API"
+    fallback_chain:
+      1: "Cache de respostas similares (se disponivel)"
+      2: "Resposta padrao com aviso ao usuario"
+      3: "Rejeitar request com mensagem informativa"
+    max_fallback_duration: 30m
+    notification: "#velya-oncall-ai"
+
+  patient-flow:
+    primary: "API direta"
+    fallback_chain:
+      1: "Leitura do cache Redis"
+      2: "Modo somente leitura (bloqueia escrita)"
+    max_fallback_duration: 15m
+
+  notification-hub:
+    primary: "Envio imediato"
+    fallback_chain:
+      1: "Enfileirar para envio posterior"
+      2: "Log da notificacao para reprocessamento"
+    max_fallback_duration: 60m
+```
+
+### 4.3 Circuit Breaker Recovery
+
+```yaml
+action: circuit_breaker_recovery
+category: application
+permission: ALLOWED
+conditions:
+  - "Circuit breaker em estado OPEN por > timeout configurado"
+
+safety_checks:
+  reversible: true
+  blast_radius: "Envia requests de teste para dependencia"
+  post_validation:
+    check: "Request de teste bem-sucedido -> circuit breaker vai para HALF_OPEN -> CLOSED"
+    timeout: 60s
+  rollback: "Se teste falhar, circuit breaker permanece OPEN"
+
+configuration: |
+  // Configuracao de circuit breaker para servicos Velya
+  const circuitBreakerConfig = {
+    failureThreshold: 5,        // 5 falhas consecutivas -> OPEN
+    successThreshold: 3,         // 3 sucessos em HALF_OPEN -> CLOSED
+    timeout: 30000,              // 30s em OPEN antes de tentar HALF_OPEN
+    volumeThreshold: 10,         // minimo de requests antes de avaliar
+    errorFilter: (error) => {
+      // Nao conta 4xx como falha do circuit breaker
+      return error.statusCode >= 500 || error.code === 'ECONNREFUSED';
+    },
+    onOpen: () => {
+      metrics.circuitBreakerState.set({ state: 'open' }, 1);
+      metrics.circuitBreakerState.set({ state: 'closed' }, 0);
+    },
+    onClose: () => {
+      metrics.circuitBreakerState.set({ state: 'open' }, 0);
+      metrics.circuitBreakerState.set({ state: 'closed' }, 1);
+    },
+  };
+```
+
+---
+
+## 5. Acoes PERMITIDAS: Agentes de IA
+
+### 5.1 Restart de Agente Stateless
+
+```yaml
+action: agent_restart_stateless
+category: agents
+permission: ALLOWED
+conditions:
+  - "Agente nao responde ao heartbeat por > 90s"
+  - "Agente em loop (mesmo output repetido > 5 vezes)"
+  - "Agente excedeu token budget por request"
+
+safety_checks:
+  reversible: true  # agentes stateless podem ser reiniciados sem perda
+  blast_radius: "1 instancia de agente"
+  post_validation:
+    check: "Agente respondendo ao heartbeat e guardrails ativos"
+    timeout: 120s
+  rollback: "Se agente nao volta apos restart, quarantinar"
+
+limits:
+  max_restarts_per_agent_per_hour: 3
+  cooldown: 120s
+```
+
+### 5.2 Quarentena de Agente
+
+```yaml
+action: agent_quarantine
+category: agents
+permission: ALLOWED
+conditions:
+  - "Agente gera outputs consistentemente invalidos (> 3 em sequencia)"
+  - "Agente tenta acessar recursos nao autorizados (> 2 tentativas)"
+  - "Agente excede rate limit repetidamente"
+  - "Agente restart falhou 3 vezes consecutivas"
+
+safety_checks:
+  reversible: true  # agente pode ser des-quarentinado manualmente
+  blast_radius: "1 instancia de agente; funcionalidade do agente indisponivel"
+  post_validation:
+    check: "Agente isolado (nao recebe novos requests)"
+    timeout: 30s
+  rollback: "Requer aprovacao humana para des-quarentinar"
+
+implementation:
+  quarantine_actions:
+    - "Remover agente do pool de agent-coordinator"
+    - "Redirecionar requests para outros agentes ou fallback"
+    - "Preservar logs e context para investigacao"
+    - "Notificar #velya-oncall-ai"
+  
+  label_patch: |
+    kubectl label pod $POD_NAME -n velya-dev-agents \
+      velya.io/quarantined=true \
+      velya.io/quarantine-reason="$REASON" \
+      velya.io/quarantine-timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+```
+
+### 5.3 Reducao de Permissoes de Agente
+
+```yaml
+action: agent_permission_reduction
+category: agents
+permission: ALLOWED
+conditions:
+  - "Agente tentou operacao de escrita nao autorizada"
+  - "Agente acessou dados fora do seu escopo"
+  - "Padrao de comportamento anomalo detectado"
+
+safety_checks:
+  reversible: true  # permissoes podem ser restauradas manualmente
+  blast_radius: "1 instancia de agente, funcionalidade reduzida"
+  post_validation:
+    check: "Agente operando com permissoes reduzidas sem erros"
+    timeout: 60s
+  rollback: "Restaurar permissoes manualmente apos investigacao"
+
+permission_levels:
+  full: "Leitura + Escrita + Execucao de workflows"
+  reduced: "Leitura + Execucao limitada (sem escrita)"
+  readonly: "Apenas leitura"
+  suspended: "Nenhum acesso (quarentena)"
+
+implementation: |
+  // agent-coordinator reduz permissoes dinamicamente
+  await agentCoordinator.updatePermissions(agentId, {
+    level: 'reduced',
+    reason: 'anomalous_behavior_detected',
+    previousLevel: 'full',
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hora
+    requiresManualReview: true,
+  });
+```
+
+---
+
+## 6. Acoes PROIBIDAS
+
+### 6.1 Infraestrutura - Acoes Proibidas
+
+```yaml
+prohibited_infrastructure:
+  - action: "Deletar PersistentVolumeClaim"
+    reason: "Perda irreversivel de dados. PVCs podem conter dados de paciente."
+    alternative: "Escalar para humano para avaliar necessidade."
+
+  - action: "Scale down para zero replicas"
+    reason: "Causa indisponibilidade total do servico."
+    alternative: "Minimo de replicas definido por PDB e HPA minReplicas."
+
+  - action: "Modificar NetworkPolicy automaticamente"
+    reason: "Pode expor servicos a trafego nao autorizado."
+    alternative: "Toda mudanca de NetworkPolicy via GitOps com review."
+
+  - action: "Alterar resource limits em runtime"
+    reason: "Pode causar OOM em outros pods no node. Deve ser via GitOps."
+    alternative: "VPA em modo recommendation-only; aplicar via PR."
+
+  - action: "Deletar namespace"
+    reason: "Destruicao massiva e irreversivel."
+    alternative: "Nunca. Nenhum cenario justifica auto-delete de namespace."
+
+  - action: "Modificar RBAC roles/bindings"
+    reason: "Pode escalar privilegios indevidamente."
+    alternative: "Toda mudanca de RBAC via GitOps com review de seguranca."
+
+  - action: "Executar kubectl exec em pods de producao"
+    reason: "Acesso interativo a producao deve ser auditado e autorizado."
+    alternative: "Logs via Loki, debug via Tempo traces."
+
+  - action: "Forcar eviction de todos os pods de um node"
+    reason: "Blast radius desconhecido; pode causar cascata."
+    alternative: "Cordon + drain gradual com PDB respeitados."
+```
+
+### 6.2 Aplicacao - Acoes Proibidas
+
+```yaml
+prohibited_application:
+  - action: "Modificar schema de banco de dados"
+    reason: "Migrations devem ser versionadas, revisadas e aplicadas via CI/CD."
+    alternative: "PR com migration revisada e testada."
+
+  - action: "Purgar fila ou stream NATS"
+    reason: "Mensagens podem conter eventos de negocio criticos nao processados."
+    alternative: "Investigar por que consumer nao processa; corrigir consumer."
+
+  - action: "Invalidar todas as sessoes de usuario"
+    reason: "Impacto massivo na experiencia de todos os usuarios."
+    alternative: "Invalidar sessoes especificas se comprometidas."
+
+  - action: "Desabilitar rate limiting"
+    reason: "Expoe servicos a DoS."
+    alternative: "Ajustar limites via configuracao com review."
+
+  - action: "Bypass de guardrails de IA"
+    reason: "Guardrails protegem contra outputs danosos em contexto clinico."
+    alternative: "Nunca. Se guardrail bloqueia, o output nao deve ser entregue."
+
+  - action: "Retry infinito de operacoes falhadas"
+    reason: "Pode causar thunder herd ou amplificar problemas."
+    alternative: "Retry com backoff exponencial e max_retries definido."
+
+  - action: "Reprocessar DLQ inteira automaticamente"
+    reason: "Mensagens na DLQ falharam por uma razao; reprocessar sem correcao repete o problema."
+    alternative: "Investigar causa, corrigir, reprocessar seletivamente."
+```
+
+### 6.3 Agentes - Acoes Proibidas
+
+```yaml
+prohibited_agents:
+  - action: "Dar ao agente acesso a dados de paciente sem consent tracking"
+    reason: "Violacao de LGPD e politica interna."
+    alternative: "Configurar consent tracking antes de conceder acesso."
+
+  - action: "Permitir agente criar PRs sem review humano"
+    reason: "Agentes podem introduzir codigo vulneravel."
+    alternative: "Agentes criam PRs; humanos revisam e aprovam."
+
+  - action: "Auto-promover agente para permissoes elevadas"
+    reason: "Escalacao de privilegio nao supervisionada."
+    alternative: "Solicitacao de permissao com aprovacao humana."
+
+  - action: "Permitir agente modificar seus proprios guardrails"
+    reason: "Agente poderia remover suas proprias restricoes."
+    alternative: "Guardrails sao imutaveis em runtime; mudancas via GitOps."
+
+  - action: "Permitir agente acessar secrets diretamente"
+    reason: "Agentes nao devem ter acesso a credenciais raw."
+    alternative: "Acesso via service accounts com RBAC restrito."
+
+  - action: "Restaurar agente quarentinado automaticamente"
+    reason: "Quarentena existe por suspeita de comportamento anormal."
+    alternative: "Restauracao requer investigacao e aprovacao humana."
+```
+
+---
+
+## 7. Budget de Remediacao
+
+```yaml
+healing_budget:
+  description: |
+    Cada servico tem um budget de healing por hora. Se o budget e esgotado,
+    todas as acoes de auto-remediacao sao bloqueadas e o problema e escalado
+    para humano. Isso previne healing loops.
+
+  budgets_per_service:
+    patient-flow:
+      pod_restarts: 5
+      reconnections: 10
+      scale_operations: 3
+      fallback_activations: 5
+      total_healing_actions: 15
+
+    discharge-orchestrator:
+      pod_restarts: 5
+      reconnections: 10
+      scale_operations: 3
+      fallback_activations: 3
+      total_healing_actions: 15
+
+    ai-gateway:
+      pod_restarts: 3
+      reconnections: 10
+      scale_operations: 3
+      agent_restarts: 5
+      agent_quarantines: 3
+      total_healing_actions: 15
+
+    task-inbox:
+      pod_restarts: 5
+      reconnections: 10
+      scale_operations: 5
+      total_healing_actions: 15
+
+    velya-web:
+      pod_restarts: 5
+      scale_operations: 3
+      total_healing_actions: 10
+
+  metrics:
+    budget_used: |
+      velya_healing_budget_used{service="$SERVICE", action_type="$TYPE"}
+    budget_remaining: |
+      velya_healing_budget_limit{service="$SERVICE", action_type="$TYPE"}
+      -
+      velya_healing_budget_used{service="$SERVICE", action_type="$TYPE"}
+
+  alerts:
+    - name: VelyaHealingBudgetLow
+      expr: |
+        (
+          velya_healing_budget_used
+          /
+          velya_healing_budget_limit
+        ) > 0.7
+      severity: warning
+      action: "Budget de healing 70% consumido. Investigar causa raiz."
+
+    - name: VelyaHealingBudgetExhausted
+      expr: |
+        velya_healing_budget_used >= velya_healing_budget_limit
+      severity: critical
+      action: |
+        Budget de healing ESGOTADO para {{ $labels.service }}.
+        Auto-remediacao DESATIVADA. Escalar para on-call.
+        Budget reseta na proxima hora.
+
+  reset:
+    schedule: "0 * * * *"  # a cada hora
+    implementation: |
+      # CronJob que reseta contadores de healing
+      kubectl exec -n velya-dev-platform deploy/healing-controller -- \
+        healing-budget reset --all-services
+```
+
+---
+
+## 8. Registro de Remediacao
+
+Toda acao de remediacao gera um registro estruturado:
+
+```yaml
+remediation_log:
+  storage: "Loki + S3 (retencao 1 ano)"
+  
+  schema:
+    timestamp: "ISO 8601"
+    action_id: "UUID unico da acao"
+    service: "nome do servico"
+    namespace: "namespace K8s"
+    action_type: "pod_restart | reconnection | scale_out | fallback | agent_restart | agent_quarantine"
+    trigger: "descricao do que disparou a acao"
+    trigger_metric: "nome da metrica que disparou"
+    trigger_value: "valor da metrica no momento do disparo"
+    decision_path: "reversivel=true, blast_radius=1_pod, ..."
+    action_result: "success | failure | timeout"
+    post_validation_result: "pass | fail"
+    duration_seconds: "tempo total da remediacao"
+    budget_before: "budget restante antes da acao"
+    budget_after: "budget restante apos a acao"
+    escalated: "true se escalou para humano"
+    escalation_reason: "motivo do escalonamento"
+
+  example:
+    timestamp: "2026-04-08T14:30:00Z"
+    action_id: "rem-a1b2c3d4"
     service: "patient-flow"
     namespace: "velya-dev-core"
-    pod: "patient-flow-7d9f8b6c4-x2k9m"
-    detected_at: "2026-04-08T14:35:10-03:00"
-    detection_method: "kube_pod_container_status_restarts > 3 em 10m"
-    
-  action:
-    type: "pod_restart"
-    category: "infrastructure"
-    risk_level: "low"
-    reversible: true
-    blast_radius: "1 pod"
-    
-  decision:
-    permitted: true
-    gates_passed:
-      - "reversible: true"
-      - "blast_radius: known (1 pod)"
-      - "post_validation: readiness probe"
-      - "timeout: 2 min"
-      - "rollback: kubernetes native"
-      - "healing_budget: 1/3 (dentro do limite)"
-    
-  execution:
-    started_at: "2026-04-08T14:35:22-03:00"
-    completed_at: "2026-04-08T14:35:45-03:00"
-    duration: "23s"
-    result: "success"
-    
-  validation:
-    post_action_check: "readiness probe passed"
-    metrics_stable: true
-    observed_for: "5m"
-    
-  budget:
-    service: "patient-flow"
-    window: "1h"
-    used: 1
-    limit: 3
-    remaining: 2
-```
-
-### Metricas de remediacao
-
-```yaml
-groups:
-  - name: velya-remediation-metrics
-    rules:
-      - record: velya:remediation_total
-        expr: |
-          sum by (service, action_type, result) (
-            velya_remediation_events_total
-          )
-
-      - record: velya:remediation_success_rate
-        expr: |
-          sum by (service) (
-            velya_remediation_events_total{result="success"}
-          )
-          /
-          sum by (service) (
-            velya_remediation_events_total
-          )
-
-      - alert: RemediationBudgetExhausted
-        expr: |
-          sum by (service) (
-            increase(velya_remediation_events_total[1h])
-          ) >= on(service) velya_healing_budget_limit
-        for: 1m
-        labels:
-          severity: critical
-          team: sre
-        annotations:
-          summary: "Healing budget esgotado para {{ $labels.service }}"
-          description: "{{ $value }} remediacoes na ultima hora. Limite atingido. Modo manual ativado."
-          action: "Investigar causa raiz. Auto-remediacao suspensa para este servico."
-
-      - alert: RemediationFailureRate
-        expr: |
-          velya:remediation_success_rate < 0.7
-        for: 30m
-        labels:
-          severity: warning
-          team: sre
-        annotations:
-          summary: "Taxa de sucesso de remediacao baixa para {{ $labels.service }}: {{ $value | humanizePercentage }}"
-          description: "Menos de 70% das remediacoes foram bem-sucedidas. Acoes de healing podem ser ineficazes."
-
-      - alert: RemediationEscalationRequired
-        expr: |
-          velya_remediation_events_total{result="blocked"} > 0
-        for: 1m
-        labels:
-          severity: warning
-          team: sre
-        annotations:
-          summary: "Remediacao bloqueada para {{ $labels.service }} - requer acao humana"
-          description: "Auto-remediacao foi bloqueada: {{ $labels.block_reason }}. Verificar e agir manualmente."
+    action_type: "pod_restart"
+    trigger: "CrashLoopBackOff detectado no pod patient-flow-7f8d9a-xyz"
+    trigger_metric: "kube_pod_container_status_waiting_reason"
+    trigger_value: "CrashLoopBackOff"
+    decision_path: "reversivel=true, blast_radius=1_pod, post_validation=readiness_check, timeout=120s"
+    action_result: "success"
+    post_validation_result: "pass"
+    duration_seconds: 45
+    budget_before: 5
+    budget_after: 4
+    escalated: false
 ```
 
 ---
 
-## Matriz de Responsabilidade
+## 9. Fluxo de Escalonamento
 
-| Acao | Quem executa | Quem aprova | Quem valida |
-|---|---|---|---|
-| Restart de pod | Automatico (K8s) | N/A (dentro do budget) | Readiness probe |
-| Scale out | Automatico (HPA/KEDA) | N/A (dentro dos limites) | Metricas de carga |
-| Circuit breaker | Automatico (aplicacao) | N/A | Probe request |
-| Quarentena de agente | Automatico | SRE revisa para liberar | Humano |
-| Rollback de deploy | Automatico (Argo Rollouts) | N/A (AnalysisRun) | Metricas pos-rollback |
-| Node drain | Automatico (com cautela) | N/A (dentro do budget) | Pods rescheduled |
-| Alteracao de infra | **NUNCA automatico** | Tech Lead + SRE | Pipeline de IaC |
-| Alteracao de dados | **NUNCA automatico** | DBA + PO | Validacao manual |
-| Alteracao de seguranca | **NUNCA automatico** | Security Lead | Auditoria |
+```
+  AUTO-REMEDIACAO
+       |
+       +-- Sucesso --> Log + continuar monitoramento
+       |
+       +-- Falha --> Budget disponivel?
+                     |
+                     +-- SIM --> Tentar outra acao do mesmo tier
+                     |           (ex: restart falhou -> reschedule)
+                     |
+                     +-- NAO --> ESCALAR
+                                 |
+                                 v
+                     +------------------------+
+                     | Tier 1: Slack #velya-   |
+                     | oncall + PagerDuty low  |
+                     | Tempo: 15 min           |
+                     +------------------------+
+                                 |
+                                 | Se nao resolvido em 15 min
+                                 v
+                     +------------------------+
+                     | Tier 2: PagerDuty high  |
+                     | + Tech Lead notificado  |
+                     | Tempo: 30 min           |
+                     +------------------------+
+                                 |
+                                 | Se nao resolvido em 30 min
+                                 v
+                     +------------------------+
+                     | Tier 3: Incident P1     |
+                     | War room + VP notificado|
+                     +------------------------+
+```
+
+---
+
+## 10. Documentos Relacionados
+
+| Documento | Descricao |
+|---|---|
+| `layered-assurance-model.md` | Modelo completo (L7 = Remediation) |
+| `self-healing-model.md` | Implementacao do self-healing em 3 tiers |
+| `runtime-integrity-model.md` | Metricas que disparam remediacao |
+| `progressive-delivery-strategy.md` | Rollback automatico via Argo Rollouts |
