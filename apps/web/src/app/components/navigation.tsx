@@ -3,8 +3,30 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+  ROLE_DEFINITIONS,
+  NAV_SECTIONS,
+  resolveUiRole,
+  getNavigationSections,
+  isAllowed,
+  type ProfessionalRole,
+} from '../../lib/access-control';
 
-const ROLES = ['Coordenador de Ala', 'Médico', 'Enfermeiro(a)', 'Planejador de Alta', 'Administrador'] as const;
+const ROLES = [
+  'Coordenador de Ala',
+  'Medico',
+  'Enfermeiro(a)',
+  'Tecnico de Enfermagem',
+  'Planejador de Alta',
+  'Farmaceutico',
+  'Fisioterapeuta',
+  'Recepcao',
+  'Motorista',
+  'Higienizacao',
+  'Faturamento',
+  'Diretor Clinico',
+  'Administrador',
+] as const;
 type Role = (typeof ROLES)[number];
 
 interface NavItemDef {
@@ -12,19 +34,31 @@ interface NavItemDef {
   icon: string;
   label: string;
   badge?: number;
-  adminOnly?: boolean;
+  section: string;
+  /** Access action required to see this item (optional extra gate) */
+  requiredAction?: string;
 }
 
 const NAV_ITEMS: NavItemDef[] = [
-  { href: '/', icon: '⬛', label: 'Centro de Comando' },
-  { href: '/patients', icon: '🧑‍⚕️', label: 'Pacientes', badge: 47 },
-  { href: '/tasks', icon: '✅', label: 'Caixa de Tarefas', badge: 12 },
-  { href: '/discharge', icon: '🏠', label: 'Torre de Altas', badge: 5 },
-  { href: '/system', icon: '⚙️', label: 'Status do Sistema', adminOnly: true },
-  { href: '/activity', icon: '📋', label: 'Log de Atividade', adminOnly: true },
-  { href: '/audit', icon: '🔒', label: 'Auditoria', adminOnly: true },
-  { href: '/suggestions', icon: '💡', label: 'Sugestões', adminOnly: true },
+  // --- Assistencial ---
+  { href: '/', icon: '\u2B1B', label: 'Centro de Comando', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/patients', icon: '\uD83E\uDDD1\u200D\u2695\uFE0F', label: 'Pacientes', badge: 47, section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/tasks', icon: '\u2705', label: 'Caixa de Tarefas', badge: 12, section: NAV_SECTIONS.ASSISTENCIAL },
+  // --- Gestao ---
+  { href: '/discharge', icon: '\uD83C\uDFE0', label: 'Torre de Altas', badge: 5, section: NAV_SECTIONS.GESTAO },
+  // --- Administracao ---
+  { href: '/system', icon: '\u2699\uFE0F', label: 'Status do Sistema', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/activity', icon: '\uD83D\uDCCB', label: 'Log de Atividade', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/audit', icon: '\uD83D\uDD12', label: 'Auditoria', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/suggestions', icon: '\uD83D\uDCA1', label: 'Sugestoes', section: NAV_SECTIONS.ADMINISTRACAO },
 ];
+
+const SECTION_LABELS: Record<string, string> = {
+  [NAV_SECTIONS.ASSISTENCIAL]: 'Assistencial',
+  [NAV_SECTIONS.GESTAO]: 'Gestao',
+  [NAV_SECTIONS.ADMINISTRACAO]: 'Administracao',
+  [NAV_SECTIONS.OBSERVABILIDADE]: 'Observabilidade',
+};
 
 interface NavigationProps {
   currentRole: Role;
@@ -36,9 +70,33 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
   const [suggestionText, setSuggestionText] = useState('');
   const [suggestionStatus, setSuggestionStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
 
-  const isAdmin = currentRole === 'Administrador';
+  const professionalRole = resolveUiRole(currentRole);
+  const roleDef = ROLE_DEFINITIONS[professionalRole];
+  const allowedSections = getNavigationSections(professionalRole);
 
-  const visibleNavItems = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
+  // Filter nav items by allowed sections
+  const visibleNavItems = NAV_ITEMS.filter((item) => allowedSections.includes(item.section));
+
+  // Group visible items by section for rendering
+  const groupedItems: Record<string, NavItemDef[]> = {};
+  for (const item of visibleNavItems) {
+    if (!groupedItems[item.section]) {
+      groupedItems[item.section] = [];
+    }
+    groupedItems[item.section].push(item);
+  }
+
+  // Section render order
+  const sectionOrder = [
+    NAV_SECTIONS.ASSISTENCIAL,
+    NAV_SECTIONS.GESTAO,
+    NAV_SECTIONS.ADMINISTRACAO,
+  ];
+
+  const showObservability = allowedSections.includes(NAV_SECTIONS.OBSERVABILIDADE);
+  const canManageSuggestions = isAllowed({ role: professionalRole }, 'manage_suggestions');
+
+  const accessLevelLabel = `Nivel ${roleDef?.accessLevel ?? 0}`;
 
   async function handleSuggestionSubmit() {
     const text = suggestionText.trim();
@@ -73,26 +131,33 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
       </div>
 
       <nav className="sidebar-nav">
-        <div className="nav-section-label">Espaço de Trabalho</div>
-
-        {visibleNavItems.map((item) => {
-          const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+        {sectionOrder.map((section) => {
+          const items = groupedItems[section];
+          if (!items || items.length === 0) return null;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`nav-item${isActive ? ' active' : ''}`}
-            >
-              <span className="nav-item-icon">{item.icon}</span>
-              <span>{item.label}</span>
-              {item.badge !== undefined && item.badge > 0 && (
-                <span className="nav-badge">{item.badge}</span>
-              )}
-            </Link>
+            <div key={section}>
+              <div className="nav-section-label">{SECTION_LABELS[section]}</div>
+              {items.map((item) => {
+                const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`nav-item${isActive ? ' active' : ''}`}
+                  >
+                    <span className="nav-item-icon">{item.icon}</span>
+                    <span>{item.label}</span>
+                    {item.badge !== undefined && item.badge > 0 && (
+                      <span className="nav-badge">{item.badge}</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
           );
         })}
 
-        {isAdmin && (
+        {showObservability && (
           <>
             <div className="nav-section-label" style={{ marginTop: '1rem' }}>Observabilidade</div>
 
@@ -102,7 +167,7 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
               rel="noopener noreferrer"
               className="nav-item"
             >
-              <span className="nav-item-icon">📊</span>
+              <span className="nav-item-icon">{'\uD83D\uDCCA'}</span>
               <span>Grafana</span>
             </a>
 
@@ -112,14 +177,14 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
               rel="noopener noreferrer"
               className="nav-item"
             >
-              <span className="nav-item-icon">🔄</span>
+              <span className="nav-item-icon">{'\uD83D\uDD04'}</span>
               <span>ArgoCD</span>
             </a>
           </>
         )}
       </nav>
 
-      {/* Suggestion box */}
+      {/* Suggestion box — visible to all roles */}
       <div
         style={{
           padding: '0.75rem 1rem',
@@ -136,7 +201,7 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
               fontWeight: 500,
             }}
           >
-            ✓ Enviada!
+            {'\u2713'} Enviada!
           </div>
         ) : (
           <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
@@ -145,7 +210,7 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
               value={suggestionText}
               onChange={(e) => setSuggestionText(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="💡 Sugerir melhoria..."
+              placeholder={'\uD83D\uDCA1 Sugerir melhoria...'}
               disabled={suggestionStatus === 'sending'}
               style={{
                 flex: 1,
@@ -173,7 +238,7 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
                 lineHeight: 1,
               }}
             >
-              ↑
+              {'\u2191'}
             </button>
           </div>
         )}
@@ -182,22 +247,35 @@ export function Navigation({ currentRole, onRoleChange }: NavigationProps) {
       <div className="sidebar-footer">
         <div className="sidebar-role-badge">
           <div className="sidebar-role-label">
-            Função Ativa
-            {isAdmin && (
+            Funcao Ativa
+            <span
+              style={{
+                marginLeft: '0.5rem',
+                background: roleDef?.accessLevel >= 6 ? '#ef4444' : roleDef?.accessLevel >= 4 ? '#f59e0b' : '#6b7280',
+                color: 'white',
+                fontSize: '0.65rem',
+                padding: '0.1rem 0.4rem',
+                borderRadius: '4px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
+              {accessLevelLabel}
+            </span>
+            {roleDef?.professionalCouncil && (
               <span
                 style={{
-                  marginLeft: '0.5rem',
-                  background: '#ef4444',
-                  color: 'white',
-                  fontSize: '0.65rem',
-                  padding: '0.1rem 0.4rem',
+                  marginLeft: '0.35rem',
+                  background: 'rgba(59,130,246,0.3)',
+                  color: '#93c5fd',
+                  fontSize: '0.6rem',
+                  padding: '0.1rem 0.35rem',
                   borderRadius: '4px',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
+                  fontWeight: 600,
                 }}
               >
-                Admin
+                {roleDef.professionalCouncil}
               </span>
             )}
           </div>
