@@ -1,718 +1,653 @@
 # Politica de Zero Mudancas Nao Validadas - Velya Platform
 
-## Principio Fundamental
-
-**Nenhuma mudanca alcanca qualquer ambiente da Velya Platform sem passar pela cadeia completa de validacao.** "Nao validado" significa qualquer mudanca que pulou, contornou ou nao completou pelo menos um dos 10 passos obrigatorios da cadeia de validacao.
-
-Esta politica se aplica a: codigo, infraestrutura (OpenTofu), configuracao (ConfigMaps, Secrets), politicas (Kyverno, ValidatingAdmissionPolicy), pipelines (GitHub Actions), dashboards (Grafana), e qualquer artefato que influencie o comportamento do sistema em producao.
+> Toda mudanca na plataforma Velya deve ser validada em 10 etapas obrigatorias antes de atingir producao.
+> Classificacao: Interno | Ultima atualizacao: 2026-04-08
 
 ---
 
-## Definicao de "Mudanca Nao Validada"
+## 1. Definicao de "Mudanca Nao Validada"
 
 Uma mudanca e considerada **nao validada** quando qualquer uma das seguintes condicoes e verdadeira:
 
-| Condicao | Exemplo | Risco |
-|---|---|---|
-| Aplicada diretamente no cluster sem PR | `kubectl apply -f` manual em producao | Critico |
-| PR mergeado sem checks CI verdes | Bypass de branch protection | Critico |
-| Imagem sem scan de vulnerabilidades | Push direto para ECR sem pipeline | Alto |
-| Imagem nao assinada em uso | Container sem cosign verify | Alto |
-| Rollout sem analysis template | Deployment direto sem Argo Rollouts | Alto |
-| Secret criado inline (nao via ESO) | `kubectl create secret` manual | Critico |
-| ConfigMap alterado sem PR | Edicao direta via kubectl | Alto |
-| Infra alterada sem plan/apply cycle | `tofu apply` sem PR review | Critico |
-| Dashboard Grafana editado na UI sem export | Mudanca perdida no proximo redeploy | Medio |
-| Pipeline CI alterada sem review | Potencial supply chain attack | Critico |
+| Condicao | Exemplo |
+|---|---|
+| Sem revisao de codigo | Push direto para main sem PR |
+| Sem testes automatizados | Merge com testes falhando ou sem cobertura minima |
+| Sem scan de seguranca | Imagem nao escaneada por Trivy |
+| Sem assinatura de artefato | Imagem OCI sem assinatura Cosign |
+| Sem politica de admission | Manifest aplicado sem passar por ValidatingAdmissionPolicy |
+| Sem delivery progressiva | Deploy direto 100% sem canary/blue-green |
+| Sem observacao pos-deploy | Sem analysis template ou periodo de observacao |
+| Sem classificacao de risco | Mudanca sem risk assessment previo |
+| Sem rastreabilidade | Mudanca sem link para ticket/issue/ADR |
+| Sem owner identificado | Mudanca sem autor/reviewer rastreavel |
+
+**Principio fundamental:** Se uma mudanca nao pode ser rastreada desde sua origem (ticket) ate
+sua validacao final (observacao pos-deploy), ela e nao validada e deve ser bloqueada ou revertida.
 
 ---
 
-## Cadeia Obrigatoria de 10 Passos
+## 2. Cadeia Obrigatoria de 10 Etapas
 
-### Diagrama da Cadeia
+### Diagrama de Fluxo
 
 ```
-+============================================================================+
-|              CADEIA DE VALIDACAO - 10 PASSOS OBRIGATORIOS                    |
-+============================================================================+
-
-  [1. OBJETIVO]
+  MUDANCA PROPOSTA
        |
-       | "Qual o proposito desta mudanca?"
        v
-  [2. CLASSIFICACAO DE RISCO]
+  [1. OBJETIVO] --> Qual problema resolve? Tem ticket?
        |
-       | "Qual o impacto potencial?"
        v
-  [3. VALIDACAO ESTATICA]
+  [2. CLASSIFICACAO DE RISCO] --> Low / Medium / High / Critical
        |
-       | "O codigo esta correto sintaticamente?"
        v
-  [4. VALIDACAO SEMANTICA]
+  [3. VALIDACAO ESTATICA] --> Lint, format, type-check
        |
-       | "O codigo faz o que deveria?"
        v
-  [5. TESTES AUTOMATIZADOS]
+  [4. VALIDACAO SEMANTICA] --> Testes unitarios, integracao, contrato
        |
-       | "Os testes passam?"
        v
-  [6. VERIFICACAO DE POLITICAS]
+  [5. TESTES AUTOMATIZADOS] --> Cobertura minima, regressao
        |
-       | "Atende as politicas de seguranca e compliance?"
        v
-  [7. ENTREGA PROGRESSIVA]
+  [6. VERIFICACAO DE POLITICAS] --> SAST, secrets, imagem, admission
        |
-       | "Deploy gradual com analise de metricas"
        v
-  [8. OBSERVACAO POS-MUDANCA]
+  [7. ENTREGA PROGRESSIVA] --> Canary / Blue-green com analysis
        |
-       | "O sistema esta saudavel apos a mudanca?"
        v
-  [9. ACEITAR OU REVERTER]
+  [8. OBSERVACAO POS-MUDANCA] --> Metricas, logs, traces por N minutos
        |
-       | "Promover ou fazer rollback?"
        v
-  [10. CONSOLIDACAO DE APRENDIZADO]
+  [9. ACEITAR OU ROLLBACK] --> Decisao baseada em dados
        |
-       | "O que aprendemos?"
        v
-  [MUDANCA CONCLUIDA]
+  [10. CONSOLIDACAO DE APRENDIZADO] --> Atualizar runbooks, politicas
+       |
+       v
+  MUDANCA VALIDADA E COMPLETA
 ```
 
 ---
 
-### Passo 1: Definicao de Objetivo
+### Etapa 1: Objetivo
 
-**Descricao**: Toda mudanca deve ter um objetivo claro, documentado e rastreável.
+**Pergunta:** "Por que essa mudanca existe?"
 
-**Requisitos**:
-- Issue ou ticket associado (GitHub Issues)
-- Descricao do problema que a mudanca resolve
-- Criterios de aceite definidos
-- Servicos Velya afetados identificados
-
-**Template de PR**:
-
-```markdown
-## Objetivo
-<!-- Descreva o que esta mudanca faz e por que e necessaria -->
-
-## Servicos Afetados
-- [ ] patient-flow
-- [ ] discharge-orchestrator
-- [ ] task-inbox
-- [ ] ai-gateway
-- [ ] velya-web
-- [ ] agent-coordinator
-- [ ] infraestrutura (OpenTofu)
-- [ ] outro: ___
-
-## Issue Relacionada
-Closes #___
-
-## Criterios de Aceite
-- [ ] ___
-- [ ] ___
-```
-
-**Gate**: PR sem objetivo documentado e automaticamente marcado como `needs-info` e nao pode ser revisado.
-
----
-
-### Passo 2: Classificacao de Risco
-
-**Descricao**: Toda mudanca e classificada em um dos 4 niveis de risco, determinando o rigor da validacao nas etapas seguintes.
-
-#### Arvore de Decisao para Classificacao de Risco
-
-```
-                        [MUDANCA PROPOSTA]
-                              |
-                     Afeta dados de pacientes?
-                        /              \
-                      SIM               NAO
-                       |                 |
-                   [CRITICO]      Afeta fluxo principal
-                                  de operacao hospitalar?
-                                    /           \
-                                  SIM            NAO
-                                   |              |
-                               [ALTO]       Afeta mais de
-                                            1 servico?
-                                             /        \
-                                           SIM         NAO
-                                            |           |
-                                         [MEDIO]   Mudanca e
-                                                   apenas visual
-                                                   ou docs?
-                                                    /       \
-                                                  SIM        NAO
-                                                   |          |
-                                                [BAIXO]    [MEDIO]
-```
-
-#### Matriz de Risco Detalhada
-
-| Nivel | Exemplos | Aprovacoes | Rollout | Observacao |
-|---|---|---|---|---|
-| **BAIXO** | Fix de typo, update de docs, ajuste de label | 1 reviewer | Canary rapido (10->100%) | 5 min |
-| **MEDIO** | Nova feature nao-critica, refactoring, ajuste de config | 1 reviewer + CI verde | Canary padrao (10->25->50->100%) | 15 min |
-| **ALTO** | Mudanca em servico critico, nova dependencia, schema migration | 2 reviewers + tech lead | Canary lento (5->10->25->50->100%) | 30 min |
-| **CRITICO** | Mudanca em patient-flow, dados de pacientes, auth/authz, infra core | 2 reviewers + tech lead + SRE | Blue-green com validacao manual | 60 min + aprovacao manual |
-
-#### Labels de risco no GitHub
+Toda mudanca deve ter:
 
 ```yaml
-# .github/labels.yml
-- name: risk/low
-  color: "0e8a16"
-  description: "Risco baixo - mudanca cosmética ou documentacao"
-- name: risk/medium
-  color: "fbca04"
-  description: "Risco medio - feature nao-critica ou refactoring"
-- name: risk/high
-  color: "e99695"
-  description: "Risco alto - servico critico ou nova dependencia"
-- name: risk/critical
-  color: "b60205"
-  description: "Risco critico - dados de pacientes ou infra core"
+objective_requirements:
+  mandatory:
+    - ticket_or_issue: "Link para GitHub Issue, Jira ticket ou ADR"
+    - description: "Descricao clara do problema que resolve"
+    - scope: "Lista de servicos e componentes afetados"
+  
+  for_high_critical:
+    - adr: "Architecture Decision Record aprovado"
+    - impact_analysis: "Analise de impacto em servicos dependentes"
+    - rollback_plan: "Plano de rollback documentado"
 ```
 
-**Gate**: PR sem label de risco nao pode ser mergeado. Bot automatico solicita classificacao.
-
----
-
-### Passo 3: Validacao Estatica
-
-**Descricao**: Verificacao automatizada da corretude sintatica e aderencia a padroes.
-
-**Verificacoes por tipo de artefato**:
-
-| Tipo | Ferramenta | Regras |
-|---|---|---|
-| TypeScript | ESLint + tsc | Strict mode, no-any, no-unused-vars |
-| Go | golangci-lint | errcheck, gosec, govet, staticcheck |
-| Python | Ruff + mypy | Type checking strict, PEP 8 |
-| YAML (K8s) | kubeconform + yamllint | Schema validation contra K8s API |
-| OpenTofu | `tofu validate` + `tofu fmt` | HCL syntax, format check |
-| Dockerfile | hadolint | Best practices, no latest tag |
-| OpenAPI | spectral | Velya style guide |
-| Protobuf | buf lint | Buf style guide |
-
-**Configuracao de lint unificada**:
+**Servicos Velya e seus owners para aprovacao:**
 
 ```yaml
-# .github/workflows/static-validation.yml
-name: Static Validation (Step 3)
-on: [pull_request]
-
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Detect changed files
-        id: changes
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            typescript:
-              - '**/*.ts'
-              - '**/*.tsx'
-            go:
-              - '**/*.go'
-            python:
-              - '**/*.py'
-            kubernetes:
-              - 'k8s/**/*.yaml'
-              - 'k8s/**/*.yml'
-            terraform:
-              - 'infra/**/*.tf'
-            docker:
-              - '**/Dockerfile'
-
-      - name: Lint TypeScript
-        if: steps.changes.outputs.typescript == 'true'
-        run: |
-          npm ci
-          npx eslint --max-warnings 0 .
-          npx tsc --noEmit
-
-      - name: Lint Go
-        if: steps.changes.outputs.go == 'true'
-        uses: golangci/golangci-lint-action@v4
-        with:
-          version: latest
-          args: --timeout=5m
-
-      - name: Lint Python
-        if: steps.changes.outputs.python == 'true'
-        run: |
-          pip install ruff mypy
-          ruff check .
-          mypy --strict .
-
-      - name: Validate Kubernetes manifests
-        if: steps.changes.outputs.kubernetes == 'true'
-        run: |
-          curl -sL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
-          ./kubeconform -strict -summary k8s/
-
-      - name: Validate OpenTofu
-        if: steps.changes.outputs.terraform == 'true'
-        run: |
-          cd infra/
-          tofu init -backend=false
-          tofu validate
-          tofu fmt -check -recursive
-
-      - name: Lint Dockerfiles
-        if: steps.changes.outputs.docker == 'true'
-        run: |
-          find . -name Dockerfile -exec hadolint {} \;
+service_owners:
+  patient-flow:
+    team: "squad-clinical"
+    approvers: ["@tech-lead-clinical", "@product-clinical"]
+  discharge-orchestrator:
+    team: "squad-clinical"
+    approvers: ["@tech-lead-clinical"]
+  task-inbox:
+    team: "squad-clinical"
+    approvers: ["@tech-lead-clinical"]
+  ai-gateway:
+    team: "squad-ai"
+    approvers: ["@tech-lead-ai", "@ml-lead"]
+  agent-coordinator:
+    team: "squad-ai"
+    approvers: ["@tech-lead-ai"]
+  velya-web:
+    team: "squad-frontend"
+    approvers: ["@tech-lead-frontend"]
+  auth-service:
+    team: "squad-platform"
+    approvers: ["@tech-lead-platform", "@security-lead"]
+  notification-hub:
+    team: "squad-platform"
+    approvers: ["@tech-lead-platform"]
 ```
-
-**Gate**: Qualquer falha de validacao estatica bloqueia o merge.
 
 ---
 
-### Passo 4: Validacao Semantica
+### Etapa 2: Classificacao de Risco
 
-**Descricao**: Verificacao de que a mudanca faz o que deveria fazer, alem de estar sintaticamente correta.
-
-**Verificacoes**:
-
-| Verificacao | Ferramenta | Descricao |
-|---|---|---|
-| Breaking changes em API | buf breaking | Detecta mudancas incompativeis em Protobuf |
-| Breaking changes em schema | schema-diff | Compara schemas de banco antes/depois |
-| Compatibilidade de contrato | Pact/contract tests | Verifica contratos entre servicos |
-| Validacao de migracao | goose dry-run | Executa migration em modo dry-run |
-| Validacao de OpenTofu plan | `tofu plan` | Mostra o que sera alterado na infra |
-| Validacao de Rollout spec | `kubectl-argo-rollouts lint` | Verifica spec do Rollout |
-
-```yaml
-# .github/workflows/semantic-validation.yml
-name: Semantic Validation (Step 4)
-on: [pull_request]
-
-jobs:
-  contract-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check API breaking changes
-        run: |
-          buf breaking --against '.git#branch=main'
-
-      - name: Validate database migrations
-        run: |
-          for svc in patient-flow discharge-orchestrator task-inbox; do
-            if [ -d "services/$svc/migrations" ]; then
-              echo "Validating migrations for $svc..."
-              # Dry-run contra banco de test
-              goose -dir services/$svc/migrations postgres "$TEST_DB_URL" up --dry-run
-            fi
-          done
-
-      - name: Validate OpenTofu plan
-        if: contains(github.event.pull_request.labels.*.name, 'infra')
-        run: |
-          cd infra/
-          tofu init
-          tofu plan -no-color -out=plan.tfplan
-          tofu show -no-color plan.tfplan > plan.txt
-          # Postar plan como comentario no PR
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --body "$(cat <<EOF
-          ## OpenTofu Plan
-          \`\`\`
-          $(cat plan.txt)
-          \`\`\`
-          EOF
-          )"
-```
-
-**Gate**: Breaking changes detectados requerem aprovacao explicita com label `breaking-change-approved`.
-
----
-
-### Passo 5: Testes Automatizados
-
-**Descricao**: Execucao completa da suite de testes relevante para a mudanca.
-
-**Niveis de teste**:
-
-| Nivel | Escopo | Tempo | Obrigatorio |
-|---|---|---|---|
-| Unitario | Funcao/metodo isolado | < 2 min | Sempre |
-| Integracao | Servico + dependencias (Testcontainers) | < 5 min | Sempre |
-| E2E | Fluxo completo multi-servico | < 15 min | Risco alto/critico |
-| Performance | Benchmark de latencia/throughput | < 10 min | Risco alto/critico |
-| Caos | Falha de dependencia simulada | < 10 min | Risco critico |
-
-**Cobertura minima por servico**:
-
-| Servico | Cobertura Unitaria | Cobertura Integracao |
-|---|---|---|
-| patient-flow | 85% | 70% |
-| discharge-orchestrator | 80% | 75% |
-| task-inbox | 80% | 65% |
-| ai-gateway | 75% | 60% |
-| velya-web | 70% | 50% |
-
-```yaml
-# .github/workflows/automated-tests.yml
-name: Automated Tests (Step 5)
-on: [pull_request]
-
-jobs:
-  unit-tests:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: [patient-flow, discharge-orchestrator, task-inbox, ai-gateway, velya-web]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run unit tests
-        run: |
-          cd services/${{ matrix.service }}
-          make test-unit
-      - name: Check coverage
-        run: |
-          cd services/${{ matrix.service }}
-          make test-coverage
-          # Falha se cobertura abaixo do minimo
-          COVERAGE=$(cat coverage.txt | grep total | awk '{print $NF}' | tr -d '%')
-          MIN_COVERAGE=80
-          if [ "$COVERAGE" -lt "$MIN_COVERAGE" ]; then
-            echo "Coverage $COVERAGE% is below minimum $MIN_COVERAGE%"
-            exit 1
-          fi
-
-  integration-tests:
-    runs-on: ubuntu-latest
-    needs: unit-tests
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: velya_test
-          POSTGRES_PASSWORD: test
-        ports: ['5432:5432']
-      nats:
-        image: nats:2.10-alpine
-        ports: ['4222:4222']
-    strategy:
-      matrix:
-        service: [patient-flow, discharge-orchestrator, task-inbox]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run integration tests
-        env:
-          DATABASE_URL: postgres://postgres:test@localhost:5432/velya_test
-          NATS_URL: nats://localhost:4222
-        run: |
-          cd services/${{ matrix.service }}
-          make test-integration
-
-  e2e-tests:
-    if: contains(github.event.pull_request.labels.*.name, 'risk/high') || contains(github.event.pull_request.labels.*.name, 'risk/critical')
-    runs-on: ubuntu-latest
-    needs: integration-tests
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup kind cluster
-        uses: helm/kind-action@v1
-      - name: Deploy test environment
-        run: make deploy-test-env
-      - name: Run E2E tests
-        run: make test-e2e
-```
-
-**Gate**: Testes falhando bloqueiam o merge. Flaky tests devem ser marcados e resolvidos em 24h.
-
----
-
-### Passo 6: Verificacao de Politicas
-
-**Descricao**: Validacao de conformidade com politicas de seguranca, compliance e governanca.
-
-**Politicas verificadas**:
-
-| Politica | Ferramenta | Escopo |
-|---|---|---|
-| Imagem de registry permitido | Kyverno/VAP | Apenas ECR da Velya |
-| Security context | Kyverno/VAP | runAsNonRoot, readOnlyRootFilesystem |
-| Resource limits | Kyverno/VAP | Limits e requests obrigatorios |
-| Labels obrigatorios | Kyverno/VAP | app, version, team, tier |
-| Network policies | Kyverno/VAP | Egress restrito para agentes |
-| Secrets via ESO | Kyverno/VAP | Proibido secret inline |
-| RBAC minimo | Review manual | Principio do menor privilegio |
-| LGPD compliance | Checklist | Dados de pacientes protegidos |
-
-```yaml
-# Validacao pre-deploy com conftest
-# policy/deployment.rego
-package main
-
-deny[msg] {
-  input.kind == "Deployment"
-  container := input.spec.template.spec.containers[_]
-  not container.resources.limits
-  msg := sprintf("Container '%s' deve ter resource limits definidos", [container.name])
-}
-
-deny[msg] {
-  input.kind == "Deployment"
-  container := input.spec.template.spec.containers[_]
-  not container.securityContext.runAsNonRoot
-  msg := sprintf("Container '%s' deve ter runAsNonRoot: true", [container.name])
-}
-
-deny[msg] {
-  input.kind == "Deployment"
-  not input.metadata.labels.app
-  msg := "Deployment deve ter label 'app'"
-}
-
-deny[msg] {
-  input.kind == "Deployment"
-  not input.metadata.labels.team
-  msg := "Deployment deve ter label 'team'"
-}
-```
-
-**Gate**: Violacao de politica bloqueia o deploy. Excecoes requerem aprovacao de SRE + justificativa documentada.
-
----
-
-### Passo 7: Entrega Progressiva
-
-**Descricao**: Deploy gradual com analise automatizada de metricas em cada step.
-
-**Estrategia baseada no risco**:
-
-| Risco | Estrategia | Steps | Analise |
-|---|---|---|---|
-| Baixo | Canary rapido | 10% -> 100% | 3 min por step |
-| Medio | Canary padrao | 10% -> 25% -> 50% -> 100% | 5 min por step |
-| Alto | Canary lento | 5% -> 10% -> 25% -> 50% -> 100% | 10 min por step |
-| Critico | Blue-green | Full switch com analise pre-switch | 15 min de analise |
-
-**Condicoes de freeze (deploy bloqueado)**:
-
-| Condicao | Duracao | Excecao |
-|---|---|---|
-| Incidente P1/P2 em andamento | Ate resolucao | Hotfix para o incidente |
-| Sexta-feira apos 16h | Ate segunda 9h | Hotfix P1 aprovado por SRE |
-| Feriado ou vespera | 24h antes ate 24h depois | Hotfix P1 aprovado por SRE |
-| Change freeze programado | Conforme calendario | Nenhuma |
-| Mais de 2 rollbacks no dia | Ate dia seguinte | Hotfix P1 aprovado por SRE |
-
-**Gate**: Rollout so avanca se todas as metricas de analise estao dentro do threshold. Rollback automatico se degradar.
-
----
-
-### Passo 8: Observacao Pos-Mudanca
-
-**Descricao**: Periodo de observacao ativa apos a mudanca ser promovida para 100%.
-
-**Checklist de observacao**:
-
-```yaml
-# Checklist pos-deploy automatizado
-post_deploy_observation:
-  duration_by_risk:
-    low: 5m
-    medium: 15m
-    high: 30m
-    critical: 60m
-
-  metrics_to_watch:
-    - name: error_rate
-      query: "rate(http_requests_total{status=~'5..', service='{{ service }}'}[5m])"
-      threshold: "< 0.01"  # menos de 1% de erro
-
-    - name: latency_p99
-      query: "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{service='{{ service }}'}[5m]))"
-      threshold: "< 2.0"  # menos de 2 segundos
-
-    - name: pod_restarts
-      query: "increase(kube_pod_container_status_restarts_total{namespace='velya-dev-core', container='{{ service }}'}[10m])"
-      threshold: "== 0"  # zero restarts
-
-    - name: nats_consumer_lag
-      query: "nats_consumer_num_pending{stream=~'{{ service }}.*'}"
-      threshold: "< 1000"  # lag abaixo de 1000 mensagens
-
-    - name: temporal_workflow_failures
-      query: "rate(temporal_workflow_failed_total{namespace='velya'}[5m])"
-      threshold: "< 0.001"
-```
-
-**Gate**: Se qualquer metrica ultrapassar o threshold durante a observacao, alerta e disparado e rollback e considerado.
-
----
-
-### Passo 9: Aceitar ou Reverter
-
-**Descricao**: Decisao final sobre a mudanca com base na observacao pos-deploy.
-
-#### Arvore de decisao
+**Arvore de decisao:**
 
 ```
-              [PERIODO DE OBSERVACAO CONCLUIDO]
+  A mudanca afeta dados de paciente ou seguranca clinica?
+  |
+  +-- SIM --> CRITICAL
+  |
+  +-- NAO --> A mudanca afeta autenticacao, autorizacao ou dados sensiveis?
+              |
+              +-- SIM --> HIGH
+              |
+              +-- NAO --> A mudanca afeta fluxo clinico ou integracao com sistemas externos?
                           |
-                 Metricas dentro do threshold?
-                    /              \
-                  SIM               NAO
-                   |                 |
-              [ACEITAR]        Degradacao > 50%?
-                   |              /         \
-                   |            SIM          NAO
-                   |             |            |
-                   |        [ROLLBACK      [ROLLBACK
-                   |         IMEDIATO]      GRADUAL]
-                   |             |            |
-                   v             v            v
-              [REGISTRAR     [REGISTRAR    [REGISTRAR
-               SUCESSO]       FALHA]        FALHA]
+                          +-- SIM --> A mudanca e facilmente reversivel?
+                          |           |
+                          |           +-- SIM --> MEDIUM
+                          |           +-- NAO --> HIGH
+                          |
+                          +-- NAO --> A mudanca afeta apenas UI, documentacao ou config nao critica?
+                                      |
+                                      +-- SIM --> LOW
+                                      +-- NAO --> MEDIUM
 ```
 
-**Processo de rollback**:
+**Requisitos por nivel de risco:**
+
+| Requisito | Low | Medium | High | Critical |
+|---|:---:|:---:|:---:|:---:|
+| PR review | 1 reviewer | 1 reviewer | 2 reviewers | 2 reviewers + tech lead |
+| Testes unitarios | Obrigatorio | Obrigatorio | Obrigatorio | Obrigatorio |
+| Testes de integracao | Opcional | Obrigatorio | Obrigatorio | Obrigatorio |
+| Testes E2E | Opcional | Opcional | Obrigatorio | Obrigatorio |
+| ADR | Opcional | Opcional | Obrigatorio | Obrigatorio |
+| Threat model | Nao | Nao | Recomendado | Obrigatorio |
+| Plano de rollback | Implicito | Documentado | Documentado + testado | Documentado + testado + aprovado |
+| Delivery progressiva | Canary rapido | Canary padrao | Canary lento | Blue-green com promocao manual |
+| Observacao pos-deploy | 5 minutos | 15 minutos | 30 minutos | 60 minutos |
+| Freeze check | Nao | Sim | Sim | Sim (bloqueado durante freeze) |
+
+**Exemplos concretos por servico Velya:**
 
 ```yaml
-# Rollback via Argo Rollouts
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
-metadata:
-  name: patient-flow
-  annotations:
-    rollout.argoproj.io/revision-history-limit: "5"
-spec:
-  # Rollback automatico preserva as 5 ultimas revisoes
-  revisionHistoryLimit: 5
-  # Rollback pode ser acionado por:
-  # 1. AnalysisRun falhando (automatico)
-  # 2. kubectl argo rollouts undo (manual)
-  # 3. ArgoCD sync para revisao anterior (GitOps)
-```
+risk_examples:
+  critical:
+    - "Mudanca no schema de dados de patient-flow que afeta registros de paciente"
+    - "Alteracao no fluxo de autenticacao de auth-service"
+    - "Novo modelo de IA no ai-gateway que toma decisoes clinicas"
+    - "Mudanca na logica de discharge-orchestrator que afeta alta de paciente"
 
-**Gate**: Decisao deve ser tomada antes do timeout do periodo de observacao. Timeout sem decisao = rollback automatico.
+  high:
+    - "Nova integracao HL7/FHIR no patient-flow"
+    - "Mudanca nos guardrails de agentes no agent-coordinator"
+    - "Alteracao nas permissoes de RBAC no auth-service"
+    - "Mudanca na logica de roteamento do api-gateway"
+
+  medium:
+    - "Novo tipo de notificacao no notification-hub"
+    - "Adição de campo nao critico em task-inbox"
+    - "Mudanca de dependencia com breaking change no velya-web"
+    - "Alteracao em workflow do Temporal no discharge-orchestrator"
+
+  low:
+    - "Correcao de typo na UI do velya-web"
+    - "Atualizacao de dependencia sem breaking change"
+    - "Melhoria de log no notification-hub"
+    - "Atualizacao de documentacao"
+```
 
 ---
 
-### Passo 10: Consolidacao de Aprendizado
+### Etapa 3: Validacao Estatica
 
-**Descricao**: Registro do resultado da mudanca e alimentacao do ciclo de melhoria continua.
-
-**Registro obrigatorio**:
+Ferramentas e configuracao por linguagem/servico:
 
 ```yaml
-# Exemplo de registro de mudanca
-change_record:
-  id: CHG-2026-0408-001
-  service: patient-flow
-  type: feature
-  risk: high
-  timestamp: "2026-04-08T14:30:00-03:00"
-  result: success  # success | rollback | partial
-  duration:
-    total: 45m
-    rollout: 30m
-    observation: 15m
-  metrics:
-    error_rate_before: 0.002
-    error_rate_after: 0.001
-    latency_p99_before: 1.2s
-    latency_p99_after: 1.1s
-  lessons:
-    - "Canary step de 10% foi suficiente para detectar regressao de latencia"
-    - "Novo threshold de NATS consumer lag precisa ser calibrado"
-  actions:
-    - type: threshold_update
-      description: "Ajustar threshold de NATS lag de 1000 para 500"
-      assignee: "@sre-team"
-      deadline: "2026-04-15"
+static_validation:
+  typescript_services:  # patient-flow, discharge-orchestrator, task-inbox, ai-gateway
+    tools:
+      - name: "Biome"
+        config: "biome.json"
+        rules: "recommended + velya-custom"
+        fail_on: "error"
+      - name: "TypeScript Compiler"
+        config: "tsconfig.json"
+        strict: true
+        fail_on: "any type error"
+    
+  frontend:  # velya-web
+    tools:
+      - name: "Biome"
+        config: "biome.json"
+      - name: "TypeScript Compiler"
+        strict: true
+      - name: "Stylelint"
+        config: ".stylelintrc"
+
+  infrastructure:  # OpenTofu/Terraform
+    tools:
+      - name: "tofu validate"
+        fail_on: "any validation error"
+      - name: "tofu fmt"
+        check: true
+      - name: "tflint"
+        config: ".tflint.hcl"
+      - name: "checkov"
+        framework: "terraform"
+        fail_on: "HIGH,CRITICAL"
+
+  kubernetes_manifests:
+    tools:
+      - name: "kubeconform"
+        kubernetes_version: "1.29"
+        strict: true
+      - name: "kustomize build --enable-helm | kubeconform"
+      - name: "pluto"  # deprecated API detection
+        target_versions: "k8s=v1.30"
 ```
 
-**Gate**: Mudancas de risco alto/critico sem registro de aprendizado geram alerta para o Engineering Manager.
+---
+
+### Etapa 4: Validacao Semantica
+
+```yaml
+semantic_validation:
+  contract_tests:
+    description: "Verificar que contratos de API nao foram quebrados"
+    tools:
+      - name: "Pact"
+        provider_verification: true
+        consumer_contracts:
+          - "velya-web -> patient-flow"
+          - "velya-web -> task-inbox"
+          - "discharge-orchestrator -> patient-flow"
+          - "agent-coordinator -> ai-gateway"
+          - "notification-hub -> patient-flow"
+    fail_on: "contract violation"
+
+  schema_validation:
+    description: "Verificar compatibilidade de schema de eventos NATS"
+    rules:
+      - "Novos campos sao sempre opcionais (backward compatible)"
+      - "Campos existentes nunca mudam de tipo"
+      - "Campos removidos passam por periodo de deprecacao de 2 sprints"
+    tool: "schema-registry-validator"
+
+  temporal_workflow_validation:
+    description: "Verificar que workflows Temporal sao compativeis"
+    rules:
+      - "Novas versoes de workflow usam versioning do Temporal"
+      - "Workflows em execucao nao sao afetados por deploy"
+      - "Signal/query handlers mantem compatibilidade"
+```
 
 ---
 
-## Acoes Proibidas
+### Etapa 5: Testes Automatizados
 
-As seguintes acoes sao **estritamente proibidas** na Velya Platform:
+```yaml
+test_requirements:
+  unit_tests:
+    coverage_minimum: 80%
+    coverage_for_critical_paths: 95%
+    critical_paths:
+      patient-flow:
+        - "src/domain/patient/*.ts"
+        - "src/domain/admission/*.ts"
+      discharge-orchestrator:
+        - "src/workflows/*.ts"
+        - "src/activities/*.ts"
+      ai-gateway:
+        - "src/guardrails/*.ts"
+        - "src/routing/*.ts"
 
-| Acao Proibida | Justificativa | Consequencia |
-|---|---|---|
-| `kubectl apply` direto em producao | Contorna todo o pipeline de validacao | Revogacao de acesso + incidente registrado |
-| `kubectl delete` sem PR | Pode causar downtime nao planejado | Revogacao de acesso + incidente registrado |
-| `kubectl edit` em qualquer ambiente | Drift entre GitOps e estado real | Alerta automatico + revert pelo ArgoCD |
-| Merge com checks CI falhando | Bypass de validacao estatica/semantica | Revert automatico do merge |
-| Push direto para main/develop | Contorna review de codigo | Branch protection deve impedir |
-| Criacao de Secret inline no cluster | Segredos devem vir do External Secrets Operator | Kyverno bloqueia + alerta |
-| Deploy fora do horario permitido | Risco de indisponibilidade sem suporte | Pipeline recusa + alerta |
-| Uso de `latest` tag em imagens | Nao reproduzivel, nao rastreavel | Admission policy rejeita |
-| Alteracao de RBAC sem PR | Escalacao de privilegio nao rastreada | Audit trail + alerta |
-| Skip de testes com `[skip ci]` | Contorna validacao automatizada | Proibido em branch protection |
+  integration_tests:
+    required_for: [medium, high, critical]
+    scope:
+      - "Database queries com dados reais (test containers)"
+      - "NATS JetStream publish/subscribe"
+      - "Temporal workflow execution"
+      - "External API calls (mocked)"
 
----
-
-## Excecoes Controladas
-
-Excecoes sao permitidas **apenas** nas seguintes condicoes:
-
-1. **Hotfix P1**: Incidente critico em producao afetando pacientes
-   - Requer: Aprovacao verbal de SRE Lead + registro posterior
-   - Prazo para regularizacao: 24 horas (criar PR retroativo)
-
-2. **Rollback emergencial**: Sistema instavel apos deploy
-   - Requer: Evidencia de degradacao em metricas
-   - Acao: ArgoCD sync para revisao anterior (GitOps-compliant)
-
-3. **Incident response**: Resposta a incidente de seguranca
-   - Requer: Aprovacao de Security Lead
-   - Prazo para regularizacao: 48 horas
-
-**Toda excecao deve ser registrada** em `docs/exceptions/` com:
-- Data e hora
-- Justificativa
-- Aprovador
-- Acoes tomadas
-- Plano de regularizacao
+  e2e_tests:
+    required_for: [high, critical]
+    scope:
+      - "Fluxo de admissao de paciente completo"
+      - "Fluxo de alta completo (discharge)"
+      - "Login + navegacao + acoes criticas no velya-web"
+    tools:
+      - "Playwright (frontend)"
+      - "Custom test harness (backend workflows)"
+```
 
 ---
 
-## Referencia a CLAUDE.md
+### Etapa 6: Verificacao de Politicas
 
-Esta politica complementa as regras definidas em `CLAUDE.md`:
+```yaml
+policy_checks:
+  security:
+    - tool: "Gitleaks"
+      scope: "diff do PR"
+      fail_on: "qualquer secret detectado"
+    - tool: "Trivy"
+      scope: "imagem OCI"
+      fail_on: "CRITICAL ou HIGH"
+    - tool: "Cosign verify"
+      scope: "imagem antes de deploy"
+      fail_on: "assinatura invalida ou ausente"
 
-- **Nao recriar ou referenciar diretorios removidos intencionalmente**
-- **Nao armazenar credenciais ou estado de automacao em repositorios de aplicacao**
-- **Usar o bundle Git-tracked para operacao independente de notebook**
-- **Respeitar o arquivo `agent-sync-status.json` como visao de coordenacao**
+  compliance:
+    - check: "Dados de paciente criptografados em repouso e transito"
+      applies_to: [patient-flow, discharge-orchestrator]
+    - check: "Logs nao contem PII sem mascaramento"
+      applies_to: "todos os servicos"
+    - check: "Consent tracking para uso de dados por IA"
+      applies_to: [ai-gateway, agent-coordinator]
 
-O Claude Agent SDK utilizado na Velya deve seguir esta politica de zero mudancas nao validadas ao executar acoes automatizadas. Agentes Claude **nao podem**:
-- Aplicar mudancas diretamente no cluster sem passar pelo pipeline
-- Criar PRs que bypassem checks obrigatorios
-- Alterar configuracoes de seguranca sem aprovacao humana
-- Executar acoes de risco critico sem gate de aprovacao
+  kubernetes_admission:
+    - tool: "ValidatingAdmissionPolicy"
+      scope: "todos os namespaces velya-dev-*"
+      policies:
+        - require-resource-limits
+        - require-probes
+        - require-labels
+        - deny-privileged
+        - restrict-registry
+```
 
 ---
 
-## Metricas de Conformidade
+### Etapa 7: Entrega Progressiva
 
-| Metrica | Descricao | Meta | Alerta |
-|---|---|---|---|
-| Change Validation Rate | % de mudancas que passaram pela cadeia completa | 100% | < 100% |
-| Mean Validation Time | Tempo medio da cadeia completa | < 30 min (baixo), < 2h (critico) | > 2x da meta |
-| Rollback Rate | % de deploys que resultaram em rollback | < 5% | > 10% |
-| Exception Rate | % de mudancas via excecao controlada | < 2% | > 5% |
-| Policy Violation Attempts | Tentativas de violacao de politica bloqueadas | Monitorar tendencia | Aumento > 20% |
-| Post-change Incidents | Incidentes causados por mudancas recentes | < 1 por semana | > 2 por semana |
+```yaml
+progressive_delivery:
+  canary:
+    applies_to: [patient-flow, discharge-orchestrator, task-inbox, velya-web]
+    steps:
+      low_risk: [20%, 50%, 100%]
+      medium_risk: [10%, 25%, 50%, 100%]
+      high_risk: [5%, 10%, 25%, 50%, 75%, 100%]
+    analysis_per_step:
+      - metric: "error_rate"
+        query: 'rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])'
+        threshold: "< 0.01"
+      - metric: "p99_latency"
+        query: 'histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))'
+        threshold: "< SLO do servico"
+
+  blue_green:
+    applies_to: [ai-gateway, auth-service]
+    pre_promotion_analysis:
+      duration: 5m
+      metrics:
+        - error_rate
+        - latency_p99
+        - custom_health_check
+    promotion: manual_for_critical
+```
+
+---
+
+### Etapa 8: Observacao Pos-Mudanca
+
+```yaml
+post_change_observation:
+  dashboards:
+    - name: "Velya Service Health"
+      url: "https://grafana.velya.internal/d/service-health"
+      panels:
+        - request_rate
+        - error_rate
+        - latency_percentiles
+        - pod_restarts
+        - memory_usage
+        - cpu_usage
+
+  automated_checks:
+    - name: "Error rate comparison"
+      query: |
+        (
+          rate(http_requests_total{status=~"5..", service="$SERVICE"}[5m])
+          /
+          rate(http_requests_total{service="$SERVICE"}[5m])
+        )
+        >
+        1.5 * (
+          rate(http_requests_total{status=~"5..", service="$SERVICE"}[5m] offset 1h)
+          /
+          rate(http_requests_total{service="$SERVICE"}[5m] offset 1h)
+        )
+      action: "Se error rate e 1.5x maior que 1h atras, sinalizar para review"
+
+    - name: "Latency regression"
+      query: |
+        histogram_quantile(0.99,
+          rate(http_request_duration_seconds_bucket{service="$SERVICE"}[5m])
+        )
+        >
+        1.3 * histogram_quantile(0.99,
+          rate(http_request_duration_seconds_bucket{service="$SERVICE"}[5m] offset 1h)
+        )
+      action: "Se p99 e 1.3x maior que 1h atras, sinalizar para review"
+
+  observation_periods:
+    low: "5 minutos"
+    medium: "15 minutos"
+    high: "30 minutos"
+    critical: "60 minutos"
+```
+
+---
+
+### Etapa 9: Aceitar ou Rollback
+
+```yaml
+accept_or_rollback:
+  decision_criteria:
+    accept_when:
+      - "Todas as metricas dentro dos thresholds durante periodo de observacao"
+      - "Zero alertas novos disparados"
+      - "Nenhum aumento anomalo em logs de erro"
+      - "Health checks de todas as dependencias passando"
+
+    rollback_when:
+      - "Error rate excede threshold por mais de 2 minutos"
+      - "Latencia p99 excede SLO por mais de 3 minutos"
+      - "Qualquer health check de dependencia falhando"
+      - "Pod restart loop detectado (> 3 restarts em 5 minutos)"
+      - "Alerta de SLO budget burn rate disparado"
+
+  rollback_procedure:
+    automatic:
+      trigger: "Argo Rollouts analysis failure"
+      action: "Rollback para revisao anterior"
+      notification: "Slack #velya-deployments"
+    
+    manual:
+      trigger: "On-call identifica problema nao coberto por analysis"
+      action: |
+        kubectl argo rollouts undo <rollout-name> -n <namespace>
+      notification: "Slack #velya-oncall + ticket de incidente"
+```
+
+---
+
+### Etapa 10: Consolidacao de Aprendizado
+
+```yaml
+learning_consolidation:
+  on_success:
+    - "Registrar metricas de deployment (duracao, steps, metricas)"
+    - "Atualizar baseline de metricas se deployment melhorou performance"
+    - "Marcar ticket/issue como deployed"
+
+  on_rollback:
+    - "Criar ticket de investigacao com link para metricas"
+    - "Capturar snapshot de metricas, logs e traces do periodo"
+    - "Agendar review do rollback em ate 24h"
+    - "Atualizar analysis templates se threshold era inadequado"
+    - "Documentar root cause e prevencao"
+
+  on_incident:
+    - "Seguir processo de post-mortem (ver L8 em layered-assurance-model.md)"
+    - "Atualizar runbooks com novos procedimentos"
+    - "Adicionar testes para cenario nao coberto"
+    - "Atualizar politicas de admission se aplicavel"
+```
+
+---
+
+## 3. Lista de Acoes Proibidas
+
+As seguintes acoes sao **explicitamente proibidas** e devem ser bloqueadas por controles tecnicos:
+
+```yaml
+prohibited_actions:
+  source_control:
+    - action: "Push direto para branch main ou develop"
+      enforcement: "Branch protection rules"
+      exception: "Nenhuma"
+
+    - action: "Merge de PR com CI falhando"
+      enforcement: "Required status checks"
+      exception: "Nenhuma"
+
+    - action: "Merge sem review aprovado"
+      enforcement: "Required reviews"
+      exception: "Hotfix P1 com aprovacao de VP"
+
+    - action: "Commit de secrets, tokens ou credenciais"
+      enforcement: "Gitleaks pre-commit hook + CI scan"
+      exception: "Nenhuma - use External Secrets Operator"
+
+    - action: "Remocao de testes existentes sem justificativa"
+      enforcement: "PR review + coverage check"
+      exception: "Refactoring com cobertura mantida"
+
+  deployment:
+    - action: "Deploy manual via kubectl apply em producao"
+      enforcement: "RBAC + ArgoCD como unico meio de deploy"
+      exception: "Emergencia P1 com log e post-mortem"
+
+    - action: "Deploy sem delivery progressiva"
+      enforcement: "Argo Rollouts obrigatorio"
+      exception: "CronJobs e Jobs one-shot"
+
+    - action: "Alterar resources de producao sem PR"
+      enforcement: "GitOps (ArgoCD sync)"
+      exception: "Nenhuma"
+
+    - action: "Deploy durante janela de freeze"
+      enforcement: "ArgoCD sync window"
+      exception: "Hotfix P1 com aprovacao"
+
+  infrastructure:
+    - action: "Mudanca manual em recursos AWS sem OpenTofu"
+      enforcement: "AWS SCPs + drift detection"
+      exception: "Nenhuma"
+
+    - action: "Criar secrets diretamente no cluster"
+      enforcement: "External Secrets Operator como unica fonte"
+      exception: "Nenhuma"
+
+    - action: "Alterar NetworkPolicy manualmente"
+      enforcement: "GitOps + admission policy"
+      exception: "Nenhuma"
+
+  agents:
+    - action: "Deploy de agente sem guardrails configurados"
+      enforcement: "Admission policy para namespace velya-dev-agents"
+      exception: "Nenhuma"
+
+    - action: "Agente com acesso a dados de paciente sem consent tracking"
+      enforcement: "ai-gateway policy check"
+      exception: "Nenhuma"
+
+    - action: "Agente com permissao de escrita em producao sem aprovacao"
+      enforcement: "agent-coordinator RBAC"
+      exception: "Nenhuma"
+```
+
+---
+
+## 4. Referencia ao CLAUDE.md
+
+As regras do CLAUDE.md se integram a esta politica:
+
+```yaml
+claude_md_integration:
+  rules:
+    - "Claude Agent SDK opera sob as mesmas restricoes de validacao"
+    - "Agentes Claude nao podem fazer push direto; devem criar PRs"
+    - "Agentes Claude nao podem aprovar seus proprios PRs"
+    - "Mudancas geradas por agentes passam pela mesma cadeia de 10 etapas"
+    - "Agentes devem incluir 'Co-Authored-By' em commits"
+    - "Agentes nao criam documentacao nao solicitada"
+    - "Agentes respeitam coordination state em agent-sync-status.json"
+    - "Agentes nao armazenam credenciais em repositorios"
+```
+
+---
+
+## 5. Metricas de Conformidade
+
+```yaml
+compliance_metrics:
+  - name: velya_validated_change_ratio
+    description: "Proporcao de mudancas que passaram por todas as 10 etapas"
+    target: "100%"
+    alert_if: "< 100%"
+    type: gauge
+
+  - name: velya_unvalidated_change_detected_total
+    description: "Numero de mudancas nao validadas detectadas"
+    target: "0"
+    alert_if: "> 0"
+    type: counter
+    labels: [service, stage_skipped, detected_by]
+
+  - name: velya_validation_chain_duration_seconds
+    description: "Tempo total da cadeia de validacao"
+    type: histogram
+    buckets: [300, 600, 900, 1800, 3600, 7200]
+
+  - name: velya_risk_classification_distribution
+    description: "Distribuicao de mudancas por nivel de risco"
+    type: gauge
+    labels: [risk_level, service]
+```
+
+---
+
+## 6. Auditoria e Evidencias
+
+Toda passagem por uma etapa gera um registro de evidencia:
+
+```yaml
+audit_trail:
+  storage: "S3 bucket velya-audit-trail (retencao 7 anos)"
+  format: "JSON structured log"
+  
+  evidence_record:
+    fields:
+      - change_id: "SHA do commit ou ID do PR"
+      - timestamp: "ISO 8601"
+      - stage: "1-10"
+      - stage_name: "nome da etapa"
+      - result: "pass | fail | skip_approved"
+      - evidence_type: "CI result | scan report | approval | metric snapshot"
+      - evidence_url: "link para artefato"
+      - actor: "usuario ou sistema"
+      - service: "servico Velya afetado"
+      - risk_level: "low | medium | high | critical"
+      - duration_seconds: "tempo gasto na etapa"
+
+  example:
+    change_id: "abc123def"
+    timestamp: "2026-04-08T14:30:00Z"
+    stage: 6
+    stage_name: "policy_checks"
+    result: "pass"
+    evidence_type: "trivy_scan_report"
+    evidence_url: "s3://velya-audit-trail/2026/04/08/abc123def/trivy-report.json"
+    actor: "github-actions[bot]"
+    service: "patient-flow"
+    risk_level: "high"
+    duration_seconds: 45
+```
