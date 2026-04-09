@@ -708,5 +708,11 @@ export const UI_ROLE_MAP: Record<string, ProfessionalRole> = {
  * Returns admin_system as a safe fallback (most restrictive audit).
  */
 export function resolveUiRole(uiRole: string): ProfessionalRole {
-  return UI_ROLE_MAP[uiRole] ?? 'admin_system';
+  const resolved = UI_ROLE_MAP[uiRole];
+  if (!resolved) {
+    // Fallback seguro: papel desconhecido recebe acesso mínimo (nível 0), não admin
+    console.warn(`[access-control] Role desconhecida: "${uiRole}" — usando security_guard (nível 0)`);
+    return 'security_guard';
+  }
+  return resolved;
 }
