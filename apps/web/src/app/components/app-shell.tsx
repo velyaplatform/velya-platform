@@ -25,6 +25,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
   const [sessionActive, setSessionActive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Check session on mount
   useEffect(() => {
@@ -82,8 +83,8 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
 
   if (loading || !sessionData) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
-        <span style={{ color: '#64748b' }}>Carregando...</span>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <span className="text-slate-500">Carregando...</span>
       </div>
     );
   }
@@ -100,11 +101,39 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
     : sessionData.userName.slice(0, 2).toUpperCase();
 
   return (
-    <div className="app-shell">
-      <Navigation currentRole={currentRole} userName={sessionData.userName} onLogout={handleLogout} />
+    <div className="flex min-h-screen bg-[var(--color-surface)]">
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <Navigation
+        currentRole={currentRole}
+        userName={sessionData.userName}
+        onLogout={handleLogout}
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+      />
+
       <div className="app-main">
         <header className="app-topbar">
-          <span className="topbar-title">{pageTitle}</span>
+          {/* Hamburger menu for mobile */}
+          <div className="flex items-center gap-3">
+            <button
+              className="md:hidden p-1.5 rounded-md text-[var(--text-secondary)] hover:bg-[var(--color-surface-subtle)]"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Abrir menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <span className="topbar-title">{pageTitle}</span>
+          </div>
+
           <div className="topbar-right">
             <div className="topbar-alerts">
               <span>{'\uD83D\uDD34'}</span>
@@ -113,55 +142,28 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
             <div className="topbar-time">{currentTime}</div>
             <div className="topbar-user">
               <div className="avatar">{initials}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+              <div className="flex flex-col leading-tight">
                 <span>{sessionData.userName}</span>
                 {councilBadge && (
-                  <span
-                    style={{
-                      fontSize: '0.65rem',
-                      color: 'rgba(147,197,253,0.9)',
-                      fontWeight: 500,
-                    }}
-                  >
+                  <span className="text-[0.65rem] text-blue-300/90 font-medium">
                     {councilBadge} | Nivel {roleDef?.accessLevel}
                   </span>
                 )}
                 {!councilBadge && (
-                  <span
-                    style={{
-                      fontSize: '0.65rem',
-                      color: 'rgba(255,255,255,0.5)',
-                      fontWeight: 500,
-                    }}
-                  >
+                  <span className="text-[0.65rem] text-white/50 font-medium">
                     Nivel {roleDef?.accessLevel}
                   </span>
                 )}
               </div>
               <span
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: sessionActive ? '#22c55e' : '#ef4444',
-                  marginLeft: 6,
-                  flexShrink: 0,
-                }}
+                className={`w-2 h-2 rounded-full ml-1.5 shrink-0 ${
+                  sessionActive ? 'bg-green-500' : 'bg-red-500'
+                }`}
                 title={sessionActive ? 'Sessao ativa' : 'Sem sessao'}
               />
               <button
                 onClick={handleLogout}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#94a3b8',
-                  cursor: 'pointer',
-                  fontSize: '0.75rem',
-                  fontFamily: 'inherit',
-                  marginLeft: '0.5rem',
-                  padding: '0.25rem 0.5rem',
-                  borderRadius: '4px',
-                }}
+                className="bg-transparent border-none text-slate-400 cursor-pointer text-xs font-inherit ml-2 px-2 py-1 rounded"
                 title="Sair"
               >
                 Sair

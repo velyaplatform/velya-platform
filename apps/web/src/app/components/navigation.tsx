@@ -61,9 +61,11 @@ interface NavigationProps {
   currentRole: Role;
   userName: string;
   onLogout: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-export function Navigation({ currentRole, userName, onLogout }: NavigationProps) {
+export function Navigation({ currentRole, userName, onLogout, mobileOpen, onMobileClose }: NavigationProps) {
   const pathname = usePathname();
   const [suggestionText, setSuggestionText] = useState('');
   const [suggestionStatus, setSuggestionStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
@@ -120,32 +122,70 @@ export function Navigation({ currentRole, userName, onLogout }: NavigationProps)
     }
   }
 
+  function handleNavClick() {
+    // Close mobile sidebar on navigation
+    onMobileClose?.();
+  }
+
+  const accessLevelBg = roleDef?.accessLevel >= 6 ? 'bg-red-500' : roleDef?.accessLevel >= 4 ? 'bg-amber-500' : 'bg-gray-500';
+
   return (
-    <aside className="app-sidebar">
-      <div className="sidebar-logo">
-        <div className="sidebar-logo-text">Velya</div>
-        <div className="sidebar-logo-sub">Plataforma Hospitalar</div>
+    <aside
+      className={`
+        fixed top-0 left-0 bottom-0 z-50
+        w-60 bg-[var(--color-brand-mid)] flex flex-col shrink-0 overflow-y-auto
+        transition-transform duration-200
+        md:translate-x-0
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}
+    >
+      {/* Close button for mobile */}
+      <button
+        className="absolute top-3 right-3 p-1 rounded text-white/50 hover:text-white/90 md:hidden"
+        onClick={onMobileClose}
+        aria-label="Fechar menu"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <div className="px-5 py-5 border-b border-white/[0.08]">
+        <div className="text-xl font-bold text-white tracking-tight">Velya</div>
+        <div className="text-xs text-white/45 mt-0.5 tracking-widest uppercase">Plataforma Hospitalar</div>
       </div>
 
-      <nav className="sidebar-nav">
+      <nav className="flex-1 px-2 py-3 flex flex-col gap-0.5">
         {sectionOrder.map((section) => {
           const items = groupedItems[section];
           if (!items || items.length === 0) return null;
           return (
             <div key={section}>
-              <div className="nav-section-label">{SECTION_LABELS[section]}</div>
+              <div className="text-[10px] font-semibold text-white/30 uppercase tracking-wider px-3 pt-3 pb-2">
+                {SECTION_LABELS[section]}
+              </div>
               {items.map((item) => {
                 const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`nav-item${isActive ? ' active' : ''}`}
+                    onClick={handleNavClick}
+                    className={`
+                      flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+                      no-underline transition-colors duration-150
+                      ${isActive
+                        ? 'bg-blue-600/25 text-white border-l-[3px] border-blue-500 pl-[calc(0.75rem-3px)]'
+                        : 'text-white/65 hover:bg-white/[0.08] hover:text-white/90'
+                      }
+                    `}
                   >
-                    <span className="nav-item-icon">{item.icon}</span>
+                    <span className="text-base w-5 text-center shrink-0">{item.icon}</span>
                     <span>{item.label}</span>
                     {item.badge !== undefined && item.badge > 0 && (
-                      <span className="nav-badge">{item.badge}</span>
+                      <span className="ml-auto bg-red-600 text-white text-[10px] font-bold px-1.5 py-px rounded-full min-w-[18px] text-center">
+                        {item.badge}
+                      </span>
                     )}
                   </Link>
                 );
@@ -156,15 +196,17 @@ export function Navigation({ currentRole, userName, onLogout }: NavigationProps)
 
         {showObservability && (
           <>
-            <div className="nav-section-label" style={{ marginTop: '1rem' }}>Observabilidade</div>
+            <div className="text-[10px] font-semibold text-white/30 uppercase tracking-wider px-3 pt-6 pb-2">
+              Observabilidade
+            </div>
 
             <a
               href="http://grafana.172.19.0.6.nip.io"
               target="_blank"
               rel="noopener noreferrer"
-              className="nav-item"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-white/65 hover:bg-white/[0.08] hover:text-white/90 no-underline transition-colors duration-150"
             >
-              <span className="nav-item-icon">{'\uD83D\uDCCA'}</span>
+              <span className="text-base w-5 text-center shrink-0">{'\uD83D\uDCCA'}</span>
               <span>Grafana</span>
             </a>
 
@@ -172,9 +214,9 @@ export function Navigation({ currentRole, userName, onLogout }: NavigationProps)
               href="http://argocd.172.19.0.6.nip.io"
               target="_blank"
               rel="noopener noreferrer"
-              className="nav-item"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-white/65 hover:bg-white/[0.08] hover:text-white/90 no-underline transition-colors duration-150"
             >
-              <span className="nav-item-icon">{'\uD83D\uDD04'}</span>
+              <span className="text-base w-5 text-center shrink-0">{'\uD83D\uDD04'}</span>
               <span>ArgoCD</span>
             </a>
           </>
@@ -182,26 +224,13 @@ export function Navigation({ currentRole, userName, onLogout }: NavigationProps)
       </nav>
 
       {/* Suggestion box */}
-      <div
-        style={{
-          padding: '0.75rem 1rem',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
-        }}
-      >
+      <div className="px-4 py-3 border-t border-white/[0.08]">
         {suggestionStatus === 'sent' ? (
-          <div
-            style={{
-              color: '#4ade80',
-              fontSize: '0.8rem',
-              textAlign: 'center',
-              padding: '0.4rem 0',
-              fontWeight: 500,
-            }}
-          >
+          <div className="text-green-400 text-[0.8rem] text-center py-1 font-medium">
             {'\u2713'} Enviada!
           </div>
         ) : (
-          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+          <div className="flex gap-1.5 items-center">
             <input
               type="text"
               value={suggestionText}
@@ -209,31 +238,14 @@ export function Navigation({ currentRole, userName, onLogout }: NavigationProps)
               onKeyDown={handleKeyDown}
               placeholder={'\uD83D\uDCA1 Sugerir melhoria...'}
               disabled={suggestionStatus === 'sending'}
-              style={{
-                flex: 1,
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: '6px',
-                padding: '0.4rem 0.6rem',
-                color: 'rgba(255,255,255,0.85)',
-                fontSize: '0.78rem',
-                outline: 'none',
-                fontFamily: 'inherit',
-              }}
+              className="flex-1 bg-white/[0.06] border border-white/[0.12] rounded-md px-2.5 py-1.5 text-white/85 text-[0.78rem] outline-none font-[inherit] placeholder:text-white/40"
             />
             <button
               onClick={handleSuggestionSubmit}
               disabled={!suggestionText.trim() || suggestionStatus === 'sending'}
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '0.4rem 0.5rem',
-                color: 'rgba(255,255,255,0.7)',
-                cursor: suggestionText.trim() ? 'pointer' : 'default',
-                fontSize: '0.85rem',
-                lineHeight: 1,
-              }}
+              className={`bg-white/10 border-none rounded-md px-2 py-1.5 text-white/70 text-[0.85rem] leading-none ${
+                suggestionText.trim() ? 'cursor-pointer hover:bg-white/20' : 'cursor-default'
+              }`}
             >
               {'\u2191'}
             </button>
@@ -241,77 +253,32 @@ export function Navigation({ currentRole, userName, onLogout }: NavigationProps)
         )}
       </div>
 
-      <div className="sidebar-footer">
-        <div className="sidebar-role-badge">
-          <div className="sidebar-role-label">
+      <div className="px-3 py-4 border-t border-white/[0.08]">
+        <div className="bg-blue-600/20 border border-blue-600/40 rounded-lg px-3 py-2 text-white/85 text-xs">
+          <div className="text-white/45 text-[10px] uppercase tracking-wider mb-0.5 flex items-center flex-wrap gap-1">
             Funcao Ativa
             <span
-              style={{
-                marginLeft: '0.5rem',
-                background: roleDef?.accessLevel >= 6 ? '#ef4444' : roleDef?.accessLevel >= 4 ? '#f59e0b' : '#6b7280',
-                color: 'white',
-                fontSize: '0.65rem',
-                padding: '0.1rem 0.4rem',
-                borderRadius: '4px',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
+              className={`${accessLevelBg} text-white text-[0.65rem] px-1.5 py-px rounded font-bold uppercase tracking-wider`}
             >
               {accessLevelLabel}
             </span>
             {roleDef?.professionalCouncil && (
-              <span
-                style={{
-                  marginLeft: '0.35rem',
-                  background: 'rgba(59,130,246,0.3)',
-                  color: '#93c5fd',
-                  fontSize: '0.6rem',
-                  padding: '0.1rem 0.35rem',
-                  borderRadius: '4px',
-                  fontWeight: 600,
-                }}
-              >
+              <span className="bg-blue-500/30 text-blue-300 text-[0.6rem] px-1.5 py-px rounded font-semibold">
                 {roleDef.professionalCouncil}
               </span>
             )}
           </div>
-          <div
-            style={{
-              color: 'rgba(255,255,255,0.85)',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              marginTop: '2px',
-            }}
-          >
+          <div className="text-white/85 text-sm font-semibold mt-0.5">
             {currentRole}
           </div>
-          <div
-            style={{
-              color: 'rgba(255,255,255,0.5)',
-              fontSize: '0.7rem',
-              marginTop: '2px',
-            }}
-          >
+          <div className="text-white/50 text-[0.7rem] mt-0.5">
             {userName}
           </div>
         </div>
 
         <button
           onClick={onLogout}
-          style={{
-            width: '100%',
-            marginTop: '0.75rem',
-            background: 'rgba(239,68,68,0.15)',
-            border: '1px solid rgba(239,68,68,0.3)',
-            borderRadius: '8px',
-            padding: '0.5rem',
-            color: '#fca5a5',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-          }}
+          className="w-full mt-3 bg-red-500/15 border border-red-500/30 rounded-lg py-2 px-4 text-red-300 text-[0.8rem] font-semibold cursor-pointer font-[inherit] hover:bg-red-500/25 transition-colors"
         >
           Sair
         </button>

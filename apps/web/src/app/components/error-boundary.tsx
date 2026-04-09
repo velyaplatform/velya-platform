@@ -48,25 +48,22 @@ export class ErrorBoundary extends React.Component<
           data: { message: error.message, stack: error.stack },
         });
         localStorage.setItem('velya_pending_errors', JSON.stringify(pending.slice(-50)));
-      } catch { /* localStorage indisponível */ }
+      } catch { /* localStorage indisponivel */ }
     });
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          minHeight: '50vh', padding: '2rem', textAlign: 'center',
-        }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+        <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center">
+          <div className="text-5xl mb-4">&#x26A0;&#xFE0F;</div>
+          <h2 className="text-xl font-bold mb-2">
             Erro Inesperado
           </h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', maxWidth: '400px' }}>
-            Um erro foi detectado e registrado automaticamente. A equipe será notificada.
+          <p className="text-[var(--text-secondary)] mb-4 max-w-[400px]">
+            Um erro foi detectado e registrado automaticamente. A equipe sera notificada.
           </p>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '1.5rem', fontFamily: 'monospace' }}>
+          <p className="text-xs text-[var(--text-tertiary)] mb-6 font-mono">
             {this.state.error?.message}
           </p>
           <button

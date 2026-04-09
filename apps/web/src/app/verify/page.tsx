@@ -92,29 +92,45 @@ function VerifyForm() {
   if (!email) return null;
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <div style={styles.logo}>Velya</div>
-          <div style={styles.logoSub}>Plataforma Hospitalar</div>
-          <h1 style={styles.title}>Verificar Email</h1>
-          <p style={styles.subtitle}>
-            Codigo de verificacao enviado para <strong>{email}</strong>
+    <div className="min-h-screen bg-velya-bg flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-[440px] bg-velya-card rounded-2xl p-8 sm:p-10 shadow-2xl border border-velya-border">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div className="text-2xl font-bold text-white tracking-tight">Velya</div>
+          <div className="text-[0.7rem] text-velya-subtle uppercase tracking-widest mt-0.5">
+            Plataforma Hospitalar
+          </div>
+          <h1 className="text-xl font-semibold text-velya-text mt-6">Verificar Email</h1>
+          <p className="text-sm text-velya-subtle mt-2">
+            Codigo de verificacao enviado para <strong className="text-velya-muted">{email}</strong>
           </p>
         </div>
 
+        {/* Dev banner */}
         {currentDevCode && (
-          <div style={styles.devBanner}>
-            <strong>Modo desenvolvimento</strong> — codigo: <span style={styles.devCode}>{currentDevCode}</span>
+          <div className="bg-yellow-500/15 border border-yellow-500/30 rounded-lg px-4 py-3 text-yellow-400 text-sm text-center mb-4">
+            <strong>Modo desenvolvimento</strong> — codigo:{' '}
+            <span className="font-mono text-lg font-bold tracking-[0.15em]">{currentDevCode}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          {error && <div style={styles.error}>{error}</div>}
-          {success && <div style={styles.success}>{success}</div>}
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {error && (
+            <div className="bg-red-500/15 border border-red-500/30 rounded-lg px-4 py-3 text-red-300 text-sm text-center">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="bg-green-500/15 border border-green-500/30 rounded-lg px-4 py-3 text-green-300 text-sm text-center">
+              {success}
+            </div>
+          )}
 
-          <div style={styles.field}>
-            <label style={styles.label}>Codigo de 6 digitos</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-velya-muted text-center">
+              Codigo de 6 digitos
+            </label>
             <input
               type="text"
               value={code}
@@ -123,7 +139,7 @@ function VerifyForm() {
                 setCode(val);
               }}
               placeholder="000000"
-              style={styles.codeInput}
+              className="w-full min-h-[52px] bg-white/[0.06] border border-white/15 rounded-lg px-4 py-3 text-white text-2xl font-mono text-center tracking-[0.3em] placeholder:text-velya-subtle focus:outline-none focus:ring-2 focus:ring-velya-primary/50 focus:border-velya-primary transition"
               maxLength={6}
               autoFocus
               autoComplete="one-time-code"
@@ -133,28 +149,26 @@ function VerifyForm() {
           <button
             type="submit"
             disabled={loading || code.length !== 6}
-            style={{
-              ...styles.button,
-              opacity: loading || code.length !== 6 ? 0.6 : 1,
-              cursor: loading || code.length !== 6 ? 'not-allowed' : 'pointer',
-            }}
+            className="w-full min-h-[44px] bg-velya-primary hover:bg-blue-600 text-white font-semibold text-base rounded-lg transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? 'Verificando...' : 'Verificar'}
           </button>
 
-          <div style={styles.footer}>
+          <div className="text-center">
             <button
               type="button"
               onClick={handleResend}
               disabled={resending}
-              style={styles.resendBtn}
+              className="bg-transparent border-none text-blue-400 hover:text-blue-300 text-sm font-medium cursor-pointer underline transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {resending ? 'Reenviando...' : 'Reenviar codigo'}
             </button>
           </div>
 
-          <div style={styles.footer}>
-            <Link href="/register" style={styles.link}>Voltar ao cadastro</Link>
+          <div className="text-center">
+            <Link href="/register" className="text-sm text-velya-subtle hover:text-velya-muted transition">
+              Voltar ao cadastro
+            </Link>
           </div>
         </form>
       </div>
@@ -164,151 +178,14 @@ function VerifyForm() {
 
 export default function VerifyPage() {
   return (
-    <Suspense fallback={
-      <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-        Carregando...
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-velya-bg flex items-center justify-center text-white">
+          Carregando...
+        </div>
+      }
+    >
       <VerifyForm />
     </Suspense>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: '100vh',
-    background: '#0f172a',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '2rem 1rem',
-  },
-  card: {
-    background: '#1e293b',
-    borderRadius: '16px',
-    padding: '2.5rem',
-    width: '100%',
-    maxWidth: '440px',
-    boxShadow: '0 25px 50px rgba(0,0,0,0.4)',
-    border: '1px solid rgba(255,255,255,0.08)',
-  },
-  header: {
-    textAlign: 'center' as const,
-    marginBottom: '1.5rem',
-  },
-  logo: {
-    fontSize: '1.75rem',
-    fontWeight: 700,
-    color: '#ffffff',
-    letterSpacing: '-0.02em',
-  },
-  logoSub: {
-    fontSize: '0.7rem',
-    color: 'rgba(255,255,255,0.4)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.08em',
-    marginTop: '2px',
-  },
-  title: {
-    fontSize: '1.25rem',
-    fontWeight: 600,
-    color: 'rgba(255,255,255,0.9)',
-    marginTop: '1.5rem',
-  },
-  subtitle: {
-    fontSize: '0.85rem',
-    color: 'rgba(255,255,255,0.5)',
-    marginTop: '0.5rem',
-  },
-  devBanner: {
-    background: 'rgba(234,179,8,0.15)',
-    border: '1px solid rgba(234,179,8,0.3)',
-    borderRadius: '8px',
-    padding: '0.75rem 1rem',
-    color: '#fbbf24',
-    fontSize: '0.85rem',
-    textAlign: 'center' as const,
-    marginBottom: '1rem',
-  },
-  devCode: {
-    fontFamily: 'monospace',
-    fontSize: '1.1rem',
-    fontWeight: 700,
-    letterSpacing: '0.15em',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '1rem',
-  },
-  field: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.35rem',
-  },
-  label: {
-    fontSize: '0.8rem',
-    fontWeight: 500,
-    color: 'rgba(255,255,255,0.6)',
-    textAlign: 'center' as const,
-  },
-  codeInput: {
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.15)',
-    borderRadius: '8px',
-    padding: '0.85rem',
-    color: '#ffffff',
-    fontSize: '1.5rem',
-    fontFamily: 'monospace',
-    textAlign: 'center' as const,
-    letterSpacing: '0.3em',
-    outline: 'none',
-    width: '100%',
-  },
-  button: {
-    background: '#2563eb',
-    color: '#ffffff',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0.75rem',
-    fontSize: '0.95rem',
-    fontWeight: 600,
-    fontFamily: 'inherit',
-  },
-  error: {
-    background: 'rgba(220,38,38,0.15)',
-    border: '1px solid rgba(220,38,38,0.3)',
-    borderRadius: '8px',
-    padding: '0.65rem 0.85rem',
-    color: '#fca5a5',
-    fontSize: '0.85rem',
-    textAlign: 'center' as const,
-  },
-  success: {
-    background: 'rgba(22,163,74,0.15)',
-    border: '1px solid rgba(22,163,74,0.3)',
-    borderRadius: '8px',
-    padding: '0.65rem 0.85rem',
-    color: '#86efac',
-    fontSize: '0.85rem',
-    textAlign: 'center' as const,
-  },
-  footer: {
-    textAlign: 'center' as const,
-  },
-  resendBtn: {
-    background: 'none',
-    border: 'none',
-    color: '#60a5fa',
-    fontSize: '0.85rem',
-    fontWeight: 500,
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-    textDecoration: 'underline',
-  },
-  link: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: '0.8rem',
-    textDecoration: 'none',
-  },
-};

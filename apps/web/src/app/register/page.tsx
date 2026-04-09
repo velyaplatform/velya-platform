@@ -94,73 +94,88 @@ export default function RegisterPage() {
     }
   }
 
+  const inputClass =
+    'w-full min-h-[44px] bg-white/[0.06] border border-white/15 rounded-lg px-3.5 py-2.5 text-white text-sm placeholder:text-velya-subtle focus:outline-none focus:ring-2 focus:ring-velya-primary/50 focus:border-velya-primary transition';
+
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <div style={styles.logo}>Velya</div>
-          <div style={styles.logoSub}>Plataforma Hospitalar</div>
-          <h1 style={styles.title}>Criar Conta</h1>
+    <div className="min-h-screen bg-velya-bg flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-[520px] bg-velya-card rounded-2xl p-8 sm:p-10 shadow-2xl border border-velya-border">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="text-2xl font-bold text-white tracking-tight">Velya</div>
+          <div className="text-[0.7rem] text-velya-subtle uppercase tracking-widest mt-0.5">
+            Plataforma Hospitalar
+          </div>
+          <h1 className="text-xl font-semibold text-velya-text mt-6">Criar Conta</h1>
         </div>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          {error && <div style={styles.error}>{error}</div>}
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {error && (
+            <div className="bg-red-500/15 border border-red-500/30 rounded-lg px-4 py-3 text-red-300 text-sm">
+              {error}
+            </div>
+          )}
 
-          <div style={styles.field}>
-            <label style={styles.label}>Nome Completo *</label>
+          {/* Nome Completo */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-velya-muted">Nome Completo *</label>
             <input
               type="text"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Ex: Dr. Carlos Silva"
-              style={styles.input}
+              className={inputClass}
               autoComplete="name"
             />
           </div>
 
-          <div style={styles.field}>
-            <label style={styles.label}>Email *</label>
+          {/* Email */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-velya-muted">Email *</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu.email@hospital.com"
-              style={styles.input}
+              className={inputClass}
               autoComplete="email"
             />
           </div>
 
-          <div style={styles.row}>
-            <div style={styles.field}>
-              <label style={styles.label}>Senha *</label>
+          {/* Senha row - stacks on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-velya-muted">Senha *</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Minimo 6 caracteres"
-                style={styles.input}
+                className={inputClass}
                 autoComplete="new-password"
               />
             </div>
-            <div style={styles.field}>
-              <label style={styles.label}>Confirmar Senha *</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-velya-muted">Confirmar Senha *</label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repita a senha"
-                style={styles.input}
+                className={inputClass}
                 autoComplete="new-password"
               />
             </div>
           </div>
 
-          <div style={styles.field}>
-            <label style={styles.label}>Profissao / Funcao *</label>
+          {/* Profissao */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-velya-muted">Profissao / Funcao *</label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              style={styles.select}
+              className="w-full min-h-[44px] bg-velya-card border border-white/15 rounded-lg px-3.5 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-velya-primary/50 focus:border-velya-primary transition cursor-pointer appearance-none"
             >
               <option value="">Selecione sua funcao</option>
               {ROLES.map((r) => (
@@ -169,26 +184,28 @@ export default function RegisterPage() {
             </select>
           </div>
 
-          <div style={styles.field}>
-            <label style={styles.label}>Setor / Unidade *</label>
+          {/* Setor */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-velya-muted">Setor / Unidade *</label>
             <input
               type="text"
               value={setor}
               onChange={(e) => setSetor(e.target.value)}
               placeholder="Ex: UTI Adulto, Ala 2B, Pronto Atendimento"
-              style={styles.input}
+              className={inputClass}
             />
           </div>
 
+          {/* Registro Profissional (conditional) */}
           {showCouncil && (
-            <div style={styles.field}>
-              <label style={styles.label}>Registro Profissional</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-velya-muted">Registro Profissional</label>
               <input
                 type="text"
                 value={conselhoProfissional}
                 onChange={(e) => setConselhoProfissional(e.target.value)}
                 placeholder="Ex: CRM-SP 12345, COREN-RJ 67890"
-                style={styles.input}
+                className={inputClass}
               />
             </div>
           )}
@@ -196,140 +213,19 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            style={{
-              ...styles.button,
-              opacity: loading ? 0.6 : 1,
-              cursor: loading ? 'not-allowed' : 'pointer',
-            }}
+            className="w-full min-h-[44px] bg-velya-primary hover:bg-blue-600 text-white font-semibold text-base rounded-lg mt-2 transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? 'Criando conta...' : 'Criar Conta'}
           </button>
 
-          <div style={styles.footer}>
-            <span style={styles.footerText}>Ja tem conta? </span>
-            <Link href="/login" style={styles.link}>Entrar</Link>
+          <div className="text-center mt-2">
+            <span className="text-sm text-velya-subtle">Ja tem conta? </span>
+            <Link href="/login" className="text-sm font-medium text-blue-400 hover:text-blue-300 transition">
+              Entrar
+            </Link>
           </div>
         </form>
       </div>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: '100vh',
-    background: '#0f172a',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '2rem 1rem',
-  },
-  card: {
-    background: '#1e293b',
-    borderRadius: '16px',
-    padding: '2.5rem',
-    width: '100%',
-    maxWidth: '520px',
-    boxShadow: '0 25px 50px rgba(0,0,0,0.4)',
-    border: '1px solid rgba(255,255,255,0.08)',
-  },
-  header: {
-    textAlign: 'center' as const,
-    marginBottom: '2rem',
-  },
-  logo: {
-    fontSize: '1.75rem',
-    fontWeight: 700,
-    color: '#ffffff',
-    letterSpacing: '-0.02em',
-  },
-  logoSub: {
-    fontSize: '0.7rem',
-    color: 'rgba(255,255,255,0.4)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.08em',
-    marginTop: '2px',
-  },
-  title: {
-    fontSize: '1.25rem',
-    fontWeight: 600,
-    color: 'rgba(255,255,255,0.9)',
-    marginTop: '1.5rem',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '1rem',
-  },
-  field: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.35rem',
-    flex: 1,
-  },
-  row: {
-    display: 'flex',
-    gap: '1rem',
-  },
-  label: {
-    fontSize: '0.8rem',
-    fontWeight: 500,
-    color: 'rgba(255,255,255,0.6)',
-  },
-  input: {
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.15)',
-    borderRadius: '8px',
-    padding: '0.65rem 0.85rem',
-    color: '#ffffff',
-    fontSize: '0.9rem',
-    outline: 'none',
-    fontFamily: 'inherit',
-    width: '100%',
-  },
-  select: {
-    background: '#1e293b',
-    border: '1px solid rgba(255,255,255,0.15)',
-    borderRadius: '8px',
-    padding: '0.65rem 0.85rem',
-    color: '#ffffff',
-    fontSize: '0.9rem',
-    outline: 'none',
-    fontFamily: 'inherit',
-    cursor: 'pointer',
-    width: '100%',
-  },
-  button: {
-    background: '#2563eb',
-    color: '#ffffff',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0.75rem',
-    fontSize: '0.95rem',
-    fontWeight: 600,
-    fontFamily: 'inherit',
-    marginTop: '0.5rem',
-  },
-  error: {
-    background: 'rgba(220,38,38,0.15)',
-    border: '1px solid rgba(220,38,38,0.3)',
-    borderRadius: '8px',
-    padding: '0.65rem 0.85rem',
-    color: '#fca5a5',
-    fontSize: '0.85rem',
-  },
-  footer: {
-    textAlign: 'center' as const,
-    marginTop: '0.5rem',
-  },
-  footerText: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: '0.85rem',
-  },
-  link: {
-    color: '#60a5fa',
-    fontSize: '0.85rem',
-    textDecoration: 'none',
-    fontWeight: 500,
-  },
-};
