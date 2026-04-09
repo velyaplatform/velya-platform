@@ -1,0 +1,238 @@
+# Ingress resources com hosts .local para desenvolvimento sem IP na URL
+# Para funcionar, adicionar ao /etc/hosts do host:
+#   172.19.0.100  velya.local grafana.velya.local argocd.velya.local prometheus.velya.local
+#   172.19.0.100  patient-flow.velya.local discharge.velya.local task-inbox.velya.local
+#   172.19.0.100  ai-gateway.velya.local audit.velya.local agents.velya.local
+#   172.19.0.100  policy-engine.velya.local memory-service.velya.local decision-log.velya.local
+#
+# Comando rápido:
+#   echo '172.19.0.100  velya.local grafana.velya.local argocd.velya.local prometheus.velya.local patient-flow.velya.local discharge.velya.local task-inbox.velya.local ai-gateway.velya.local audit.velya.local agents.velya.local policy-engine.velya.local memory-service.velya.local decision-log.velya.local' | sudo tee -a /etc/hosts
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: velya-web-local
+  namespace: velya-dev-web
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: velya-web
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-local
+  namespace: velya-dev-observability
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: grafana.velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-grafana
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-local
+  namespace: argocd
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: argocd.velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: patient-flow-local
+  namespace: velya-dev-core
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: patient-flow.velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: patient-flow
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: discharge-local
+  namespace: velya-dev-core
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: discharge.velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: discharge-orchestrator
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: task-inbox-local
+  namespace: velya-dev-core
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: task-inbox.velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: task-inbox
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: audit-local
+  namespace: velya-dev-core
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: audit.velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: audit-service
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-gateway-local
+  namespace: velya-dev-platform
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ai-gateway.velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ai-gateway
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: agents-local
+  namespace: velya-dev-agents
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: agents.velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: agent-orchestrator
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: policy-engine-local
+  namespace: velya-dev-platform
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: policy-engine.velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: policy-engine
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: memory-service-local
+  namespace: velya-dev-platform
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: memory-service.velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: memory-service
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: decision-log-local
+  namespace: velya-dev-platform
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: decision-log.velya.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: decision-log-service
+                port:
+                  number: 80
