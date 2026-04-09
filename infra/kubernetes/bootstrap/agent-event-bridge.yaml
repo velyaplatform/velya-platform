@@ -1,0 +1,124 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-event-bridge
+  namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/component: agent-bridge
+spec:
+  schedule: "*/2 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 90
+      template:
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          containers:
+            - name: event-bridge
+              image: bitnami/kubectl:1.29
+              env:
+                - name: WEBHOOK_URL
+                  value: "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/events"
+              command: ["sh", "-c"]
+              args:
+                - |
+                  set -e
+
+                  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+                  # 1. Collect pod status across all velya namespaces
+                  UNHEALTHY_PODS=$(kubectl get pods -A -l app.kubernetes.io/part-of=velya-platform \
+                    --field-selector='status.phase!=Running,status.phase!=Succeeded' \
+                    --no-headers 2>/dev/null | grep -v Completed | wc -l || echo 0)
+
+                  RESTARTING=$(kubectl get pods -A -l app.kubernetes.io/part-of=velya-platform \
+                    --no-headers 2>/dev/null | awk '$4 > 3 {print $1"/"$2": "$4" restarts"}' || true)
+
+                  # 2. Collect HPA status
+                  HPA_MAXED=$(kubectl get hpa -A --no-headers 2>/dev/null | \
+                    awk '$5 == $6 && $5 != "<unknown>" {print $1"/"$2": at max "$5"/"$6}' || true)
+
+                  # 3. Collect ArgoCD app health
+                  ARGO_UNHEALTHY=""
+                  for APP in velya-core-services velya-platform-services velya-agents velya-bootstrap; do
+                    HEALTH=$(kubectl get application $APP -n argocd -o jsonpath='{.status.health.status}' 2>/dev/null || echo "Unknown")
+                    SYNC=$(kubectl get application $APP -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null || echo "Unknown")
+                    if [ "$HEALTH" != "Healthy" ] || [ "$SYNC" != "Synced" ]; then
+                      ARGO_UNHEALTHY="${ARGO_UNHEALTHY}${APP}: health=${HEALTH} sync=${SYNC}\n"
+                    fi
+                  done
+
+                  # 4. Collect PDB status
+                  PDB_DISRUPTED=$(kubectl get pdb -A --no-headers 2>/dev/null | \
+                    awk '$5 == "0" {print $1"/"$2": 0 allowed disruptions"}' || true)
+
+                  # 5. Collect resource quota usage
+                  QUOTA_HIGH=""
+                  for NS in velya-dev-core velya-dev-platform velya-dev-agents velya-dev-web; do
+                    USAGE=$(kubectl get resourcequota -n $NS --no-headers 2>/dev/null | head -1)
+                    if [ -n "$USAGE" ]; then
+                      # Check if any resource > 80% used
+                      QUOTA_HIGH="${QUOTA_HIGH}${NS}: ${USAGE}\n"
+                    fi
+                  done
+
+                  # 6. Collect recent events (warnings only, last 10 min)
+                  RECENT_WARNINGS=$(kubectl get events -A --field-selector type=Warning \
+                    --sort-by='.lastTimestamp' --no-headers 2>/dev/null | tail -10 | \
+                    awk '{print $1": "$4" - "$5}' || true)
+
+                  # Determine overall status
+                  STATUS="healthy"
+                  FINDINGS="[]"
+                  ACTION_REQUIRED="false"
+
+                  if [ "$UNHEALTHY_PODS" -gt 0 ] || [ -n "$ARGO_UNHEALTHY" ]; then
+                    STATUS="critical"
+                    ACTION_REQUIRED="true"
+                  elif [ -n "$HPA_MAXED" ] || [ -n "$PDB_DISRUPTED" ]; then
+                    STATUS="warning"
+                    ACTION_REQUIRED="true"
+                  fi
+
+                  # Build JSON payload
+                  PAYLOAD=$(cat <<ENDJSON
+                  {
+                    "id": "bridge-$(date +%s)",
+                    "timestamp": "$TIMESTAMP",
+                    "source": "agent-event-bridge",
+                    "severity": "$STATUS",
+                    "summary": "Platform state: $STATUS — $UNHEALTHY_PODS unhealthy pods",
+                    "actionRequired": $ACTION_REQUIRED,
+                    "cluster": "kind-velya-local",
+                    "data": {
+                      "unhealthyPods": $UNHEALTHY_PODS,
+                      "restartingPods": "$(echo "$RESTARTING" | tr '\n' '; ')",
+                      "hpaMaxed": "$(echo "$HPA_MAXED" | tr '\n' '; ')",
+                      "argoUnhealthy": "$(echo -e "$ARGO_UNHEALTHY" | tr '\n' '; ')",
+                      "pdbDisrupted": "$(echo "$PDB_DISRUPTED" | tr '\n' '; ')",
+                      "recentWarnings": "$(echo "$RECENT_WARNINGS" | tr '\n' '; ')"
+                    },
+                    "namespaces": ["velya-dev-core","velya-dev-platform","velya-dev-agents","velya-dev-web"],
+                    "services": []
+                  }
+                  ENDJSON
+                  )
+
+                  # POST to webhook
+                  curl -s -X POST -H "Content-Type: application/json" \
+                    -d "$PAYLOAD" \
+                    "${WEBHOOK_URL}" \
+                    --max-time 5 2>/dev/null || echo "Webhook POST failed (non-critical)"
+
+                  echo "Bridge completed: status=$STATUS unhealthy=$UNHEALTHY_PODS"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 128Mi
