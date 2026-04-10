@@ -61,6 +61,18 @@ const NAV_ITEMS: NavItemDef[] = [
     badge: 5,
     section: NAV_SECTIONS.GESTAO,
   },
+  {
+    href: '/beds',
+    icon: '\uD83D\uDECF\uFE0F',
+    label: 'Leitos',
+    section: NAV_SECTIONS.GESTAO,
+  },
+  {
+    href: '/surgery',
+    icon: '\u2695\uFE0F',
+    label: 'Centro Cir\u00FArgico',
+    section: NAV_SECTIONS.GESTAO,
+  },
   // --- Administracao ---
   {
     href: '/system',
