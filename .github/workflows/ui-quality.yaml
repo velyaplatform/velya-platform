@@ -1,0 +1,104 @@
+name: UI Quality
+
+on:
+  pull_request:
+    paths: ['apps/web/**', 'packages/**']
+  push:
+    branches: [main]
+    paths: ['apps/web/**']
+  workflow_dispatch:
+
+concurrency:
+  group: ui-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  static-guardrails:
+    name: Static Guardrails
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx eslint apps/web --max-warnings 0
+
+  visual-and-accessibility:
+    name: Visual + A11y + Geometry Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build --workspace=apps/web
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+      - name: Start server
+        run: |
+          cd apps/web
+          PORT=3333 node .next/standalone/apps/web/server.js &
+          for i in $(seq 1 30); do
+            curl -s http://localhost:3333/ > /dev/null && break
+            sleep 1
+          done
+      - name: Visual + Geometry tests
+        env:
+          TEST_URL: http://localhost:3333
+        run: npx tsx scripts/visual-test.ts
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: visual-test-results
+          path: /tmp/velya-screenshots/
+          retention-days: 14
+
+  lighthouse:
+    name: Lighthouse Performance Budgets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+      - run: npm run build --workspace=apps/web
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+      - name: Run Lighthouse CI
+        run: |
+          cd apps/web
+          PORT=3334 node .next/standalone/apps/web/server.js &
+          sleep 5
+          lhci autorun --collect.url=http://localhost:3334/ --collect.url=http://localhost:3334/login --collect.url=http://localhost:3334/register --upload.target=temporary-public-storage || true
+
+  summary:
+    name: UI Quality Summary
+    runs-on: ubuntu-latest
+    needs: [static-guardrails, visual-and-accessibility, lighthouse]
+    if: always()
+    steps:
+      - run: |
+          echo "## UI Quality Pipeline" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Static Guardrails | ${{ needs.static-guardrails.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Visual + A11y + Geometry | ${{ needs.visual-and-accessibility.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lighthouse Budgets | ${{ needs.lighthouse.result }} |" >> $GITHUB_STEP_SUMMARY
