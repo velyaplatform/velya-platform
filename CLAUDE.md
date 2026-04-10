@@ -8,6 +8,7 @@ AI-native hospital platform built on AWS EKS. TypeScript/Node.js backend, FHIR-f
 - **Subagents**: `.claude/agents/` (specialized AI agents for platform tasks)
 - **Skills**: `.claude/skills/` (reusable automation skills)
 - **Full taxonomy**: `docs/product/naming-taxonomy.md`
+- **Hospital modules map (single source of truth)**: `docs/product/hospital-modules-map.md` — canonical mapping of every clinical/operational module to its FHIR resource, data class, web route, authorized roles, compliance gate, and backlog priority. Every new hospital feature MUST appear here before the PR merges.
 
 ## Tech Stack
 
