@@ -5,6 +5,7 @@ import { AiAssistantPanel } from './components/ai-assistant-panel';
 import { CommandPalette } from './components/command-palette';
 import { ErrorBoundary } from './components/error-boundary';
 import { ErrorReporter } from './components/error-reporter';
+import { ToastProvider } from './components/toast-provider';
 
 export const metadata: Metadata = {
   title: 'Velya — Plataforma Hospitalar',
@@ -17,9 +18,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="pt-BR">
       <body>
         <ErrorBoundary>
-          {children}
-          <CommandPalette />
-          <AiAssistantPanel />
+          <ToastProvider>
+            {children}
+            <CommandPalette />
+            <AiAssistantPanel />
+          </ToastProvider>
         </ErrorBoundary>
         <ErrorReporter />
       </body>
