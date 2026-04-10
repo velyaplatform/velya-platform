@@ -274,6 +274,73 @@ central). Só depois vamos para módulos novos.
 18. `/api/system/health/[id]` — endpoints internos de proxy dos health
     checks dos serviços (remove o `http://*.nip.io` das páginas).
 
+## Expansão com o blueprint ultra completo
+
+O `blueprint_hospitalar_ultra_completo.md` (versão abril 2026) lista 31
+macrodomínios do hospital. A tabela a seguir mapeia cada macrodomínio
+para o estado atual da plataforma e o `module-manifest.ts` em
+`apps/web/src/lib/module-manifest.ts` que é a expressão runtime deste
+mapa (todo módulo tem rota, fixture, coluna, filtro, papéis, FHIR e
+regulação vinculada no manifest).
+
+| # | Macrodomínio | Rotas atuais | Fixture | FHIR | Classe | Status |
+|---|---|---|---|---|---|---|
+| 1 | CRM e pré-hospitalar | `/` (comando), `/patients` | `patients.ts` | `Patient`, `Appointment` | B | ✅ básico · 🔴 tele/homecare falta |
+| 2 | Acesso / check-in / admissão | `/patients/new`, `/patients/[id]` | `patient-cockpits.ts` | `Encounter.status=arrived` | B/C | ✅ |
+| 3 | Emergência e classificação de risco | `/ems`, `/alerts` | `ems.ts`, `alerts.ts` | `Encounter.class=EMER` + triage `Observation` | C | ✅ básico |
+| 4 | Ambulatório e consultas | `/patients`, `/tasks` | `patients-list.ts`, `tasks.ts` | `Appointment`, `Encounter` | B/C | ✅ básico |
+| 5 | Internação / leitos | `/beds`, `/discharge` | `beds.ts`, `discharge.ts` | `Encounter.location[]` | A/B | ✅ |
+| 6 | UTI e áreas críticas | `/icu` | `icu.ts` | `Encounter.class=IMP` + `Device` | C/D | ✅ |
+| 7 | Centro cirúrgico | `/surgery` | `surgeries.ts` | `Appointment`, `Procedure` | C/D | ✅ básico · 🔴 checklist falta |
+| 8 | Enfermagem multiprofissional | `/tasks`, `/staff-on-duty` | `tasks.ts`, `staff.ts` | `CarePlan`, `Task` | C | ✅ básico |
+| 9 | **Diagnóstico — laboratório** | `/lab/orders`, `/lab/results` | `lab-orders.ts`, `lab-results.ts` | `ServiceRequest`, `DiagnosticReport`, `Observation` | D | ✅ **novo** |
+| 9 | **Diagnóstico — imagem** | `/imaging/orders`, `/imaging/results` | `imaging-orders.ts`, `imaging-results.ts` | `ServiceRequest`, `ImagingStudy`, `DiagnosticReport` | D | ✅ **novo** |
+| 10 | **Farmácia clínica e logística** | `/pharmacy`, `/pharmacy/stock`, `/prescriptions` | `pharmacy.ts`, `pharmacy-stock.ts`, `prescriptions.ts` | `MedicationRequest`, `Medication`, `SupplyDelivery` | A/D | ✅ **novo** |
+| 11 | Banco de sangue e hemoterapia | — | — | `BiologicallyDerivedProduct` | C/D | 🔴 falta (P2) |
+| 12 | **Nutrição clínica** | `/meals/orders` | `meal-orders.ts` | `NutritionOrder` | C | ✅ **novo** |
+| 13 | **Higienização e hotelaria** | `/cleaning/tasks` | `cleaning-tasks.ts` | `Task (housekeeping)` | A | ✅ **novo** |
+| 14 | **Transporte interno / externo** | `/transport/orders`, `/ems` | `transport-orders.ts`, `ems.ts` | `Task (transport)` | B | ✅ **novo** |
+| 15 | **Resíduos e biossegurança (RSS)** | `/waste/manifests` | `waste-manifests.ts` | `Task (waste-management)` | A | ✅ **novo** (ANVISA RDC 222/2018) |
+| 16 | **Engenharia clínica e ativos** | `/assets`, `/facility/work-orders` | `assets.ts`, `work-orders.ts` | `Device`, `Task (maintenance)` | A | ✅ **novo** |
+| 17 | Infraestrutura predial / utilidades | `/facility/work-orders` | `work-orders.ts` | `Task (maintenance)` | A | ✅ básico |
+| 18 | **Compras / almoxarifado / supply chain** | `/supply/items`, `/supply/purchase-orders` | `supply-items.ts`, `purchase-orders.ts` | `SupplyRequest`, `Medication`, `Device` | A/B | ✅ **novo** |
+| 19 | Contratos / fornecedores / terceiros | `/suppliers` (CRUD), `/suppliers/[id]` | `suppliers.ts` | vendor contract domain | B | ✅ |
+| 20 | **Financeiro / faturamento / glosas** | `/billing/charges`, `/billing/claims`, `/billing/denials` | `charges.ts`, `claims.ts`, `denials.ts` | `ChargeItem`, `Claim`, `ClaimResponse` | B | ✅ **novo** (TISS ANS 305/2012) |
+| 21 | **Qualidade / segurança do paciente** | `/quality/incidents` | `incidents.ts` | `AdverseEvent` | D | ✅ **novo** |
+| 22 | RH / escalas / credenciais | `/employees`, `/employees/[id]`, `/governance/credentials` | `staff.ts`, `credentials.ts` | `Practitioner`, `PractitionerRole`, `Qualification` | B | ✅ |
+| 23 | TI / integrações / seg. informação | `/system`, `/activity` | `agent-activity.ts` | system domain | A/B | ✅ básico |
+| 24 | Pesquisa / ensino / comitês | — | — | `ResearchStudy` | C/D | 🔴 falta (P3) |
+| 25 | Alta e desospitalização | `/discharge` | `discharge.ts` | `Encounter.status=finished`, `CarePlan` | B/C | ✅ básico |
+| — | **Trilha de auditoria imutável** | `/audit`, `/governance/audit-events` | `audit-events.ts` | `AuditEvent` | B | ✅ **novo** (LGPD Art. 37 + SBIS NGS2) |
+| — | **Consentimentos LGPD** | `/governance/consent-forms` | `consent-forms.ts` | `Consent` | B | ✅ **novo** |
+
+**Legenda**: ✅ = existe na plataforma · 🟡 = scaffold · 🔴 = não existe ainda.
+
+Total de módulos no `module-manifest.ts`: **21**. Adicionar um módulo
+novo é um único append no manifest + um `page.tsx` de 6 linhas que
+chama `<ModuleListView moduleId="..." data={FIXTURE} />`.
+
+### Como adicionar um módulo novo
+
+1. Criar `apps/web/src/lib/fixtures/<nome>.ts` (dados + types).
+2. Adicionar entry em `MODULES` de `apps/web/src/lib/module-manifest.ts`
+   com `id`, `route`, `title`, `fhirResource`, `dataClass`,
+   `allowedRoles`, `fixturePath`, `fixtureExport`, `columns`, `filters`,
+   `regulatoryBasis`.
+3. Criar `apps/web/src/app/<route>/page.tsx`:
+   ```ts
+   'use client';
+   import { ModuleListView } from '../components/module-list-view';
+   import { FIXTURE } from '../../lib/fixtures/<nome>';
+   export default function Page() {
+     return <ModuleListView moduleId="<id>" data={FIXTURE} />;
+   }
+   ```
+4. Adicionar item em `navigation.tsx` → `NAV_ITEMS`.
+5. Rodar `npx tsc --noEmit` + `npx tsx scripts/check-ui-duplications.ts`
+   + `npx tsx scripts/audit-contrast-all-pages.ts`. Todos os gates
+   devem continuar verdes.
+
 ## Regras de mudança neste documento
 
 - Adicionar linha nova aqui é obrigatório **antes** de abrir PR com a

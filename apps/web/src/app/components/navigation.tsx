@@ -91,52 +91,50 @@ const NAV_ITEMS: NavItemDef[] = [
     label: 'Farm\u00E1cia',
     section: NAV_SECTIONS.GESTAO,
   },
-  // --- Equipe / Cadastros ---
-  {
-    href: '/staff-on-duty',
-    icon: '\uD83D\uDC65',
-    label: 'Equipe em Plantão',
-    section: NAV_SECTIONS.GESTAO,
-  },
-  {
-    href: '/employees',
-    icon: '\uD83D\uDCC7',
-    label: 'Funcionários',
-    section: NAV_SECTIONS.ADMINISTRACAO,
-  },
-  {
-    href: '/suppliers',
-    icon: '\uD83C\uDFEC',
-    label: 'Fornecedores',
-    section: NAV_SECTIONS.ADMINISTRACAO,
-  },
-  // --- Administracao ---
-  {
-    href: '/alerts',
-    icon: '\uD83D\uDD14',
-    label: 'Alertas',
-    badge: 5,
-    section: NAV_SECTIONS.ASSISTENCIAL,
-  },
-  {
-    href: '/system',
-    icon: '\u2699\uFE0F',
-    label: 'Status do Sistema',
-    section: NAV_SECTIONS.ADMINISTRACAO,
-  },
-  {
-    href: '/activity',
-    icon: '\uD83D\uDCCB',
-    label: 'Log de Atividade',
-    section: NAV_SECTIONS.ADMINISTRACAO,
-  },
-  { href: '/audit', icon: '\uD83D\uDD12', label: 'Auditoria', section: NAV_SECTIONS.ADMINISTRACAO },
-  {
-    href: '/suggestions',
-    icon: '\uD83D\uDCA1',
-    label: 'Sugestoes',
-    section: NAV_SECTIONS.ADMINISTRACAO,
-  },
+  // --- Clínico (ordens, resultados) ---
+  { href: '/prescriptions', icon: '\uD83D\uDC8A', label: 'Prescri\u00e7\u00f5es', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/lab/orders',     icon: '\uD83E\uDDEA', label: 'Ordens de Lab',   section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/lab/results',    icon: '\uD83D\uDCCA', label: 'Resultados Lab',  section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/imaging/orders', icon: '\uD83E\uDE7B', label: 'Ordens de Imagem', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/imaging/results',icon: '\uD83D\uDDBC\uFE0F', label: 'Laudos de Imagem', section: NAV_SECTIONS.ASSISTENCIAL },
+
+  // --- Equipe em plantão ---
+  { href: '/staff-on-duty', icon: '\uD83D\uDC65', label: 'Equipe em Plantão', section: NAV_SECTIONS.GESTAO },
+  { href: '/alerts',        icon: '\uD83D\uDD14', label: 'Alertas', badge: 5, section: NAV_SECTIONS.ASSISTENCIAL },
+
+  // --- Operações hospitalares ---
+  { href: '/pharmacy/stock',    icon: '\uD83C\uDFEA', label: 'Estoque Farm\u00e1cia', section: NAV_SECTIONS.GESTAO },
+  { href: '/cleaning/tasks',    icon: '\uD83E\uDDF9', label: 'Higieniza\u00e7\u00e3o',   section: NAV_SECTIONS.GESTAO },
+  { href: '/transport/orders',  icon: '\uD83D\uDEB6', label: 'Transporte Interno',      section: NAV_SECTIONS.GESTAO },
+  { href: '/meals/orders',      icon: '\uD83C\uDF7D\uFE0F', label: 'Nutri\u00e7\u00e3o',  section: NAV_SECTIONS.GESTAO },
+
+  // --- Suprimentos e ativos ---
+  { href: '/supply/items',            icon: '\uD83D\uDCE6', label: 'Cat\u00e1logo de Itens', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/supply/purchase-orders',  icon: '\uD83D\uDCDD', label: 'Ordens de Compra',       section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/assets',                  icon: '\uD83D\uDD27', label: 'Ativos e Equip.',        section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/facility/work-orders',    icon: '\uD83D\uDEE0\uFE0F', label: 'Manuten\u00e7\u00e3o',  section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/waste/manifests',         icon: '\uD83D\uDDD1\uFE0F', label: 'Res\u00edduos (RSS)',   section: NAV_SECTIONS.ADMINISTRACAO },
+
+  // --- Cadastros ---
+  { href: '/employees', icon: '\uD83D\uDCC7', label: 'Funcion\u00e1rios', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/suppliers', icon: '\uD83C\uDFEC', label: 'Fornecedores',       section: NAV_SECTIONS.ADMINISTRACAO },
+
+  // --- Faturamento ---
+  { href: '/billing/charges', icon: '\uD83D\uDCB0', label: 'Cobran\u00e7as', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/billing/claims',  icon: '\uD83D\uDCC4', label: 'Contas Hospitalares', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/billing/denials', icon: '\u274C',       label: 'Glosas',          section: NAV_SECTIONS.ADMINISTRACAO },
+
+  // --- Qualidade e governança ---
+  { href: '/quality/incidents',         icon: '\u26A0\uFE0F', label: 'Eventos Adversos', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/governance/audit-events',   icon: '\uD83D\uDD0D', label: 'Trilha de Auditoria', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/governance/credentials',    icon: '\uD83C\uDD94', label: 'Credenciais',        section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/governance/consent-forms',  icon: '\u270D\uFE0F', label: 'Consentimentos',     section: NAV_SECTIONS.ADMINISTRACAO },
+
+  // --- Sistema ---
+  { href: '/system',   icon: '\u2699\uFE0F', label: 'Status do Sistema', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/activity', icon: '\uD83D\uDCCB', label: 'Log de Atividade',  section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/audit',    icon: '\uD83D\uDD12', label: 'Auditoria',         section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/suggestions', icon: '\uD83D\uDCA1', label: 'Sugestoes',      section: NAV_SECTIONS.ADMINISTRACAO },
 ];
 
 const SECTION_LABELS: Record<string, string> = {
