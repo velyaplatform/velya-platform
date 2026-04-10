@@ -78,6 +78,13 @@ const STATUS_LABEL: Record<string, string> = {
   dismissed: 'Descartado',
 };
 
+const RUN_STATUS_COLOR: Record<string, string> = {
+  running: 'text-blue-300',
+  success: 'text-green-300',
+  partial: 'text-amber-300',
+  failed: 'text-red-300',
+};
+
 export default function CronDashboardPage() {
   const [tab, setTab] = useState<'jobs' | 'findings'>('findings');
   const [jobs, setJobs] = useState<CronJobInfo[]>([]);
@@ -166,6 +173,14 @@ export default function CronDashboardPage() {
     await loadJobs();
   }
 
+  // KPIs
+  const totalFindings = findings.length;
+  const criticalCount = findings.filter((f) => f.severity === 'critical' || f.severity === 'high').length;
+  const inReviewCount = findings.filter(
+    (f) => f.status === 'in-review' || f.status === 'shadow-recommendation-ready',
+  ).length;
+  const activeJobs = scheduler?.started ? scheduler.jobsScheduled : 0;
+
   return (
     <AppShell pageTitle="Cron + Agente Autônomo">
       <Breadcrumbs
@@ -175,169 +190,170 @@ export default function CronDashboardPage() {
           { label: 'Cron + Agente', current: true },
         ]}
       />
-      <div className="page-header">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="page-title">
-              <span aria-hidden="true">{'\u23F0'}</span> Cron + Agente Autônomo
-            </h1>
-            <p className="page-subtitle">
-              Monitora frontend, backend, infra, dados, segurança e funções. O agente roda em{' '}
-              <strong className="text-amber-300">SHADOW MODE</strong> — gera recomendações mas
-              nunca aplica nada sem aprovação humana.
-            </p>
-          </div>
-          {scheduler && (
-            <button
-              type="button"
-              onClick={toggleScheduler}
-              className={`min-h-[44px] inline-flex items-center px-4 py-2 rounded-md text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-300 ${
-                scheduler.started
-                  ? 'bg-amber-900/40 border border-amber-700 text-amber-100 hover:bg-amber-900/60'
-                  : 'bg-blue-700 text-white hover:bg-blue-800'
-              }`}
-            >
-              {scheduler.started
-                ? `Parar scheduler (${scheduler.jobsScheduled} jobs)`
-                : 'Iniciar scheduler in-process'}
-            </button>
-          )}
-        </div>
+
+      <div className="mb-6">
+        <h1 className="page-title">
+          <span aria-hidden="true">{'\u23F0'}</span> Cron + Agente Autônomo
+        </h1>
+        <p className="page-subtitle">
+          Shadow mode. Recomenda, nunca aplica sem humano.
+        </p>
       </div>
 
       {error && (
-        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3 mb-4">
+        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3 mb-4 text-sm">
           {error}
         </div>
       )}
 
+      {/* KPIs grandes */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <Kpi label="Jobs registrados" value={jobs.length} />
-        <Kpi label="Findings abertos" value={findings.filter((f) => f.status === 'new').length} accent="amber" />
-        <Kpi
-          label="Recomendações prontas"
-          value={findings.filter((f) => f.status === 'shadow-recommendation-ready').length}
-          accent="blue"
+        <KpiCard label="Total findings" value={String(totalFindings)} tone="neutral" hint="na visão atual" />
+        <KpiCard
+          label="Críticos"
+          value={String(criticalCount)}
+          tone={criticalCount > 0 ? 'alert' : 'ok'}
+          hint={criticalCount > 0 ? 'requer atenção' : 'tudo limpo'}
         />
-        <Kpi label="Scheduler" value={scheduler?.started ? 1 : 0} accent={scheduler?.started ? 'green' : 'red'} />
+        <KpiCard
+          label="Em revisão"
+          value={String(inReviewCount)}
+          tone={inReviewCount > 0 ? 'watch' : 'neutral'}
+          hint="aguardando humano"
+        />
+        <KpiCard
+          label="Jobs ativos"
+          value={String(activeJobs)}
+          tone={scheduler?.started ? 'ok' : 'neutral'}
+          hint={scheduler?.started ? 'scheduler on' : 'scheduler off'}
+        />
       </div>
 
-      <div role="tablist" className="flex gap-2 mb-5 border-b border-slate-700">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'findings'}
+      {/* Scheduler toggle */}
+      {scheduler && (
+        <div className="flex justify-end mb-5">
+          <button
+            type="button"
+            onClick={toggleScheduler}
+            className={`min-h-[40px] inline-flex items-center px-4 py-2 rounded-full text-xs font-bold border focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors ${
+              scheduler.started
+                ? 'bg-amber-900/40 border-amber-700 text-amber-100 hover:bg-amber-900/60'
+                : 'bg-blue-700 border-blue-500 text-white hover:bg-blue-800'
+            }`}
+          >
+            {scheduler.started
+              ? `Parar scheduler (${scheduler.jobsScheduled})`
+              : 'Iniciar scheduler'}
+          </button>
+        </div>
+      )}
+
+      {/* Tabs como filter chips */}
+      <div role="tablist" className="flex flex-wrap gap-2 mb-5">
+        <FilterChip
+          active={tab === 'findings'}
           onClick={() => setTab('findings')}
-          className={`min-h-[44px] px-4 py-2 text-sm font-semibold border-b-2 -mb-px ${
-            tab === 'findings'
-              ? 'border-blue-400 text-blue-200'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Findings ({findings.length})
-        </button>
-        <button
-          type="button"
+          label="Findings"
+          count={findings.length}
           role="tab"
-          aria-selected={tab === 'jobs'}
+        />
+        <FilterChip
+          active={tab === 'jobs'}
           onClick={() => setTab('jobs')}
-          className={`min-h-[44px] px-4 py-2 text-sm font-semibold border-b-2 -mb-px ${
-            tab === 'jobs'
-              ? 'border-blue-400 text-blue-200'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Jobs ({jobs.length})
-        </button>
+          label="Jobs"
+          count={jobs.length}
+          role="tab"
+        />
       </div>
 
       {loading && <p className="text-slate-300">Carregando...</p>}
 
       {!loading && tab === 'jobs' && (
-        <ul className="flex flex-col gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {jobs.map((job) => (
-            <li
+            <article
               key={job.id}
-              className="bg-slate-900 border border-slate-700 rounded-xl p-4 flex items-start justify-between gap-3 flex-wrap"
+              className="bg-slate-900 border border-slate-700 rounded-lg p-4 hover:border-blue-700 transition-colors"
             >
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-slate-100">{job.label}</h3>
-                <p className="text-xs text-slate-300 mt-1">{job.description}</p>
-                <div className="flex items-center gap-2 mt-2 flex-wrap text-[11px] text-slate-400">
-                  <span className="font-mono text-blue-300">{job.id}</span>
-                  <span>·</span>
-                  <span>cron: <code className="text-slate-200">{job.cron}</code></span>
-                  <span>·</span>
-                  <span>surface: <code className="text-slate-200">{job.surface}</code></span>
-                  <span>·</span>
-                  <span
-                    className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] ${SEVERITY_BADGE[job.worstSeverity]}`}
-                  >
-                    {job.worstSeverity}
-                  </span>
+              <header className="flex items-start justify-between gap-2 mb-2">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm font-bold text-slate-100 truncate">{job.label}</h3>
+                  <p className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5 font-mono">
+                    {job.id}
+                  </p>
                 </div>
-                {job.lastRun && (
-                  <div className="text-xs text-slate-400 mt-2">
-                    Última execução: {new Date(job.lastRun.startedAt).toLocaleString('pt-BR')} · status{' '}
-                    <strong className="text-slate-200">{job.lastRun.status}</strong> ·{' '}
-                    {job.lastRun.findingsCount} achado(s)
-                  </div>
-                )}
+                <span
+                  className={`text-[10px] font-bold px-2 py-1 rounded-full border ${SEVERITY_BADGE[job.worstSeverity] ?? SEVERITY_BADGE.info}`}
+                >
+                  {job.worstSeverity}
+                </span>
+              </header>
+
+              <p className="text-xs text-slate-300 leading-snug mb-3 line-clamp-3">{job.description}</p>
+
+              <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3 text-[10px] text-slate-400">
+                <span>
+                  cron <code className="text-slate-200">{job.cron}</code>
+                </span>
+                <span>
+                  surface <code className="text-slate-200">{job.surface}</code>
+                </span>
               </div>
-              <button
-                type="button"
-                onClick={() => runJob(job.id)}
-                disabled={busyJobId === job.id}
-                className="min-h-[40px] inline-flex items-center px-3 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-60 whitespace-nowrap"
-              >
-                {busyJobId === job.id ? 'Executando...' : 'Executar agora'}
-              </button>
-            </li>
+
+              {job.lastRun && (
+                <div className="text-[10px] text-slate-400 mb-3 pb-3 border-b border-slate-700/60">
+                  <span className={`font-bold ${RUN_STATUS_COLOR[job.lastRun.status] ?? 'text-slate-200'}`}>
+                    {job.lastRun.status}
+                  </span>
+                  {' · '}
+                  {job.lastRun.findingsCount} achado(s)
+                  {' · '}
+                  {new Date(job.lastRun.startedAt).toLocaleString('pt-BR')}
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => runJob(job.id)}
+                  disabled={busyJobId === job.id}
+                  className="text-[11px] font-bold px-3 py-1.5 rounded bg-blue-700 hover:bg-blue-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-60"
+                >
+                  {busyJobId === job.id ? 'Executando...' : 'Executar agora'}
+                </button>
+              </div>
+            </article>
           ))}
-        </ul>
+        </div>
       )}
 
       {!loading && tab === 'findings' && (
         <>
-          <div className="flex gap-2 mb-4">
-            <button
-              type="button"
+          <div className="flex flex-wrap gap-2 mb-5">
+            <FilterChip
+              active={findingsFilter === 'open'}
               onClick={() => setFindingsFilter('open')}
-              aria-pressed={findingsFilter === 'open'}
-              className={`min-h-[40px] px-4 py-2 rounded-md text-xs font-semibold border ${
-                findingsFilter === 'open'
-                  ? 'bg-blue-700 border-blue-500 text-white'
-                  : 'bg-slate-800 border-slate-600 text-slate-200 hover:bg-slate-700'
-              }`}
-            >
-              Apenas abertos
-            </button>
-            <button
-              type="button"
+              label="Apenas abertos"
+            />
+            <FilterChip
+              active={findingsFilter === 'all'}
               onClick={() => setFindingsFilter('all')}
-              aria-pressed={findingsFilter === 'all'}
-              className={`min-h-[40px] px-4 py-2 rounded-md text-xs font-semibold border ${
-                findingsFilter === 'all'
-                  ? 'bg-blue-700 border-blue-500 text-white'
-                  : 'bg-slate-800 border-slate-600 text-slate-200 hover:bg-slate-700'
-              }`}
-            >
-              Todos
-            </button>
+              label="Todos"
+            />
           </div>
+
           {findings.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 text-center text-slate-300">
-              Nenhum finding {findingsFilter === 'open' ? 'aberto ' : ''}no momento. Execute um
-              job manualmente para gerar findings.
+            <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 text-center text-sm text-slate-300">
+              Nenhum finding {findingsFilter === 'open' ? 'aberto ' : ''}no momento.
             </div>
           ) : (
-            <ul className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {findings.map((f) => (
-                <li
+                <article
                   key={f.id}
-                  className="bg-slate-900 border border-slate-700 rounded-xl p-4"
+                  className="bg-slate-900 border border-slate-700 rounded-lg p-4 hover:border-blue-700 transition-colors"
                 >
-                  <div className="flex items-start gap-2 mb-2 flex-wrap">
+                  <header className="flex items-center gap-2 mb-2 flex-wrap">
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${SEVERITY_BADGE[f.severity]}`}
                     >
@@ -348,51 +364,56 @@ export default function CronDashboardPage() {
                     >
                       {STATUS_LABEL[f.status]}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">{f.surface}</span>
                     <span className="text-[10px] text-slate-500 ml-auto">
-                      {new Date(f.createdAt).toLocaleString('pt-BR')}
+                      {new Date(f.createdAt).toLocaleDateString('pt-BR')}
                     </span>
-                  </div>
-                  <p className="text-sm text-slate-100">{f.message}</p>
-                  <p className="text-[11px] text-slate-400 mt-1 font-mono">{f.target}</p>
+                  </header>
+
+                  <p className="text-sm text-slate-100 leading-snug line-clamp-3 mb-2">{f.message}</p>
+
+                  <p className="text-[10px] text-slate-400 font-mono truncate mb-3" title={f.target}>
+                    {f.surface} · {f.target}
+                  </p>
+
                   {f.suggestion && (
-                    <details className="mt-3">
-                      <summary className="text-xs text-blue-300 cursor-pointer hover:text-blue-200">
-                        Recomendação do agente (shadow mode)
+                    <details className="mb-3">
+                      <summary className="text-[11px] text-blue-300 cursor-pointer hover:text-blue-200 font-semibold">
+                        Recomendação (shadow)
                       </summary>
-                      <p className="text-xs text-slate-200 mt-2 bg-blue-950/30 border border-blue-700/40 rounded-md p-3 whitespace-pre-wrap">
+                      <p className="text-[11px] text-slate-200 mt-2 bg-blue-950/30 border border-blue-700/40 rounded-md p-2 whitespace-pre-wrap">
                         {f.suggestion}
                       </p>
                     </details>
                   )}
+
                   {(f.status === 'new' || f.status === 'shadow-recommendation-ready') && (
-                    <div className="flex gap-2 mt-3 flex-wrap">
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-700">
                       <button
                         type="button"
                         onClick={() => patchFinding(f.id, 'resolve-manual')}
-                        className="min-h-[36px] px-3 py-1.5 rounded-md bg-green-900/40 border border-green-700 text-green-100 hover:bg-green-900/60 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-green-300"
+                        className="text-[11px] font-bold px-3 py-1.5 rounded bg-green-900/40 border border-green-700 text-green-100 hover:bg-green-900/60 focus:outline-none focus:ring-2 focus:ring-green-300"
                       >
-                        Marcar como resolvido
+                        Resolver
                       </button>
                       <button
                         type="button"
                         onClick={() => patchFinding(f.id, 'promote')}
-                        className="min-h-[36px] px-3 py-1.5 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="text-[11px] font-bold px-3 py-1.5 rounded bg-blue-700 hover:bg-blue-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-300"
                       >
-                        Promover (aplicar)
+                        Promover
                       </button>
                       <button
                         type="button"
                         onClick={() => patchFinding(f.id, 'dismiss')}
-                        className="min-h-[36px] px-3 py-1.5 rounded-md bg-slate-800 border border-slate-600 text-slate-200 hover:bg-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="text-[11px] font-bold px-3 py-1.5 rounded bg-slate-800 border border-slate-600 text-slate-200 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
                       >
                         Descartar
                       </button>
                     </div>
                   )}
-                </li>
+                </article>
               ))}
-            </ul>
+            </div>
           )}
         </>
       )}
@@ -400,31 +421,68 @@ export default function CronDashboardPage() {
   );
 }
 
-function Kpi({
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function KpiCard({
   label,
   value,
-  accent,
+  hint,
+  tone,
 }: {
   label: string;
-  value: number;
-  accent?: 'blue' | 'green' | 'amber' | 'red';
+  value: string;
+  hint: string;
+  tone: 'neutral' | 'ok' | 'watch' | 'alert';
 }) {
-  const accentClass =
-    accent === 'blue'
-      ? 'text-blue-300'
-      : accent === 'green'
-        ? 'text-green-300'
-        : accent === 'amber'
-          ? 'text-amber-300'
-          : accent === 'red'
-            ? 'text-red-300'
-            : 'text-slate-100';
+  const toneClass: Record<typeof tone, string> = {
+    neutral: 'bg-slate-900 border-slate-700',
+    ok: 'bg-green-950/30 border-green-700/60',
+    watch: 'bg-amber-950/30 border-amber-700/60',
+    alert: 'bg-red-950/30 border-red-700/60',
+  };
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-xl p-4">
-      <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-        {label}
-      </div>
-      <div className={`text-3xl font-bold mt-1 ${accentClass}`}>{value}</div>
+    <div className={`rounded-xl border ${toneClass[tone]} px-4 py-4`}>
+      <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">{label}</p>
+      <p className="text-3xl font-extrabold text-slate-100 mt-1 leading-none">{value}</p>
+      <p className="text-xs text-slate-300 mt-2">{hint}</p>
     </div>
+  );
+}
+
+function FilterChip({
+  active,
+  onClick,
+  label,
+  count,
+  role,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count?: number;
+  role?: 'tab';
+}) {
+  return (
+    <button
+      type="button"
+      role={role}
+      onClick={onClick}
+      aria-pressed={role ? undefined : active}
+      aria-selected={role === 'tab' ? active : undefined}
+      className={`min-h-[40px] px-3 py-2 rounded-full text-xs font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors ${
+        active
+          ? 'bg-blue-700 text-white border-blue-500'
+          : 'bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700'
+      }`}
+    >
+      {label}
+      {count !== undefined && (
+        <span className={`ml-1.5 text-[10px] ${active ? 'text-blue-100' : 'text-slate-400'}`}>
+          ({count})
+        </span>
+      )}
+    </button>
   );
 }

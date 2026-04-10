@@ -17,6 +17,16 @@
 #   - .claude/rules/quality.md   — pinned image digests via SHA below
 #   - .claude/rules/security.md  — Pod Security Standards restricted profile,
 #                                  drop ALL caps, runAsNonRoot, RO root FS
+#
+# Kill switches:
+#   These CronJobs only TRIGGER the runner via HTTP. The actual policy gate
+#   (canExecuteAutonomously in apps/web/src/lib/agent-runtime.ts) reads
+#   VELYA_AGENT_<UPPER_ID>_DISABLED env vars from the velya-web Deployment
+#   pod, NOT from this trigger pod. To kill an agent in production:
+#     kubectl set env deployment/velya-web -n velya-dev-web \
+#       VELYA_AGENT_QUALITY_ROUTE_DOCTOR_DISABLED=1
+#   See ADR-0014 (web-tier-cron-agents-shadow-mode) and
+#   docs/operations/kill-switch-matrix.md for the full matrix.
 # -----------------------------------------------------------------------------
 # Job inventory (19 total) — keep in lock-step with apps/web/src/lib/cron-jobs.ts
 #   frontend.route-health           */15 * * * *

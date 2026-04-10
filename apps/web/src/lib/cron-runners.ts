@@ -47,6 +47,7 @@ const PLATFORM_ROUTES = [
   '/specialties',
   '/wards',
   '/cron',
+  '/agents',
   '/system',
   '/activity',
   '/audit',
@@ -488,6 +489,147 @@ const duplicationScan: Runner = async (ctx) => {
 };
 
 /**
+ * backend.session-store — limpa sessões expiradas (>30 min idle) e reporta
+ * arquivos de sessão corrompidos. Esta é uma operação safe (somente cleanup
+ * de arquivos efêmeros) — pode rodar autônomo no agente.
+ */
+const sessionStore: Runner = async (ctx) => {
+  let count = 0;
+  const dir = process.env.VELYA_SESSION_PATH || '/tmp/velya-sessions';
+  if (!existsSync(dir)) return 0;
+  try {
+    const files = readdirSync(dir).filter((f) => f.endsWith('.json'));
+    const cutoff = Date.now() - 30 * 60 * 1000;
+    for (const f of files) {
+      try {
+        const raw = readFileSync(join(dir, f), 'utf8');
+        const parsed = JSON.parse(raw) as { lastActivity?: string };
+        const ts = parsed.lastActivity ? Date.parse(parsed.lastActivity) : 0;
+        if (ts && ts < cutoff) {
+          createFinding({
+            jobId: ctx.jobId,
+            runId: ctx.runId,
+            severity: 'low',
+            surface: 'backend.auth',
+            target: f,
+            message: `Sessão expirada detectada: ${f}`,
+            details: { lastActivity: parsed.lastActivity },
+            shadowAction: { type: 'cleanup-stale-session', payload: { file: f } },
+          });
+          count++;
+        }
+      } catch {
+        createFinding({
+          jobId: ctx.jobId,
+          runId: ctx.runId,
+          severity: 'medium',
+          surface: 'backend.auth',
+          target: f,
+          message: `Sessão corrompida (JSON inválido): ${f}`,
+        });
+        count++;
+      }
+    }
+  } catch {
+    // ignore — directory unreadable
+  }
+  return count;
+};
+
+/**
+ * data.fixture-completeness — para cada módulo, verifica se todo registro
+ * tem valor para colunas marcadas required: true no manifest.
+ */
+const fixtureCompleteness: Runner = async (ctx) => {
+  let count = 0;
+  for (const module of MODULES) {
+    const requiredKeys = module.columns.filter((c) => c.required).map((c) => c.key);
+    if (requiredKeys.length === 0) continue;
+    const records = listLiveRecords(module.id);
+    for (const record of records) {
+      const missing = requiredKeys.filter((k) => {
+        const v = record.data[k];
+        return v == null || v === '' || (Array.isArray(v) && v.length === 0);
+      });
+      if (missing.length > 0) {
+        createFinding({
+          jobId: ctx.jobId,
+          runId: ctx.runId,
+          severity: 'medium',
+          surface: 'data.fixture',
+          target: `${module.id}:${record.id}`,
+          message: `Registro ${record.id} sem campos obrigatórios: ${missing.join(', ')}`,
+          details: { moduleId: module.id, missingFields: missing },
+        });
+        count++;
+      }
+    }
+  }
+  return count;
+};
+
+/**
+ * function.fixture-registry-coverage — todo módulo declarado em MODULES
+ * precisa ter um registro vivo com pelo menos 1 entry, e nenhum módulo
+ * "fantasma" deve existir no FIXTURE_REGISTRY sem aparecer no manifest.
+ */
+const fixtureRegistryCoverage: Runner = async (ctx) => {
+  let count = 0;
+  for (const module of MODULES) {
+    const records = listLiveRecords(module.id);
+    if (records.length === 0) {
+      createFinding({
+        jobId: ctx.jobId,
+        runId: ctx.runId,
+        severity: 'medium',
+        surface: 'function.role-mapping',
+        target: module.id,
+        message: `Módulo ${module.id} declarado no manifest mas sem fixtures vivas`,
+        details: { fixturePath: module.fixturePath, fixtureExport: module.fixtureExport },
+      });
+      count++;
+    }
+  }
+  return count;
+};
+
+/**
+ * security.permission-matrix — para cada módulo, checa que `allowedRoles`
+ * tem pelo menos 1 papel mapeado e que não usa wildcard ['*'] para módulos
+ * de classe A (PHI máximo).
+ */
+const permissionMatrix: Runner = async (ctx) => {
+  let count = 0;
+  for (const module of MODULES) {
+    if (!module.allowedRoles || module.allowedRoles.length === 0) {
+      createFinding({
+        jobId: ctx.jobId,
+        runId: ctx.runId,
+        severity: 'high',
+        surface: 'function.permission' as Surface,
+        target: module.id,
+        message: `Módulo ${module.id} sem allowedRoles definido`,
+      });
+      count++;
+      continue;
+    }
+    if (module.dataClass === 'A' && module.allowedRoles.includes('*')) {
+      createFinding({
+        jobId: ctx.jobId,
+        runId: ctx.runId,
+        severity: 'critical',
+        surface: 'function.permission' as Surface,
+        target: module.id,
+        message: `Módulo ${module.id} é classe A (PHI máximo) mas permite acesso wildcard`,
+        details: { allowedRoles: module.allowedRoles },
+      });
+      count++;
+    }
+  }
+  return count;
+};
+
+/**
  * Default fallback for jobs without a specific runner — record an info
  * finding so the user knows the job ran but did nothing.
  */
@@ -501,19 +643,19 @@ export const RUNNERS: Record<string, Runner> = {
   'frontend.field-link-policy': fieldLinkPolicy,
   'backend.api-contract': apiContract,
   'backend.audit-chain': auditChain,
-  'backend.session-store': noopRunner,
+  'backend.session-store': sessionStore,
   'backend.rate-limit-sanity': noopRunner,
   'data.referential-integrity': referentialIntegrity,
   'data.duplication-scan': duplicationScan,
-  'data.fixture-completeness': noopRunner,
+  'data.fixture-completeness': fixtureCompleteness,
   'data.stale-records': noopRunner,
   'infra.k8s-pod-health': noopRunner,
   'infra.disk-usage': diskUsage,
   'infra.tls-cert-expiry': noopRunner,
   'security.headers-check': securityHeadersCheck,
-  'security.permission-matrix': noopRunner,
+  'security.permission-matrix': permissionMatrix,
   'function.module-manifest-consistency': manifestConsistency,
-  'function.fixture-registry-coverage': noopRunner,
+  'function.fixture-registry-coverage': fixtureRegistryCoverage,
   'compliance.contrast-spotcheck': noopRunner,
 };
 

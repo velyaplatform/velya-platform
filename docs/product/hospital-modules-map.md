@@ -200,6 +200,8 @@ Isso atende ao princípio de **não criar rotas redundantes** do
 | Cadastro de funcionários | `/employees` | ✅ (scaffold — detalhe 🔴) | contrast + visual |
 | Fornecedores e terceiros | `/suppliers` | ✅ (scaffold — detalhe 🔴) | contrast + visual |
 | Configurações do sistema | `/system`, `/system/services/[id]` | ✅ | contrast + visual |
+| Painel de cron jobs do agente | `/cron` | ✅ | contrast + visual |
+| Frota multi-agente autônoma | `/agents` | ✅ | contrast + visual |
 
 ### 5. Fluxo hospitalar (FHIR `Encounter` lifecycle)
 

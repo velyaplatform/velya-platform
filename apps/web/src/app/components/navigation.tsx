@@ -141,6 +141,8 @@ const NAV_ITEMS: NavItemDef[] = [
   { href: '/system',   icon: '\u2699\uFE0F', label: 'Status do Sistema', section: NAV_SECTIONS.ADMINISTRACAO },
   { href: '/activity', icon: '\uD83D\uDCCB', label: 'Log de Atividade',  section: NAV_SECTIONS.ADMINISTRACAO },
   { href: '/audit',    icon: '\uD83D\uDD12', label: 'Auditoria',         section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/cron',     icon: '\u23F0',       label: 'Cron Jobs',         section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/agents',   icon: '\uD83E\uDD16', label: 'Agentes',           section: NAV_SECTIONS.ADMINISTRACAO },
   { href: '/suggestions', icon: '\uD83D\uDCA1', label: 'Sugestoes',      section: NAV_SECTIONS.ADMINISTRACAO },
 ];
 

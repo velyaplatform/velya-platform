@@ -22,6 +22,8 @@ import { CRON_JOBS } from './cron-jobs';
 import { getRunner } from './cron-runners';
 import { finishRun, startRun } from './cron-store';
 import { runAgentLoopForRun } from './agent-loop';
+import { getAgentsForJob } from './agent-runtime';
+import { recordAgentRun } from './agent-state';
 
 interface SchedulerState {
   started: boolean;
@@ -77,6 +79,17 @@ export async function executeJobOnce(jobId: string): Promise<{
   void runAgentLoopForRun(run.id).catch(() => {
     // best effort
   });
+
+  // Record the run against every agent that owns this job so the watchdog
+  // scorecards stay current. Auto-quarantine kicks in inside recordAgentRun()
+  // when scorecards drop below the thresholds in agent-governance.md.
+  for (const agent of getAgentsForJob(jobId)) {
+    recordAgentRun(agent.id, {
+      success: status !== 'failed',
+      correctionRecurred: false,
+      evidenceComplete: status !== 'failed',
+    });
+  }
 
   return { success: status !== 'failed', findingsCount, errorMessage };
 }
