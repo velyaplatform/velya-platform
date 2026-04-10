@@ -93,6 +93,8 @@ const NAV_ITEMS: NavItemDef[] = [
   },
   // --- Ferramentas clínicas ---
   { href: '/tools/sepsis', icon: '\uD83E\uDE78', label: 'NEWS2 / Sepse', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/specialties',  icon: '\uD83E\uDE7A', label: 'Especialidades', section: NAV_SECTIONS.GESTAO },
+  { href: '/wards',        icon: '\uD83C\uDFE5', label: 'Alas e Setores', section: NAV_SECTIONS.GESTAO },
   // --- Clínico (ordens, resultados) ---
   { href: '/prescriptions', icon: '\uD83D\uDC8A', label: 'Prescri\u00e7\u00f5es', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/lab/orders',     icon: '\uD83E\uDDEA', label: 'Ordens de Lab',   section: NAV_SECTIONS.ASSISTENCIAL },

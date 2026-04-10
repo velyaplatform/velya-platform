@@ -36,6 +36,8 @@ import { INCIDENTS } from './fixtures/incidents';
 import { AUDIT_EVENTS } from './fixtures/audit-events';
 import { CREDENTIALS } from './fixtures/credentials';
 import { CONSENT_FORMS } from './fixtures/consent-forms';
+import { MEDICAL_SPECIALTIES } from './fixtures/medical-specialties';
+import { HOSPITAL_WARDS } from './fixtures/hospital-wards';
 
 interface RecordLike {
   id?: string;
@@ -70,6 +72,8 @@ const FIXTURE_REGISTRY: Record<string, readonly RecordLike[]> = {
   'audit-events': AUDIT_EVENTS as unknown as readonly RecordLike[],
   credentials: CREDENTIALS as unknown as readonly RecordLike[],
   'consent-forms': CONSENT_FORMS as unknown as readonly RecordLike[],
+  'medical-specialties': MEDICAL_SPECIALTIES as unknown as readonly RecordLike[],
+  'hospital-wards': HOSPITAL_WARDS as unknown as readonly RecordLike[],
 };
 
 export function getFixtureRecords(moduleId: string): readonly RecordLike[] {

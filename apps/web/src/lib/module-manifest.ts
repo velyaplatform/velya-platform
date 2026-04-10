@@ -732,6 +732,64 @@ export const MODULES: ModuleDef[] = [
       { key: 'status', label: 'Status', width: 'sm', badge: true },
     ],
   },
+
+  // =====================================================================
+  // MASTER DATA — referência clínica e operacional
+  // =====================================================================
+  {
+    id: 'medical-specialties',
+    route: '/specialties',
+    title: 'Especialidades Médicas',
+    subtitle: '55 especialidades CFM (Res. 2.380/2024) — condições, procedimentos e exames',
+    category: 'master-data',
+    fhirResource: 'PractitionerRole.specialty + CodeSystem',
+    dataClass: 'A',
+    allowedRoles: ['*'],
+    editorRoles: ['admin_system'],
+    fixturePath: 'lib/fixtures/medical-specialties',
+    fixtureExport: 'MEDICAL_SPECIALTIES',
+    icon: '\uD83E\uDE7A',
+    regulatoryBasis: ['CFM Res. 2.380/2024'],
+    filters: [
+      { key: 'category', label: 'Categoria', type: 'select' },
+    ],
+    columns: [
+      { key: 'id', label: 'ID', width: 'sm' },
+      { key: 'name', label: 'Especialidade' },
+      { key: 'category', label: 'Categoria', width: 'sm' },
+      { key: 'cfmCode', label: 'CFM', width: 'sm' },
+      { key: 'residencyYears', label: 'Anos R.', width: 'sm' },
+      { key: 'description', label: 'Descrição' },
+    ],
+  },
+  {
+    id: 'hospital-wards',
+    route: '/wards',
+    title: 'Alas e Setores',
+    subtitle: 'Mapa completo das alas, com regras de funcionamento, ocupação e regulação',
+    category: 'master-data',
+    fhirResource: 'Location',
+    dataClass: 'A',
+    allowedRoles: ['*'],
+    editorRoles: ['admin_system', 'bed_management'],
+    fixturePath: 'lib/fixtures/hospital-wards',
+    fixtureExport: 'HOSPITAL_WARDS',
+    icon: '\uD83C\uDFE5',
+    regulatoryBasis: ['ANVISA RDC 50/2002', 'ANVISA RDC 7/2010', 'ANVISA RDC 36/2008'],
+    filters: [
+      { key: 'type', label: 'Tipo', type: 'select' },
+      { key: 'criticality', label: 'Criticidade', type: 'select' },
+    ],
+    columns: [
+      { key: 'id', label: 'ID', width: 'sm' },
+      { key: 'name', label: 'Nome' },
+      { key: 'type', label: 'Tipo', width: 'sm' },
+      { key: 'capacity', label: 'Capacidade', width: 'sm' },
+      { key: 'occupied', label: 'Ocupado', width: 'sm' },
+      { key: 'criticality', label: 'Criticidade', width: 'sm', badge: true },
+      { key: 'operatingHours', label: 'Horário', width: 'sm' },
+    ],
+  },
 ];
 
 export function getModuleById(id: string): ModuleDef | undefined {

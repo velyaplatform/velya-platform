@@ -216,7 +216,7 @@ export default function NewHandoffPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor={`mrn-${p.uid}`} className={label}>MRN *</label>
-                  <input id={`mrn-${p.uid}`} type="text" value={p.patientMrn} onChange={(e) => updatePatient(p.uid, { patientMrn: e.target.value })} className={`${input} font-mono`} placeholder="MRN-001" required />
+                  <input id={`mrn-${p.uid}`} type="text" value={p.patientMrn} onChange={(e) => updatePatient(p.uid, { patientMrn: e.target.value })} className={`${input} font-mono`} placeholder="MRN-XXX" required />
                 </div>
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
                   <label htmlFor={`name-${p.uid}`} className={label}>Nome *</label>
