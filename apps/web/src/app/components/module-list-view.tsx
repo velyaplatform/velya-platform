@@ -55,13 +55,35 @@ function ModuleListInner({
   data: readonly object[];
 }) {
   // Cast once at the boundary — fixtures are strictly typed at their own site.
-  const data = rawData as Record<string, unknown>[];
+  const seedData = rawData as Record<string, unknown>[];
   const [search, setSearch] = useState('');
   const [filterState, setFilterState] = useState<Record<string, string>>({});
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
   const [page, setPage] = useState(1);
+
+  // Live data merged with overrides from the entity store. We start with
+  // the seed data so the page renders immediately, then refetch from
+  // /api/entities/[moduleId] to apply any user edits / new records.
+  const [liveData, setLiveData] = useState<Record<string, unknown>[]>(seedData);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/entities/${module.id}`, { credentials: 'same-origin' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload) => {
+        if (cancelled || !payload || !Array.isArray(payload.records)) return;
+        const merged = (
+          payload.records as { id: string; data: Record<string, unknown> }[]
+        ).map((r) => ({ ...r.data }));
+        setLiveData(merged);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [module.id]);
+  const data = liveData;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -365,13 +387,19 @@ function ModuleListInner({
                     </button>
                   </th>
                 ))}
+                <th
+                  scope="col"
+                  className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider whitespace-nowrap"
+                >
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
               {sorted.length === 0 && (
                 <tr>
                   <td
-                    colSpan={module.columns.length}
+                    colSpan={module.columns.length + 1}
                     className="text-center py-12 text-slate-300"
                   >
                     {hasActiveFilters ? (
@@ -393,21 +421,35 @@ function ModuleListInner({
                   </td>
                 </tr>
               )}
-              {paginated.map((row, rowIdx) => (
-                <tr
-                  key={(row.id as string) ?? `${startIdx + rowIdx}`}
-                  className="hover:bg-slate-800/60 transition-colors"
-                >
-                  {module.columns.map((col) => (
-                    <td
-                      key={col.key}
-                      className={`px-4 py-3 text-slate-100 align-top ${col.className ?? ''}`}
-                    >
-                      {renderCell(col, row)}
+              {paginated.map((row, rowIdx) => {
+                const recordId = String(row.id ?? '');
+                return (
+                  <tr
+                    key={recordId || `${startIdx + rowIdx}`}
+                    className="hover:bg-slate-800/60 transition-colors"
+                  >
+                    {module.columns.map((col) => (
+                      <td
+                        key={col.key}
+                        className={`px-4 py-3 text-slate-100 align-top ${col.className ?? ''}`}
+                      >
+                        {renderCell(col, row)}
+                      </td>
+                    ))}
+                    <td className="px-4 py-3 text-right align-top whitespace-nowrap">
+                      {recordId && (
+                        <Link
+                          href={`/edit/${module.id}/${encodeURIComponent(recordId)}`}
+                          aria-label={`Editar ${recordId}`}
+                          className="inline-flex items-center min-h-[36px] px-3 py-1.5 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-blue-700 hover:border-blue-500 hover:text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        >
+                          Editar
+                        </Link>
+                      )}
                     </td>
-                  ))}
-                </tr>
-              ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -32,6 +32,16 @@ export type ModuleCategory =
   | 'governance'
   | 'master-data';
 
+export type FieldInputType =
+  | 'text'
+  | 'textarea'
+  | 'number'
+  | 'date'
+  | 'datetime'
+  | 'select'
+  | 'boolean'
+  | 'tags';
+
 export interface ColumnDef<T = Record<string, unknown>> {
   /** Field key in the data object */
   key: keyof T & string;
@@ -47,6 +57,19 @@ export interface ColumnDef<T = Record<string, unknown>> {
   badge?: boolean;
   /** If set, render cell as a link to this route template. Use `${row.X}` tokens. */
   linkTo?: string;
+  /**
+   * If false, the column is hidden from the auto-generated edit form.
+   * Defaults to true for everything except the `id` column.
+   */
+  editable?: boolean;
+  /** Form input type used by the auto-generated edit page. Default 'text'. */
+  inputType?: FieldInputType;
+  /** For inputType='select' — the allowed values. Each can also have a label. */
+  options?: { value: string; label?: string }[];
+  /** Inline help shown below the input on the edit page */
+  help?: string;
+  /** Marks the field as required in the edit form */
+  required?: boolean;
 }
 
 export interface FilterDef {
@@ -75,6 +98,8 @@ export interface ModuleDef {
   dataClass: DataClass;
   /** Roles authorized to view (subset of ProfessionalRole ids from access-control.ts). Use ['*'] for public-to-authenticated. */
   allowedRoles: string[];
+  /** Roles authorized to edit records in this module. Defaults to allowedRoles when omitted. Use ['*'] to allow any authenticated user, ['admin'] for admin-only. */
+  editorRoles?: string[];
   /** Import path to the fixture file (relative from apps/web/src) */
   fixturePath: string;
   /** Exported name of the fixture const */
@@ -711,6 +736,37 @@ export const MODULES: ModuleDef[] = [
 
 export function getModuleById(id: string): ModuleDef | undefined {
   return MODULES.find((m) => m.id === id);
+}
+
+/**
+ * Returns true if a user with the given professional role + email may edit
+ * records in the given module. Admin emails always pass.
+ */
+export function canEditModule(
+  module: ModuleDef,
+  professionalRole: string | null | undefined,
+  email: string | null | undefined,
+): boolean {
+  // Admin allowlist always wins. Hardcoded for the platform owner.
+  const adminEmails = (process.env.AI_ADMIN_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  if (email && (adminEmails.includes(email.toLowerCase()) || email.toLowerCase() === 'lucaslima4132@gmail.com')) {
+    return true;
+  }
+  const editors = module.editorRoles ?? module.allowedRoles;
+  if (editors.includes('*')) return true;
+  if (!professionalRole) return false;
+  return editors.includes(professionalRole) || editors.includes('admin_system');
+}
+
+/**
+ * Returns the columns that should appear in the auto-generated edit form.
+ * Excludes `id` and any column explicitly marked editable: false.
+ */
+export function getEditableColumns(module: ModuleDef): ColumnDef[] {
+  return module.columns.filter((c) => c.key !== 'id' && c.editable !== false);
 }
 
 export function getModulesByCategory(category: ModuleCategory): ModuleDef[] {
