@@ -18,12 +18,25 @@ export type SpecialtyCategory =
   | 'mental'
   | 'reabilitacao';
 
+export type ProfessionalCouncil =
+  | 'CRM'      // Conselho Regional de Medicina
+  | 'CRN'      // Conselho Regional de Nutricionistas
+  | 'COREN'    // Conselho Regional de Enfermagem
+  | 'CRF'      // Conselho Regional de Farmácia
+  | 'CREFITO'  // Conselho Regional de Fisioterapia e Terapia Ocupacional
+  | 'CRP'      // Conselho Regional de Psicologia
+  | 'CFFa'     // Conselho Federal de Fonoaudiologia
+  | 'CRO'      // Conselho Regional de Odontologia
+  | 'CRESS';   // Conselho Regional de Serviço Social
+
 export interface MedicalSpecialty {
   id: string;            // e.g. 'cardiologia'
   name: string;          // 'Cardiologia'
   cfmCode: string;       // CFM specialty code
   category: SpecialtyCategory;
-  council: 'CRM';
+  council: ProfessionalCouncil;
+  /** True for the 55 CFM medical specialties, false for áreas multidisciplinares (nutrição, enfermagem, fisio, etc.) */
+  isMedical?: boolean;
   /** Pre-requisite years of residência médica */
   residencyYears: number;
   /** Description in PT-BR */
@@ -1807,6 +1820,356 @@ export const MEDICAL_SPECIALTIES: MedicalSpecialty[] = [
     typicalWards: ['Ala Pediátrica', 'UTI Pediátrica', 'Hospital-Dia Pediátrico'],
     areasDeAtuacao: [],
     regulatoryBasis: [CFM_BASE, 'Lei 12.732/2012', 'ECA - Lei 8.069/1990'],
+  },
+
+  // ===========================================================================
+  // Áreas multidisciplinares — não-CRM (CRN, COREN, CRF, CREFITO, CRP, CFFa)
+  // Estas categorias são parte da equipe assistencial mas não são especialidades
+  // médicas oficiais do CFM. São listadas aqui para que a página /specialties
+  // mostre TODAS as áreas profissionais que atuam no hospital.
+  // ===========================================================================
+
+  {
+    id: 'nutricao-clinica',
+    name: 'Nutrição Clínica',
+    cfmCode: 'CRN-NC',
+    category: 'apoio',
+    council: 'CRN',
+    isMedical: false,
+    residencyYears: 0,
+    description:
+      'Atuação do nutricionista hospitalar — avaliação nutricional, prescrição de dieta oral/enteral/parenteral, integração à EMTN (Equipe Multiprofissional de Terapia Nutricional) conforme ANVISA RDC 503/2021.',
+    commonConditions: [
+      { code: 'E43', name: 'Desnutrição proteico-calórica grave não especificada' },
+      { code: 'E44.0', name: 'Desnutrição proteico-calórica moderada' },
+      { code: 'E66.9', name: 'Obesidade não especificada' },
+      { code: 'K90.0', name: 'Doença celíaca' },
+      { code: 'E86', name: 'Depleção de volume (desidratação)' },
+      { code: 'R63.3', name: 'Dificuldades alimentares e erros na administração de alimentos' },
+    ],
+    commonProcedures: [
+      { code: '50000160', name: 'Avaliação nutricional com NRS-2002' },
+      { code: '50000179', name: 'Prescrição de dieta enteral' },
+      { code: '50000187', name: 'Acompanhamento nutricional ambulatorial' },
+      { code: '50000195', name: 'Educação nutricional individual' },
+      { code: '50000209', name: 'Monitoramento de balanço calórico-proteico' },
+      { code: '50000217', name: 'Avaliação antropométrica completa' },
+    ],
+    commonExams: [
+      { code: '2885-2', name: 'Albumina sérica (LOINC)' },
+      { code: '13965-9', name: 'Pré-albumina sérica (LOINC)' },
+      { code: '2160-0', name: 'Creatinina sérica (LOINC)' },
+      { code: '1751-7', name: 'Transferrina (LOINC)' },
+      { name: 'Bioimpedância elétrica' },
+      { name: 'Calorimetria indireta' },
+      { name: 'Antropometria (peso, altura, circunferências)' },
+    ],
+    typicalWards: [
+      'UTI Adulto',
+      'UTI Pediátrica',
+      'UTI Neonatal',
+      'Internação Clínica',
+      'Internação Cirúrgica',
+      'Oncologia',
+      'Hemodiálise',
+      'Maternidade',
+      'Ambulatório',
+    ],
+    areasDeAtuacao: [
+      'Terapia Nutricional Enteral e Parenteral',
+      'Nutrição Clínica em Oncologia',
+      'Nutrição Clínica em Pediatria',
+      'Nutrição Clínica em Cardiologia',
+      'Nutrição Clínica em Nefrologia',
+      'Nutrição Clínica em Geriatria',
+      'Nutrição Materno-Infantil',
+      'EMTN — Equipe Multiprofissional de Terapia Nutricional',
+    ],
+    regulatoryBasis: [
+      'ANVISA RDC 503/2021 — Terapia de Nutrição Enteral',
+      'ANVISA RDC 63/2000 — Boas práticas de terapia nutricional enteral',
+      'CFN Resolução 600/2018 — Áreas de atuação do nutricionista',
+      'CFN Resolução 380/2005 — Definição das áreas',
+      'Portaria SAS/MS 343/2005 — EMTN',
+      'Lei 8.234/1991 — Profissão de nutricionista',
+    ],
+  },
+  {
+    id: 'enfermagem',
+    name: 'Enfermagem',
+    cfmCode: 'COREN-ENF',
+    category: 'apoio',
+    council: 'COREN',
+    isMedical: false,
+    residencyYears: 0,
+    description:
+      'Sistematização da assistência de enfermagem (SAE) seguindo COFEN Res. 736/2024. Cuidado integral, administração de medicamentos, monitoramento contínuo, educação do paciente e família.',
+    commonConditions: [
+      { code: 'L89', name: 'Úlcera de pressão' },
+      { code: 'R29.6', name: 'Tendência a queda' },
+      { code: 'F32.9', name: 'Episódio depressivo (suporte psicossocial)' },
+      { code: 'Z51.5', name: 'Cuidados paliativos' },
+    ],
+    commonProcedures: [
+      { name: 'Administração de medicamentos (oral, IV, IM, SC)' },
+      { name: 'Curativo simples e complexo' },
+      { name: 'Cateterismo vesical' },
+      { name: 'Acesso venoso periférico' },
+      { name: 'Monitorização de sinais vitais' },
+      { name: 'Banho no leito e higiene' },
+      { name: 'Aspiração de vias aéreas' },
+      { name: 'Coleta de exames laboratoriais' },
+    ],
+    commonExams: [
+      { name: 'Glicemia capilar (HGT)' },
+      { name: 'Saturação periférica de O2' },
+      { name: 'Pressão arterial não invasiva' },
+      { name: 'Frequência cardíaca e respiratória' },
+      { name: 'Temperatura axilar' },
+      { name: 'Escala de dor (EVA)' },
+      { name: 'NEWS2 / MEWS' },
+    ],
+    typicalWards: [
+      'UTI Adulto',
+      'UTI Pediátrica',
+      'UTI Neonatal',
+      'Pronto Socorro',
+      'Internação Clínica',
+      'Internação Cirúrgica',
+      'Centro Cirúrgico',
+      'Centro Obstétrico',
+      'Hemodiálise',
+      'Quimioterapia',
+    ],
+    areasDeAtuacao: [
+      'Enfermagem em UTI',
+      'Enfermagem em Centro Cirúrgico',
+      'Enfermagem Obstétrica',
+      'Enfermagem Pediátrica e Neonatal',
+      'Enfermagem em Oncologia',
+      'Enfermagem em Hemodiálise',
+      'Enfermagem do Trabalho',
+      'Estomaterapia',
+    ],
+    regulatoryBasis: [
+      'COFEN Res. 736/2024 — Sistematização da Assistência de Enfermagem',
+      'COFEN Res. 358/2009 — Processo de Enfermagem',
+      'COFEN Res. 564/2017 — Código de Ética',
+      'Lei 7.498/1986 — Exercício da Enfermagem',
+      'COFEN Res. 545/2017 — Comissão de Sistematização',
+    ],
+  },
+  {
+    id: 'farmacia-hospitalar',
+    name: 'Farmácia Hospitalar',
+    cfmCode: 'CRF-HOSP',
+    category: 'apoio',
+    council: 'CRF',
+    isMedical: false,
+    residencyYears: 0,
+    description:
+      'Farmacêutico hospitalar — validação farmacêutica de prescrições, dispensação, conciliação medicamentosa, fracionamento, gestão de antimicrobianos (PGRM), farmácia clínica.',
+    commonConditions: [
+      { code: 'T88.7', name: 'Efeito não especificado de droga ou medicamento' },
+      { code: 'Y57.9', name: 'Droga ou medicamento como causa externa' },
+      { code: 'T36-T50', name: 'Intoxicação por drogas' },
+    ],
+    commonProcedures: [
+      { name: 'Validação farmacêutica de prescrição' },
+      { name: 'Conciliação medicamentosa na admissão' },
+      { name: 'Dispensação por dose unitária' },
+      { name: 'Fracionamento e diluição de medicamentos' },
+      { name: 'Reconstituição de antineoplásicos (cabine de fluxo laminar)' },
+      { name: 'Monitorização terapêutica (TDM)' },
+      { name: 'Notificação de RAM (reação adversa a medicamento)' },
+      { name: 'Gerenciamento de antimicrobianos (PGRM)' },
+    ],
+    commonExams: [
+      { name: 'Nível sérico de vancomicina' },
+      { name: 'Nível sérico de digoxina' },
+      { name: 'INR (acompanhamento de varfarina)' },
+      { name: 'Função renal (ajuste de dose)' },
+      { name: 'Função hepática (metabolismo de drogas)' },
+    ],
+    typicalWards: [
+      'Farmácia Central',
+      'UTI Adulto',
+      'Centro Cirúrgico',
+      'Quimioterapia',
+      'Internação Clínica',
+      'Pronto Socorro',
+    ],
+    areasDeAtuacao: [
+      'Farmácia Clínica Hospitalar',
+      'Manipulação de Antineoplásicos',
+      'Farmacovigilância',
+      'Gerenciamento de Antimicrobianos',
+      'Nutrição Parenteral',
+      'Atenção Farmacêutica',
+    ],
+    regulatoryBasis: [
+      'ANVISA RDC 304/2019 — Boas práticas em farmácia hospitalar',
+      'ANVISA RDC 220/2004 — Manipulação de antineoplásicos',
+      'Portaria SVS 344/1998 — Substâncias controladas',
+      'CFF Res. 585/2013 — Atribuições clínicas',
+      'CFF Res. 492/2008 — Exercício profissional',
+    ],
+  },
+  {
+    id: 'fisioterapia-hospitalar',
+    name: 'Fisioterapia Hospitalar',
+    cfmCode: 'CREFITO-FH',
+    category: 'reabilitacao',
+    council: 'CREFITO',
+    isMedical: false,
+    residencyYears: 0,
+    description:
+      'Fisioterapeuta hospitalar — fisioterapia respiratória, motora e neurofuncional. Atua em UTI, enfermaria, ambulatório de reabilitação. COFFITO Res. 402/2011 reconhece a especialidade hospitalar.',
+    commonConditions: [
+      { code: 'J96.0', name: 'Insuficiência respiratória aguda' },
+      { code: 'J44.9', name: 'DPOC' },
+      { code: 'I63.9', name: 'AVC isquêmico' },
+      { code: 'M54.5', name: 'Lombalgia' },
+      { code: 'S72.0', name: 'Fratura do colo do fêmur' },
+    ],
+    commonProcedures: [
+      { name: 'Fisioterapia respiratória (drenagem postural, vibrocompressão)' },
+      { name: 'Mobilização precoce em UTI' },
+      { name: 'Cinesioterapia motora' },
+      { name: 'Eletroestimulação neuromuscular (NMES)' },
+      { name: 'Treinamento de marcha' },
+      { name: 'Desmame ventilatório' },
+      { name: 'Reeducação postural global (RPG)' },
+    ],
+    commonExams: [
+      { name: 'Espirometria à beira do leito' },
+      { name: 'Pico de fluxo expiratório (PFE)' },
+      { name: 'Manovacuometria (PImax / PEmax)' },
+      { name: 'Teste de caminhada de 6 minutos' },
+      { name: 'Escala MRC de força muscular' },
+    ],
+    typicalWards: [
+      'UTI Adulto',
+      'UTI Pediátrica',
+      'Internação Cirúrgica Ortopédica',
+      'Reabilitação',
+      'Ambulatório',
+    ],
+    areasDeAtuacao: [
+      'Fisioterapia Respiratória',
+      'Fisioterapia em UTI',
+      'Fisioterapia Neurofuncional',
+      'Fisioterapia Cardiovascular',
+      'Fisioterapia Ortopédica e Traumatológica',
+      'Fisioterapia Pediátrica',
+    ],
+    regulatoryBasis: [
+      'COFFITO Res. 402/2011 — Especialidade fisioterapia hospitalar',
+      'COFFITO Res. 387/2011 — Especialidade UTI',
+      'Lei 6.316/1975 — Profissão',
+      'COFFITO Res. 424/2013 — Código de Ética',
+    ],
+  },
+  {
+    id: 'fonoaudiologia-hospitalar',
+    name: 'Fonoaudiologia Hospitalar',
+    cfmCode: 'CFFa-FH',
+    category: 'reabilitacao',
+    council: 'CFFa',
+    isMedical: false,
+    residencyYears: 0,
+    description:
+      'Fonoaudiólogo hospitalar — avaliação e reabilitação de disfagia, distúrbios da comunicação pós-AVC, traqueostomia, voz, audição e linguagem em pacientes internados.',
+    commonConditions: [
+      { code: 'R13.10', name: 'Disfagia' },
+      { code: 'R47.0', name: 'Disfasia e afasia' },
+      { code: 'I63.9', name: 'AVC isquêmico (sequelas)' },
+      { code: 'J95.04', name: 'Traqueostomia disfuncional' },
+    ],
+    commonProcedures: [
+      { name: 'Avaliação clínica da deglutição' },
+      { name: 'FEES (videoendoscopia da deglutição)' },
+      { name: 'Reabilitação fonoaudiológica de afasia' },
+      { name: 'Adaptação de via alimentar' },
+      { name: 'Reabilitação vocal pós-intubação' },
+      { name: 'Avaliação para decanulação de traqueostomia' },
+    ],
+    commonExams: [
+      { name: 'Videofluoroscopia da deglutição' },
+      { name: 'FEES (Fiberoptic Endoscopic Evaluation of Swallowing)' },
+      { name: 'Audiometria à beira do leito' },
+      { name: 'BERA (potencial evocado auditivo)' },
+    ],
+    typicalWards: [
+      'UTI Adulto',
+      'UTI Neonatal',
+      'Reabilitação Neurológica',
+      'Maternidade',
+      'Ambulatório',
+    ],
+    areasDeAtuacao: [
+      'Disfagia hospitalar',
+      'Linguagem em adulto (afasia)',
+      'Fonoaudiologia neonatal',
+      'Voz hospitalar',
+      'Audiologia',
+    ],
+    regulatoryBasis: [
+      'CFFa Res. 492/2016 — Atuação hospitalar',
+      'CFFa Res. 583/2020 — Áreas de atuação',
+      'Lei 6.965/1981 — Profissão',
+    ],
+  },
+  {
+    id: 'psicologia-hospitalar',
+    name: 'Psicologia Hospitalar',
+    cfmCode: 'CRP-PH',
+    category: 'mental',
+    council: 'CRP',
+    isMedical: false,
+    residencyYears: 0,
+    description:
+      'Psicólogo hospitalar — apoio emocional ao paciente e família, manejo de luto, comunicação de notícias difíceis, cuidados paliativos, reabilitação psicossocial.',
+    commonConditions: [
+      { code: 'F43.0', name: 'Reação aguda ao estresse' },
+      { code: 'F32.9', name: 'Episódio depressivo' },
+      { code: 'F41.1', name: 'Transtorno de ansiedade generalizada' },
+      { code: 'Z63.4', name: 'Desaparecimento ou morte de membro da família' },
+    ],
+    commonProcedures: [
+      { name: 'Avaliação psicológica hospitalar' },
+      { name: 'Intervenção em crise' },
+      { name: 'Comunicação de más notícias (protocolo SPIKES)' },
+      { name: 'Suporte em cuidados paliativos' },
+      { name: 'Acompanhamento psicológico em UTI' },
+      { name: 'Manejo de adesão ao tratamento' },
+    ],
+    commonExams: [
+      { name: 'Escala HADS (ansiedade e depressão hospitalar)' },
+      { name: 'Mini-Mental (MMSE)' },
+      { name: 'Escala de luto' },
+      { name: 'Inventário Beck de depressão' },
+    ],
+    typicalWards: [
+      'UTI Adulto',
+      'UTI Neonatal',
+      'Oncologia',
+      'Cuidados Paliativos',
+      'Maternidade',
+      'Pediatria',
+    ],
+    areasDeAtuacao: [
+      'Psicologia em UTI',
+      'Psicologia em Oncologia',
+      'Psicologia em Cuidados Paliativos',
+      'Psicologia Materno-Infantil',
+      'Psicologia da Dor',
+    ],
+    regulatoryBasis: [
+      'CFP Res. 13/2007 — Especialidades',
+      'CFP Res. 003/2007 — Resolução do exercício',
+      'Lei 4.119/1962 — Profissão',
+    ],
   },
 ];
 

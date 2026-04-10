@@ -1,0 +1,1299 @@
+# =============================================================================
+# Velya Agent CronJobs — autonomous self-healing scan loop
+# -----------------------------------------------------------------------------
+# Each CronJob mirrors a job declared in apps/web/src/lib/cron-jobs.ts and
+# triggers POST /api/cron/run/{jobId} on the velya-web Service. The endpoint
+# executes the runner from apps/web/src/lib/cron-runners.ts, persists findings
+# via cron-store, and feeds the SHADOW-MODE agent loop in lib/agent-loop.ts.
+#
+# Authentication: each request carries the header `X-Velya-Cron-Token`
+# resolved from the Secret `velya-cron-token`. The Secret is provisioned out
+# of band by External Secrets Operator from AWS Secrets Manager
+# (path: velya/dev/cron-token). Source of truth: docs/operations/cron-token.md.
+#
+# Compliance:
+#   - .claude/rules/agents.md   — every job is shadow-mode by default
+#   - .claude/rules/ai-safety.md — no autonomous clinical/financial action
+#   - .claude/rules/quality.md   — pinned image digests via SHA below
+#   - .claude/rules/security.md  — Pod Security Standards restricted profile,
+#                                  drop ALL caps, runAsNonRoot, RO root FS
+# -----------------------------------------------------------------------------
+# Job inventory (19 total) — keep in lock-step with apps/web/src/lib/cron-jobs.ts
+#   frontend.route-health           */15 * * * *
+#   frontend.component-imports      0 * * * *
+#   frontend.field-link-policy      */30 * * * *
+#   backend.api-contract            */10 * * * *
+#   backend.audit-chain             */5 * * * *
+#   backend.session-store           */5 * * * *
+#   backend.rate-limit-sanity       0 * * * *
+#   data.referential-integrity      */30 * * * *
+#   data.duplication-scan           0 * * * *
+#   data.fixture-completeness       0 * * * *
+#   data.stale-records              0 6 * * *
+#   infra.k8s-pod-health            */5 * * * *
+#   infra.disk-usage                0 * * * *
+#   infra.tls-cert-expiry           0 7 * * *
+#   security.headers-check          */30 * * * *
+#   security.permission-matrix      0 * * * *
+#   function.module-manifest-consistency  0 * * * *
+#   function.fixture-registry-coverage    0 * * * *
+#   compliance.contrast-spotcheck   0 */6 * * *
+# =============================================================================
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: velya-cron-token
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/component: cron-agent
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-secrets-manager
+    kind: ClusterSecretStore
+  target:
+    name: velya-cron-token
+    creationPolicy: Owner
+  data:
+    - secretKey: token
+      remoteRef:
+        key: velya/dev/cron-token
+        property: token
+---
+# Shared template anchors are not supported by Kubernetes; we therefore declare
+# each CronJob explicitly. The container spec is identical except for the path
+# of the job that is being triggered. All CronJobs share these properties:
+#   - serviceAccountName: velya-sentinel-sa  (defined in sentinel-cronjobs.yaml)
+#   - concurrencyPolicy: Forbid              (no overlapping runs per job)
+#   - restartPolicy: Never                   (handled by the in-process runner)
+#   - successfulJobsHistoryLimit: 2          (keep last 2 successes)
+#   - failedJobsHistoryLimit: 3              (keep last 3 failures for triage)
+#   - startingDeadlineSeconds: 120           (skip late starts beyond 2 min)
+#   - activeDeadlineSeconds: 300             (5 min hard ceiling per run)
+#   - backoffLimit: 0                        (do not retry — next tick will run)
+#   - PodSecurity: restricted profile compliant
+# -----------------------------------------------------------------------------
+# Reusable container image: pin a curl-only distroless image by digest.
+# curlimages/curl 8.10.1 (linux/amd64) — refresh whenever Renovate opens a PR.
+# digest: sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+# =============================================================================
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-frontend-route-health
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: frontend.route
+spec:
+  schedule: '*/15 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/frontend.route-health"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-frontend-component-imports
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: frontend.component
+spec:
+  schedule: '0 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/frontend.component-imports"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-frontend-field-link-policy
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: compliance.field-link
+spec:
+  schedule: '*/30 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/frontend.field-link-policy"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-backend-api-contract
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: backend.api
+spec:
+  schedule: '*/10 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/backend.api-contract"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-backend-audit-chain
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: backend.audit-chain
+    velya.io/severity: critical
+spec:
+  schedule: '*/5 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 60
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/backend.audit-chain"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-backend-session-store
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: backend.auth
+spec:
+  schedule: '*/5 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 60
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/backend.session-store"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-backend-rate-limit-sanity
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: security.rate-limit
+spec:
+  schedule: '0 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/backend.rate-limit-sanity"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-data-referential-integrity
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: data.referential
+spec:
+  schedule: '*/30 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/data.referential-integrity"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-data-duplication-scan
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: data.duplication
+spec:
+  schedule: '0 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/data.duplication-scan"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-data-fixture-completeness
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: data.fixture
+spec:
+  schedule: '0 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/data.fixture-completeness"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-data-stale-records
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: data.fixture
+spec:
+  schedule: '0 6 * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/data.stale-records"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-infra-k8s-pod-health
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: infra.k8s
+spec:
+  schedule: '*/5 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 60
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/infra.k8s-pod-health"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-infra-disk-usage
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: infra.disk
+spec:
+  schedule: '0 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/infra.disk-usage"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-infra-tls-cert-expiry
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: infra.tls
+    velya.io/severity: critical
+spec:
+  schedule: '0 7 * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/infra.tls-cert-expiry"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-security-headers-check
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: security.headers
+spec:
+  schedule: '*/30 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/security.headers-check"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-security-permission-matrix
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: function.permission
+spec:
+  schedule: '0 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/security.permission-matrix"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-function-module-manifest-consistency
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: function.role-mapping
+spec:
+  schedule: '0 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/function.module-manifest-consistency"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-function-fixture-registry-coverage
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: function.role-mapping
+spec:
+  schedule: '0 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/function.fixture-registry-coverage"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-compliance-contrast-spotcheck
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/agent-class: cron-runner
+    velya.io/surface: compliance.contrast
+spec:
+  schedule: '0 */6 * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: velya-platform
+            velya.io/agent-class: cron-runner
+        spec:
+          serviceAccountName: velya-sentinel-sa
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl@sha256:73e4d532ea62d7505c5865b517d3704966ffe916609bedb22b6e25e3e7f72e3a
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: VELYA_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-cron-token
+                      key: token
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              command: ['sh', '-c']
+              args:
+                - |
+                  curl --fail-with-body --silent --show-error --max-time 240 \
+                    -X POST \
+                    -H "X-Velya-Cron-Token: ${VELYA_CRON_TOKEN}" \
+                    -H "Content-Type: application/json" \
+                    "http://velya-web.velya-dev-web.svc.cluster.local:3000/api/cron/run/compliance.contrast-spotcheck"

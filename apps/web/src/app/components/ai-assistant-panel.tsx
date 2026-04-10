@@ -45,17 +45,42 @@ interface PolicyResponse {
   };
 }
 
+interface AgentSource {
+  label: string;
+  href: string;
+}
+
+interface AgentPendingAction {
+  label: string;
+  toolId: string;
+  args: Record<string, unknown>;
+}
+
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
-  capability?: AiCapability;
+  capability?: AiCapability | 'ai.agent';
   citations?: { title: string; href: string }[];
   evidence?: string[];
   confidence?: 'low' | 'medium' | 'high';
   rateLimitRemaining?: number;
+  /** Agent-mode specific: structured sources and pending actions */
+  agentSources?: AgentSource[];
+  agentPendingAction?: AgentPendingAction;
+  agentIntent?: { toolId: string; confidence: number; matchedPattern: string };
+  agentSuggestions?: string[];
 }
 
-const CAPABILITY_QUICK_LABELS: Partial<Record<AiCapability, { label: string; prompt: string }>> = {
+/** Special pseudo-capability that routes to /api/ai/agent (natural-language tool dispatch). */
+const AGENT_PSEUDO_CAPABILITY = 'ai.agent' as const;
+
+const CAPABILITY_QUICK_LABELS: Partial<
+  Record<AiCapability | typeof AGENT_PSEUDO_CAPABILITY, { label: string; prompt: string }>
+> = {
+  'ai.agent': {
+    label: 'Agente Velya (busca natural)',
+    prompt: 'Me traga pacientes da UTI com vancomicina que talvez recebam alta hoje.',
+  },
   'ai.chat-clinical': {
     label: 'Conversa clínica',
     prompt: 'Tenho uma dúvida clínica sobre um paciente.',
@@ -116,7 +141,9 @@ export function AiAssistantPanel() {
   const [policyError, setPolicyError] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
-  const [activeCapability, setActiveCapability] = useState<AiCapability | null>(null);
+  const [activeCapability, setActiveCapability] = useState<
+    AiCapability | typeof AGENT_PSEUDO_CAPABILITY | null
+  >(null);
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -137,14 +164,19 @@ export function AiAssistantPanel() {
         const data = (await res.json()) as PolicyResponse;
         setPolicy(data);
         if (data.policy.capabilities.length > 0) {
-          // Pick the first chat capability available, falling back to the first capability
-          const preferredOrder: AiCapability[] = [
-            'ai.chat-clinical',
-            'ai.chat-administrative',
-            'ai.chat-unrestricted',
-          ];
-          const preferred = preferredOrder.find((c) => data.policy.capabilities.includes(c));
-          setActiveCapability(preferred ?? data.policy.capabilities[0]);
+          // Default to the agent if the user can search the knowledge base
+          // (the agent endpoint is gated behind ai.search-knowledge-base).
+          if (data.policy.capabilities.includes('ai.search-knowledge-base')) {
+            setActiveCapability(AGENT_PSEUDO_CAPABILITY);
+          } else {
+            const preferredOrder: AiCapability[] = [
+              'ai.chat-clinical',
+              'ai.chat-administrative',
+              'ai.chat-unrestricted',
+            ];
+            const preferred = preferredOrder.find((c) => data.policy.capabilities.includes(c));
+            setActiveCapability(preferred ?? data.policy.capabilities[0]);
+          }
         }
       })
       .catch(() => setPolicyError('Erro de rede ao consultar política de IA.'));
@@ -177,6 +209,82 @@ export function AiAssistantPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages]);
 
+  const callAgent = useCallback(async (query: string): Promise<ChatMessage> => {
+    const res = await fetch('/api/ai/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ query }),
+    });
+    if (!res.ok) {
+      const errorData = (await res.json().catch(() => ({}))) as { error?: string };
+      return { role: 'system', content: `⚠ ${errorData.error ?? `Erro ${res.status}`}` };
+    }
+    const data = (await res.json()) as {
+      mode: string;
+      query: string;
+      intent: { toolId: string; confidence: number; matchedPattern: string };
+      result: {
+        status: string;
+        summary: string;
+        sources?: AgentSource[];
+        pendingAction?: AgentPendingAction;
+      };
+      text: string;
+      suggestions?: string[];
+      rateLimit?: { remaining: number };
+    };
+    return {
+      role: 'assistant',
+      content: data.text,
+      capability: AGENT_PSEUDO_CAPABILITY,
+      agentSources: data.result.sources,
+      agentPendingAction: data.result.pendingAction,
+      agentIntent: data.intent,
+      agentSuggestions: data.suggestions,
+      rateLimitRemaining: data.rateLimit?.remaining,
+    };
+  }, []);
+
+  const confirmAction = useCallback(async (pa: AgentPendingAction) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/ai/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ toolId: pa.toolId, args: pa.args }),
+      });
+      if (!res.ok) {
+        const errorData = (await res.json().catch(() => ({}))) as { error?: string };
+        setMessages((prev) => [
+          ...prev,
+          { role: 'system', content: `⚠ ${errorData.error ?? `Erro ${res.status}`}` },
+        ]);
+        return;
+      }
+      const data = (await res.json()) as {
+        result: { status: string; summary: string; sources?: AgentSource[] };
+      };
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: data.result.summary,
+          capability: AGENT_PSEUDO_CAPABILITY,
+          agentSources: data.result.sources,
+        },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content: '⚠ Erro de rede ao confirmar ação.' },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const sendMessage = useCallback(async () => {
     if (!input.trim() || !activeCapability || isLoading) return;
     const userMessage: ChatMessage = {
@@ -186,9 +294,18 @@ export function AiAssistantPanel() {
     };
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
+    const queryText = input.trim();
     setInput('');
     setIsLoading(true);
     try {
+      // ----- Agent mode: natural-language tool dispatch -----
+      if (activeCapability === AGENT_PSEUDO_CAPABILITY) {
+        const reply = await callAgent(queryText);
+        setMessages((prev) => [...prev, reply]);
+        return;
+      }
+
+      // ----- Chat mode: existing /api/ai/chat path -----
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -238,7 +355,7 @@ export function AiAssistantPanel() {
     } finally {
       setIsLoading(false);
     }
-  }, [input, activeCapability, isLoading, messages]);
+  }, [input, activeCapability, isLoading, messages, callAgent]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -256,7 +373,7 @@ export function AiAssistantPanel() {
         aria-label="Abrir assistente de IA (Ctrl+J)"
         aria-expanded={isOpen}
         title="Assistente de IA — Ctrl+J"
-        className="fixed bottom-5 right-5 z-[80] min-h-[56px] min-w-[56px] px-4 py-3 rounded-full bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold shadow-2xl border-2 border-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-300"
+        className="fixed bottom-24 right-6 z-[80] min-h-[52px] min-w-[52px] px-4 py-2.5 rounded-full bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold shadow-2xl border-2 border-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-300"
       >
         <span aria-hidden="true">{'\u2728'}</span> IA
       </button>
@@ -304,6 +421,26 @@ export function AiAssistantPanel() {
 
             {policy && policy.policy.capabilities.length > 0 && (
               <div className="px-4 py-3 border-b border-slate-700 flex flex-wrap gap-2">
+                {/* Agent pseudo-capability — always first when ai.search-knowledge-base is granted */}
+                {policy.policy.capabilities.includes('ai.search-knowledge-base') && (
+                  <button
+                    key={AGENT_PSEUDO_CAPABILITY}
+                    type="button"
+                    onClick={() => {
+                      setActiveCapability(AGENT_PSEUDO_CAPABILITY);
+                      const quick = CAPABILITY_QUICK_LABELS[AGENT_PSEUDO_CAPABILITY];
+                      if (quick && !input.trim()) setInput(quick.prompt);
+                    }}
+                    aria-pressed={activeCapability === AGENT_PSEUDO_CAPABILITY}
+                    className={`min-h-[40px] px-3 py-2 rounded-md text-xs font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-300 ${
+                      activeCapability === AGENT_PSEUDO_CAPABILITY
+                        ? 'bg-blue-700 text-white border-blue-500'
+                        : 'bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700'
+                    }`}
+                  >
+                    {CAPABILITY_QUICK_LABELS[AGENT_PSEUDO_CAPABILITY]?.label}
+                  </button>
+                )}
                 {policy.policy.capabilities
                   .filter((c) => CAPABILITY_QUICK_LABELS[c])
                   .map((c) => {
@@ -408,6 +545,50 @@ export function AiAssistantPanel() {
                           ))}
                         </ul>
                       </details>
+                    )}
+                    {m.role === 'assistant' && m.agentSources && m.agentSources.length > 0 && (
+                      <ul className="mt-2 text-[11px] text-slate-300 space-y-1 border-t border-slate-700 pt-2">
+                        {m.agentSources.map((s, i) => (
+                          <li key={i}>
+                            ↳{' '}
+                            <a
+                              href={s.href}
+                              className="text-blue-300 hover:text-blue-200 underline"
+                            >
+                              {s.label}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {m.role === 'assistant' && m.agentPendingAction && (
+                      <div className="mt-3 border-t border-slate-700 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => void confirmAction(m.agentPendingAction!)}
+                          disabled={isLoading}
+                          className="min-h-[40px] px-4 py-2 rounded-md bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-60"
+                        >
+                          ✓ {m.agentPendingAction.label}
+                        </button>
+                        <p className="text-[10px] text-amber-200 mt-1">
+                          Esta ação grava dados — confirmação humana obrigatória.
+                        </p>
+                      </div>
+                    )}
+                    {m.role === 'assistant' && m.agentSuggestions && m.agentSuggestions.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5 border-t border-slate-700 pt-2">
+                        {m.agentSuggestions.map((s, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setInput(s)}
+                            className="text-[11px] px-2 py-1 rounded bg-slate-700 border border-slate-600 text-slate-100 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
                 );
