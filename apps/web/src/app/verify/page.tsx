@@ -92,64 +92,83 @@ function VerifyForm() {
   if (!email) return null;
 
   return (
-    <div className="min-h-screen bg-velya-bg flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-[440px] bg-velya-card rounded-2xl p-8 sm:p-10 shadow-2xl border border-velya-border">
+    <main className="min-h-screen bg-velya-bg flex items-center justify-center px-4 py-8">
+      <section
+        aria-labelledby="verify-title"
+        className="w-full max-w-[440px] bg-velya-card rounded-2xl p-8 sm:p-10 shadow-2xl border border-velya-border"
+      >
         {/* Header */}
-        <div className="text-center mb-6">
+        <header className="text-center mb-6">
           <div className="text-2xl font-bold text-white tracking-tight">Velya</div>
-          <div className="text-[0.7rem] text-velya-subtle uppercase tracking-widest mt-0.5">
+          <div className="text-xs text-slate-300 uppercase tracking-widest mt-1 font-medium">
             Plataforma Hospitalar
           </div>
-          <h1 className="text-xl font-semibold text-velya-text mt-6">Verificar Email</h1>
-          <p className="text-sm text-velya-subtle mt-2">
-            Codigo de verificacao enviado para <strong className="text-velya-muted">{email}</strong>
+          <h1 id="verify-title" className="text-xl font-semibold text-white mt-6">
+            Verificar Email
+          </h1>
+          <p className="text-sm text-slate-300 mt-2">
+            Código de verificação enviado para <strong className="text-white">{email}</strong>
           </p>
-        </div>
+        </header>
 
         {/* Dev banner */}
         {currentDevCode && (
-          <div className="bg-yellow-500/15 border border-yellow-500/30 rounded-lg px-4 py-3 text-yellow-400 text-sm text-center mb-4">
-            <strong>Modo desenvolvimento</strong> — codigo:{' '}
-            <span className="font-mono text-lg font-bold tracking-[0.15em]">{currentDevCode}</span>
+          <div
+            role="status"
+            className="bg-yellow-500/20 border border-yellow-400/50 rounded-lg px-4 py-3 text-yellow-200 text-sm text-center mb-4"
+          >
+            <strong>Modo desenvolvimento</strong> — código:{' '}
+            <span className="font-mono text-lg font-bold tracking-[0.15em] text-yellow-100">
+              {currentDevCode}
+            </span>
           </div>
         )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {error && (
-            <div className="bg-red-500/15 border border-red-500/30 rounded-lg px-4 py-3 text-red-300 text-sm text-center">
+            <div
+              role="alert"
+              className="bg-red-500/20 border border-red-400/50 rounded-lg px-4 py-3 text-red-200 text-sm text-center"
+            >
               {error}
             </div>
           )}
           {success && (
-            <div className="bg-green-500/15 border border-green-500/30 rounded-lg px-4 py-3 text-green-300 text-sm text-center">
+            <div
+              role="status"
+              className="bg-green-500/20 border border-green-400/50 rounded-lg px-4 py-3 text-green-200 text-sm text-center"
+            >
               {success}
             </div>
           )}
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-velya-muted text-center">
-              Codigo de 6 digitos
+            <label htmlFor="code" className="text-sm font-medium text-slate-200 text-center">
+              Código de 6 dígitos
             </label>
             <input
+              id="code"
               type="text"
+              inputMode="numeric"
               value={code}
               onChange={(e) => {
                 const val = e.target.value.replace(/\D/g, '').slice(0, 6);
                 setCode(val);
               }}
               placeholder="000000"
-              className="w-full min-h-[52px] bg-white/[0.06] border border-white/15 rounded-lg px-4 py-3 text-white text-2xl font-mono text-center tracking-[0.3em] placeholder:text-velya-subtle focus:outline-none focus:ring-2 focus:ring-velya-primary/50 focus:border-velya-primary transition"
+              className="w-full min-h-[56px] bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white text-2xl font-mono text-center tracking-[0.3em] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
               maxLength={6}
               autoFocus
               autoComplete="one-time-code"
+              required
             />
           </div>
 
           <button
             type="submit"
             disabled={loading || code.length !== 6}
-            className="w-full min-h-[44px] bg-velya-primary hover:bg-blue-600 text-white font-semibold text-base rounded-lg transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full min-h-[48px] bg-blue-700 hover:bg-blue-800 text-white font-semibold text-base rounded-lg transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-velya-card"
           >
             {loading ? 'Verificando...' : 'Verificar'}
           </button>
@@ -159,23 +178,23 @@ function VerifyForm() {
               type="button"
               onClick={handleResend}
               disabled={resending}
-              className="bg-transparent border-none text-blue-400 hover:text-blue-300 text-sm font-medium cursor-pointer underline transition disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] px-4"
+              className="bg-transparent border-none text-blue-300 hover:text-blue-200 text-sm font-semibold cursor-pointer underline transition disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] px-4"
             >
-              {resending ? 'Reenviando...' : 'Reenviar codigo'}
+              {resending ? 'Reenviando...' : 'Reenviar código'}
             </button>
           </div>
 
           <div className="text-center py-1">
             <Link
               href="/register"
-              className="text-sm text-velya-subtle hover:text-velya-muted transition inline-block min-h-[44px] leading-[44px] px-4"
+              className="text-sm text-slate-300 hover:text-white transition inline-block min-h-[44px] leading-[44px] px-4 underline-offset-2 hover:underline"
             >
               Voltar ao cadastro
             </Link>
           </div>
         </form>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
 

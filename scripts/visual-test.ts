@@ -156,8 +156,9 @@ async function runAxeOnPage(p: Page): Promise<AxeSummary> {
 }
 
 async function runGeometryChecks(p: Page, isMobile: boolean): Promise<GeometryIssue[]> {
-  return p.evaluate(
-    ({ isMobile }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return p.evaluate(function geometryEval(opts: any): GeometryIssue[] {
+      const isMobile = opts.isMobile as boolean;
       const out: GeometryIssue[] = [];
       const viewport = { width: window.innerWidth, height: window.innerHeight };
       const minTouch = 44;
@@ -336,9 +337,7 @@ async function runGeometryChecks(p: Page, isMobile: boolean): Promise<GeometryIs
       }
 
       return out;
-    },
-    { isMobile },
-  );
+    }, { isMobile });
 }
 
 function severityWeight(g: GeometryIssue): Severity {
