@@ -1,0 +1,1039 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+import { AppShell } from '../components/app-shell';
+
+type MedStatus =
+  | 'prescrita'
+  | 'em-validacao'
+  | 'validada'
+  | 'em-dispensacao'
+  | 'em-preparo'
+  | 'em-transporte'
+  | 'aguardando-admin'
+  | 'administrada'
+  | 'atrasada'
+  | 'nao-administrada';
+
+type Priority = 'critica' | 'alta' | 'normal';
+
+interface TimelineStep {
+  key: string;
+  label: string;
+  time: string | null;
+  who?: string;
+}
+
+interface Prescription {
+  id: string;
+  patient: string;
+  bed: string;
+  mrn: string;
+  ward: 'UTI' | 'Clinica' | 'Cirurgica' | 'Pediatria' | 'Emergencia';
+  drug: string;
+  dose: string;
+  route: string;
+  frequency: string;
+  status: MedStatus;
+  priority: Priority;
+  prescriber: string;
+  pharmacist?: string;
+  nurse?: string;
+  nextDose: string;
+  alerts: string[];
+  timeline: TimelineStep[];
+  reason?: string;
+}
+
+const STATUS_CONFIG: Record<
+  MedStatus,
+  { label: string; icon: string; badge: string; row: string }
+> = {
+  prescrita: {
+    label: 'Prescrita',
+    icon: '📝',
+    badge: 'bg-slate-500/20 text-slate-200 border border-slate-400/40',
+    row: 'border-l-4 border-l-slate-400/60',
+  },
+  'em-validacao': {
+    label: 'Em validação',
+    icon: '👁️',
+    badge: 'bg-purple-500/20 text-purple-200 border border-purple-500/40',
+    row: 'border-l-4 border-l-purple-400/60',
+  },
+  validada: {
+    label: 'Validada',
+    icon: '✅',
+    badge: 'bg-teal-500/20 text-teal-200 border border-teal-500/40',
+    row: 'border-l-4 border-l-teal-400/60',
+  },
+  'em-dispensacao': {
+    label: 'Em dispensação',
+    icon: '📦',
+    badge: 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40',
+    row: 'border-l-4 border-l-cyan-400/60',
+  },
+  'em-preparo': {
+    label: 'Em preparo',
+    icon: '🔄',
+    badge: 'bg-blue-500/20 text-blue-200 border border-blue-500/40',
+    row: 'border-l-4 border-l-blue-400/60',
+  },
+  'em-transporte': {
+    label: 'Em transporte',
+    icon: '🚚',
+    badge: 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40',
+    row: 'border-l-4 border-l-indigo-400/60',
+  },
+  'aguardando-admin': {
+    label: 'Aguardando admin.',
+    icon: '💉',
+    badge: 'bg-amber-400/20 text-amber-200 border border-amber-400/50',
+    row: 'border-l-4 border-l-amber-400/70',
+  },
+  administrada: {
+    label: 'Administrada',
+    icon: '✔️',
+    badge: 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40',
+    row: 'border-l-4 border-l-emerald-400/60',
+  },
+  atrasada: {
+    label: 'Atrasada',
+    icon: '⚠️',
+    badge: 'bg-red-600/25 text-red-200 border border-red-500/60',
+    row: 'border-l-4 border-l-red-500/80',
+  },
+  'nao-administrada': {
+    label: 'Não administrada',
+    icon: '❌',
+    badge: 'bg-red-500/15 text-red-300 border border-red-500/50',
+    row: 'border-l-4 border-l-red-500/60',
+  },
+};
+
+const PRIORITY_CONFIG: Record<Priority, { label: string; className: string }> = {
+  critica: { label: 'CRÍTICA', className: 'bg-red-600/80 text-white' },
+  alta: { label: 'ALTA', className: 'bg-amber-400/80 text-black' },
+  normal: { label: 'NORMAL', className: 'bg-slate-500/60 text-white' },
+};
+
+const STEP_TEMPLATE: { key: string; label: string }[] = [
+  { key: 'prescricao', label: 'Prescrição' },
+  { key: 'validacao', label: 'Validação farmacêutica' },
+  { key: 'preparo', label: 'Preparo' },
+  { key: 'dispensacao', label: 'Dispensação' },
+  { key: 'transporte', label: 'Transporte' },
+  { key: 'administracao', label: 'Administração' },
+  { key: 'checagem', label: 'Checagem dupla' },
+];
+
+function buildTimeline(state: MedStatus, base: string): TimelineStep[] {
+  const order: Record<string, number> = {
+    prescrita: 1,
+    'em-validacao': 2,
+    validada: 3,
+    'em-dispensacao': 4,
+    'em-preparo': 4,
+    'em-transporte': 5,
+    'aguardando-admin': 6,
+    administrada: 7,
+    atrasada: 6,
+    'nao-administrada': 6,
+  };
+  const cutoff = order[state] ?? 0;
+  return STEP_TEMPLATE.map((s, idx) => ({
+    key: s.key,
+    label: s.label,
+    time: idx + 1 <= cutoff ? `${base.slice(0, 2)}:${String((idx + 1) * 7).padStart(2, '0')}` : null,
+  }));
+}
+
+const PRESCRIPTIONS: Prescription[] = [
+  {
+    id: 'RX-1001',
+    patient: 'Ana Beatriz Silva',
+    bed: 'UTI-01',
+    mrn: 'MRN-401',
+    ward: 'UTI',
+    drug: 'Meropenem',
+    dose: '1g',
+    route: 'IV',
+    frequency: '8/8h',
+    status: 'aguardando-admin',
+    priority: 'critica',
+    prescriber: 'Dra. Priya Shah',
+    pharmacist: 'Farm. Letícia R.',
+    nurse: 'Enf. Marcos L.',
+    nextDose: '09:15',
+    alerts: ['Antibiótico de amplo espectro — stewardship'],
+    timeline: buildTimeline('aguardando-admin', '0700'),
+  },
+  {
+    id: 'RX-1002',
+    patient: 'Ana Beatriz Silva',
+    bed: 'UTI-01',
+    mrn: 'MRN-401',
+    ward: 'UTI',
+    drug: 'Noradrenalina',
+    dose: '16mg/250ml',
+    route: 'IV (bomba)',
+    frequency: 'Contínuo',
+    status: 'administrada',
+    priority: 'critica',
+    prescriber: 'Dra. Priya Shah',
+    pharmacist: 'Farm. Letícia R.',
+    nurse: 'Enf. Marcos L.',
+    nextDose: 'Contínuo',
+    alerts: ['Alto risco', 'Dose elevada — rever se PAM > 70'],
+    timeline: buildTimeline('administrada', '0600'),
+  },
+  {
+    id: 'RX-1003',
+    patient: 'Carlos Henrique Diaz',
+    bed: 'UTI-02',
+    mrn: 'MRN-402',
+    ward: 'UTI',
+    drug: 'AAS',
+    dose: '100mg',
+    route: 'VO',
+    frequency: '1x/dia',
+    status: 'administrada',
+    priority: 'normal',
+    prescriber: 'Dr. Bruno Tavares',
+    pharmacist: 'Farm. Letícia R.',
+    nurse: 'Enf. Clara D.',
+    nextDose: 'amanhã 08:00',
+    alerts: [],
+    timeline: buildTimeline('administrada', '0700'),
+  },
+  {
+    id: 'RX-1004',
+    patient: 'Carlos Henrique Diaz',
+    bed: 'UTI-02',
+    mrn: 'MRN-402',
+    ward: 'UTI',
+    drug: 'Atorvastatina',
+    dose: '80mg',
+    route: 'VO',
+    frequency: '1x/noite',
+    status: 'validada',
+    priority: 'normal',
+    prescriber: 'Dr. Bruno Tavares',
+    pharmacist: 'Farm. João P.',
+    nextDose: '22:00',
+    alerts: [],
+    timeline: buildTimeline('validada', '0900'),
+  },
+  {
+    id: 'RX-1005',
+    patient: 'Fatima Al-Rashid',
+    bed: 'UTI-03',
+    mrn: 'MRN-403',
+    ward: 'UTI',
+    drug: 'Dipirona',
+    dose: '1g',
+    route: 'IV',
+    frequency: 'S/N',
+    status: 'prescrita',
+    priority: 'normal',
+    prescriber: 'Dr. Chen',
+    nextDose: 'a prescrever',
+    alerts: [],
+    timeline: buildTimeline('prescrita', '0900'),
+  },
+  {
+    id: 'RX-1006',
+    patient: 'Robert Ngozi',
+    bed: 'UTI-04',
+    mrn: 'MRN-404',
+    ward: 'UTI',
+    drug: 'Vancomicina',
+    dose: '1g',
+    route: 'IV',
+    frequency: '12/12h',
+    status: 'em-preparo',
+    priority: 'alta',
+    prescriber: 'Dr. Ivan Melo',
+    pharmacist: 'Farm. Letícia R.',
+    nextDose: '09:30',
+    alerts: ['Monitorar nível sérico', 'Função renal (ClCr 42)'],
+    timeline: buildTimeline('em-preparo', '0700'),
+  },
+  {
+    id: 'RX-1007',
+    patient: 'Robert Ngozi',
+    bed: 'UTI-04',
+    mrn: 'MRN-404',
+    ward: 'UTI',
+    drug: 'Midazolam',
+    dose: '5mg/h',
+    route: 'IV (bomba)',
+    frequency: 'Contínuo',
+    status: 'administrada',
+    priority: 'alta',
+    prescriber: 'Dr. Ivan Melo',
+    pharmacist: 'Farm. Letícia R.',
+    nurse: 'Enf. Bianca A.',
+    nextDose: 'Contínuo',
+    alerts: ['Psicotrópico controlado'],
+    timeline: buildTimeline('administrada', '0600'),
+  },
+  {
+    id: 'RX-1008',
+    patient: 'Joana Lima',
+    bed: 'UTI-05',
+    mrn: 'MRN-405',
+    ward: 'UTI',
+    drug: 'Insulina Regular',
+    dose: '0.1 U/kg/h',
+    route: 'IV (bomba)',
+    frequency: 'Contínuo',
+    status: 'administrada',
+    priority: 'alta',
+    prescriber: 'Dra. Helena Couto',
+    pharmacist: 'Farm. João P.',
+    nurse: 'Enf. Teresa M.',
+    nextDose: 'Contínuo',
+    alerts: ['Alto risco — alvo glicemia 140-180'],
+    timeline: buildTimeline('administrada', '0600'),
+  },
+  {
+    id: 'RX-1009',
+    patient: 'Eleanor Voss',
+    bed: 'UTI-06',
+    mrn: 'MRN-406',
+    ward: 'UTI',
+    drug: 'Manitol 20%',
+    dose: '100ml',
+    route: 'IV',
+    frequency: '6/6h',
+    status: 'atrasada',
+    priority: 'critica',
+    prescriber: 'Dr. Ivan Melo',
+    pharmacist: 'Farm. Letícia R.',
+    nextDose: '08:00 (atraso 22min)',
+    alerts: ['ATRASO CRÍTICO — PIC elevada'],
+    timeline: buildTimeline('atrasada', '0700'),
+  },
+  {
+    id: 'RX-1010',
+    patient: 'Eleanor Voss',
+    bed: 'UTI-06',
+    mrn: 'MRN-406',
+    ward: 'UTI',
+    drug: 'Fenitoína',
+    dose: '100mg',
+    route: 'IV',
+    frequency: '8/8h',
+    status: 'em-transporte',
+    priority: 'alta',
+    prescriber: 'Dr. Ivan Melo',
+    pharmacist: 'Farm. Letícia R.',
+    nextDose: '09:00',
+    alerts: [],
+    timeline: buildTimeline('em-transporte', '0700'),
+  },
+  {
+    id: 'RX-1011',
+    patient: 'Thomas Crane',
+    bed: 'UTI-07',
+    mrn: 'MRN-407',
+    ward: 'UTI',
+    drug: 'Omeprazol',
+    dose: '40mg',
+    route: 'IV',
+    frequency: '1x/dia',
+    status: 'validada',
+    priority: 'normal',
+    prescriber: 'Dra. Priya Shah',
+    pharmacist: 'Farm. João P.',
+    nextDose: '10:00',
+    alerts: [],
+    timeline: buildTimeline('validada', '0900'),
+  },
+  {
+    id: 'RX-1012',
+    patient: 'Thomas Crane',
+    bed: 'UTI-07',
+    mrn: 'MRN-407',
+    ward: 'UTI',
+    drug: 'Octreotide',
+    dose: '50 mcg/h',
+    route: 'IV (bomba)',
+    frequency: 'Contínuo',
+    status: 'administrada',
+    priority: 'alta',
+    prescriber: 'Dra. Priya Shah',
+    pharmacist: 'Farm. Letícia R.',
+    nurse: 'Enf. Samuel K.',
+    nextDose: 'Contínuo',
+    alerts: [],
+    timeline: buildTimeline('administrada', '0600'),
+  },
+  {
+    id: 'RX-1013',
+    patient: 'Felipe Andrade',
+    bed: 'UTI-08',
+    mrn: 'MRN-408',
+    ward: 'UTI',
+    drug: 'Cefazolina',
+    dose: '2g',
+    route: 'IV',
+    frequency: '8/8h',
+    status: 'em-validacao',
+    priority: 'alta',
+    prescriber: 'Dr. Bruno Tavares',
+    nextDose: '10:00',
+    alerts: ['Profilaxia cirúrgica'],
+    timeline: buildTimeline('em-validacao', '0900'),
+  },
+  {
+    id: 'RX-1014',
+    patient: 'Felipe Andrade',
+    bed: 'UTI-08',
+    mrn: 'MRN-408',
+    ward: 'UTI',
+    drug: 'Enoxaparina',
+    dose: '40mg',
+    route: 'SC',
+    frequency: '1x/dia',
+    status: 'aguardando-admin',
+    priority: 'normal',
+    prescriber: 'Dr. Bruno Tavares',
+    pharmacist: 'Farm. João P.',
+    nextDose: '09:30',
+    alerts: [],
+    timeline: buildTimeline('aguardando-admin', '0700'),
+  },
+  {
+    id: 'RX-1015',
+    patient: 'Marcos Oliveira',
+    bed: 'UTI-09',
+    mrn: 'MRN-409',
+    ward: 'UTI',
+    drug: 'Carvedilol',
+    dose: '6.25mg',
+    route: 'VO',
+    frequency: '12/12h',
+    status: 'administrada',
+    priority: 'normal',
+    prescriber: 'Dr. Bruno Tavares',
+    pharmacist: 'Farm. João P.',
+    nurse: 'Enf. Paula V.',
+    nextDose: '20:00',
+    alerts: [],
+    timeline: buildTimeline('administrada', '0800'),
+  },
+  {
+    id: 'RX-1016',
+    patient: 'Sarah Mitchell',
+    bed: 'UTI-10',
+    mrn: 'MRN-410',
+    ward: 'UTI',
+    drug: 'Morfina',
+    dose: '2mg',
+    route: 'IV',
+    frequency: '4/4h S/N',
+    status: 'nao-administrada',
+    priority: 'alta',
+    prescriber: 'Dra. Helena Couto',
+    pharmacist: 'Farm. Letícia R.',
+    nurse: 'Enf. Paula V.',
+    nextDose: 'reavaliar',
+    alerts: ['Paciente recusou', 'EVA 3 — não indicado'],
+    timeline: buildTimeline('nao-administrada', '0800'),
+    reason: 'Paciente recusou — EVA 3, sem necessidade de analgesia opioide.',
+  },
+  {
+    id: 'RX-1017',
+    patient: 'Sarah Mitchell',
+    bed: 'UTI-10',
+    mrn: 'MRN-410',
+    ward: 'UTI',
+    drug: 'Paracetamol',
+    dose: '1g',
+    route: 'VO',
+    frequency: '6/6h',
+    status: 'administrada',
+    priority: 'normal',
+    prescriber: 'Dra. Helena Couto',
+    pharmacist: 'Farm. João P.',
+    nurse: 'Enf. Paula V.',
+    nextDose: '14:00',
+    alerts: [],
+    timeline: buildTimeline('administrada', '0800'),
+  },
+  {
+    id: 'RX-1018',
+    patient: 'Pedro Almeida',
+    bed: '302A',
+    mrn: 'MRN-501',
+    ward: 'Clinica',
+    drug: 'Furosemida',
+    dose: '40mg',
+    route: 'IV',
+    frequency: '12/12h',
+    status: 'em-dispensacao',
+    priority: 'normal',
+    prescriber: 'Dr. Cardoso',
+    pharmacist: 'Farm. João P.',
+    nextDose: '09:30',
+    alerts: [],
+    timeline: buildTimeline('em-dispensacao', '0800'),
+  },
+  {
+    id: 'RX-1019',
+    patient: 'Mariana Costa',
+    bed: '305B',
+    mrn: 'MRN-502',
+    ward: 'Clinica',
+    drug: 'Ceftriaxona',
+    dose: '2g',
+    route: 'IV',
+    frequency: '1x/dia',
+    status: 'administrada',
+    priority: 'normal',
+    prescriber: 'Dra. Miranda',
+    pharmacist: 'Farm. João P.',
+    nurse: 'Enf. Rui O.',
+    nextDose: 'amanhã 08:00',
+    alerts: [],
+    timeline: buildTimeline('administrada', '0800'),
+  },
+  {
+    id: 'RX-1020',
+    patient: 'Luciana Peres',
+    bed: '310A',
+    mrn: 'MRN-503',
+    ward: 'Clinica',
+    drug: 'Warfarina',
+    dose: '5mg',
+    route: 'VO',
+    frequency: '1x/noite',
+    status: 'validada',
+    priority: 'alta',
+    prescriber: 'Dra. Miranda',
+    pharmacist: 'Farm. Letícia R.',
+    nextDose: '22:00',
+    alerts: ['Alto risco', 'INR alvo 2-3'],
+    timeline: buildTimeline('validada', '1000'),
+  },
+  {
+    id: 'RX-1021',
+    patient: 'Paulo Nunes',
+    bed: 'CIR-01',
+    mrn: 'MRN-601',
+    ward: 'Cirurgica',
+    drug: 'Metamizol',
+    dose: '1g',
+    route: 'IV',
+    frequency: '6/6h',
+    status: 'aguardando-admin',
+    priority: 'normal',
+    prescriber: 'Dr. Chen',
+    pharmacist: 'Farm. João P.',
+    nextDose: '09:45',
+    alerts: [],
+    timeline: buildTimeline('aguardando-admin', '0800'),
+  },
+  {
+    id: 'RX-1022',
+    patient: 'Paulo Nunes',
+    bed: 'CIR-01',
+    mrn: 'MRN-601',
+    ward: 'Cirurgica',
+    drug: 'Tramadol',
+    dose: '50mg',
+    route: 'IV',
+    frequency: '8/8h',
+    status: 'administrada',
+    priority: 'normal',
+    prescriber: 'Dr. Chen',
+    pharmacist: 'Farm. João P.',
+    nurse: 'Enf. Clarice P.',
+    nextDose: '14:00',
+    alerts: [],
+    timeline: buildTimeline('administrada', '0600'),
+  },
+  {
+    id: 'RX-1023',
+    patient: 'Helena Martins',
+    bed: 'CIR-03',
+    mrn: 'MRN-602',
+    ward: 'Cirurgica',
+    drug: 'Bupivacaína epidural',
+    dose: '0.125% 6ml/h',
+    route: 'Epidural',
+    frequency: 'Contínuo',
+    status: 'administrada',
+    priority: 'alta',
+    prescriber: 'Anest. Dr. Patel',
+    pharmacist: 'Farm. Letícia R.',
+    nurse: 'Enf. Heloísa D.',
+    nextDose: 'Contínuo',
+    alerts: ['Monitorar bloqueio motor'],
+    timeline: buildTimeline('administrada', '0600'),
+  },
+  {
+    id: 'RX-1024',
+    patient: 'Lucas Pires',
+    bed: 'PED-02',
+    mrn: 'MRN-701',
+    ward: 'Pediatria',
+    drug: 'Amoxicilina',
+    dose: '250mg',
+    route: 'VO',
+    frequency: '8/8h',
+    status: 'em-validacao',
+    priority: 'normal',
+    prescriber: 'Dra. Rocha',
+    nextDose: '10:00',
+    alerts: ['Peso-ajustada (20kg)'],
+    timeline: buildTimeline('em-validacao', '0900'),
+  },
+  {
+    id: 'RX-1025',
+    patient: 'Sofia Mendes',
+    bed: 'PED-05',
+    mrn: 'MRN-702',
+    ward: 'Pediatria',
+    drug: 'Salbutamol',
+    dose: '2.5mg',
+    route: 'Inalação',
+    frequency: '4/4h',
+    status: 'administrada',
+    priority: 'alta',
+    prescriber: 'Dra. Rocha',
+    pharmacist: 'Farm. João P.',
+    nurse: 'Enf. Tânia R.',
+    nextDose: '12:00',
+    alerts: [],
+    timeline: buildTimeline('administrada', '0800'),
+  },
+  {
+    id: 'RX-1026',
+    patient: 'Gabriel Souza',
+    bed: 'EMG-01',
+    mrn: 'MRN-801',
+    ward: 'Emergencia',
+    drug: 'Ondansetrona',
+    dose: '4mg',
+    route: 'IV',
+    frequency: 'Dose única',
+    status: 'administrada',
+    priority: 'normal',
+    prescriber: 'Dr. Almeida',
+    pharmacist: 'Farm. Letícia R.',
+    nurse: 'Enf. Igor F.',
+    nextDose: '—',
+    alerts: [],
+    timeline: buildTimeline('administrada', '0800'),
+  },
+  {
+    id: 'RX-1027',
+    patient: 'Bianca Vieira',
+    bed: 'EMG-03',
+    mrn: 'MRN-802',
+    ward: 'Emergencia',
+    drug: 'Haloperidol',
+    dose: '2.5mg',
+    route: 'IM',
+    frequency: 'S/N',
+    status: 'prescrita',
+    priority: 'alta',
+    prescriber: 'Dra. Fontes',
+    nextDose: 'a prescrever',
+    alerts: ['Psicotrópico controlado', 'Interação: QT longo'],
+    timeline: buildTimeline('prescrita', '0900'),
+  },
+  {
+    id: 'RX-1028',
+    patient: 'Bianca Vieira',
+    bed: 'EMG-03',
+    mrn: 'MRN-802',
+    ward: 'Emergencia',
+    drug: 'Diazepam',
+    dose: '10mg',
+    route: 'IV',
+    frequency: 'S/N',
+    status: 'atrasada',
+    priority: 'critica',
+    prescriber: 'Dra. Fontes',
+    pharmacist: 'Farm. Letícia R.',
+    nextDose: '08:45 (atraso 15min)',
+    alerts: ['ATRASO — crise convulsiva'],
+    timeline: buildTimeline('atrasada', '0800'),
+  },
+  {
+    id: 'RX-1029',
+    patient: 'Otávio Borges',
+    bed: '312C',
+    mrn: 'MRN-504',
+    ward: 'Clinica',
+    drug: 'Heparina',
+    dose: '5000 UI',
+    route: 'SC',
+    frequency: '8/8h',
+    status: 'em-transporte',
+    priority: 'alta',
+    prescriber: 'Dr. Cardoso',
+    pharmacist: 'Farm. João P.',
+    nextDose: '09:30',
+    alerts: ['Alto risco', 'Checar plaquetas'],
+    timeline: buildTimeline('em-transporte', '0800'),
+  },
+  {
+    id: 'RX-1030',
+    patient: 'Renata Vilas',
+    bed: '315A',
+    mrn: 'MRN-505',
+    ward: 'Clinica',
+    drug: 'Metformina',
+    dose: '850mg',
+    route: 'VO',
+    frequency: '12/12h',
+    status: 'administrada',
+    priority: 'normal',
+    prescriber: 'Dr. Cardoso',
+    pharmacist: 'Farm. João P.',
+    nurse: 'Enf. Rui O.',
+    nextDose: '20:00',
+    alerts: [],
+    timeline: buildTimeline('administrada', '0800'),
+  },
+];
+
+const NEXT_ACTION: Record<MedStatus, string | null> = {
+  prescrita: 'Encaminhar p/ validação',
+  'em-validacao': 'Concluir validação',
+  validada: 'Iniciar preparo',
+  'em-dispensacao': 'Confirmar dispensação',
+  'em-preparo': 'Enviar ao setor',
+  'em-transporte': 'Receber no setor',
+  'aguardando-admin': 'Administrar + checagem dupla',
+  administrada: null,
+  atrasada: 'Escalar / administrar agora',
+  'nao-administrada': 'Documentar motivo',
+};
+
+const WARDS = ['all', 'UTI', 'Clinica', 'Cirurgica', 'Pediatria', 'Emergencia'] as const;
+const STATUS_FILTERS: (MedStatus | 'all')[] = [
+  'all',
+  'prescrita',
+  'em-validacao',
+  'validada',
+  'em-preparo',
+  'em-transporte',
+  'aguardando-admin',
+  'administrada',
+  'atrasada',
+  'nao-administrada',
+];
+
+export default function PharmacyPage() {
+  const [selected, setSelected] = useState<Prescription | null>(null);
+  const [statusFilter, setStatusFilter] = useState<MedStatus | 'all'>('all');
+  const [priorityFilter, setPriorityFilter] = useState<Priority | 'all'>('all');
+  const [wardFilter, setWardFilter] = useState<(typeof WARDS)[number]>('all');
+
+  const kpis = useMemo(() => {
+    const total = PRESCRIPTIONS.length;
+    const inValidation = PRESCRIPTIONS.filter((p) => p.status === 'em-validacao').length;
+    const delayed = PRESCRIPTIONS.filter((p) => p.status === 'atrasada').length;
+    const criticalPending = PRESCRIPTIONS.filter(
+      (p) =>
+        p.priority === 'critica' &&
+        p.status !== 'administrada' &&
+        p.status !== 'nao-administrada',
+    ).length;
+    const administered = PRESCRIPTIONS.filter((p) => p.status === 'administrada').length;
+    const doubleCheckRate = Math.round((administered / Math.max(1, total - inValidation)) * 100);
+    return { total, inValidation, delayed, criticalPending, doubleCheckRate };
+  }, []);
+
+  const filtered = useMemo(() => {
+    return PRESCRIPTIONS.filter((p) => {
+      if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+      if (priorityFilter !== 'all' && p.priority !== priorityFilter) return false;
+      if (wardFilter !== 'all' && p.ward !== wardFilter) return false;
+      return true;
+    });
+  }, [statusFilter, priorityFilter, wardFilter]);
+
+  return (
+    <AppShell pageTitle="Farmácia - Closed Loop">
+      <div className="page-header">
+        <h1 className="page-title">Farmácia — Closed-Loop</h1>
+        <p className="page-subtitle">
+          Gestão de medicação do ciclo fechado · Prescrição → validação → preparo → administração
+        </p>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
+          <div className="text-[11px] uppercase tracking-wider text-white/50 font-semibold">
+            Total ativas
+          </div>
+          <div className="text-3xl font-bold text-white mt-1">{kpis.total}</div>
+          <div className="text-xs text-white/50 mt-1">prescrições</div>
+        </div>
+        <div className="rounded-lg border border-purple-500/30 bg-purple-500/[0.06] p-4">
+          <div className="text-[11px] uppercase tracking-wider text-purple-300/80 font-semibold">
+            Em validação
+          </div>
+          <div className="text-3xl font-bold text-purple-200 mt-1">{kpis.inValidation}</div>
+          <div className="text-xs text-white/50 mt-1">Farmacêutico</div>
+        </div>
+        <div className="rounded-lg border border-red-500/40 bg-red-500/[0.08] p-4">
+          <div className="text-[11px] uppercase tracking-wider text-red-300/80 font-semibold">
+            Atrasadas
+          </div>
+          <div className="text-3xl font-bold text-red-300 mt-1">{kpis.delayed}</div>
+          <div className="text-xs text-white/50 mt-1">Escalar agora</div>
+        </div>
+        <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.06] p-4">
+          <div className="text-[11px] uppercase tracking-wider text-orange-300/80 font-semibold">
+            Críticas pend.
+          </div>
+          <div className="text-3xl font-bold text-orange-300 mt-1">{kpis.criticalPending}</div>
+          <div className="text-xs text-white/50 mt-1">Prioridade alta</div>
+        </div>
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-4">
+          <div className="text-[11px] uppercase tracking-wider text-emerald-300/80 font-semibold">
+            Checagem dupla
+          </div>
+          <div className="text-3xl font-bold text-emerald-300 mt-1">{kpis.doubleCheckRate}%</div>
+          <div className="text-xs text-white/50 mt-1">Taxa hoje</div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3 mb-4">
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] text-white/50 uppercase tracking-wider shrink-0">
+              Status
+            </span>
+            {STATUS_FILTERS.map((s) => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`text-[10px] px-2 py-1 rounded border ${
+                  statusFilter === s
+                    ? 'bg-blue-500/25 border-blue-400/70 text-blue-100'
+                    : 'bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/[0.06]'
+                }`}
+              >
+                {s === 'all' ? 'Todos' : STATUS_CONFIG[s].label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] text-white/50 uppercase tracking-wider shrink-0">
+              Prioridade
+            </span>
+            {(['all', 'critica', 'alta', 'normal'] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPriorityFilter(p)}
+                className={`text-[10px] px-2 py-1 rounded border ${
+                  priorityFilter === p
+                    ? 'bg-blue-500/25 border-blue-400/70 text-blue-100'
+                    : 'bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/[0.06]'
+                }`}
+              >
+                {p === 'all' ? 'Todas' : PRIORITY_CONFIG[p].label}
+              </button>
+            ))}
+            <span className="text-[11px] text-white/50 uppercase tracking-wider shrink-0 ml-4">
+              Ala
+            </span>
+            {WARDS.map((w) => (
+              <button
+                key={w}
+                onClick={() => setWardFilter(w)}
+                className={`text-[10px] px-2 py-1 rounded border ${
+                  wardFilter === w
+                    ? 'bg-blue-500/25 border-blue-400/70 text-blue-100'
+                    : 'bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/[0.06]'
+                }`}
+              >
+                {w === 'all' ? 'Todas' : w}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Prescription list */}
+      <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+        <div className="text-sm font-semibold text-white/80 mb-3">
+          Prescrições ({filtered.length})
+        </div>
+        <div className="flex flex-col gap-2">
+          {filtered.map((p) => {
+            const cfg = STATUS_CONFIG[p.status];
+            const pcfg = PRIORITY_CONFIG[p.priority];
+            return (
+              <button
+                key={p.id}
+                onClick={() => setSelected(p)}
+                className={`text-left rounded-md bg-white/[0.02] hover:bg-white/[0.05] transition p-3 ${cfg.row}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="text-xl shrink-0">{cfg.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-white">{p.drug}</span>
+                      <span className="text-xs text-white/70">
+                        {p.dose} · {p.route} · {p.frequency}
+                      </span>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${pcfg.className}`}>
+                        {pcfg.label}
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${cfg.badge}`}>
+                        {cfg.label}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-white/60 mt-0.5">
+                      {p.patient} · {p.bed} · {p.mrn} · {p.ward}
+                    </div>
+                    <div className="text-[10px] text-white/50 mt-0.5">
+                      Dr(a) {p.prescriber}
+                      {p.pharmacist && ` · Farm. ${p.pharmacist}`}
+                      {p.nurse && ` · Enf. ${p.nurse}`}
+                    </div>
+                    {p.alerts.length > 0 && (
+                      <div className="text-[10px] text-amber-200/90 mt-1">
+                        ⚠ {p.alerts.join(' · ')}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-[10px] text-white/50 uppercase">Próximo</div>
+                    <div className="text-xs font-mono text-white/90">{p.nextDose}</div>
+                    {NEXT_ACTION[p.status] && (
+                      <div className="text-[10px] text-blue-300 mt-1.5 font-semibold">
+                        → {NEXT_ACTION[p.status]}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Detail modal */}
+      {selected && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-slate-900 border border-white/15 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-xs text-white/50 uppercase tracking-wider font-mono">
+                  {selected.id} · {selected.ward} · {selected.bed}
+                </div>
+                <h2 className="text-xl font-bold text-white mt-1">{selected.drug}</h2>
+                <div className="text-sm text-white/70 mt-0.5">
+                  {selected.dose} · {selected.route} · {selected.frequency}
+                </div>
+                <div className="text-sm text-white/80 mt-1">
+                  {selected.patient} · {selected.mrn}
+                </div>
+              </div>
+              <button
+                onClick={() => setSelected(null)}
+                className="text-white/50 hover:text-white text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Actors */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
+              <div className="rounded border border-white/10 bg-white/[0.03] p-2">
+                <div className="text-[10px] uppercase text-white/50">Prescritor</div>
+                <div className="text-xs text-white/90 font-semibold">{selected.prescriber}</div>
+              </div>
+              <div className="rounded border border-white/10 bg-white/[0.03] p-2">
+                <div className="text-[10px] uppercase text-white/50">Farmacêutico</div>
+                <div className="text-xs text-white/90 font-semibold">
+                  {selected.pharmacist || '—'}
+                </div>
+              </div>
+              <div className="rounded border border-white/10 bg-white/[0.03] p-2">
+                <div className="text-[10px] uppercase text-white/50">Enfermeiro(a)</div>
+                <div className="text-xs text-white/90 font-semibold">{selected.nurse || '—'}</div>
+              </div>
+            </div>
+
+            {/* Alerts */}
+            {selected.alerts.length > 0 && (
+              <div className="mb-4 rounded border border-amber-500/40 bg-amber-500/[0.06] p-3">
+                <div className="text-[10px] uppercase tracking-wider text-amber-200 mb-1">
+                  Alertas clínicos
+                </div>
+                <ul className="text-xs text-amber-100/90 space-y-0.5">
+                  {selected.alerts.map((a) => (
+                    <li key={a}>⚠ {a}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Reason if not administered */}
+            {selected.reason && (
+              <div className="mb-4 rounded border border-red-500/40 bg-red-500/[0.06] p-3">
+                <div className="text-[10px] uppercase tracking-wider text-red-200 mb-1">
+                  Motivo — não administrada
+                </div>
+                <div className="text-xs text-red-100/90">{selected.reason}</div>
+              </div>
+            )}
+
+            {/* Timeline */}
+            <div className="mb-4">
+              <div className="text-[10px] uppercase tracking-wider text-white/50 mb-2">
+                Linha do Tempo do Closed Loop
+              </div>
+              <div className="flex flex-col gap-2">
+                {selected.timeline.map((step) => (
+                  <div
+                    key={step.key}
+                    className="flex items-center gap-3 rounded px-2 py-1.5 bg-white/[0.02] border border-white/5"
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full ${
+                        step.time ? 'bg-emerald-400' : 'bg-white/15'
+                      }`}
+                    />
+                    <div className="text-xs text-white/80 flex-1">{step.label}</div>
+                    <div className="text-[10px] font-mono text-white/60">{step.time || '—'}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Next action */}
+            {NEXT_ACTION[selected.status] && (
+              <button
+                className="w-full rounded-md bg-blue-500/20 border border-blue-400/60 text-blue-100 text-sm font-semibold py-2.5 hover:bg-blue-500/30 transition"
+                onClick={() => setSelected(null)}
+              >
+                → {NEXT_ACTION[selected.status]}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </AppShell>
+  );
+}

@@ -73,6 +73,24 @@ const NAV_ITEMS: NavItemDef[] = [
     label: 'Centro Cir\u00FArgico',
     section: NAV_SECTIONS.GESTAO,
   },
+  {
+    href: '/ems',
+    icon: '\uD83D\uDE91',
+    label: 'Ambul\u00E2ncias',
+    section: NAV_SECTIONS.GESTAO,
+  },
+  {
+    href: '/icu',
+    icon: '\uD83D\uDC89',
+    label: 'UTI',
+    section: NAV_SECTIONS.GESTAO,
+  },
+  {
+    href: '/pharmacy',
+    icon: '\uD83D\uDC8A',
+    label: 'Farm\u00E1cia',
+    section: NAV_SECTIONS.GESTAO,
+  },
   // --- Administracao ---
   {
     href: '/system',
