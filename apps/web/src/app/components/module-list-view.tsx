@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from './app-shell';
+import { Breadcrumbs } from './breadcrumbs';
 import {
   getModuleById,
-  CATEGORY_LABELS,
   type ColumnDef,
   type ModuleDef,
 } from '../../lib/module-manifest';
@@ -54,14 +55,72 @@ function ModuleListInner({
   module: ModuleDef;
   data: readonly object[];
 }) {
+  return (
+    <Suspense fallback={null}>
+      <ModuleListInnerWithUrl module={module} data={rawData} />
+    </Suspense>
+  );
+}
+
+function ModuleListInnerWithUrl({
+  module,
+  data: rawData,
+}: {
+  module: ModuleDef;
+  data: readonly object[];
+}) {
   // Cast once at the boundary — fixtures are strictly typed at their own site.
   const seedData = rawData as Record<string, unknown>[];
-  const [search, setSearch] = useState('');
-  const [filterState, setFilterState] = useState<Record<string, string>>({});
-  const [sortKey, setSortKey] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
-  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
-  const [page, setPage] = useState(1);
+
+  // ----- URL state (filter persistence + deep linking) -----
+  // We use useSearchParams as the source of truth for search + filters,
+  // mirroring the user input back into the URL with router.replace so
+  // deep links preserve filters and back/forward buttons work.
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [search, setSearch] = useState(() => searchParams.get('q') ?? '');
+  const [filterState, setFilterState] = useState<Record<string, string>>(() => {
+    const out: Record<string, string> = {};
+    for (const filter of module.filters ?? []) {
+      const v = searchParams.get(filter.key);
+      if (v) out[filter.key] = v;
+    }
+    return out;
+  });
+  const [sortKey, setSortKey] = useState<string | null>(() => searchParams.get('sort') ?? null);
+  const [sortDir, setSortDir] = useState<SortDir>(
+    () => (searchParams.get('dir') === 'desc' ? 'desc' : 'asc'),
+  );
+  const [pageSize, setPageSize] = useState<number>(() => {
+    const v = parseInt(searchParams.get('size') ?? '', 10);
+    return [10, 25, 50, 100].includes(v) ? v : DEFAULT_PAGE_SIZE;
+  });
+  const [page, setPage] = useState(() => {
+    const v = parseInt(searchParams.get('page') ?? '', 10);
+    return Number.isFinite(v) && v >= 1 ? v : 1;
+  });
+
+  // Push state into URL (debounced 120ms so typing isn't laggy)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (search.trim()) params.set('q', search.trim());
+      for (const [k, v] of Object.entries(filterState)) {
+        if (v && v !== 'all') params.set(k, v);
+      }
+      if (sortKey) {
+        params.set('sort', sortKey);
+        params.set('dir', sortDir);
+      }
+      if (pageSize !== DEFAULT_PAGE_SIZE) params.set('size', String(pageSize));
+      if (page !== 1) params.set('page', String(page));
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    }, 120);
+    return () => clearTimeout(t);
+  }, [search, filterState, sortKey, sortDir, pageSize, page, pathname, router]);
 
   // Live data merged with overrides from the entity store. We start with
   // the seed data so the page renders immediately, then refetch from
@@ -244,40 +303,14 @@ function ModuleListInner({
     URL.revokeObjectURL(url);
   };
 
-  const categoryLabel = CATEGORY_LABELS[module.category];
+  // categoryLabel removed — Breadcrumbs component derives it from the module
   const hasActiveFilters =
     search.trim().length > 0 ||
     Object.values(filterState).some((v) => v && v !== 'all');
 
   return (
     <AppShell pageTitle={module.title}>
-      {/* Breadcrumbs */}
-      <nav aria-label="Trilha de navegação" className="mb-3">
-        <ol className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-          <li>
-            <Link
-              href="/"
-              className="text-blue-300 hover:text-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 rounded"
-            >
-              Início
-            </Link>
-          </li>
-          <li aria-hidden="true" className="text-slate-600">
-            {'\u203A'}
-          </li>
-          <li>
-            <span>{categoryLabel}</span>
-          </li>
-          <li aria-hidden="true" className="text-slate-600">
-            {'\u203A'}
-          </li>
-          <li>
-            <span aria-current="page" className="text-slate-200">
-              {module.title}
-            </span>
-          </li>
-        </ol>
-      </nav>
+      <Breadcrumbs module={module} />
 
       <div className="page-header">
         <div className="flex items-start justify-between flex-wrap gap-3">

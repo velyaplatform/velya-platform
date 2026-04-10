@@ -4,12 +4,15 @@ import { useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '../../components/app-shell';
+import { Breadcrumbs } from '../../components/breadcrumbs';
+import { FavoriteButton } from '../../components/favorite-button';
 import {
   getSpecialtyById,
   SPECIALTY_CATEGORY_LABELS,
 } from '../../../lib/fixtures/medical-specialties';
 import { STAFF, ROLE_LABELS, PRESENCE_LABELS } from '../../../lib/fixtures/staff';
 import { HOSPITAL_WARDS, getOccupancyRate } from '../../../lib/fixtures/hospital-wards';
+import { getModuleById } from '../../../lib/module-manifest';
 
 /**
  * Specialty detail page. Shows the full specialty profile, the staff
@@ -80,8 +83,14 @@ export default function SpecialtyDetailPage() {
     involvedStaff.flatMap((s) => s.assignedPatientMrns),
   ).size;
 
+  const specialtiesModule = getModuleById('medical-specialties');
+
   return (
     <AppShell pageTitle={specialty.name}>
+      <Breadcrumbs
+        module={specialtiesModule}
+        recordLabel={specialty.name}
+      />
       <div className="page-header">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
@@ -106,6 +115,15 @@ export default function SpecialtyDetailPage() {
             >
               ← Voltar
             </Link>
+            <FavoriteButton
+              scope="medical-specialties"
+              entry={{
+                id: specialty.id,
+                label: specialty.name,
+                href: `/specialties/${specialty.id}`,
+                description: SPECIALTY_CATEGORY_LABELS[specialty.category],
+              }}
+            />
             <Link
               href={`/edit/medical-specialties/${specialty.id}`}
               className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"

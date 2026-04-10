@@ -5,6 +5,9 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '../../components/app-shell';
 import { pushRecentPatient } from '../../components/recent-patients';
+import { Breadcrumbs } from '../../components/breadcrumbs';
+import { FavoriteButton } from '../../components/favorite-button';
+import { RelatedItems } from '../../components/related-items';
 import {
   COCKPITS,
   type EventCategory,
@@ -171,14 +174,33 @@ export default function PatientCockpitPage() {
 
   return (
     <AppShell pageTitle={`${cockpit.name} — Cockpit`}>
+      <Breadcrumbs
+        crumbs={[
+          { label: 'Início', href: '/' },
+          { label: 'Assistencial' },
+          { label: 'Pacientes', href: '/patients' },
+          { label: `${cockpit.mrn} ${cockpit.name}`, current: true },
+        ]}
+      />
       {/* Back + Actions */}
       <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
         <Link href="/patients" className="inline-flex items-center gap-1.5 text-sm text-blue-300 hover:text-blue-200 no-underline font-medium">
           {'\u2190'} Voltar para Pacientes
         </Link>
-        <Link href={`/patients/${patientId}/register-event`} className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold no-underline hover:bg-blue-700 shadow-sm">
-          {'\u2795'} Registrar Evento
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <FavoriteButton
+            scope="patients"
+            entry={{
+              id: cockpit.mrn,
+              label: cockpit.name,
+              href: `/patients/${cockpit.mrn}`,
+              description: `${cockpit.age} anos · ${cockpit.ward} · ${cockpit.diagnosis}`,
+            }}
+          />
+          <Link href={`/patients/${patientId}/register-event`} className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold no-underline hover:bg-blue-700 shadow-sm">
+            {'\u2795'} Registrar Evento
+          </Link>
+        </div>
       </div>
 
       {/* ============ IDENTITY BAND ============ */}
@@ -763,6 +785,11 @@ export default function PatientCockpitPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Related entities — pulls from /api/related/patient/[mrn] */}
+      <div className="mt-5">
+        <RelatedItems entityType="patient" entityId={cockpit.mrn} />
       </div>
     </AppShell>
   );

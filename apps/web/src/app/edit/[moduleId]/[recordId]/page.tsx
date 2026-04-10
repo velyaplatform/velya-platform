@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '../../../components/app-shell';
+import { Breadcrumbs } from '../../../components/breadcrumbs';
+import { FavoriteButton } from '../../../components/favorite-button';
+import { RelatedItems } from '../../../components/related-items';
 import {
   getModuleById,
   type ColumnDef,
@@ -204,6 +207,7 @@ export default function GenericEditPage() {
 
   return (
     <AppShell pageTitle={`Editar ${mod.title}`}>
+      <Breadcrumbs module={mod} recordLabel={recordId} />
       <div className="page-header">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
@@ -224,12 +228,25 @@ export default function GenericEditPage() {
               )}
             </p>
           </div>
-          <Link
-            href={mod.route}
-            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
-          >
-            ← Voltar à lista
-          </Link>
+          <div className="flex items-center gap-2 flex-wrap">
+            <FavoriteButton
+              scope={mod.id}
+              entry={{
+                id: recordId,
+                label:
+                  (record.data.name as string | undefined) ??
+                  (record.data.title as string | undefined) ??
+                  recordId,
+                href: `/edit/${mod.id}/${recordId}`,
+              }}
+            />
+            <Link
+              href={mod.route}
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+            >
+              ← Voltar à lista
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -380,9 +397,35 @@ export default function GenericEditPage() {
           )}
         </aside>
       </div>
+
+      {/* Related entities — auto-derived from the module relation map */}
+      {(() => {
+        const entityType = MODULE_TO_ENTITY_TYPE[mod.id];
+        if (!entityType) return null;
+        return (
+          <div className="mt-5">
+            <RelatedItems entityType={entityType} entityId={recordId} />
+          </div>
+        );
+      })()}
     </AppShell>
   );
 }
+
+/**
+ * Maps moduleId → entityType for RelatedItems lookups. Only modules whose
+ * records are referenced FROM other modules need an entry here. The set
+ * matches the keys in /api/related/[type]/[id]/route.ts.
+ */
+const MODULE_TO_ENTITY_TYPE: Record<string, string> = {
+  patients: 'patient',
+  employees: 'employee',
+  assets: 'asset',
+  suppliers: 'supplier',
+  claims: 'claim',
+  'lab-orders': 'lab-order',
+  'imaging-orders': 'imaging-order',
+};
 
 function FieldRow({
   label,
