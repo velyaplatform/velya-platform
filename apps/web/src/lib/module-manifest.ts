@@ -755,7 +755,7 @@ export const MODULES: ModuleDef[] = [
     ],
     columns: [
       { key: 'id', label: 'ID', width: 'sm' },
-      { key: 'name', label: 'Especialidade' },
+      { key: 'name', label: 'Especialidade', linkTo: '/specialties/${row.id}' },
       { key: 'category', label: 'Categoria', width: 'sm' },
       { key: 'cfmCode', label: 'CFM', width: 'sm' },
       { key: 'residencyYears', label: 'Anos R.', width: 'sm' },
