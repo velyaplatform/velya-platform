@@ -129,14 +129,32 @@ export default function MePage() {
               )}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-red-700/60 text-red-200 hover:bg-red-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-60"
-          >
-            {loggingOut ? 'Saindo...' : 'Sair da plataforma'}
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  try {
+                    window.localStorage.removeItem('velya:onboarding-completed-v1');
+                  } catch {
+                    // ignore (private mode / storage disabled)
+                  }
+                  window.dispatchEvent(new CustomEvent('velya:start-onboarding'));
+                }
+              }}
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-blue-700/60 text-blue-200 hover:bg-blue-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+            >
+              Refazer tour de boas-vindas
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-red-700/60 text-red-200 hover:bg-red-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-60"
+            >
+              {loggingOut ? 'Saindo...' : 'Sair da plataforma'}
+            </button>
+          </div>
         </div>
       </div>
 

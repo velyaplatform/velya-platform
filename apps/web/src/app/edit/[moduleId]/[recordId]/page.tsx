@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { AppShell } from '../../../components/app-shell';
 import { Breadcrumbs } from '../../../components/breadcrumbs';
 import { FavoriteButton } from '../../../components/favorite-button';
+import { FollowButton } from '../../../components/follow-button';
 import { RelatedItems } from '../../../components/related-items';
 import {
   getModuleById,
@@ -240,6 +241,24 @@ export default function GenericEditPage() {
                 href: `/edit/${mod.id}/${recordId}`,
               }}
             />
+            <FollowButton
+              scope={mod.id}
+              entry={{
+                id: recordId,
+                label:
+                  (record.data.name as string | undefined) ??
+                  (record.data.title as string | undefined) ??
+                  recordId,
+                href: `/edit/${mod.id}/${recordId}`,
+              }}
+            />
+            <Link
+              href={`/compare/${mod.id}?ids=${recordId}`}
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              aria-label="Comparar este registro com outro"
+            >
+              Comparar com outro
+            </Link>
             <Link
               href={mod.route}
               className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"

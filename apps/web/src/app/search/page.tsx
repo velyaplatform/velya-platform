@@ -1,0 +1,185 @@
+'use client';
+
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { AppShell } from '../components/app-shell';
+import { Breadcrumbs } from '../components/breadcrumbs';
+
+interface SearchHit {
+  moduleId: string;
+  moduleLabel: string;
+  recordId: string;
+  label: string;
+  score: number;
+  href: string;
+}
+
+interface SearchResponse {
+  query: string;
+  count: number;
+  results: SearchHit[];
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={null}>
+      <SearchInner />
+    </Suspense>
+  );
+}
+
+function SearchInner() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const initialQuery = params.get('q') ?? '';
+  const [query, setQuery] = useState(initialQuery);
+  const [results, setResults] = useState<SearchHit[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Push query into URL
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const next = query.trim();
+      router.replace(next ? `${pathname}?q=${encodeURIComponent(next)}` : pathname, {
+        scroll: false,
+      });
+    }, 200);
+    return () => clearTimeout(t);
+  }, [query, pathname, router]);
+
+  // Fetch results
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) {
+      setResults(null);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    const controller = new AbortController();
+    fetch(`/api/search?q=${encodeURIComponent(q)}`, {
+      credentials: 'same-origin',
+      signal: controller.signal,
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          setError(`Erro ${res.status}`);
+          return;
+        }
+        const data = (await res.json()) as SearchResponse;
+        setResults(data.results);
+      })
+      .catch((err) => {
+        if (err.name !== 'AbortError') setError('Erro de rede');
+      })
+      .finally(() => setLoading(false));
+    return () => controller.abort();
+  }, [query]);
+
+  // Group results by module
+  const grouped = results
+    ? results.reduce<Record<string, { label: string; hits: SearchHit[] }>>((acc, hit) => {
+        if (!acc[hit.moduleId]) acc[hit.moduleId] = { label: hit.moduleLabel, hits: [] };
+        acc[hit.moduleId].hits.push(hit);
+        return acc;
+      }, {})
+    : null;
+
+  return (
+    <AppShell pageTitle="Busca">
+      <Breadcrumbs
+        crumbs={[
+          { label: 'Início', href: '/' },
+          { label: 'Busca', current: true },
+        ]}
+      />
+      <div className="page-header">
+        <h1 className="page-title">
+          <span aria-hidden="true">{'\uD83D\uDD0D'}</span> Busca global
+        </h1>
+        <p className="page-subtitle">
+          BM25 lexical + fuzzy n-gram (typo tolerance) sobre todos os registros do sistema
+        </p>
+      </div>
+
+      <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 mb-5">
+        <label htmlFor="search-input" className="sr-only">
+          Buscar
+        </label>
+        <input
+          id="search-input"
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          autoFocus
+          placeholder="Digite paciente, medicamento, diagnóstico, especialidade..."
+          className="w-full min-h-[56px] bg-slate-800 border-2 border-slate-600 rounded-lg px-4 py-3 text-lg text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+        />
+        <p className="text-xs text-slate-400 mt-2">
+          Use <kbd className="bg-slate-800 border border-slate-600 px-1.5 py-0.5 rounded text-slate-100 text-[11px] font-mono">Ctrl+K</kbd> para
+          a busca de comandos · digite mesmo com erros (a busca tolera typos)
+        </p>
+      </div>
+
+      {error && (
+        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3 mb-4">
+          {error}
+        </div>
+      )}
+
+      {loading && <p className="text-slate-300">Buscando...</p>}
+
+      {!loading && results !== null && results.length === 0 && (
+        <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 text-center">
+          <p className="text-slate-300 text-sm">Nenhum resultado para "{query}".</p>
+        </div>
+      )}
+
+      {!loading && grouped && Object.keys(grouped).length > 0 && (
+        <div className="flex flex-col gap-4">
+          <p className="text-xs text-slate-400">
+            {results?.length} resultado(s) em {Object.keys(grouped).length} módulo(s)
+          </p>
+          {Object.entries(grouped).map(([moduleId, group]) => (
+            <section
+              key={moduleId}
+              aria-labelledby={`group-${moduleId}-heading`}
+              className="bg-slate-900 border border-slate-700 rounded-xl p-5"
+            >
+              <h2
+                id={`group-${moduleId}-heading`}
+                className="text-sm font-bold text-slate-100 mb-3"
+              >
+                {group.label}{' '}
+                <span className="text-xs text-slate-400 font-normal">({group.hits.length})</span>
+              </h2>
+              <ul className="flex flex-col gap-2">
+                {group.hits.map((hit) => (
+                  <li key={`${hit.moduleId}-${hit.recordId}`}>
+                    <Link
+                      href={hit.href}
+                      className="block px-3 py-2 bg-slate-800 border border-slate-700 rounded-md hover:bg-slate-700 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    >
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-mono text-xs text-blue-300">{hit.recordId}</span>
+                        <span className="text-sm text-slate-100 font-semibold truncate">
+                          {hit.label}
+                        </span>
+                        <span className="ml-auto text-[10px] text-slate-500 font-mono">
+                          score {hit.score.toFixed(2)}
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
+    </AppShell>
+  );
+}
