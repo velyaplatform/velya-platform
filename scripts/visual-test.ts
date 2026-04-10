@@ -118,7 +118,9 @@ async function stabilize(p: Page) {
         }
       `,
     });
-    await p.evaluate(() => (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready);
+    await p.evaluate(
+      () => (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready,
+    );
   } catch {
     // ignore stabilize failures — they should never block the run
   }
@@ -126,14 +128,7 @@ async function stabilize(p: Page) {
 
 async function runAxeOnPage(p: Page): Promise<AxeSummary> {
   const builder = new AxeBuilder({ page: p })
-    .withTags([
-      'wcag2a',
-      'wcag2aa',
-      'wcag21a',
-      'wcag21aa',
-      'wcag22aa',
-      'best-practice',
-    ])
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
     .disableRules(['color-contrast-enhanced']);
 
   const result = await builder.analyze();
@@ -157,7 +152,8 @@ async function runAxeOnPage(p: Page): Promise<AxeSummary> {
 
 async function runGeometryChecks(p: Page, isMobile: boolean): Promise<GeometryIssue[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return p.evaluate(function geometryEval(opts: any): GeometryIssue[] {
+  return p.evaluate(
+    function geometryEval(opts: any): GeometryIssue[] {
       const isMobile = opts.isMobile as boolean;
       const out: GeometryIssue[] = [];
       const viewport = { width: window.innerWidth, height: window.innerHeight };
@@ -232,10 +228,7 @@ async function runGeometryChecks(p: Page, isMobile: boolean): Promise<GeometryIs
         for (let j = i + 1; j < interactive.length; j++) {
           const a = interactive[i].getBoundingClientRect();
           const b = interactive[j].getBoundingClientRect();
-          if (
-            interactive[i].contains(interactive[j]) ||
-            interactive[j].contains(interactive[i])
-          ) {
+          if (interactive[i].contains(interactive[j]) || interactive[j].contains(interactive[i])) {
             continue;
           }
           const overlap =
@@ -260,9 +253,7 @@ async function runGeometryChecks(p: Page, isMobile: boolean): Promise<GeometryIs
         return s.position === 'sticky' || s.position === 'fixed';
       });
       const ctas = Array.from(
-        document.querySelectorAll<HTMLElement>(
-          '[data-cta="true"], button[type="submit"], .cta',
-        ),
+        document.querySelectorAll<HTMLElement>('[data-cta="true"], button[type="submit"], .cta'),
       );
       for (const s of stickies) {
         const sr = s.getBoundingClientRect();
@@ -286,9 +277,7 @@ async function runGeometryChecks(p: Page, isMobile: boolean): Promise<GeometryIs
 
       // 6. modal overflow
       const modals = Array.from(
-        document.querySelectorAll<HTMLElement>(
-          '[role="dialog"], .modal, [data-modal="true"]',
-        ),
+        document.querySelectorAll<HTMLElement>('[role="dialog"], .modal, [data-modal="true"]'),
       );
       for (const m of modals) {
         const r = m.getBoundingClientRect();
@@ -303,9 +292,7 @@ async function runGeometryChecks(p: Page, isMobile: boolean): Promise<GeometryIs
 
       // 7. small font
       const texts = Array.from(
-        document.querySelectorAll<HTMLElement>(
-          'p, span, label, h1, h2, h3, h4, td, th, button, a',
-        ),
+        document.querySelectorAll<HTMLElement>('p, span, label, h1, h2, h3, h4, td, th, button, a'),
       );
       for (const t of texts) {
         const s = getComputedStyle(t);
@@ -320,9 +307,7 @@ async function runGeometryChecks(p: Page, isMobile: boolean): Promise<GeometryIs
       }
 
       // 8. clipping
-      const clippable = Array.from(
-        document.querySelectorAll<HTMLElement>('h1, h2, h3, button'),
-      );
+      const clippable = Array.from(document.querySelectorAll<HTMLElement>('h1, h2, h3, button'));
       for (const el of clippable) {
         if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) {
           const s = getComputedStyle(el);
@@ -337,7 +322,9 @@ async function runGeometryChecks(p: Page, isMobile: boolean): Promise<GeometryIs
       }
 
       return out;
-    }, { isMobile });
+    },
+    { isMobile },
+  );
 }
 
 function severityWeight(g: GeometryIssue): Severity {

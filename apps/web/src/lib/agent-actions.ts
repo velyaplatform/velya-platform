@@ -23,14 +23,18 @@
  */
 
 import { audit } from './audit-logger';
-import { createFinding } from './cron-store';
+import { createFinding, updateFinding } from './cron-store';
 import {
   getAgent,
   canExecuteAutonomously,
   type AgentDef,
   type ActionRiskClass,
 } from './agent-runtime';
-import { getAgentState, recordAgentRun } from './agent-state';
+import {
+  getAgentState,
+  quarantineAgent as quarantineAgentState,
+  recordAgentRun,
+} from './agent-state';
 import { invalidateSearchIndex } from './semantic-search';
 
 export interface ActionRequest {
@@ -81,15 +85,18 @@ const HANDLERS: Record<string, Handler> = {
     // Pure ranking change; no persistent side effect beyond a finding update.
     return { ok: true, message: 'Prioridades recalculadas', rollbackHash: 'priorities:noop' };
   },
-  'mark-finding-resolved': async (_agent, payload) => {
+  'mark-finding-resolved': async (agent, payload) => {
     const findingId = String(payload.findingId ?? '');
     if (!findingId) return { ok: false, message: 'findingId obrigatório' };
     // The agent only marks SAFE-class findings — clinical findings are blocked
-    // earlier by canExecuteAutonomously.
+    // earlier by canExecuteAutonomously. We persist the resolution via the
+    // cron-store so the /cron dashboard reflects it immediately.
+    const updated = updateFinding(findingId, { status: 'resolved-auto' }, agent.id);
+    if (!updated) return { ok: false, message: `Finding ${findingId} não encontrado` };
     return {
       ok: true,
-      message: `Finding ${findingId} marcado como resolvido`,
-      rollbackHash: `finding:${findingId}`,
+      message: `Finding ${findingId} marcado como resolved-auto`,
+      rollbackHash: `finding:${findingId}:resolved-auto`,
     };
   },
   'flag-flaky-endpoint': async (_agent, payload) => {
@@ -129,12 +136,21 @@ const HANDLERS: Record<string, Handler> = {
   },
 
   // ---- Observability office ----
-  'quarantine-agent': async (_agent, payload) => {
+  'quarantine-agent': async (agent, payload) => {
     const targetId = String(payload.targetId ?? '');
     if (!targetId) return { ok: false, message: 'targetId obrigatório' };
+    // Watchdog cannot quarantine itself — that would be a self-blessing path.
+    if (targetId === agent.id) {
+      return { ok: false, message: 'Watchdog não pode se auto-quarentenar' };
+    }
+    const reason = String(payload.reason ?? 'auto-quarantine via watchdog');
+    const result = quarantineAgentState(targetId, reason, agent.id);
+    if (!result.ok) {
+      return { ok: false, message: result.error ?? 'falha ao quarentenar' };
+    }
     return {
       ok: true,
-      message: `Agente ${targetId} colocado em quarentena (auto)`,
+      message: `Agente ${targetId} colocado em quarentena: ${reason}`,
       rollbackHash: `quarantine:${targetId}`,
     };
   },

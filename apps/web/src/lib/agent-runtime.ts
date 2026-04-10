@@ -133,7 +133,10 @@ export const AGENTS: AgentDef[] = [
       { type: 'invalidate-cdn-cache', riskClass: 'safe' },
       { type: 'restart-pod', riskClass: 'critical' }, // touches infra-prod
     ],
-    lifecycleStage: 'shadow',
+    // Promoted shadow → active (see ADR-0015) — only the safe action
+    // (invalidate-cdn-cache → in-process search index reset) executes
+    // autonomously; restart-pod stays human-gated by riskClass.
+    lifecycleStage: 'active',
     validatorIds: ['security-auditor-agent'],
     auditorId: 'observability-watchdog-agent',
     watchdogId: 'observability-watchdog-agent',
@@ -150,7 +153,9 @@ export const AGENTS: AgentDef[] = [
       'Verifica contrato das /api/* (status code esperado, JSON parseável). Para falhas transientes, marca o endpoint como flaky e abre learning; falhas persistentes viram finding alto.',
     ownedJobIds: ['backend.api-contract'],
     allowedActions: [{ type: 'flag-flaky-endpoint', riskClass: 'safe' }],
-    lifecycleStage: 'shadow',
+    // Promoted shadow → active (see ADR-0015) — flag-flaky-endpoint is a
+    // pure annotation, fully reversible, no PHI/billing/infra impact.
+    lifecycleStage: 'active',
     validatorIds: ['security-auditor-agent'],
     auditorId: 'observability-watchdog-agent',
     watchdogId: 'observability-watchdog-agent',
@@ -277,7 +282,10 @@ export const AGENTS: AgentDef[] = [
       { type: 'increment-pattern-confidence', riskClass: 'safe' },
       { type: 'propose-promotion', riskClass: 'review' },
     ],
-    lifecycleStage: 'shadow',
+    // Promoted shadow → active (see ADR-0015) — increment-pattern-confidence
+    // bumps a counter in the learnings store; propose-promotion still goes
+    // through human review because it is review-class.
+    lifecycleStage: 'active',
     validatorIds: ['security-auditor-agent', 'data-auditor-agent'],
     auditorId: 'observability-watchdog-agent',
     watchdogId: 'observability-watchdog-agent',
@@ -299,7 +307,10 @@ export const AGENTS: AgentDef[] = [
       { type: 'quarantine-agent', riskClass: 'safe' },
       { type: 'page-on-call', riskClass: 'safe' },
     ],
-    lifecycleStage: 'shadow',
+    // Promoted shadow → active (see ADR-0015) — quarantine-agent persists
+    // via agent-state.quarantineAgent (reversible by /agents → Liberar);
+    // page-on-call writes audit only. Watchdog refuses to quarantine itself.
+    lifecycleStage: 'active',
     // The root watchdog is independently validated by security-auditor-agent
     // (different office). It is NEVER its own validator/auditor/watchdog —
     // .claude/rules/agent-governance.md forbids self-blessing.

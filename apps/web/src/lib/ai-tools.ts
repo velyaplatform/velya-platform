@@ -39,6 +39,8 @@ import {
   type CreateHandoffInput,
 } from './handoff-store';
 import { CRON_JOBS } from './cron-jobs';
+import { patchEntityRecord } from './entity-store';
+import { resolveRecord } from './entity-resolver';
 
 // ---------------------------------------------------------------------------
 // Result envelope
@@ -445,66 +447,273 @@ const listHandoffsTool: AiToolDef<HandoffArgs, ShiftHandoff[]> = {
 };
 
 // ===========================================================================
-// TOOL: propose-handoff — creates DRAFT (requires user to send manually)
+// TOOL: propose-handoff — pre-fills patients from the target user's ward
 // ===========================================================================
+//
+// Real pre-fill flow (as the founder asked: "preencha o handoff do Dr. X"):
+//   1. Lookup `toUserName` in STAFF — fuzzy match on name
+//   2. If found, derive ward + role from the StaffMember
+//   3. Pull patients in that ward via PATIENTS
+//   4. Build PatientHandoffEntry[] with sensible I-PASS defaults pulled from
+//      the patient cockpit (illness severity inferred from `risk`, summary
+//      from `diagnosis`, action items left empty for the human to confirm)
+//   5. Return as `requires-approval` with the pre-filled preview
+//
+// The tool NEVER creates the handoff without confirm=true. Even with confirm,
+// it goes through the same audit/scorecard chain because it is `requiresApproval`.
+
 interface ProposeHandoffArgs {
-  fromUserId: string;
-  fromUserName: string;
-  fromRole: string;
-  toUserId: string;
+  /** Free-text name of the target user — orchestrator can pass "Dr. X" directly */
   toUserName: string;
-  toRole: string;
-  ward: string;
-  shiftLabel: string;
-  /** ISO timestamp for the boundary between outgoing and incoming shift */
-  shiftBoundaryAt: string;
-  patients?: CreateHandoffInput['patients'];
+  /** Optional ward override — if absent, derived from the matched staff member */
+  ward?: string;
+  /** Outgoing user (current operator) — orchestrator fills from session */
+  fromUserId?: string;
+  fromUserName?: string;
+  fromRole?: string;
+  /** Optional explicit role/ward overrides */
+  toUserId?: string;
+  toRole?: string;
+  shiftLabel?: string;
+  /** ISO timestamp for the boundary; defaults to "now + 6h" */
+  shiftBoundaryAt?: string;
   unitNotes?: string;
-  /** When true, actually create the handoff. When false, just return the proposal preview. */
+  /** When true, actually create the handoff. */
   confirm?: boolean;
+}
+
+function inferIllnessSeverity(risk: string | undefined): 'stable' | 'watcher' | 'unstable' {
+  if (risk === 'critical' || risk === 'high') return 'unstable';
+  if (risk === 'medium') return 'watcher';
+  return 'stable';
 }
 
 const proposeHandoffTool: AiToolDef<
   ProposeHandoffArgs,
-  ShiftHandoff | { preview: ProposeHandoffArgs }
+  ShiftHandoff | { preview: Record<string, unknown> }
 > = {
   id: 'propose-handoff',
   description:
-    'Cria uma passagem de turno I-PASS pré-preenchida. Sempre exige confirmação humana — passe confirm=true para gravar.',
+    'Pré-preenche uma passagem de turno I-PASS para o usuário alvo. Busca o staff member pelo nome (fuzzy), pega a ala dele e os pacientes da ala, e devolve preview com pacientes carregados. Sempre exige confirmação humana.',
   trustTier: 1,
   requiresApproval: true,
   requiredRole: 'clinical',
   execute(args) {
+    // 1. Resolve the target staff member
+    const needle = (args.toUserName || '').toLowerCase().trim();
+    if (!needle) {
+      return {
+        status: 'error',
+        summary: 'É preciso informar o nome do destinatário (toUserName).',
+      };
+    }
+    const staffHit = STAFF.find((s) => s.name.toLowerCase().includes(needle));
+    if (!staffHit) {
+      return {
+        status: 'empty',
+        summary: `Não encontrei nenhum profissional cujo nome contenha "${args.toUserName}". Cheque a grafia.`,
+      };
+    }
+
+    // 2. Derive ward + role from the matched staff member
+    const ward = args.ward ?? staffHit.ward;
+    const toRole = args.toRole ?? ROLE_LABELS[staffHit.role] ?? staffHit.role;
+
+    // 3. Pull patients in that ward
+    const wardPatients = (PATIENTS as unknown as Record<string, unknown>[]).filter(
+      (p) => String(p.ward ?? '').toLowerCase() === ward.toLowerCase(),
+    );
+
+    // 4. Build I-PASS PatientHandoffEntry[] from cockpit data
+    const patientEntries: CreateHandoffInput['patients'] = wardPatients.map((p) => ({
+      patientMrn: String(p.mrn),
+      patientName: String(p.name ?? 'Paciente'),
+      ward,
+      bed: typeof p.bed === 'string' ? p.bed : undefined,
+      illnessSeverity: inferIllnessSeverity(typeof p.risk === 'string' ? p.risk : undefined),
+      patientSummary: String(p.diagnosis ?? 'Resumo a ser confirmado'),
+      actionItems: [],
+      situationAwareness: '',
+      activeIssues: Array.isArray(p.blockers) ? (p.blockers as string[]) : [],
+    }));
+
+    // 5. Build the resolved input
+    const shiftBoundaryAt =
+      args.shiftBoundaryAt ?? new Date(Date.now() + 6 * 3600 * 1000).toISOString();
+    const resolved: CreateHandoffInput = {
+      fromUserId: args.fromUserId ?? 'orchestrator',
+      fromUserName: args.fromUserName ?? 'Sistema (orchestrator)',
+      fromRole: args.fromRole ?? 'system',
+      toUserId: args.toUserId ?? staffHit.id,
+      toUserName: staffHit.name,
+      toRole,
+      ward,
+      shiftLabel: args.shiftLabel ?? `Plantão para ${staffHit.name}`,
+      shiftBoundaryAt,
+      patients: patientEntries,
+      unitNotes: args.unitNotes,
+    };
+
     if (!args.confirm) {
       return {
         status: 'requires-approval',
-        summary: `Pronto para criar handoff de ${args.fromUserName} → ${args.toUserName} na ala ${args.ward}.`,
-        data: { preview: args },
+        summary: `Handoff pré-preenchido para ${staffHit.name} (${toRole}) na ${ward} com ${patientEntries.length} paciente(s). Revise antes de criar.`,
+        data: { preview: resolved as unknown as Record<string, unknown> },
         pendingAction: {
-          label: 'Criar handoff',
+          label: `Criar handoff (${patientEntries.length} pacientes)`,
           toolId: 'propose-handoff',
           args: { ...args, confirm: true } as unknown as Record<string, unknown>,
         },
+        sources: patientEntries.slice(0, 5).map((p) => ({
+          label: `${p.patientMrn} — ${p.patientName}`,
+          href: `/edit/patients/${encodeURIComponent(p.patientMrn)}`,
+        })),
       };
     }
-    const draft = createHandoff({
-      fromUserId: args.fromUserId,
-      fromUserName: args.fromUserName,
-      fromRole: args.fromRole,
-      toUserId: args.toUserId,
-      toUserName: args.toUserName,
-      toRole: args.toRole,
-      ward: args.ward,
-      shiftLabel: args.shiftLabel,
-      shiftBoundaryAt: args.shiftBoundaryAt,
-      patients: args.patients ?? [],
-      unitNotes: args.unitNotes,
-    });
+
+    const draft = createHandoff(resolved);
     return {
       status: 'ok',
-      summary: `Handoff ${draft.id} criado. Abra /handoffs/${draft.id} para revisar.`,
+      summary: `Handoff ${draft.id} criado para ${staffHit.name} com ${patientEntries.length} paciente(s). Abra /handoffs/${draft.id} para revisar e enviar.`,
       data: draft,
       sources: [{ label: `Abrir handoff ${draft.id}`, href: `/handoffs/${draft.id}` }],
+    };
+  },
+};
+
+// ===========================================================================
+// TOOL: update-record — patch a single record (review-class, gated)
+// ===========================================================================
+//
+// Honors the founder's request: "tal paciente precisa atualizar a medicação
+// ou exames dele". The flow is intentionally cautious:
+//
+//   1. Resolve the current record via entity-resolver (must exist)
+//   2. Compute a diff between current data and the proposed patch
+//   3. Refuse modules with dataClass='A' (PHI máximo) — those are critical
+//      and never go through this tool, even with confirm=true
+//   4. Refuse field deletions on patient identity fields
+//   5. When confirm=false → return preview with diff for human review
+//   6. When confirm=true → call patchEntityRecord (which audits + writes
+//      to the entity-store with full history)
+//
+// This is a `requiresApproval: true` tool. The orchestrator surfaces the
+// preview as a confirmation card; only the human "Confirmar" click sends
+// confirm=true. Even then, the API route gate refuses non-clinical roles.
+
+interface UpdateRecordArgs {
+  moduleId: string;
+  recordId: string;
+  patch: Record<string, unknown>;
+  /** Free-text justification for audit log */
+  rationale?: string;
+  confirm?: boolean;
+}
+
+const REFUSED_FIELDS = new Set(['mrn', 'patientMrn', 'id', 'cpf', 'rg']);
+
+const updateRecordTool: AiToolDef<
+  UpdateRecordArgs,
+  {
+    moduleId: string;
+    recordId: string;
+    diff: Array<{ field: string; from: unknown; to: unknown }>;
+  }
+> = {
+  id: 'update-record',
+  description:
+    'Atualiza um registro existente (prescrição, exame, tarefa, etc.) com um patch parcial. NUNCA executa direto — sempre devolve preview para confirmação humana. Recusa módulos clínicos classe A e campos de identidade.',
+  trustTier: 2,
+  requiresApproval: true,
+  requiredRole: 'clinical',
+  execute(args) {
+    if (!args.moduleId || !args.recordId) {
+      return { status: 'error', summary: 'moduleId e recordId são obrigatórios' };
+    }
+    const module = getModuleById(args.moduleId);
+    if (!module) {
+      return { status: 'error', summary: `Módulo ${args.moduleId} não existe` };
+    }
+
+    // Refuse PHI máximo unless human passes a critical override flag (which
+    // we deliberately do NOT expose — those records go through the regular
+    // /edit/[moduleId]/[recordId] form with full RBAC.
+    if (module.dataClass === 'A') {
+      return {
+        status: 'error',
+        summary: `Módulo ${module.id} é dataClass A (PHI máximo). Use o formulário /edit/${module.id}/${args.recordId} com sua sessão clínica.`,
+      };
+    }
+
+    const current = resolveRecord(args.moduleId, args.recordId);
+    if (!current) {
+      return {
+        status: 'empty',
+        summary: `Registro ${args.recordId} não encontrado em ${args.moduleId}`,
+      };
+    }
+
+    // Strip refused fields from the patch and compute the effective diff
+    const cleanPatch: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(args.patch ?? {})) {
+      if (REFUSED_FIELDS.has(k)) continue;
+      cleanPatch[k] = v;
+    }
+    const diff: Array<{ field: string; from: unknown; to: unknown }> = [];
+    for (const [field, to] of Object.entries(cleanPatch)) {
+      const from = current.data[field];
+      if (JSON.stringify(from) !== JSON.stringify(to)) {
+        diff.push({ field, from, to });
+      }
+    }
+
+    if (diff.length === 0) {
+      return {
+        status: 'empty',
+        summary: `Patch não muda nada em ${args.moduleId}/${args.recordId} (após filtro de campos protegidos).`,
+      };
+    }
+
+    if (!args.confirm) {
+      return {
+        status: 'requires-approval',
+        summary: `Pronto para atualizar ${diff.length} campo(s) em ${args.moduleId}/${args.recordId}. Revise o diff abaixo.`,
+        data: { moduleId: args.moduleId, recordId: args.recordId, diff },
+        pendingAction: {
+          label: `Confirmar update (${diff.length} campo(s))`,
+          toolId: 'update-record',
+          args: { ...args, patch: cleanPatch, confirm: true } as unknown as Record<string, unknown>,
+        },
+        sources: [
+          {
+            label: `Abrir ${args.moduleId}/${args.recordId}`,
+            href: `/edit/${args.moduleId}/${encodeURIComponent(args.recordId)}`,
+          },
+        ],
+      };
+    }
+
+    // Confirm path — write through patchEntityRecord (audited)
+    const result = patchEntityRecord({
+      moduleId: args.moduleId,
+      recordId: args.recordId,
+      baseRecord: current.data,
+      patch: cleanPatch,
+      actorId: 'ai-agent',
+      actorName: 'AI Agent (orchestrator)',
+      note: args.rationale ?? 'Atualização via /api/ai/agent (confirmada por humano)',
+    });
+
+    return {
+      status: 'ok',
+      summary: `Registro ${args.recordId} atualizado: ${result.fieldChanges.length} campo(s) alterados.`,
+      data: { moduleId: args.moduleId, recordId: args.recordId, diff: result.fieldChanges },
+      sources: [
+        {
+          label: `Ver ${args.moduleId}/${args.recordId}`,
+          href: `/edit/${args.moduleId}/${encodeURIComponent(args.recordId)}`,
+        },
+      ],
     };
   },
 };
@@ -564,6 +773,7 @@ export const AI_TOOLS: Record<string, AiToolDef> = {
   'list-cron-findings': listCronFindingsTool as unknown as AiToolDef,
   'list-handoffs': listHandoffsTool as unknown as AiToolDef,
   'propose-handoff': proposeHandoffTool as unknown as AiToolDef,
+  'update-record': updateRecordTool as unknown as AiToolDef,
   'list-modules': listModulesTool as unknown as AiToolDef,
   'list-cron-jobs': listCronJobsTool as unknown as AiToolDef,
 };
