@@ -27,10 +27,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
     }
-    if (
-      !isAiAdminEmail(session.email) &&
-      session.professionalRole !== 'admin_system'
-    ) {
+    if (!isAiAdminEmail(session.email) && session.professionalRole !== 'admin_system') {
       return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
     }
     actor = session.email || session.userName || session.userId;

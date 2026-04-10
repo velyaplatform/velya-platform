@@ -53,18 +53,33 @@ interface IntentMatch {
 
 /** Strip control characters, normalize whitespace, lowercase. */
 function normalizeQuery(q: string): string {
-  return q
-    .normalize('NFC')
-    // eslint-disable-next-line no-control-regex
-    .replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
+  return (
+    q
+      .normalize('NFC')
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase()
+  );
 }
 
 /** Try to extract a ward name from the query. */
 function extractWard(q: string): string | undefined {
-  const wards = ['uti', 'utin', 'pediatria', 'maternidade', 'emergencia', 'emergência', 'ortopedia', 'cardiologia', 'oncologia', 'psiquiatria', 'neurologia', 'cirurgia'];
+  const wards = [
+    'uti',
+    'utin',
+    'pediatria',
+    'maternidade',
+    'emergencia',
+    'emergência',
+    'ortopedia',
+    'cardiologia',
+    'oncologia',
+    'psiquiatria',
+    'neurologia',
+    'cirurgia',
+  ];
   for (const w of wards) {
     if (q.includes(w)) return w === 'emergência' ? 'emergencia' : w;
   }
@@ -73,7 +88,9 @@ function extractWard(q: string): string | undefined {
 
 /** Heuristic: extract a single drug name following keywords like "com" or "tomando". */
 function extractMedication(q: string): string | undefined {
-  const m = q.match(/(?:medica\w+|rem[eé]dio|droga|tomando|com)\s+(?:o\s+|a\s+)?([a-z][a-zà-ú]{3,30})/);
+  const m = q.match(
+    /(?:medica\w+|rem[eé]dio|droga|tomando|com)\s+(?:o\s+|a\s+)?([a-z][a-zà-ú]{3,30})/,
+  );
   if (m) return m[1];
   return undefined;
 }
@@ -130,7 +147,9 @@ const PATTERNS: Array<{
   // -------------------------------------------------------------------------
   {
     id: 'staff-on-duty-ward',
-    test: (q) => /(quem|profissionais|equipe|m[eé]dicos?|enfermeir)/.test(q) && /(plant[aã]o|de turno|on.duty)/.test(q),
+    test: (q) =>
+      /(quem|profissionais|equipe|m[eé]dicos?|enfermeir)/.test(q) &&
+      /(plant[aã]o|de turno|on.duty)/.test(q),
     build: (q) => ({
       toolId: 'search-staff',
       args: { ward: extractWard(q), onDutyOnly: true },

@@ -66,12 +66,7 @@ export async function executeJobOnce(jobId: string): Promise<{
     status = 'failed';
     errorMessage = err instanceof Error ? err.message : String(err);
   } finally {
-    finishRun(
-      run.id,
-      status,
-      `${findingsCount} achado(s) em ${jobId}`,
-      errorMessage,
-    );
+    finishRun(run.id, status, `${findingsCount} achado(s) em ${jobId}`, errorMessage);
     STATE.inFlight.delete(jobId);
   }
 

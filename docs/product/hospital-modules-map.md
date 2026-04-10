@@ -37,13 +37,13 @@ esteira depois de:
 A plataforma precisa atender, no mínimo, as seguintes regulações
 levantadas em pesquisa (abril de 2026):
 
-| Norma | Exigência | Onde endereçamos |
-|---|---|---|
-| **CFM Resolução 1821/2007** | Requisitos para prontuário eletrônico com assinatura digital ICP-Brasil | `docs/architecture/decisions/` + integração futura com `packages/icp-brasil-signing` |
-| **CFM/SBIS Manual de Certificação S-RES** | Nível NGS2: imutabilidade de registros, versionamento, certificação eletrônica de usuário | `lib/audit-logger.ts` (hash chain SHA-256) + `lib/auth-session.ts` + `lib/event-store.ts` |
-| **LGPD (Lei 13.709/2018)** | Minimização, consentimento, direitos do titular, relato de incidentes | Minimização já no AI gateway (`docs/risk/data-minimization-model.md`) + classe de dado A-E |
-| **COFEN Resolução 736/2024** | Sistematização da assistência de enfermagem (SAE) em prontuário | Módulo Enfermagem (seção 4.2 deste doc) |
-| **ANVISA RDC 63/2011 + RDC 36/2013** | Boas práticas de funcionamento para serviços de saúde + segurança do paciente | Módulos Higienização, Farmácia, Centro Cirúrgico com checklists de liberação |
+| Norma                                     | Exigência                                                                                 | Onde endereçamos                                                                           |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **CFM Resolução 1821/2007**               | Requisitos para prontuário eletrônico com assinatura digital ICP-Brasil                   | `docs/architecture/decisions/` + integração futura com `packages/icp-brasil-signing`       |
+| **CFM/SBIS Manual de Certificação S-RES** | Nível NGS2: imutabilidade de registros, versionamento, certificação eletrônica de usuário | `lib/audit-logger.ts` (hash chain SHA-256) + `lib/auth-session.ts` + `lib/event-store.ts`  |
+| **LGPD (Lei 13.709/2018)**                | Minimização, consentimento, direitos do titular, relato de incidentes                     | Minimização já no AI gateway (`docs/risk/data-minimization-model.md`) + classe de dado A-E |
+| **COFEN Resolução 736/2024**              | Sistematização da assistência de enfermagem (SAE) em prontuário                           | Módulo Enfermagem (seção 4.2 deste doc)                                                    |
+| **ANVISA RDC 63/2011 + RDC 36/2013**      | Boas práticas de funcionamento para serviços de saúde + segurança do paciente             | Módulos Higienização, Farmácia, Centro Cirúrgico com checklists de liberação               |
 
 **Referência FHIR R4** para pacientes, leitos, fluxo e presença de
 equipe: usamos o recurso `Encounter` como entidade central, com
@@ -73,98 +73,98 @@ campo visível não tem rota de gestão listada aqui, o gate reporta.
 
 ### 1. Camada de dados mestre
 
-| Item | Classe | Recurso FHIR | Rota de gestão | Status | Fixture |
-|---|---|---|---|---|---|
-| Identificação do paciente | B | `Patient` | `/patients/[id]`, `/patients/new` | ✅ existe | `lib/fixtures/patients.ts` |
-| Histórico / alergias / comorbidades | D | `AllergyIntolerance`, `Condition`, `FamilyMemberHistory` | `/patients/[id]` (aba Histórico) | ✅ existe (mock) | `lib/fixtures/patients.ts` |
-| Sinais vitais / evolução / diagnósticos | C/D | `Observation`, `ClinicalImpression`, `Condition` | `/patients/[id]/register-event`, aba Sinais Vitais | ✅ existe (mock) | — |
-| Convênio / autorização / internação | B | `Coverage`, `Account`, `Encounter` | `/patients/[id]` (aba Financeiro — **a criar**) | 🟡 scaffold | — |
-| Localização do atendimento | A | `Encounter.location[]`, `Location` | `/beds`, `/staff-on-duty`, `/patients/[id]` | ✅ existe | `lib/fixtures/patients.ts` (campo ward/bed) |
+| Item                                    | Classe | Recurso FHIR                                             | Rota de gestão                                     | Status           | Fixture                                     |
+| --------------------------------------- | ------ | -------------------------------------------------------- | -------------------------------------------------- | ---------------- | ------------------------------------------- |
+| Identificação do paciente               | B      | `Patient`                                                | `/patients/[id]`, `/patients/new`                  | ✅ existe        | `lib/fixtures/patients.ts`                  |
+| Histórico / alergias / comorbidades     | D      | `AllergyIntolerance`, `Condition`, `FamilyMemberHistory` | `/patients/[id]` (aba Histórico)                   | ✅ existe (mock) | `lib/fixtures/patients.ts`                  |
+| Sinais vitais / evolução / diagnósticos | C/D    | `Observation`, `ClinicalImpression`, `Condition`         | `/patients/[id]/register-event`, aba Sinais Vitais | ✅ existe (mock) | —                                           |
+| Convênio / autorização / internação     | B      | `Coverage`, `Account`, `Encounter`                       | `/patients/[id]` (aba Financeiro — **a criar**)    | 🟡 scaffold      | —                                           |
+| Localização do atendimento              | A      | `Encounter.location[]`, `Location`                       | `/beds`, `/staff-on-duty`, `/patients/[id]`        | ✅ existe        | `lib/fixtures/patients.ts` (campo ward/bed) |
 
 ### 2. Funções hospitalares
 
 #### 2.1 Recepção / Atendimento
 
-| Item | Classe | FHIR | Rota | Status | Papéis autorizados |
-|---|---|---|---|---|---|
-| Cadastro do paciente | B | `Patient` + `RelatedPerson` | `/patients/new` | ✅ existe | `receptionist_registration`, `admin_system` |
-| Convênio e autorização | B | `Coverage`, `Claim`, `CoverageEligibilityRequest` | `/insurance` **a criar** | 🔴 falta | `receptionist_registration`, `billing_authorization` |
-| Histórico de atendimentos | D | `Encounter?patient=...` | `/patients/[id]` aba Histórico | ✅ existe (mock) | `medical_staff_attending`, `nurse`, `case_manager` |
+| Item                      | Classe | FHIR                                              | Rota                           | Status           | Papéis autorizados                                   |
+| ------------------------- | ------ | ------------------------------------------------- | ------------------------------ | ---------------- | ---------------------------------------------------- |
+| Cadastro do paciente      | B      | `Patient` + `RelatedPerson`                       | `/patients/new`                | ✅ existe        | `receptionist_registration`, `admin_system`          |
+| Convênio e autorização    | B      | `Coverage`, `Claim`, `CoverageEligibilityRequest` | `/insurance` **a criar**       | 🔴 falta         | `receptionist_registration`, `billing_authorization` |
+| Histórico de atendimentos | D      | `Encounter?patient=...`                           | `/patients/[id]` aba Histórico | ✅ existe (mock) | `medical_staff_attending`, `nurse`, `case_manager`   |
 
 #### 2.2 Enfermagem (SAE — COFEN 736/2024)
 
-| Item | Classe | FHIR | Rota | Status | Papéis |
-|---|---|---|---|---|---|
-| Sinais vitais | C | `Observation` (vital-signs) | `/patients/[id]/register-event?category=vitals` | ✅ existe (mock) | `nurse`, `nursing_technician`, `nursing_assistant` |
-| Administração de medicamentos | D | `MedicationAdministration` | `/patients/[id]/meds` **a criar** | 🔴 falta | `nurse`, `nursing_technician`, `pharmacist_clinical` |
-| Evolução de enfermagem | C | `ClinicalImpression` + `Observation` | `/patients/[id]/register-event?category=nursing-note` | ✅ existe (mock) | `nurse` |
-| Checklist de segurança (SAE) | C | `QuestionnaireResponse` | `/patients/[id]/sae-checklist` **a criar** | 🔴 falta | `nurse` |
+| Item                          | Classe | FHIR                                 | Rota                                                  | Status           | Papéis                                               |
+| ----------------------------- | ------ | ------------------------------------ | ----------------------------------------------------- | ---------------- | ---------------------------------------------------- |
+| Sinais vitais                 | C      | `Observation` (vital-signs)          | `/patients/[id]/register-event?category=vitals`       | ✅ existe (mock) | `nurse`, `nursing_technician`, `nursing_assistant`   |
+| Administração de medicamentos | D      | `MedicationAdministration`           | `/patients/[id]/meds` **a criar**                     | 🔴 falta         | `nurse`, `nursing_technician`, `pharmacist_clinical` |
+| Evolução de enfermagem        | C      | `ClinicalImpression` + `Observation` | `/patients/[id]/register-event?category=nursing-note` | ✅ existe (mock) | `nurse`                                              |
+| Checklist de segurança (SAE)  | C      | `QuestionnaireResponse`              | `/patients/[id]/sae-checklist` **a criar**            | 🔴 falta         | `nurse`                                              |
 
 #### 2.3 Médico
 
-| Item | Classe | FHIR | Rota | Status | Papéis |
-|---|---|---|---|---|---|
-| Diagnóstico | D | `Condition` (encounter-diagnosis) | `/patients/[id]/register-event?category=diagnosis` | ✅ existe (mock) | `medical_staff_attending`, `medical_staff_on_call` |
-| Prescrição | D | `MedicationRequest` | `/prescriptions/new?patient=...` **a criar** | 🔴 falta | `medical_staff_attending` |
-| Solicitação de exames | D | `ServiceRequest` | `/orders/new?patient=...` **a criar** | 🔴 falta | `medical_staff_attending`, `medical_staff_on_call` |
-| Evolução clínica | D | `ClinicalImpression` | `/patients/[id]/register-event?category=evolution` | ✅ existe (mock) | `medical_staff_attending` |
+| Item                  | Classe | FHIR                              | Rota                                               | Status           | Papéis                                             |
+| --------------------- | ------ | --------------------------------- | -------------------------------------------------- | ---------------- | -------------------------------------------------- |
+| Diagnóstico           | D      | `Condition` (encounter-diagnosis) | `/patients/[id]/register-event?category=diagnosis` | ✅ existe (mock) | `medical_staff_attending`, `medical_staff_on_call` |
+| Prescrição            | D      | `MedicationRequest`               | `/prescriptions/new?patient=...` **a criar**       | 🔴 falta         | `medical_staff_attending`                          |
+| Solicitação de exames | D      | `ServiceRequest`                  | `/orders/new?patient=...` **a criar**              | 🔴 falta         | `medical_staff_attending`, `medical_staff_on_call` |
+| Evolução clínica      | D      | `ClinicalImpression`              | `/patients/[id]/register-event?category=evolution` | ✅ existe (mock) | `medical_staff_attending`                          |
 
 #### 2.4 Farmácia
 
-| Item | Classe | FHIR | Rota | Status | Papéis |
-|---|---|---|---|---|---|
-| Prescrição médica (lista de validação) | D | `MedicationRequest` (status=active) | `/pharmacy` | ✅ existe | `pharmacist_clinical` |
-| Estoque de medicamentos | A | `Medication` + `SupplyDelivery` | `/pharmacy/stock` **a criar** | 🔴 falta | `pharmacist_clinical`, `admin_system` |
-| Dispensação | C | `MedicationDispense` | `/pharmacy/dispense` **a criar** | 🔴 falta | `pharmacist_clinical` |
+| Item                                   | Classe | FHIR                                | Rota                             | Status    | Papéis                                |
+| -------------------------------------- | ------ | ----------------------------------- | -------------------------------- | --------- | ------------------------------------- |
+| Prescrição médica (lista de validação) | D      | `MedicationRequest` (status=active) | `/pharmacy`                      | ✅ existe | `pharmacist_clinical`                 |
+| Estoque de medicamentos                | A      | `Medication` + `SupplyDelivery`     | `/pharmacy/stock` **a criar**    | 🔴 falta  | `pharmacist_clinical`, `admin_system` |
+| Dispensação                            | C      | `MedicationDispense`                | `/pharmacy/dispense` **a criar** | 🔴 falta  | `pharmacist_clinical`                 |
 
 #### 2.5 Laboratório
 
-| Item | Classe | FHIR | Rota | Status | Papéis |
-|---|---|---|---|---|---|
-| Solicitação de exames | D | `ServiceRequest.category=laboratory` | `/lab/orders` **a criar** | 🔴 falta | `lab_staff`, `medical_staff_attending` |
-| Coleta | C | `Specimen` | `/lab/collection` **a criar** | 🔴 falta | `lab_staff`, `nurse` |
-| Resultado | D | `DiagnosticReport` + `Observation` (laboratory) | `/lab/results` **a criar** | 🔴 falta | `lab_staff`, `medical_staff_attending` |
+| Item                  | Classe | FHIR                                            | Rota                          | Status   | Papéis                                 |
+| --------------------- | ------ | ----------------------------------------------- | ----------------------------- | -------- | -------------------------------------- |
+| Solicitação de exames | D      | `ServiceRequest.category=laboratory`            | `/lab/orders` **a criar**     | 🔴 falta | `lab_staff`, `medical_staff_attending` |
+| Coleta                | C      | `Specimen`                                      | `/lab/collection` **a criar** | 🔴 falta | `lab_staff`, `nurse`                   |
+| Resultado             | D      | `DiagnosticReport` + `Observation` (laboratory) | `/lab/results` **a criar**    | 🔴 falta | `lab_staff`, `medical_staff_attending` |
 
 #### 2.6 Radiologia / Imagem
 
-| Item | Classe | FHIR | Rota | Status | Papéis |
-|---|---|---|---|---|---|
-| Solicitação de exame | D | `ServiceRequest.category=imaging` | `/imaging/orders` **a criar** | 🔴 falta | `imaging_staff`, `medical_staff_attending` |
-| Protocolo de exame | C | `ImagingStudy` | `/imaging/studies` **a criar** | 🔴 falta | `imaging_staff` |
-| Laudo | D | `DiagnosticReport` (imaging) | `/imaging/results` **a criar** | 🔴 falta | `imaging_staff`, `medical_staff_attending` |
+| Item                 | Classe | FHIR                              | Rota                           | Status   | Papéis                                     |
+| -------------------- | ------ | --------------------------------- | ------------------------------ | -------- | ------------------------------------------ |
+| Solicitação de exame | D      | `ServiceRequest.category=imaging` | `/imaging/orders` **a criar**  | 🔴 falta | `imaging_staff`, `medical_staff_attending` |
+| Protocolo de exame   | C      | `ImagingStudy`                    | `/imaging/studies` **a criar** | 🔴 falta | `imaging_staff`                            |
+| Laudo                | D      | `DiagnosticReport` (imaging)      | `/imaging/results` **a criar** | 🔴 falta | `imaging_staff`, `medical_staff_attending` |
 
 #### 2.7 Centro Cirúrgico
 
-| Item | Classe | FHIR | Rota | Status | Papéis |
-|---|---|---|---|---|---|
-| Agendamento cirúrgico | B | `Appointment` + `Procedure` (status=preparation) | `/surgery` | ✅ existe (mock) | `medical_staff_attending`, `case_manager` |
-| Checklists (ANVISA RDC 36/2013) | C | `QuestionnaireResponse` | `/surgery/[id]/checklist` **a criar** | 🔴 falta | `medical_staff_attending`, `nurse` |
-| Procedimentos realizados | D | `Procedure` | `/surgery/[id]/procedure` **a criar** | 🔴 falta | `medical_staff_attending` |
+| Item                            | Classe | FHIR                                             | Rota                                  | Status           | Papéis                                    |
+| ------------------------------- | ------ | ------------------------------------------------ | ------------------------------------- | ---------------- | ----------------------------------------- |
+| Agendamento cirúrgico           | B      | `Appointment` + `Procedure` (status=preparation) | `/surgery`                            | ✅ existe (mock) | `medical_staff_attending`, `case_manager` |
+| Checklists (ANVISA RDC 36/2013) | C      | `QuestionnaireResponse`                          | `/surgery/[id]/checklist` **a criar** | 🔴 falta         | `medical_staff_attending`, `nurse`        |
+| Procedimentos realizados        | D      | `Procedure`                                      | `/surgery/[id]/procedure` **a criar** | 🔴 falta         | `medical_staff_attending`                 |
 
 #### 2.8 UTI
 
-| Item | Classe | FHIR | Rota | Status | Papéis |
-|---|---|---|---|---|---|
-| Monitoramento contínuo (NEWS2, sinais) | C | `Observation` (vital-signs) + `DeviceUseStatement` | `/icu` + `/patients/[id]` | ✅ existe | `medical_staff_attending`, `nurse` |
-| Ventilação mecânica | D | `Device` + `Observation` (respiratory-support) | `/icu/[bedId]/ventilator` **a criar** | 🔴 falta | `medical_staff_attending`, `nurse`, `physiotherapist` |
-| Protocolos críticos (sepse, PCR) | D | `CarePlan` + `Protocol` | `/icu/[bedId]/protocol` **a criar** | 🔴 falta | `medical_staff_attending`, `nurse` |
+| Item                                   | Classe | FHIR                                               | Rota                                  | Status    | Papéis                                                |
+| -------------------------------------- | ------ | -------------------------------------------------- | ------------------------------------- | --------- | ----------------------------------------------------- |
+| Monitoramento contínuo (NEWS2, sinais) | C      | `Observation` (vital-signs) + `DeviceUseStatement` | `/icu` + `/patients/[id]`             | ✅ existe | `medical_staff_attending`, `nurse`                    |
+| Ventilação mecânica                    | D      | `Device` + `Observation` (respiratory-support)     | `/icu/[bedId]/ventilator` **a criar** | 🔴 falta  | `medical_staff_attending`, `nurse`, `physiotherapist` |
+| Protocolos críticos (sepse, PCR)       | D      | `CarePlan` + `Protocol`                            | `/icu/[bedId]/protocol` **a criar**   | 🔴 falta  | `medical_staff_attending`, `nurse`                    |
 
 #### 2.9 Limpeza / Higienização (ANVISA RDC 63/2011)
 
-| Item | Classe | FHIR | Rota | Status | Papéis |
-|---|---|---|---|---|---|
-| Tipo de área | A | `Location.physicalType` | `/beds` filter por status | ✅ existe | `cleaning_hygiene`, `bed_management` |
-| Frequência e risco | A | `Schedule` + `PractitionerRole` | `/cleaning/schedule` **a criar** | 🔴 falta | `cleaning_hygiene` |
-| Checklist de liberação | A | `QuestionnaireResponse` | `/beds/[bed]/cleaning-checklist` **a criar** | 🔴 falta | `cleaning_hygiene` |
+| Item                   | Classe | FHIR                            | Rota                                         | Status    | Papéis                               |
+| ---------------------- | ------ | ------------------------------- | -------------------------------------------- | --------- | ------------------------------------ |
+| Tipo de área           | A      | `Location.physicalType`         | `/beds` filter por status                    | ✅ existe | `cleaning_hygiene`, `bed_management` |
+| Frequência e risco     | A      | `Schedule` + `PractitionerRole` | `/cleaning/schedule` **a criar**             | 🔴 falta  | `cleaning_hygiene`                   |
+| Checklist de liberação | A      | `QuestionnaireResponse`         | `/beds/[bed]/cleaning-checklist` **a criar** | 🔴 falta  | `cleaning_hygiene`                   |
 
 #### 2.10 Transporte / Ambulância
 
-| Item | Classe | FHIR | Rota | Status | Papéis |
-|---|---|---|---|---|---|
-| Origem e destino | B | `Task` (transport) + `Location` (from/to) | `/ems` | ✅ existe (mock) | `ambulance_driver`, `patient_transporter` |
-| Prioridade | A/B | `Task.priority` | `/ems` | ✅ existe | mesmo |
-| Condição do paciente | C | `Observation` (triagem) | `/ems/[id]/triage` **a criar** | 🔴 falta | `ambulance_driver`, `medical_staff_on_call` |
-| Status da remoção | A | `Task.status` | `/ems` | ✅ existe | mesmo |
+| Item                 | Classe | FHIR                                      | Rota                           | Status           | Papéis                                      |
+| -------------------- | ------ | ----------------------------------------- | ------------------------------ | ---------------- | ------------------------------------------- |
+| Origem e destino     | B      | `Task` (transport) + `Location` (from/to) | `/ems`                         | ✅ existe (mock) | `ambulance_driver`, `patient_transporter`   |
+| Prioridade           | A/B    | `Task.priority`                           | `/ems`                         | ✅ existe        | mesmo                                       |
+| Condição do paciente | C      | `Observation` (triagem)                   | `/ems/[id]/triage` **a criar** | 🔴 falta         | `ambulance_driver`, `medical_staff_on_call` |
+| Status da remoção    | A      | `Task.status`                             | `/ems`                         | ✅ existe        | mesmo                                       |
 
 ### 3. Especialidades médicas e exames
 
@@ -175,33 +175,33 @@ valores em `code`/`category` e filtros sobre as rotas genéricas
 Isso atende ao princípio de **não criar rotas redundantes** do
 `duplication-gate`.
 
-| Especialidade | Exames (FHIR code system LOINC / SNOMED CT) |
-|---|---|
-| Cardiologia | ECG (LOINC 11524-6), Ecocardiograma (LOINC 18745-0), Teste ergométrico (LOINC 28583-1), Cateterismo (SNOMED 41976001) |
-| Neurologia | TC (LOINC 30799-1), RM (LOINC 24727-0), EEG (LOINC 11523-8), Punção lombar (SNOMED 277762005) |
-| Ortopedia | Raio-X (LOINC 36554-4), TC, RM |
-| Pneumologia | Espirometria (LOINC 19868-9), Gasometria (LOINC 2744-1), Rx tórax (LOINC 30746-2) |
-| Gastroenterologia | Endoscopia (SNOMED 71880005), Colonoscopia (SNOMED 73761001) |
-| Nefrologia | Creatinina (LOINC 2160-0), Ureia (LOINC 3094-0), Urina tipo 1 (LOINC 24357-6) |
-| Infectologia | Hemocultura (LOINC 600-7), Sorologias (LOINC 5199-7, 5193-6, etc.) |
+| Especialidade     | Exames (FHIR code system LOINC / SNOMED CT)                                                                           |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Cardiologia       | ECG (LOINC 11524-6), Ecocardiograma (LOINC 18745-0), Teste ergométrico (LOINC 28583-1), Cateterismo (SNOMED 41976001) |
+| Neurologia        | TC (LOINC 30799-1), RM (LOINC 24727-0), EEG (LOINC 11523-8), Punção lombar (SNOMED 277762005)                         |
+| Ortopedia         | Raio-X (LOINC 36554-4), TC, RM                                                                                        |
+| Pneumologia       | Espirometria (LOINC 19868-9), Gasometria (LOINC 2744-1), Rx tórax (LOINC 30746-2)                                     |
+| Gastroenterologia | Endoscopia (SNOMED 71880005), Colonoscopia (SNOMED 73761001)                                                          |
+| Nefrologia        | Creatinina (LOINC 2160-0), Ureia (LOINC 3094-0), Urina tipo 1 (LOINC 24357-6)                                         |
+| Infectologia      | Hemocultura (LOINC 600-7), Sorologias (LOINC 5199-7, 5193-6, etc.)                                                    |
 
 ### 4. Módulos do sistema
 
-| Módulo | Rota | Status atual | Gate que cobre |
-|---|---|---|---|
-| Cadastro de pacientes | `/patients`, `/patients/new`, `/patients/[id]` | ✅ | contrast + duplication + visual |
-| Prontuário eletrônico | `/patients/[id]` (abas) | ✅ parcial | contrast + visual |
-| Prescrição médica | `/prescriptions/new` | 🔴 | — |
-| Gestão de exames | `/lab/*`, `/imaging/*` | 🔴 | — |
-| Gestão de leitos | `/beds` | ✅ | contrast + visual |
-| Controle de infecção (CCIH) | `/infection-control` | 🔴 | — |
-| Auditoria e logs | `/audit`, `/activity` | ✅ | contrast + visual |
-| Painel operacional em tempo real | `/`, `/staff-on-duty`, `/alerts` | ✅ | contrast + visual |
-| Cadastro de funcionários | `/employees` | ✅ (scaffold — detalhe 🔴) | contrast + visual |
-| Fornecedores e terceiros | `/suppliers` | ✅ (scaffold — detalhe 🔴) | contrast + visual |
-| Configurações do sistema | `/system`, `/system/services/[id]` | ✅ | contrast + visual |
-| Painel de cron jobs do agente | `/cron` | ✅ | contrast + visual |
-| Frota multi-agente autônoma | `/agents` | ✅ | contrast + visual |
+| Módulo                           | Rota                                           | Status atual               | Gate que cobre                  |
+| -------------------------------- | ---------------------------------------------- | -------------------------- | ------------------------------- |
+| Cadastro de pacientes            | `/patients`, `/patients/new`, `/patients/[id]` | ✅                         | contrast + duplication + visual |
+| Prontuário eletrônico            | `/patients/[id]` (abas)                        | ✅ parcial                 | contrast + visual               |
+| Prescrição médica                | `/prescriptions/new`                           | 🔴                         | —                               |
+| Gestão de exames                 | `/lab/*`, `/imaging/*`                         | 🔴                         | —                               |
+| Gestão de leitos                 | `/beds`                                        | ✅                         | contrast + visual               |
+| Controle de infecção (CCIH)      | `/infection-control`                           | 🔴                         | —                               |
+| Auditoria e logs                 | `/audit`, `/activity`                          | ✅                         | contrast + visual               |
+| Painel operacional em tempo real | `/`, `/staff-on-duty`, `/alerts`               | ✅                         | contrast + visual               |
+| Cadastro de funcionários         | `/employees`                                   | ✅ (scaffold — detalhe 🔴) | contrast + visual               |
+| Fornecedores e terceiros         | `/suppliers`                                   | ✅ (scaffold — detalhe 🔴) | contrast + visual               |
+| Configurações do sistema         | `/system`, `/system/services/[id]`             | ✅                         | contrast + visual               |
+| Painel de cron jobs do agente    | `/cron`                                        | ✅                         | contrast + visual               |
+| Frota multi-agente autônoma      | `/agents`                                      | ✅                         | contrast + visual               |
 
 ### 5. Fluxo hospitalar (FHIR `Encounter` lifecycle)
 
@@ -221,16 +221,16 @@ e altas que bloqueiam viram `Task` em `/discharge`.
 
 ### 6. Requisitos importantes (já cobertos)
 
-| Requisito do mapa | Como está sendo atendido |
-|---|---|
-| Dados centralizados | `apps/web/src/lib/fixtures/{patients,staff,suppliers}.ts` hoje; Medplum FHIR em produção |
-| Atualização em tempo real | NATS JetStream (subjects `clinical.*`), FHIR Subscriptions via Medplum Bots |
-| Controle de acesso por perfil | `lib/access-control.ts` RBAC + ABAC + ReBAC (29 roles, 5 classes de dado) |
-| Auditoria completa | `lib/audit-logger.ts` hash-chain SHA-256, rota `/audit`, PVC `/data/velya-audit` |
-| Integração entre setores | Eventos NATS por subject `{domain}.{entity}.{event}` + Temporal para fluxos longos |
-| UI acessível | `contrast-gate` com `VELYA_MAX_CONTRAST_NODES=0`, `visual-and-accessibility` com axe-core WCAG 2.2 AA |
-| Sem duplicações | `duplication-gate`: URLs externas, MRNs, títulos de página |
-| Compliance brasileiro | Seção "Contexto regulatório" acima + ADRs pendentes em `docs/architecture/decisions/` |
+| Requisito do mapa             | Como está sendo atendido                                                                              |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Dados centralizados           | `apps/web/src/lib/fixtures/{patients,staff,suppliers}.ts` hoje; Medplum FHIR em produção              |
+| Atualização em tempo real     | NATS JetStream (subjects `clinical.*`), FHIR Subscriptions via Medplum Bots                           |
+| Controle de acesso por perfil | `lib/access-control.ts` RBAC + ABAC + ReBAC (29 roles, 5 classes de dado)                             |
+| Auditoria completa            | `lib/audit-logger.ts` hash-chain SHA-256, rota `/audit`, PVC `/data/velya-audit`                      |
+| Integração entre setores      | Eventos NATS por subject `{domain}.{entity}.{event}` + Temporal para fluxos longos                    |
+| UI acessível                  | `contrast-gate` com `VELYA_MAX_CONTRAST_NODES=0`, `visual-and-accessibility` com axe-core WCAG 2.2 AA |
+| Sem duplicações               | `duplication-gate`: URLs externas, MRNs, títulos de página                                            |
+| Compliance brasileiro         | Seção "Contexto regulatório" acima + ADRs pendentes em `docs/architecture/decisions/`                 |
 
 ## Backlog priorizado pelos gates
 
@@ -242,7 +242,7 @@ central). Só depois vamos para módulos novos.
 ### P0 — consolida o que já existe (destrava `duplication-gate`)
 
 1. Migrar `/patients`, `/tasks`, `/discharge`, `/` para importar de
-   `lib/fixtures/patients.ts` (eliminar as 44 duplicações MRN-* que o
+   `lib/fixtures/patients.ts` (eliminar as 44 duplicações MRN-\* que o
    `check-ui-duplications.ts` reporta hoje).
 2. Migrar `/beds`, `/surgery`, `/icu`, `/pharmacy`, `/ems` para
    importar dos fixtures centralizados (mesmo motivo).
@@ -285,36 +285,36 @@ para o estado atual da plataforma e o `module-manifest.ts` em
 mapa (todo módulo tem rota, fixture, coluna, filtro, papéis, FHIR e
 regulação vinculada no manifest).
 
-| # | Macrodomínio | Rotas atuais | Fixture | FHIR | Classe | Status |
-|---|---|---|---|---|---|---|
-| 1 | CRM e pré-hospitalar | `/` (comando), `/patients` | `patients.ts` | `Patient`, `Appointment` | B | ✅ básico · 🔴 tele/homecare falta |
-| 2 | Acesso / check-in / admissão | `/patients/new`, `/patients/[id]` | `patient-cockpits.ts` | `Encounter.status=arrived` | B/C | ✅ |
-| 3 | Emergência e classificação de risco | `/ems`, `/alerts` | `ems.ts`, `alerts.ts` | `Encounter.class=EMER` + triage `Observation` | C | ✅ básico |
-| 4 | Ambulatório e consultas | `/patients`, `/tasks` | `patients-list.ts`, `tasks.ts` | `Appointment`, `Encounter` | B/C | ✅ básico |
-| 5 | Internação / leitos | `/beds`, `/discharge` | `beds.ts`, `discharge.ts` | `Encounter.location[]` | A/B | ✅ |
-| 6 | UTI e áreas críticas | `/icu` | `icu.ts` | `Encounter.class=IMP` + `Device` | C/D | ✅ |
-| 7 | Centro cirúrgico | `/surgery` | `surgeries.ts` | `Appointment`, `Procedure` | C/D | ✅ básico · 🔴 checklist falta |
-| 8 | Enfermagem multiprofissional | `/tasks`, `/staff-on-duty` | `tasks.ts`, `staff.ts` | `CarePlan`, `Task` | C | ✅ básico |
-| 9 | **Diagnóstico — laboratório** | `/lab/orders`, `/lab/results` | `lab-orders.ts`, `lab-results.ts` | `ServiceRequest`, `DiagnosticReport`, `Observation` | D | ✅ **novo** |
-| 9 | **Diagnóstico — imagem** | `/imaging/orders`, `/imaging/results` | `imaging-orders.ts`, `imaging-results.ts` | `ServiceRequest`, `ImagingStudy`, `DiagnosticReport` | D | ✅ **novo** |
-| 10 | **Farmácia clínica e logística** | `/pharmacy`, `/pharmacy/stock`, `/prescriptions` | `pharmacy.ts`, `pharmacy-stock.ts`, `prescriptions.ts` | `MedicationRequest`, `Medication`, `SupplyDelivery` | A/D | ✅ **novo** |
-| 11 | Banco de sangue e hemoterapia | — | — | `BiologicallyDerivedProduct` | C/D | 🔴 falta (P2) |
-| 12 | **Nutrição clínica** | `/meals/orders` | `meal-orders.ts` | `NutritionOrder` | C | ✅ **novo** |
-| 13 | **Higienização e hotelaria** | `/cleaning/tasks` | `cleaning-tasks.ts` | `Task (housekeeping)` | A | ✅ **novo** |
-| 14 | **Transporte interno / externo** | `/transport/orders`, `/ems` | `transport-orders.ts`, `ems.ts` | `Task (transport)` | B | ✅ **novo** |
-| 15 | **Resíduos e biossegurança (RSS)** | `/waste/manifests` | `waste-manifests.ts` | `Task (waste-management)` | A | ✅ **novo** (ANVISA RDC 222/2018) |
-| 16 | **Engenharia clínica e ativos** | `/assets`, `/facility/work-orders` | `assets.ts`, `work-orders.ts` | `Device`, `Task (maintenance)` | A | ✅ **novo** |
-| 17 | Infraestrutura predial / utilidades | `/facility/work-orders` | `work-orders.ts` | `Task (maintenance)` | A | ✅ básico |
-| 18 | **Compras / almoxarifado / supply chain** | `/supply/items`, `/supply/purchase-orders` | `supply-items.ts`, `purchase-orders.ts` | `SupplyRequest`, `Medication`, `Device` | A/B | ✅ **novo** |
-| 19 | Contratos / fornecedores / terceiros | `/suppliers` (CRUD), `/suppliers/[id]` | `suppliers.ts` | vendor contract domain | B | ✅ |
-| 20 | **Financeiro / faturamento / glosas** | `/billing/charges`, `/billing/claims`, `/billing/denials` | `charges.ts`, `claims.ts`, `denials.ts` | `ChargeItem`, `Claim`, `ClaimResponse` | B | ✅ **novo** (TISS ANS 305/2012) |
-| 21 | **Qualidade / segurança do paciente** | `/quality/incidents` | `incidents.ts` | `AdverseEvent` | D | ✅ **novo** |
-| 22 | RH / escalas / credenciais | `/employees`, `/employees/[id]`, `/governance/credentials` | `staff.ts`, `credentials.ts` | `Practitioner`, `PractitionerRole`, `Qualification` | B | ✅ |
-| 23 | TI / integrações / seg. informação | `/system`, `/activity` | `agent-activity.ts` | system domain | A/B | ✅ básico |
-| 24 | Pesquisa / ensino / comitês | — | — | `ResearchStudy` | C/D | 🔴 falta (P3) |
-| 25 | Alta e desospitalização | `/discharge` | `discharge.ts` | `Encounter.status=finished`, `CarePlan` | B/C | ✅ básico |
-| — | **Trilha de auditoria imutável** | `/audit`, `/governance/audit-events` | `audit-events.ts` | `AuditEvent` | B | ✅ **novo** (LGPD Art. 37 + SBIS NGS2) |
-| — | **Consentimentos LGPD** | `/governance/consent-forms` | `consent-forms.ts` | `Consent` | B | ✅ **novo** |
+| #   | Macrodomínio                              | Rotas atuais                                               | Fixture                                                | FHIR                                                 | Classe | Status                                 |
+| --- | ----------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------- | ------ | -------------------------------------- |
+| 1   | CRM e pré-hospitalar                      | `/` (comando), `/patients`                                 | `patients.ts`                                          | `Patient`, `Appointment`                             | B      | ✅ básico · 🔴 tele/homecare falta     |
+| 2   | Acesso / check-in / admissão              | `/patients/new`, `/patients/[id]`                          | `patient-cockpits.ts`                                  | `Encounter.status=arrived`                           | B/C    | ✅                                     |
+| 3   | Emergência e classificação de risco       | `/ems`, `/alerts`                                          | `ems.ts`, `alerts.ts`                                  | `Encounter.class=EMER` + triage `Observation`        | C      | ✅ básico                              |
+| 4   | Ambulatório e consultas                   | `/patients`, `/tasks`                                      | `patients-list.ts`, `tasks.ts`                         | `Appointment`, `Encounter`                           | B/C    | ✅ básico                              |
+| 5   | Internação / leitos                       | `/beds`, `/discharge`                                      | `beds.ts`, `discharge.ts`                              | `Encounter.location[]`                               | A/B    | ✅                                     |
+| 6   | UTI e áreas críticas                      | `/icu`                                                     | `icu.ts`                                               | `Encounter.class=IMP` + `Device`                     | C/D    | ✅                                     |
+| 7   | Centro cirúrgico                          | `/surgery`                                                 | `surgeries.ts`                                         | `Appointment`, `Procedure`                           | C/D    | ✅ básico · 🔴 checklist falta         |
+| 8   | Enfermagem multiprofissional              | `/tasks`, `/staff-on-duty`                                 | `tasks.ts`, `staff.ts`                                 | `CarePlan`, `Task`                                   | C      | ✅ básico                              |
+| 9   | **Diagnóstico — laboratório**             | `/lab/orders`, `/lab/results`                              | `lab-orders.ts`, `lab-results.ts`                      | `ServiceRequest`, `DiagnosticReport`, `Observation`  | D      | ✅ **novo**                            |
+| 9   | **Diagnóstico — imagem**                  | `/imaging/orders`, `/imaging/results`                      | `imaging-orders.ts`, `imaging-results.ts`              | `ServiceRequest`, `ImagingStudy`, `DiagnosticReport` | D      | ✅ **novo**                            |
+| 10  | **Farmácia clínica e logística**          | `/pharmacy`, `/pharmacy/stock`, `/prescriptions`           | `pharmacy.ts`, `pharmacy-stock.ts`, `prescriptions.ts` | `MedicationRequest`, `Medication`, `SupplyDelivery`  | A/D    | ✅ **novo**                            |
+| 11  | Banco de sangue e hemoterapia             | —                                                          | —                                                      | `BiologicallyDerivedProduct`                         | C/D    | 🔴 falta (P2)                          |
+| 12  | **Nutrição clínica**                      | `/meals/orders`                                            | `meal-orders.ts`                                       | `NutritionOrder`                                     | C      | ✅ **novo**                            |
+| 13  | **Higienização e hotelaria**              | `/cleaning/tasks`                                          | `cleaning-tasks.ts`                                    | `Task (housekeeping)`                                | A      | ✅ **novo**                            |
+| 14  | **Transporte interno / externo**          | `/transport/orders`, `/ems`                                | `transport-orders.ts`, `ems.ts`                        | `Task (transport)`                                   | B      | ✅ **novo**                            |
+| 15  | **Resíduos e biossegurança (RSS)**        | `/waste/manifests`                                         | `waste-manifests.ts`                                   | `Task (waste-management)`                            | A      | ✅ **novo** (ANVISA RDC 222/2018)      |
+| 16  | **Engenharia clínica e ativos**           | `/assets`, `/facility/work-orders`                         | `assets.ts`, `work-orders.ts`                          | `Device`, `Task (maintenance)`                       | A      | ✅ **novo**                            |
+| 17  | Infraestrutura predial / utilidades       | `/facility/work-orders`                                    | `work-orders.ts`                                       | `Task (maintenance)`                                 | A      | ✅ básico                              |
+| 18  | **Compras / almoxarifado / supply chain** | `/supply/items`, `/supply/purchase-orders`                 | `supply-items.ts`, `purchase-orders.ts`                | `SupplyRequest`, `Medication`, `Device`              | A/B    | ✅ **novo**                            |
+| 19  | Contratos / fornecedores / terceiros      | `/suppliers` (CRUD), `/suppliers/[id]`                     | `suppliers.ts`                                         | vendor contract domain                               | B      | ✅                                     |
+| 20  | **Financeiro / faturamento / glosas**     | `/billing/charges`, `/billing/claims`, `/billing/denials`  | `charges.ts`, `claims.ts`, `denials.ts`                | `ChargeItem`, `Claim`, `ClaimResponse`               | B      | ✅ **novo** (TISS ANS 305/2012)        |
+| 21  | **Qualidade / segurança do paciente**     | `/quality/incidents`                                       | `incidents.ts`                                         | `AdverseEvent`                                       | D      | ✅ **novo**                            |
+| 22  | RH / escalas / credenciais                | `/employees`, `/employees/[id]`, `/governance/credentials` | `staff.ts`, `credentials.ts`                           | `Practitioner`, `PractitionerRole`, `Qualification`  | B      | ✅                                     |
+| 23  | TI / integrações / seg. informação        | `/system`, `/activity`                                     | `agent-activity.ts`                                    | system domain                                        | A/B    | ✅ básico                              |
+| 24  | Pesquisa / ensino / comitês               | —                                                          | —                                                      | `ResearchStudy`                                      | C/D    | 🔴 falta (P3)                          |
+| 25  | Alta e desospitalização                   | `/discharge`                                               | `discharge.ts`                                         | `Encounter.status=finished`, `CarePlan`              | B/C    | ✅ básico                              |
+| —   | **Trilha de auditoria imutável**          | `/audit`, `/governance/audit-events`                       | `audit-events.ts`                                      | `AuditEvent`                                         | B      | ✅ **novo** (LGPD Art. 37 + SBIS NGS2) |
+| —   | **Consentimentos LGPD**                   | `/governance/consent-forms`                                | `consent-forms.ts`                                     | `Consent`                                            | B      | ✅ **novo**                            |
 
 **Legenda**: ✅ = existe na plataforma · 🟡 = scaffold · 🔴 = não existe ainda.
 
@@ -340,8 +340,8 @@ chama `<ModuleListView moduleId="..." data={FIXTURE} />`.
    ```
 4. Adicionar item em `navigation.tsx` → `NAV_ITEMS`.
 5. Rodar `npx tsc --noEmit` + `npx tsx scripts/check-ui-duplications.ts`
-   + `npx tsx scripts/audit-contrast-all-pages.ts`. Todos os gates
-   devem continuar verdes.
+   - `npx tsx scripts/audit-contrast-all-pages.ts`. Todos os gates
+     devem continuar verdes.
 
 ## Regras de mudança neste documento
 

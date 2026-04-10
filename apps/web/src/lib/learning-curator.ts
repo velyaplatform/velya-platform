@@ -30,12 +30,7 @@
  *   qualifiesForPromotion === true  ⇔  occurrences >= 5 AND confidence > 0.7
  */
 
-import {
-  listFindings,
-  recordLearning,
-  type CronFinding,
-  type Severity,
-} from './cron-store';
+import { listFindings, recordLearning, type CronFinding, type Severity } from './cron-store';
 
 export interface LearningPattern {
   patternId: string;

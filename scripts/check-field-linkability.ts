@@ -137,9 +137,7 @@ function main(): void {
 
   console.error(`✗ ${violations.length} coluna(s) de referência sem linkTo:\n`);
   for (const v of violations) {
-    console.error(
-      `  ${v.moduleId}.${v.columnKey}  →  module-manifest.ts:${v.line}`,
-    );
+    console.error(`  ${v.moduleId}.${v.columnKey}  →  module-manifest.ts:${v.line}`);
   }
   console.error('');
   console.error('Política: campos terminando em Mrn / Id / Ref e referências a');

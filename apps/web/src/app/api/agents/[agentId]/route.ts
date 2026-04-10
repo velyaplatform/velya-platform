@@ -8,7 +8,15 @@ interface RouteCtx {
   params: Promise<{ agentId: string }>;
 }
 
-const STAGES: LifecycleStage[] = ['draft', 'sandbox', 'shadow', 'probation', 'active', 'deprecated', 'retired'];
+const STAGES: LifecycleStage[] = [
+  'draft',
+  'sandbox',
+  'shadow',
+  'probation',
+  'active',
+  'deprecated',
+  'retired',
+];
 
 export async function GET(_request: NextRequest, ctx: RouteCtx) {
   const session = await getSessionFromRequest();

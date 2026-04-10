@@ -181,7 +181,9 @@ const auditChain: Runner = async (ctx) => {
     return 1;
   }
   try {
-    const files = readdirSync(auditDir).filter((f) => f.endsWith('.jsonl')).sort();
+    const files = readdirSync(auditDir)
+      .filter((f) => f.endsWith('.jsonl'))
+      .sort();
     if (files.length === 0) {
       // empty audit — skip
       return 0;

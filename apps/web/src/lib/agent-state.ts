@@ -20,15 +20,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname } from 'path';
 import { audit } from './audit-logger';
-import {
-  AGENTS,
-  type AgentDef,
-  type LifecycleStage,
-  type AgentScorecard,
-} from './agent-runtime';
+import { AGENTS, type AgentDef, type LifecycleStage, type AgentScorecard } from './agent-runtime';
 
-const STORAGE_PATH =
-  process.env.VELYA_AGENT_STATE_PATH || '/data/velya-cron/agent-state.json';
+const STORAGE_PATH = process.env.VELYA_AGENT_STATE_PATH || '/data/velya-cron/agent-state.json';
 
 interface AgentState {
   agentId: string;
@@ -141,7 +135,8 @@ export function recordAgentRun(
   // Exponentially weighted update — α = 0.2 keeps history without being slow
   const ALPHA = 0.2;
   const success = outcome.success ? 1 : 0;
-  cur.scorecard.validationPassRate = (1 - ALPHA) * cur.scorecard.validationPassRate + ALPHA * success;
+  cur.scorecard.validationPassRate =
+    (1 - ALPHA) * cur.scorecard.validationPassRate + ALPHA * success;
   cur.scorecard.auditPassRate = (1 - ALPHA) * cur.scorecard.auditPassRate + ALPHA * success;
   cur.scorecard.evidenceCompleteness =
     (1 - ALPHA) * cur.scorecard.evidenceCompleteness + ALPHA * (outcome.evidenceComplete ? 1 : 0);

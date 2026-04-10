@@ -143,9 +143,8 @@ export default function AgentsPage() {
   }
 
   const offices = data?.topology ?? [];
-  const visibleOffices = selectedOffice === 'all'
-    ? offices
-    : offices.filter((o) => o.office === selectedOffice);
+  const visibleOffices =
+    selectedOffice === 'all' ? offices : offices.filter((o) => o.office === selectedOffice);
 
   // Aggregate KPIs
   const allAgents = data?.agents ?? [];
@@ -174,14 +173,22 @@ export default function AgentsPage() {
       </div>
 
       {error && (
-        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3 mb-4 text-sm">
+        <div
+          role="alert"
+          className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3 mb-4 text-sm"
+        >
           {error}
         </div>
       )}
 
       {/* KPIs grandes — pouco texto, muito impacto */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <KpiCard label="Total" value={String(totalAgents)} tone="neutral" hint="agentes registrados" />
+        <KpiCard
+          label="Total"
+          value={String(totalAgents)}
+          tone="neutral"
+          hint="agentes registrados"
+        />
         <KpiCard label="Ativos" value={String(activeCount)} tone="ok" hint="executando autônomo" />
         <KpiCard label="Shadow" value={String(shadowCount)} tone="watch" hint="só recomendam" />
         <KpiCard
@@ -236,9 +243,7 @@ export default function AgentsPage() {
                   key={agent.id}
                   agent={agent}
                   busy={busyId === agent.id}
-                  onPromote={(stage) =>
-                    patchAgent(agent.id, { action: 'promote', stage })
-                  }
+                  onPromote={(stage) => patchAgent(agent.id, { action: 'promote', stage })}
                   onQuarantine={() =>
                     patchAgent(agent.id, {
                       action: 'quarantine',
@@ -349,9 +354,7 @@ function AgentCard({
       <header className="flex items-start justify-between gap-2 mb-2">
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-bold text-slate-100 truncate">{agent.fullName}</h3>
-          <p className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5">
-            {agent.role}
-          </p>
+          <p className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5">{agent.role}</p>
         </div>
         <span
           className={`text-[10px] font-bold px-2 py-1 rounded-full border ${STAGE_COLOR[stage] ?? STAGE_COLOR.draft}`}
@@ -430,7 +433,8 @@ function AgentCard({
       </div>
 
       <p className="text-[10px] text-slate-500 mt-2">
-        Kill-switch: <code className="bg-slate-900 px-1 rounded text-slate-300">{agent.killSwitchEnv}</code>
+        Kill-switch:{' '}
+        <code className="bg-slate-900 px-1 rounded text-slate-300">{agent.killSwitchEnv}</code>
       </p>
     </article>
   );
@@ -443,7 +447,13 @@ function ScoreRow({ label, value }: { label: string; value: number }) {
       <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">
         <div
           className={`h-full ${
-            value >= 0.9 ? 'bg-green-500' : value >= 0.75 ? 'bg-blue-500' : value >= 0.6 ? 'bg-amber-500' : 'bg-red-500'
+            value >= 0.9
+              ? 'bg-green-500'
+              : value >= 0.75
+                ? 'bg-blue-500'
+                : value >= 0.6
+                  ? 'bg-amber-500'
+                  : 'bg-red-500'
           }`}
           style={{ width: `${Math.max(0, Math.min(100, value * 100))}%` }}
         />

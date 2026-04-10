@@ -20,15 +20,16 @@
 
 import type { Severity } from './cron-store';
 
-export type LifecycleStage = 'draft' | 'sandbox' | 'shadow' | 'probation' | 'active' | 'deprecated' | 'retired';
+export type LifecycleStage =
+  | 'draft'
+  | 'sandbox'
+  | 'shadow'
+  | 'probation'
+  | 'active'
+  | 'deprecated'
+  | 'retired';
 
-export type AgentOffice =
-  | 'quality'
-  | 'security'
-  | 'data'
-  | 'ux'
-  | 'learning'
-  | 'observability';
+export type AgentOffice = 'quality' | 'security' | 'data' | 'ux' | 'learning' | 'observability';
 
 export type AgentRole =
   | 'manager'
@@ -48,9 +49,9 @@ export type ActionRiskClass = 'safe' | 'review' | 'critical';
 
 export interface AgentScorecard {
   validationPassRate: number; // 0..1
-  auditPassRate: number;      // 0..1
+  auditPassRate: number; // 0..1
   evidenceCompleteness: number; // 0..1
-  slaAdherence: number;       // 0..1
+  slaAdherence: number; // 0..1
   correctionRecurrence: number; // 0..1 — lower is better
   /** Last calculation timestamp */
   updatedAt: string;
@@ -148,9 +149,7 @@ export const AGENTS: AgentDef[] = [
     charter:
       'Verifica contrato das /api/* (status code esperado, JSON parseável). Para falhas transientes, marca o endpoint como flaky e abre learning; falhas persistentes viram finding alto.',
     ownedJobIds: ['backend.api-contract'],
-    allowedActions: [
-      { type: 'flag-flaky-endpoint', riskClass: 'safe' },
-    ],
+    allowedActions: [{ type: 'flag-flaky-endpoint', riskClass: 'safe' }],
     lifecycleStage: 'shadow',
     validatorIds: ['security-auditor-agent'],
     auditorId: 'observability-watchdog-agent',
@@ -190,9 +189,7 @@ export const AGENTS: AgentDef[] = [
     charter:
       'Auditor independente do data office. Verifica que toda ação tomada pelo data-integrity-doctor tem evidência completa, traceId e foi confirmada por um validator antes de executar.',
     ownedJobIds: [],
-    allowedActions: [
-      { type: 'reject-action-no-evidence', riskClass: 'safe' },
-    ],
+    allowedActions: [{ type: 'reject-action-no-evidence', riskClass: 'safe' }],
     lifecycleStage: 'shadow',
     validatorIds: ['security-auditor-agent'],
     auditorId: 'observability-watchdog-agent',
@@ -210,7 +207,11 @@ export const AGENTS: AgentDef[] = [
     role: 'doctor',
     charter:
       'Verifica headers de segurança, sanidade do rate limiter, cobertura da matriz de permissões. Não modifica middleware automaticamente — qualquer mudança em policy é classe critical.',
-    ownedJobIds: ['security.headers-check', 'security.permission-matrix', 'backend.rate-limit-sanity'],
+    ownedJobIds: [
+      'security.headers-check',
+      'security.permission-matrix',
+      'backend.rate-limit-sanity',
+    ],
     allowedActions: [
       { type: 'log-security-finding', riskClass: 'safe' },
       { type: 'modify-middleware', riskClass: 'critical' },
@@ -231,9 +232,7 @@ export const AGENTS: AgentDef[] = [
     charter:
       'Auditor independente do security office. Garante que toda ação proposta pelos doctors tem revisor humano para classes review/critical e que kill-switches funcionam.',
     ownedJobIds: [],
-    allowedActions: [
-      { type: 'block-unsafe-action', riskClass: 'safe' },
-    ],
+    allowedActions: [{ type: 'block-unsafe-action', riskClass: 'safe' }],
     lifecycleStage: 'shadow',
     validatorIds: ['quality-manager-agent'],
     auditorId: 'observability-watchdog-agent',

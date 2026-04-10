@@ -100,7 +100,11 @@ export async function POST(request: NextRequest) {
     if (!tool) {
       return NextResponse.json({ error: `Ferramenta ${body.toolId} não existe` }, { status: 404 });
     }
-    if (tool.requiredRole === 'admin' && !isAdminEmail(session.email) && session.professionalRole !== 'admin_system') {
+    if (
+      tool.requiredRole === 'admin' &&
+      !isAdminEmail(session.email) &&
+      session.professionalRole !== 'admin_system'
+    ) {
       return NextResponse.json(
         { error: `Ferramenta ${body.toolId} requer permissão admin` },
         { status: 403 },

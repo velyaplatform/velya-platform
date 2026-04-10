@@ -242,9 +242,7 @@ export function createFinding(input: CreateFindingInput): CronFinding {
 
 export function listRuns(opts: { jobId?: string; limit?: number } = {}): CronRun[] {
   const store = readStore();
-  return store.runs
-    .filter((r) => !opts.jobId || r.jobId === opts.jobId)
-    .slice(0, opts.limit ?? 50);
+  return store.runs.filter((r) => !opts.jobId || r.jobId === opts.jobId).slice(0, opts.limit ?? 50);
 }
 
 export function listFindings(

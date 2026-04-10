@@ -59,7 +59,10 @@ export interface ActionResult {
 // Action handlers — MUST be safe (reversible, no clinical/financial scope)
 // ---------------------------------------------------------------------------
 
-type Handler = (agent: AgentDef, payload: Record<string, unknown>) => Promise<{
+type Handler = (
+  agent: AgentDef,
+  payload: Record<string, unknown>,
+) => Promise<{
   ok: boolean;
   message: string;
   rollbackHash?: string;
@@ -83,12 +86,20 @@ const HANDLERS: Record<string, Handler> = {
     if (!findingId) return { ok: false, message: 'findingId obrigatório' };
     // The agent only marks SAFE-class findings — clinical findings are blocked
     // earlier by canExecuteAutonomously.
-    return { ok: true, message: `Finding ${findingId} marcado como resolvido`, rollbackHash: `finding:${findingId}` };
+    return {
+      ok: true,
+      message: `Finding ${findingId} marcado como resolvido`,
+      rollbackHash: `finding:${findingId}`,
+    };
   },
   'flag-flaky-endpoint': async (_agent, payload) => {
     const endpoint = String(payload.endpoint ?? '');
     if (!endpoint) return { ok: false, message: 'endpoint obrigatório' };
-    return { ok: true, message: `Endpoint ${endpoint} marcado como flaky`, rollbackHash: `flaky:${endpoint}` };
+    return {
+      ok: true,
+      message: `Endpoint ${endpoint} marcado como flaky`,
+      rollbackHash: `flaky:${endpoint}`,
+    };
   },
 
   // ---- UX office ----
@@ -97,22 +108,35 @@ const HANDLERS: Record<string, Handler> = {
     // edit the manifest. Editing source code is always a critical action.
     const moduleId = String(payload.moduleId ?? '');
     const columnKey = String(payload.columnKey ?? '');
-    if (!moduleId || !columnKey) return { ok: false, message: 'moduleId e columnKey são obrigatórios' };
-    return { ok: true, message: `Sugestão de linkTo registrada para ${moduleId}.${columnKey}`, rollbackHash: 'suggestion:noop' };
+    if (!moduleId || !columnKey)
+      return { ok: false, message: 'moduleId e columnKey são obrigatórios' };
+    return {
+      ok: true,
+      message: `Sugestão de linkTo registrada para ${moduleId}.${columnKey}`,
+      rollbackHash: 'suggestion:noop',
+    };
   },
 
   // ---- Learning office ----
   'increment-pattern-confidence': async (_agent, payload) => {
     const patternId = String(payload.patternId ?? '');
     if (!patternId) return { ok: false, message: 'patternId obrigatório' };
-    return { ok: true, message: `Confidence do padrão ${patternId} incrementada`, rollbackHash: `pattern:${patternId}` };
+    return {
+      ok: true,
+      message: `Confidence do padrão ${patternId} incrementada`,
+      rollbackHash: `pattern:${patternId}`,
+    };
   },
 
   // ---- Observability office ----
   'quarantine-agent': async (_agent, payload) => {
     const targetId = String(payload.targetId ?? '');
     if (!targetId) return { ok: false, message: 'targetId obrigatório' };
-    return { ok: true, message: `Agente ${targetId} colocado em quarentena (auto)`, rollbackHash: `quarantine:${targetId}` };
+    return {
+      ok: true,
+      message: `Agente ${targetId} colocado em quarentena (auto)`,
+      rollbackHash: `quarantine:${targetId}`,
+    };
   },
   'page-on-call': async (_agent, payload) => {
     const message = String(payload.message ?? 'finding crítico');
@@ -121,17 +145,29 @@ const HANDLERS: Record<string, Handler> = {
     return { ok: true, message: `On-call paged: ${message}`, rollbackHash: 'page:noop' };
   },
   'reject-action-no-evidence': async () => {
-    return { ok: true, message: 'Ação rejeitada por falta de evidência', rollbackHash: 'reject:noop' };
+    return {
+      ok: true,
+      message: 'Ação rejeitada por falta de evidência',
+      rollbackHash: 'reject:noop',
+    };
   },
   'block-unsafe-action': async () => {
     return { ok: true, message: 'Ação bloqueada por security-auditor', rollbackHash: 'block:noop' };
   },
   'log-security-finding': async (_agent, payload) => {
-    return { ok: true, message: `Finding de segurança logado: ${String(payload.detail ?? '')}`, rollbackHash: 'sec-log:noop' };
+    return {
+      ok: true,
+      message: `Finding de segurança logado: ${String(payload.detail ?? '')}`,
+      rollbackHash: 'sec-log:noop',
+    };
   },
   'flag-orphaned-record': async (_agent, payload) => {
     const recordId = String(payload.recordId ?? '');
-    return { ok: true, message: `Registro órfão ${recordId} marcado para revisão`, rollbackHash: `orphan:${recordId}` };
+    return {
+      ok: true,
+      message: `Registro órfão ${recordId} marcado para revisão`,
+      rollbackHash: `orphan:${recordId}`,
+    };
   },
 };
 
@@ -144,7 +180,12 @@ export async function executeAgentAction(req: ActionRequest): Promise<ActionResu
 
   const agent = getAgent(req.agentId);
   if (!agent) {
-    return { status: 'blocked', agentId: req.agentId, actionType: req.actionType, reason: 'agente não existe' };
+    return {
+      status: 'blocked',
+      agentId: req.agentId,
+      actionType: req.actionType,
+      reason: 'agente não existe',
+    };
   }
 
   const state = getAgentState(req.agentId);

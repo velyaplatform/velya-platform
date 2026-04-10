@@ -175,7 +175,9 @@ export default function CronDashboardPage() {
 
   // KPIs
   const totalFindings = findings.length;
-  const criticalCount = findings.filter((f) => f.severity === 'critical' || f.severity === 'high').length;
+  const criticalCount = findings.filter(
+    (f) => f.severity === 'critical' || f.severity === 'high',
+  ).length;
   const inReviewCount = findings.filter(
     (f) => f.status === 'in-review' || f.status === 'shadow-recommendation-ready',
   ).length;
@@ -195,20 +197,26 @@ export default function CronDashboardPage() {
         <h1 className="page-title">
           <span aria-hidden="true">{'\u23F0'}</span> Cron + Agente Autônomo
         </h1>
-        <p className="page-subtitle">
-          Shadow mode. Recomenda, nunca aplica sem humano.
-        </p>
+        <p className="page-subtitle">Shadow mode. Recomenda, nunca aplica sem humano.</p>
       </div>
 
       {error && (
-        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3 mb-4 text-sm">
+        <div
+          role="alert"
+          className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3 mb-4 text-sm"
+        >
           {error}
         </div>
       )}
 
       {/* KPIs grandes */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <KpiCard label="Total findings" value={String(totalFindings)} tone="neutral" hint="na visão atual" />
+        <KpiCard
+          label="Total findings"
+          value={String(totalFindings)}
+          tone="neutral"
+          hint="na visão atual"
+        />
         <KpiCard
           label="Críticos"
           value={String(criticalCount)}
@@ -289,7 +297,9 @@ export default function CronDashboardPage() {
                 </span>
               </header>
 
-              <p className="text-xs text-slate-300 leading-snug mb-3 line-clamp-3">{job.description}</p>
+              <p className="text-xs text-slate-300 leading-snug mb-3 line-clamp-3">
+                {job.description}
+              </p>
 
               <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3 text-[10px] text-slate-400">
                 <span>
@@ -302,7 +312,9 @@ export default function CronDashboardPage() {
 
               {job.lastRun && (
                 <div className="text-[10px] text-slate-400 mb-3 pb-3 border-b border-slate-700/60">
-                  <span className={`font-bold ${RUN_STATUS_COLOR[job.lastRun.status] ?? 'text-slate-200'}`}>
+                  <span
+                    className={`font-bold ${RUN_STATUS_COLOR[job.lastRun.status] ?? 'text-slate-200'}`}
+                  >
                     {job.lastRun.status}
                   </span>
                   {' · '}
@@ -369,9 +381,14 @@ export default function CronDashboardPage() {
                     </span>
                   </header>
 
-                  <p className="text-sm text-slate-100 leading-snug line-clamp-3 mb-2">{f.message}</p>
+                  <p className="text-sm text-slate-100 leading-snug line-clamp-3 mb-2">
+                    {f.message}
+                  </p>
 
-                  <p className="text-[10px] text-slate-400 font-mono truncate mb-3" title={f.target}>
+                  <p
+                    className="text-[10px] text-slate-400 font-mono truncate mb-3"
+                    title={f.target}
+                  >
                     {f.surface} · {f.target}
                   </p>
 

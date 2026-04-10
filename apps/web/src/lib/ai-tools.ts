@@ -32,7 +32,12 @@ import { MODULES, getModuleById } from './module-manifest';
 import { search as semanticSearch } from './semantic-search';
 import { PATIENTS } from './fixtures/patients';
 import { STAFF, getStaffOnDuty, ROLE_LABELS, type StaffMember } from './fixtures/staff';
-import { listHandoffs, createHandoff, type ShiftHandoff, type CreateHandoffInput } from './handoff-store';
+import {
+  listHandoffs,
+  createHandoff,
+  type ShiftHandoff,
+  type CreateHandoffInput,
+} from './handoff-store';
 import { CRON_JOBS } from './cron-jobs';
 
 // ---------------------------------------------------------------------------
@@ -102,7 +107,9 @@ function patientMatches(p: Record<string, unknown>, c: PatientCriteria): boolean
     if (!w.includes(c.ward.toLowerCase())) return false;
   }
   if (c.diagnosis) {
-    const dx = JSON.stringify(p.diagnoses ?? p.problemList ?? p.primaryDiagnosis ?? '').toLowerCase();
+    const dx = JSON.stringify(
+      p.diagnoses ?? p.problemList ?? p.primaryDiagnosis ?? '',
+    ).toLowerCase();
     const needle = c.diagnosis.toLowerCase();
     if (!dx.includes(needle)) return false;
   }
@@ -113,7 +120,8 @@ function patientMatches(p: Record<string, unknown>, c: PatientCriteria): boolean
   }
   if (c.candidatesForDischarge) {
     const status = String(p.dischargeStatus ?? p.status ?? '').toLowerCase();
-    const ready = status.includes('alta') || status.includes('discharge') || p.expectedDischargeToday === true;
+    const ready =
+      status.includes('alta') || status.includes('discharge') || p.expectedDischargeToday === true;
     if (!ready) return false;
   }
   return true;
@@ -122,7 +130,10 @@ function patientMatches(p: Record<string, unknown>, c: PatientCriteria): boolean
 // ===========================================================================
 // TOOL: search-patients
 // ===========================================================================
-const searchPatientsTool: AiToolDef<PatientCriteria, Array<{ mrn: string; name: string; ward?: string }>> = {
+const searchPatientsTool: AiToolDef<
+  PatientCriteria,
+  Array<{ mrn: string; name: string; ward?: string }>
+> = {
   id: 'search-patients',
   description:
     'Filtra pacientes por ala, diagnóstico, medicação ativa ou candidatos à alta. Combine campos para refinar (ex: ward="UTI" + medication="vancomicina" + candidatesForDischarge=true).',
@@ -177,7 +188,8 @@ interface CockpitArgs {
 
 const getPatientCockpitTool: AiToolDef<CockpitArgs, Record<string, unknown>> = {
   id: 'get-patient-cockpit',
-  description: 'Carrega o cockpit completo de um paciente (dados básicos + medicações + exames + tarefas) por MRN.',
+  description:
+    'Carrega o cockpit completo de um paciente (dados básicos + medicações + exames + tarefas) por MRN.',
   trustTier: 0,
   requiresApproval: false,
   requiredRole: 'clinical',
@@ -229,14 +241,16 @@ interface StaffArgs {
 
 const searchStaffTool: AiToolDef<StaffArgs, StaffMember[]> = {
   id: 'search-staff',
-  description: 'Busca profissionais por ala, papel, presença atual ou nome. Útil para "quem está de plantão na UTI agora?".',
+  description:
+    'Busca profissionais por ala, papel, presença atual ou nome. Útil para "quem está de plantão na UTI agora?".',
   trustTier: 0,
   requiresApproval: false,
   requiredRole: 'staff',
   execute(args) {
     let pool: StaffMember[] = STAFF;
     if (args.onDutyOnly) pool = getStaffOnDuty();
-    if (args.ward) pool = pool.filter((s) => s.ward.toLowerCase().includes(args.ward!.toLowerCase()));
+    if (args.ward)
+      pool = pool.filter((s) => s.ward.toLowerCase().includes(args.ward!.toLowerCase()));
     if (args.role) {
       const roleNeedle = args.role.toLowerCase();
       pool = pool.filter((s) => {
@@ -275,7 +289,8 @@ interface MedSearchArgs {
 
 const searchMedicationsTool: AiToolDef<MedSearchArgs, Record<string, unknown>[]> = {
   id: 'search-medications',
-  description: 'Lista prescrições filtradas por droga, paciente, ala ou status (ativa/suspensa). Ex: drug="vancomicina" ward="UTI".',
+  description:
+    'Lista prescrições filtradas por droga, paciente, ala ou status (ativa/suspensa). Ex: drug="vancomicina" ward="UTI".',
   trustTier: 0,
   requiresApproval: false,
   requiredRole: 'clinical',
@@ -326,7 +341,8 @@ interface SemanticArgs {
 
 const semanticSearchModulesTool: AiToolDef<SemanticArgs, ReturnType<typeof semanticSearch>> = {
   id: 'semantic-search-modules',
-  description: 'Busca BM25 + tolerância a typo sobre TODOS os registros vivos. Use quando o usuário perguntar algo aberto que não cabe nos filtros estruturados.',
+  description:
+    'Busca BM25 + tolerância a typo sobre TODOS os registros vivos. Use quando o usuário perguntar algo aberto que não cabe nos filtros estruturados.',
   trustTier: 0,
   requiresApproval: false,
   requiredRole: 'any',
@@ -358,7 +374,8 @@ interface FindingsArgs {
 
 const listCronFindingsTool: AiToolDef<FindingsArgs, unknown> = {
   id: 'list-cron-findings',
-  description: 'Lista findings recentes do agente de cron (saúde do sistema). Útil para "o que está quebrado agora?".',
+  description:
+    'Lista findings recentes do agente de cron (saúde do sistema). Útil para "o que está quebrado agora?".',
   trustTier: 0,
   requiresApproval: false,
   requiredRole: 'any',
@@ -395,7 +412,8 @@ interface HandoffArgs {
 
 const listHandoffsTool: AiToolDef<HandoffArgs, ShiftHandoff[]> = {
   id: 'list-handoffs',
-  description: 'Lista passagens de turno (handoffs I-PASS) com filtros por status, ala ou destinatário.',
+  description:
+    'Lista passagens de turno (handoffs I-PASS) com filtros por status, ala ou destinatário.',
   trustTier: 0,
   requiresApproval: false,
   requiredRole: 'staff',
@@ -403,8 +421,12 @@ const listHandoffsTool: AiToolDef<HandoffArgs, ShiftHandoff[]> = {
     const all = listHandoffs({});
     let filtered = all;
     if (args.status) filtered = filtered.filter((h) => h.status === args.status);
-    if (args.ward) filtered = filtered.filter((h) => h.ward?.toLowerCase().includes(args.ward!.toLowerCase()));
-    if (args.toUserName) filtered = filtered.filter((h) => h.toUserName?.toLowerCase().includes(args.toUserName!.toLowerCase()));
+    if (args.ward)
+      filtered = filtered.filter((h) => h.ward?.toLowerCase().includes(args.ward!.toLowerCase()));
+    if (args.toUserName)
+      filtered = filtered.filter((h) =>
+        h.toUserName?.toLowerCase().includes(args.toUserName!.toLowerCase()),
+      );
     const limit = args.limit ?? 15;
     const slice = filtered.slice(0, limit);
     if (slice.length === 0) {
@@ -442,9 +464,13 @@ interface ProposeHandoffArgs {
   confirm?: boolean;
 }
 
-const proposeHandoffTool: AiToolDef<ProposeHandoffArgs, ShiftHandoff | { preview: ProposeHandoffArgs }> = {
+const proposeHandoffTool: AiToolDef<
+  ProposeHandoffArgs,
+  ShiftHandoff | { preview: ProposeHandoffArgs }
+> = {
   id: 'propose-handoff',
-  description: 'Cria uma passagem de turno I-PASS pré-preenchida. Sempre exige confirmação humana — passe confirm=true para gravar.',
+  description:
+    'Cria uma passagem de turno I-PASS pré-preenchida. Sempre exige confirmação humana — passe confirm=true para gravar.',
   trustTier: 1,
   requiresApproval: true,
   requiredRole: 'clinical',
@@ -486,9 +512,13 @@ const proposeHandoffTool: AiToolDef<ProposeHandoffArgs, ShiftHandoff | { preview
 // ===========================================================================
 // TOOL: list-modules — describes the full module catalogue (for AI introspection)
 // ===========================================================================
-const listModulesTool: AiToolDef<Record<string, never>, Array<{ id: string; title: string; route: string }>> = {
+const listModulesTool: AiToolDef<
+  Record<string, never>,
+  Array<{ id: string; title: string; route: string }>
+> = {
   id: 'list-modules',
-  description: 'Lista todos os módulos disponíveis na plataforma (id, título, rota). Use quando o usuário pergunta "o que existe" ou "para onde ir".',
+  description:
+    'Lista todos os módulos disponíveis na plataforma (id, título, rota). Use quando o usuário pergunta "o que existe" ou "para onde ir".',
   trustTier: 0,
   requiresApproval: false,
   requiredRole: 'any',
