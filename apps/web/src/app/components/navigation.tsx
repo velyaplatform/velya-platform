@@ -103,6 +103,7 @@ const NAV_ITEMS: NavItemDef[] = [
   // --- Equipe em plantão ---
   { href: '/staff-on-duty', icon: '\uD83D\uDC65', label: 'Equipe em Plantão', section: NAV_SECTIONS.GESTAO },
   { href: '/delegations',   icon: '\uD83D\uDCE9', label: 'Delegações', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/handoffs',      icon: '\uD83D\uDD04', label: 'Passagem de Plantão', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/alerts',        icon: '\uD83D\uDD14', label: 'Alertas', badge: 5, section: NAV_SECTIONS.ASSISTENCIAL },
 
   // --- Operações hospitalares ---
