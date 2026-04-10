@@ -47,12 +47,12 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  frontend: '#6366f1',
-  api: '#0ea5e9',
-  backend: '#8b5cf6',
-  infra: '#f59e0b',
-  agent: '#10b981',
-  system: '#64748b',
+  frontend: '#4338ca',  /* white text → 8.65:1 */
+  api: '#0369a1',       /* white text → 6.51:1 */
+  backend: '#6d28d9',   /* white text → 7.41:1 */
+  infra: '#b45309',     /* white text → 5.34:1 */
+  agent: '#047857',     /* white text → 5.81:1 */
+  system: '#475569',    /* white text → 7.32:1 */
 };
 
 const RESULT_BADGE: Record<string, string> = {

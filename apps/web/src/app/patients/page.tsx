@@ -522,9 +522,9 @@ export default function PatientsPage() {
                       <strong
                         style={
                           patient.los > 10
-                            ? { color: 'var(--color-critical)' }
+                            ? { color: 'var(--color-critical-fg)' }
                             : patient.los > 6
-                              ? { color: 'var(--color-warning)' }
+                              ? { color: 'var(--color-warning-fg)' }
                               : {}
                         }
                       >

@@ -772,39 +772,39 @@ export default function PharmacyPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
         <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-white/50 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-white/75 font-semibold">
             Total ativas
           </div>
           <div className="text-3xl font-bold text-white mt-1">{kpis.total}</div>
-          <div className="text-xs text-white/50 mt-1">prescrições</div>
+          <div className="text-xs text-white/75 mt-1">prescrições</div>
         </div>
         <div className="rounded-lg border border-purple-500/30 bg-purple-500/[0.06] p-4">
           <div className="text-[11px] uppercase tracking-wider text-purple-300/80 font-semibold">
             Em validação
           </div>
           <div className="text-3xl font-bold text-purple-200 mt-1">{kpis.inValidation}</div>
-          <div className="text-xs text-white/50 mt-1">Farmacêutico</div>
+          <div className="text-xs text-white/75 mt-1">Farmacêutico</div>
         </div>
         <div className="rounded-lg border border-red-500/40 bg-red-500/[0.08] p-4">
           <div className="text-[11px] uppercase tracking-wider text-red-300/80 font-semibold">
             Atrasadas
           </div>
           <div className="text-3xl font-bold text-red-300 mt-1">{kpis.delayed}</div>
-          <div className="text-xs text-white/50 mt-1">Escalar agora</div>
+          <div className="text-xs text-white/75 mt-1">Escalar agora</div>
         </div>
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.06] p-4">
           <div className="text-[11px] uppercase tracking-wider text-orange-300/80 font-semibold">
             Críticas pend.
           </div>
           <div className="text-3xl font-bold text-orange-300 mt-1">{kpis.criticalPending}</div>
-          <div className="text-xs text-white/50 mt-1">Prioridade alta</div>
+          <div className="text-xs text-white/75 mt-1">Prioridade alta</div>
         </div>
         <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-4">
           <div className="text-[11px] uppercase tracking-wider text-emerald-300/80 font-semibold">
             Checagem dupla
           </div>
           <div className="text-3xl font-bold text-emerald-300 mt-1">{kpis.doubleCheckRate}%</div>
-          <div className="text-xs text-white/50 mt-1">Taxa hoje</div>
+          <div className="text-xs text-white/75 mt-1">Taxa hoje</div>
         </div>
       </div>
 
@@ -812,7 +812,7 @@ export default function PharmacyPage() {
       <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3 mb-4">
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] text-white/50 uppercase tracking-wider shrink-0">
+            <span className="text-[11px] text-white/75 uppercase tracking-wider shrink-0">
               Status
             </span>
             {STATUS_FILTERS.map((s) => (
@@ -830,7 +830,7 @@ export default function PharmacyPage() {
             ))}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] text-white/50 uppercase tracking-wider shrink-0">
+            <span className="text-[11px] text-white/75 uppercase tracking-wider shrink-0">
               Prioridade
             </span>
             {(['all', 'critica', 'alta', 'normal'] as const).map((p) => (
@@ -846,7 +846,7 @@ export default function PharmacyPage() {
                 {p === 'all' ? 'Todas' : PRIORITY_CONFIG[p].label}
               </button>
             ))}
-            <span className="text-[11px] text-white/50 uppercase tracking-wider shrink-0 ml-4">
+            <span className="text-[11px] text-white/75 uppercase tracking-wider shrink-0 ml-4">
               Ala
             </span>
             {WARDS.map((w) => (
@@ -899,7 +899,7 @@ export default function PharmacyPage() {
                     <div className="text-[11px] text-white/60 mt-0.5">
                       {p.patient} · {p.bed} · {p.mrn} · {p.ward}
                     </div>
-                    <div className="text-[10px] text-white/50 mt-0.5">
+                    <div className="text-[10px] text-white/75 mt-0.5">
                       Dr(a) {p.prescriber}
                       {p.pharmacist && ` · Farm. ${p.pharmacist}`}
                       {p.nurse && ` · Enf. ${p.nurse}`}
@@ -911,7 +911,7 @@ export default function PharmacyPage() {
                     )}
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-[10px] text-white/50 uppercase">Próximo</div>
+                    <div className="text-[10px] text-white/75 uppercase">Próximo</div>
                     <div className="text-xs font-mono text-white/90">{p.nextDose}</div>
                     {NEXT_ACTION[p.status] && (
                       <div className="text-[10px] text-blue-300 mt-1.5 font-semibold">
@@ -938,7 +938,7 @@ export default function PharmacyPage() {
           >
             <div className="flex items-start justify-between mb-4">
               <div>
-                <div className="text-xs text-white/50 uppercase tracking-wider font-mono">
+                <div className="text-xs text-white/75 uppercase tracking-wider font-mono">
                   {selected.id} · {selected.ward} · {selected.bed}
                 </div>
                 <h2 className="text-xl font-bold text-white mt-1">{selected.drug}</h2>
@@ -951,7 +951,7 @@ export default function PharmacyPage() {
               </div>
               <button
                 onClick={() => setSelected(null)}
-                className="text-white/50 hover:text-white text-2xl leading-none"
+                className="text-white/75 hover:text-white text-2xl leading-none"
               >
                 ×
               </button>
@@ -960,17 +960,17 @@ export default function PharmacyPage() {
             {/* Actors */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
               <div className="rounded border border-white/10 bg-white/[0.03] p-2">
-                <div className="text-[10px] uppercase text-white/50">Prescritor</div>
+                <div className="text-[10px] uppercase text-white/75">Prescritor</div>
                 <div className="text-xs text-white/90 font-semibold">{selected.prescriber}</div>
               </div>
               <div className="rounded border border-white/10 bg-white/[0.03] p-2">
-                <div className="text-[10px] uppercase text-white/50">Farmacêutico</div>
+                <div className="text-[10px] uppercase text-white/75">Farmacêutico</div>
                 <div className="text-xs text-white/90 font-semibold">
                   {selected.pharmacist || '—'}
                 </div>
               </div>
               <div className="rounded border border-white/10 bg-white/[0.03] p-2">
-                <div className="text-[10px] uppercase text-white/50">Enfermeiro(a)</div>
+                <div className="text-[10px] uppercase text-white/75">Enfermeiro(a)</div>
                 <div className="text-xs text-white/90 font-semibold">{selected.nurse || '—'}</div>
               </div>
             </div>
@@ -1001,7 +1001,7 @@ export default function PharmacyPage() {
 
             {/* Timeline */}
             <div className="mb-4">
-              <div className="text-[10px] uppercase tracking-wider text-white/50 mb-2">
+              <div className="text-[10px] uppercase tracking-wider text-white/75 mb-2">
                 Linha do Tempo do Closed Loop
               </div>
               <div className="flex flex-col gap-2">

@@ -396,7 +396,7 @@ const STATUS_CONFIG: Record<
   'in-progress': {
     label: 'Em Andamento',
     icon: '🟡',
-    bar: 'bg-amber-400/60 border-amber-300/80',
+    bar: 'bg-amber-800 border-amber-600',
     badge: 'bg-amber-400/20 text-amber-200 border border-amber-400/40',
   },
   completed: {
@@ -488,39 +488,39 @@ export default function SurgeryPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
         <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-white/50 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-white/75 font-semibold">
             Cirurgias Hoje
           </div>
           <div className="text-3xl font-bold text-white mt-1">{kpis.total}</div>
-          <div className="text-xs text-white/50 mt-1">Total programado</div>
+          <div className="text-xs text-white/75 mt-1">Total programado</div>
         </div>
         <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.06] p-4">
           <div className="text-[11px] uppercase tracking-wider text-amber-200/80 font-semibold">
             Em Andamento
           </div>
           <div className="text-3xl font-bold text-amber-200 mt-1">{kpis.inProgress}</div>
-          <div className="text-xs text-white/50 mt-1">Neste momento</div>
+          <div className="text-xs text-white/75 mt-1">Neste momento</div>
         </div>
         <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-4">
           <div className="text-[11px] uppercase tracking-wider text-emerald-300/80 font-semibold">
             Concluídas
           </div>
           <div className="text-3xl font-bold text-emerald-300 mt-1">{kpis.completed}</div>
-          <div className="text-xs text-white/50 mt-1">Encerradas hoje</div>
+          <div className="text-xs text-white/75 mt-1">Encerradas hoje</div>
         </div>
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.06] p-4">
           <div className="text-[11px] uppercase tracking-wider text-orange-300/80 font-semibold">
             Atrasos
           </div>
           <div className="text-3xl font-bold text-orange-300 mt-1">{kpis.delayed}</div>
-          <div className="text-xs text-white/50 mt-1">Fora do cronograma</div>
+          <div className="text-xs text-white/75 mt-1">Fora do cronograma</div>
         </div>
         <div className="rounded-lg border border-blue-500/30 bg-blue-500/[0.06] p-4">
           <div className="text-[11px] uppercase tracking-wider text-blue-300/80 font-semibold">
             Utilização de Salas
           </div>
           <div className="text-3xl font-bold text-blue-300 mt-1">{kpis.utilization}%</div>
-          <div className="text-xs text-white/50 mt-1">Capacidade 6h-18h</div>
+          <div className="text-xs text-white/75 mt-1">Capacidade 6h-18h</div>
         </div>
       </div>
 
@@ -531,12 +531,12 @@ export default function SurgeryPage() {
           <div style={{ minWidth: `${120 + HOURS.length * 60 * PIXELS_PER_MINUTE}px` }}>
             {/* Hour headers */}
             <div className="flex items-center border-b border-white/10 pb-1 mb-2">
-              <div className="w-[120px] shrink-0 text-[11px] text-white/50 font-semibold">Sala</div>
+              <div className="w-[120px] shrink-0 text-[11px] text-white/75 font-semibold">Sala</div>
               <div className="flex-1 relative h-5">
                 {HOURS.map((h, idx) => (
                   <div
                     key={h}
-                    className="absolute top-0 text-[10px] text-white/45 font-mono"
+                    className="absolute top-0 text-[10px] text-white/70 font-mono"
                     style={{ left: `${idx * 60 * PIXELS_PER_MINUTE}px` }}
                   >
                     {String(h).padStart(2, '0')}h
@@ -575,10 +575,10 @@ export default function SurgeryPage() {
                         style={{ left: `${left}px`, width: `${Math.max(width, 40)}px` }}
                         title={`${s.procedure} - ${s.patientName}`}
                       >
-                        <div className="text-[10px] font-semibold text-white truncate leading-tight">
+                        <div className="text-[11px] font-bold text-white truncate leading-tight">
                           {s.startTime} · {s.patientName.split(' ')[0]}
                         </div>
-                        <div className="text-[9px] text-white/70 truncate leading-tight">
+                        <div className="text-[10px] text-white truncate leading-tight font-semibold">
                           {s.procedure}
                         </div>
                       </button>
@@ -607,7 +607,7 @@ export default function SurgeryPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[11px] text-white/50 uppercase tracking-wider border-b border-white/10">
+              <tr className="text-left text-[11px] text-white/75 uppercase tracking-wider border-b border-white/10">
                 <th className="py-2 pr-3">Horário</th>
                 <th className="py-2 pr-3">Paciente</th>
                 <th className="py-2 pr-3">Procedimento</th>
@@ -630,7 +630,7 @@ export default function SurgeryPage() {
                     <td className="py-2 pr-3 font-mono text-white/85">{s.startTime}</td>
                     <td className="py-2 pr-3">
                       <div className="text-white/90 font-medium">{s.patientName}</div>
-                      <div className="text-[10px] text-white/50">
+                      <div className="text-[10px] text-white/75">
                         {s.mrn} · {s.patientAge}a
                       </div>
                     </td>
@@ -668,7 +668,7 @@ export default function SurgeryPage() {
           >
             <div className="flex items-start justify-between mb-4">
               <div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">
+                <div className="text-xs text-white/75 uppercase tracking-wider">
                   {selectedSurgery.id} · {selectedSurgery.room}
                 </div>
                 <h2 className="text-xl font-bold text-white mt-1">{selectedSurgery.procedure}</h2>
@@ -678,7 +678,7 @@ export default function SurgeryPage() {
               </div>
               <button
                 onClick={() => setSelectedSurgery(null)}
-                className="text-white/50 hover:text-white text-2xl leading-none"
+                className="text-white/75 hover:text-white text-2xl leading-none"
               >
                 ×
               </button>
@@ -686,19 +686,19 @@ export default function SurgeryPage() {
 
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="p-3 rounded border border-white/10 bg-white/[0.02]">
-                <div className="text-[10px] uppercase tracking-wider text-white/50">Horário</div>
+                <div className="text-[10px] uppercase tracking-wider text-white/75">Horário</div>
                 <div className="text-sm text-white/90 font-semibold mt-1">
                   {selectedSurgery.startTime} ({selectedSurgery.durationMin} min)
                 </div>
               </div>
               <div className="p-3 rounded border border-white/10 bg-white/[0.02]">
-                <div className="text-[10px] uppercase tracking-wider text-white/50">Anestesia</div>
+                <div className="text-[10px] uppercase tracking-wider text-white/75">Anestesia</div>
                 <div className="text-sm text-white/90 font-semibold mt-1">
                   {selectedSurgery.anesthesia}
                 </div>
               </div>
               <div className="p-3 rounded border border-white/10 bg-white/[0.02]">
-                <div className="text-[10px] uppercase tracking-wider text-white/50">Risco ASA</div>
+                <div className="text-[10px] uppercase tracking-wider text-white/75">Risco ASA</div>
                 <div className="mt-1">
                   <span
                     className={`text-xs px-2 py-0.5 rounded font-bold ${ASA_COLORS[selectedSurgery.asa]}`}
@@ -708,7 +708,7 @@ export default function SurgeryPage() {
                 </div>
               </div>
               <div className="p-3 rounded border border-white/10 bg-white/[0.02]">
-                <div className="text-[10px] uppercase tracking-wider text-white/50">Status</div>
+                <div className="text-[10px] uppercase tracking-wider text-white/75">Status</div>
                 <div className="mt-1">
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full ${STATUS_CONFIG[selectedSurgery.status].badge}`}
@@ -721,11 +721,11 @@ export default function SurgeryPage() {
             </div>
 
             <div className="mb-4">
-              <div className="text-[10px] uppercase tracking-wider text-white/50 mb-1.5">
+              <div className="text-[10px] uppercase tracking-wider text-white/75 mb-1.5">
                 Cirurgião Principal
               </div>
               <div className="text-sm text-white/90">{selectedSurgery.mainSurgeon}</div>
-              <div className="text-[10px] uppercase tracking-wider text-white/50 mt-3 mb-1.5">
+              <div className="text-[10px] uppercase tracking-wider text-white/75 mt-3 mb-1.5">
                 Equipe
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -741,7 +741,7 @@ export default function SurgeryPage() {
             </div>
 
             <div className="mb-4">
-              <div className="text-[10px] uppercase tracking-wider text-white/50 mb-1.5">
+              <div className="text-[10px] uppercase tracking-wider text-white/75 mb-1.5">
                 Equipamentos Especiais
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -758,7 +758,7 @@ export default function SurgeryPage() {
 
             {/* Timeline */}
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-white/50 mb-2">
+              <div className="text-[10px] uppercase tracking-wider text-white/75 mb-2">
                 Linha do Tempo
               </div>
               <div className="flex items-center gap-1">
@@ -777,14 +777,14 @@ export default function SurgeryPage() {
                               ? 'bg-emerald-500/30 border-emerald-400 text-emerald-200'
                               : isCurrent
                                 ? 'bg-amber-400/30 border-amber-300 text-amber-200 animate-pulse'
-                                : 'bg-white/[0.03] border-white/20 text-white/40'
+                                : 'bg-white/[0.03] border-white/20 text-white/70'
                           }`}
                         >
                           {isDone ? '✓' : idx + 1}
                         </div>
                         <div
                           className={`text-[9px] mt-1 text-center ${
-                            isCurrent ? 'text-amber-200 font-semibold' : 'text-white/50'
+                            isCurrent ? 'text-amber-200 font-semibold' : 'text-white/75'
                           }`}
                         >
                           {stage.label}

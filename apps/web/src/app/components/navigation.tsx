@@ -91,7 +91,33 @@ const NAV_ITEMS: NavItemDef[] = [
     label: 'Farm\u00E1cia',
     section: NAV_SECTIONS.GESTAO,
   },
+  // --- Equipe / Cadastros ---
+  {
+    href: '/staff-on-duty',
+    icon: '\uD83D\uDC65',
+    label: 'Equipe em Plantão',
+    section: NAV_SECTIONS.GESTAO,
+  },
+  {
+    href: '/employees',
+    icon: '\uD83D\uDCC7',
+    label: 'Funcionários',
+    section: NAV_SECTIONS.ADMINISTRACAO,
+  },
+  {
+    href: '/suppliers',
+    icon: '\uD83C\uDFEC',
+    label: 'Fornecedores',
+    section: NAV_SECTIONS.ADMINISTRACAO,
+  },
   // --- Administracao ---
+  {
+    href: '/alerts',
+    icon: '\uD83D\uDD14',
+    label: 'Alertas',
+    badge: 5,
+    section: NAV_SECTIONS.ASSISTENCIAL,
+  },
   {
     href: '/system',
     icon: '\u2699\uFE0F',
@@ -211,7 +237,7 @@ export function Navigation({
     >
       {/* Close button for mobile */}
       <button
-        className="absolute top-3 right-3 p-1 rounded text-white/50 hover:text-white/90 md:hidden"
+        className="absolute top-3 right-3 p-1 rounded text-white/85 hover:text-white md:hidden"
         onClick={onMobileClose}
         aria-label="Fechar menu"
       >
@@ -227,7 +253,7 @@ export function Navigation({
 
       <div className="px-5 py-5 border-b border-white/[0.08]">
         <div className="text-xl font-bold text-white tracking-tight">Velya</div>
-        <div className="text-xs text-white/45 mt-0.5 tracking-widest uppercase">
+        <div className="text-xs text-white/75 mt-0.5 tracking-widest uppercase font-medium">
           Plataforma Hospitalar
         </div>
       </div>
@@ -238,7 +264,7 @@ export function Navigation({
           if (!items || items.length === 0) return null;
           return (
             <div key={section} className={sectionIdx > 0 ? 'mt-3' : ''}>
-              <div className="text-[10px] font-semibold text-white/30 uppercase tracking-wider px-3 pt-3 pb-2.5">
+              <div className="text-[10px] font-semibold text-white/75 uppercase tracking-wider px-3 pt-3 pb-2.5">
                 {SECTION_LABELS[section]}
               </div>
               <div className="flex flex-col gap-1">
@@ -256,7 +282,7 @@ export function Navigation({
                         ${
                           isActive
                             ? 'bg-blue-600/25 text-white border-l-[3px] border-blue-500 pl-[calc(0.75rem-3px)]'
-                            : 'text-white/65 hover:bg-white/[0.08] hover:text-white/90'
+                            : 'text-white/85 hover:bg-white/[0.08] hover:text-white'
                         }
                       `}
                     >
@@ -277,29 +303,27 @@ export function Navigation({
 
         {showObservability && (
           <div className="mt-3">
-            <div className="text-[10px] font-semibold text-white/30 uppercase tracking-wider px-3 pt-3 pb-2.5">
+            <div className="text-[10px] font-semibold text-white/75 uppercase tracking-wider px-3 pt-3 pb-2.5">
               Observabilidade
             </div>
             <div className="flex flex-col gap-1">
-              <a
-                href="http://grafana.172.19.0.6.nip.io"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/65 hover:bg-white/[0.08] hover:text-white/90 no-underline transition-colors duration-150 min-h-[40px]"
+              <Link
+                href="/observability/metrics"
+                onClick={handleNavClick}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/85 hover:bg-white/[0.08] hover:text-white no-underline transition-colors duration-150 min-h-[40px]"
               >
                 <span className="text-base w-5 text-center shrink-0">{'\uD83D\uDCCA'}</span>
-                <span>Grafana</span>
-              </a>
+                <span>Métricas</span>
+              </Link>
 
-              <a
-                href="http://argocd.172.19.0.6.nip.io"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/65 hover:bg-white/[0.08] hover:text-white/90 no-underline transition-colors duration-150 min-h-[40px]"
+              <Link
+                href="/observability/deploys"
+                onClick={handleNavClick}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/85 hover:bg-white/[0.08] hover:text-white no-underline transition-colors duration-150 min-h-[40px]"
               >
                 <span className="text-base w-5 text-center shrink-0">{'\uD83D\uDD04'}</span>
-                <span>ArgoCD</span>
-              </a>
+                <span>Implantações</span>
+              </Link>
             </div>
           </div>
         )}
@@ -308,25 +332,30 @@ export function Navigation({
       {/* Suggestion box */}
       <div className="px-4 py-4 border-t border-white/[0.08]">
         {suggestionStatus === 'sent' ? (
-          <div className="text-green-400 text-[0.8rem] text-center py-1 font-medium">
+          <div className="text-green-300 text-[0.8rem] text-center py-1 font-medium">
             {'\u2713'} Enviada!
           </div>
         ) : (
           <div className="flex gap-1.5 items-center">
+            <label htmlFor="sidebar-suggestion" className="sr-only">
+              Sugerir melhoria
+            </label>
             <input
+              id="sidebar-suggestion"
               type="text"
               value={suggestionText}
               onChange={(e) => setSuggestionText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={'\uD83D\uDCA1 Sugerir melhoria...'}
               disabled={suggestionStatus === 'sending'}
-              className="flex-1 bg-white/[0.06] border border-white/[0.12] rounded-lg px-3 py-3 text-white/85 text-sm outline-none font-[inherit] placeholder:text-white/40 min-h-[44px]"
+              className="flex-1 bg-white/[0.10] border border-white/30 rounded-lg px-3 py-3 text-white text-sm outline-none font-[inherit] placeholder:text-white/75 min-h-[44px]"
             />
             <button
               onClick={handleSuggestionSubmit}
               disabled={!suggestionText.trim() || suggestionStatus === 'sending'}
-              className={`bg-white/10 border-none rounded-lg px-3 py-3 text-white/70 text-sm leading-none min-h-[44px] ${
-                suggestionText.trim() ? 'cursor-pointer hover:bg-white/20' : 'cursor-default'
+              aria-label="Enviar sugestão"
+              className={`bg-white/15 border-none rounded-lg px-3 py-3 text-white text-sm leading-none min-h-[44px] ${
+                suggestionText.trim() ? 'cursor-pointer hover:bg-white/25' : 'cursor-default'
               }`}
             >
               {'\u2191'}
@@ -339,7 +368,7 @@ export function Navigation({
       <div className="px-3 pt-6 pb-5 mt-auto">
         <button
           onClick={onLogout}
-          className="w-full bg-red-500/15 border border-red-500/30 rounded-lg py-2 px-4 text-red-300 text-[0.8rem] font-semibold cursor-pointer font-[inherit] hover:bg-red-500/25 transition-colors"
+          className="w-full min-h-[44px] bg-red-500/25 border border-red-400/60 rounded-lg py-2 px-4 text-red-100 text-sm font-semibold cursor-pointer font-[inherit] hover:bg-red-500/40 transition-colors focus:outline-none focus:ring-2 focus:ring-red-300"
         >
           Sair
         </button>

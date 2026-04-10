@@ -23,7 +23,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-TAG="$(git -C "$REPO_ROOT" rev-parse --short HEAD)-$(date -u +%Y%m%d)"
+TAG="$(git -C "$REPO_ROOT" rev-parse --short HEAD)-$(date -u +%Y%m%d-%H%M%S)"
 IMAGE="velya-web:${TAG}"
 
 echo -e "${BLUE}═══════════════════════════════════════════${NC}"
@@ -46,9 +46,16 @@ echo -e "${GREEN}✅ Image carregada no cluster${NC}"
 echo ""
 
 # Step 3: Update deployment image and restart
-echo -e "${YELLOW}[3/5]${NC} Atualizando deployment velya-web..."
-kubectl set image deployment/velya-web velya-web="$IMAGE" -n velya-dev-web $KUBE_CTX 2>/dev/null || \
-  kubectl rollout restart deployment/velya-web -n velya-dev-web $KUBE_CTX
+# IMPORTANT: container is named "web" inside the velya-web deployment.
+# Failing silently here means no rollout happens — make this strict.
+echo -e "${YELLOW}[3/5]${NC} Atualizando deployment velya-web (container=web)..."
+CONTAINER_NAME="$(kubectl get deployment velya-web -n velya-dev-web $KUBE_CTX -o jsonpath='{.spec.template.spec.containers[0].name}')"
+if [ -z "$CONTAINER_NAME" ]; then
+  echo -e "${RED}❌ Não foi possível ler o nome do container do deployment velya-web${NC}"
+  exit 1
+fi
+echo "    container detectado: $CONTAINER_NAME"
+kubectl set image deployment/velya-web "${CONTAINER_NAME}=${IMAGE}" -n velya-dev-web $KUBE_CTX
 echo -e "${GREEN}✅ Deployment atualizado${NC}"
 echo ""
 

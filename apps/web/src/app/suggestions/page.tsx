@@ -21,11 +21,11 @@ const STATUS_LABELS: Record<Suggestion['status'], string> = {
 };
 
 const STATUS_COLORS: Record<Suggestion['status'], string> = {
-  pending: '#f59e0b',
-  reviewing: '#3b82f6',
-  implementing: '#8b5cf6',
-  done: '#22c55e',
-  rejected: '#ef4444',
+  pending: '#fcd34d',     /* light foreground for dark surface */
+  reviewing: '#93c5fd',
+  implementing: '#c4b5fd',
+  done: '#86efac',
+  rejected: '#fca5a5',
 };
 
 const PRIORITY_LABELS: Record<Suggestion['priority'], string> = {
@@ -35,9 +35,9 @@ const PRIORITY_LABELS: Record<Suggestion['priority'], string> = {
 };
 
 const PRIORITY_COLORS: Record<Suggestion['priority'], string> = {
-  low: '#6b7280',
-  medium: '#f59e0b',
-  high: '#ef4444',
+  low: '#cbd5e1',
+  medium: '#fcd34d',
+  high: '#fca5a5',
 };
 
 const NEXT_STATUS: Record<Suggestion['status'], Suggestion['status'][]> = {
@@ -101,166 +101,107 @@ export default function SuggestionsPage() {
 
   return (
     <AppShell pageTitle="Sugestões de Melhoria">
-      <div style={{ padding: '1.5rem' }}>
-        {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1.5rem',
-          }}
-        >
-          <div>
-            <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700 }}>Gestão de Sugestões</h2>
-            <p style={{ margin: '0.25rem 0 0', color: '#6b7280', fontSize: '0.9rem' }}>
-              {pendingCount} sugestão(ões) pendente(s)
-            </p>
-          </div>
-
-          {/* Status filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setLoading(true);
-            }}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              border: '1px solid #e5e7eb',
-              fontSize: '0.875rem',
-              fontFamily: 'inherit',
-              background: 'white',
-              cursor: 'pointer',
-            }}
-          >
-            <option value="all">Todos os status</option>
-            <option value="pending">Pendente</option>
-            <option value="reviewing">Em Análise</option>
-            <option value="implementing">Implementando</option>
-            <option value="done">Concluído</option>
-            <option value="rejected">Rejeitado</option>
-          </select>
-        </div>
-
-        {/* Suggestions list */}
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
-            Carregando sugestões...
-          </div>
-        ) : suggestions.length === 0 ? (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '3rem',
-              color: '#6b7280',
-              background: '#f9fafb',
-              borderRadius: '12px',
-              border: '1px solid #e5e7eb',
-            }}
-          >
-            Nenhuma sugestão encontrada.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {suggestions.map((suggestion) => (
-              <div
-                key={suggestion.id}
-                style={{
-                  background: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '12px',
-                  padding: '1.25rem',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    marginBottom: '0.75rem',
-                  }}
-                >
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    {/* Status badge */}
-                    <span
-                      style={{
-                        background: STATUS_COLORS[suggestion.status] + '18',
-                        color: STATUS_COLORS[suggestion.status],
-                        padding: '0.2rem 0.6rem',
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {STATUS_LABELS[suggestion.status]}
-                    </span>
-                    {/* Priority badge */}
-                    <span
-                      style={{
-                        background: PRIORITY_COLORS[suggestion.priority] + '18',
-                        color: PRIORITY_COLORS[suggestion.priority],
-                        padding: '0.2rem 0.6rem',
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {PRIORITY_LABELS[suggestion.priority]}
-                    </span>
-                  </div>
-                  <span style={{ color: '#9ca3af', fontSize: '0.78rem' }}>
-                    {formatTimestamp(suggestion.timestamp)}
-                  </span>
-                </div>
-
-                <p style={{ margin: '0 0 0.75rem', fontSize: '0.95rem', lineHeight: 1.5 }}>
-                  {suggestion.text}
-                </p>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>
-                    Autor: <strong>{suggestion.author}</strong>
-                  </span>
-
-                  {/* Status change buttons */}
-                  {NEXT_STATUS[suggestion.status].length > 0 && (
-                    <div style={{ display: 'flex', gap: '0.4rem' }}>
-                      {NEXT_STATUS[suggestion.status].map((nextStatus) => (
-                        <button
-                          key={nextStatus}
-                          onClick={() => handleStatusChange(suggestion.id, nextStatus)}
-                          style={{
-                            padding: '0.3rem 0.7rem',
-                            borderRadius: '6px',
-                            border: `1px solid ${STATUS_COLORS[nextStatus]}40`,
-                            background: STATUS_COLORS[nextStatus] + '10',
-                            color: STATUS_COLORS[nextStatus],
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            fontFamily: 'inherit',
-                          }}
-                        >
-                          {STATUS_LABELS[nextStatus]}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="page-header">
+        <h1 className="page-title">Gestão de Sugestões</h1>
+        <p className="page-subtitle">
+          {pendingCount} sugestão(ões) pendente(s) — revise, priorize e atualize o status
+        </p>
       </div>
+
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <label htmlFor="status-filter" className="sr-only">
+          Filtrar por status
+        </label>
+        <select
+          id="status-filter"
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setLoading(true);
+          }}
+          className="min-h-[44px] bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-sm text-slate-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+          <option value="all">Todos os status</option>
+          <option value="pending">Pendente</option>
+          <option value="reviewing">Em Análise</option>
+          <option value="implementing">Implementando</option>
+          <option value="done">Concluído</option>
+          <option value="rejected">Rejeitado</option>
+        </select>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-slate-300">Carregando sugestões...</div>
+      ) : suggestions.length === 0 ? (
+        <div className="text-center py-12 text-slate-300 bg-slate-900 rounded-xl border border-slate-700">
+          Nenhuma sugestão encontrada.
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {suggestions.map((suggestion) => (
+            <article
+              key={suggestion.id}
+              className="bg-slate-900 border border-slate-700 rounded-xl p-5 shadow-sm"
+            >
+              <div className="flex justify-between items-start mb-3 flex-wrap gap-2">
+                <div className="flex gap-2 items-center flex-wrap">
+                  <span
+                    className="px-2.5 py-1 rounded-md text-xs font-semibold border"
+                    style={{
+                      background: 'rgba(15, 23, 42, 0.5)',
+                      color: STATUS_COLORS[suggestion.status],
+                      borderColor: STATUS_COLORS[suggestion.status] + '60',
+                    }}
+                  >
+                    {STATUS_LABELS[suggestion.status]}
+                  </span>
+                  <span
+                    className="px-2.5 py-1 rounded-md text-xs font-semibold border"
+                    style={{
+                      background: 'rgba(15, 23, 42, 0.5)',
+                      color: PRIORITY_COLORS[suggestion.priority],
+                      borderColor: PRIORITY_COLORS[suggestion.priority] + '60',
+                    }}
+                  >
+                    {PRIORITY_LABELS[suggestion.priority]}
+                  </span>
+                </div>
+                <span className="text-slate-300 text-xs">
+                  {formatTimestamp(suggestion.timestamp)}
+                </span>
+              </div>
+
+              <p className="text-slate-100 text-base leading-relaxed mb-3">{suggestion.text}</p>
+
+              <div className="flex justify-between items-center flex-wrap gap-3">
+                <span className="text-sm text-slate-300">
+                  Autor: <strong className="text-slate-100">{suggestion.author}</strong>
+                </span>
+
+                {NEXT_STATUS[suggestion.status].length > 0 && (
+                  <div className="flex gap-2 flex-wrap">
+                    {NEXT_STATUS[suggestion.status].map((nextStatus) => (
+                      <button
+                        key={nextStatus}
+                        type="button"
+                        onClick={() => handleStatusChange(suggestion.id, nextStatus)}
+                        className="min-h-[40px] px-3 py-1.5 rounded-md border text-xs font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        style={{
+                          background: 'rgba(15, 23, 42, 0.6)',
+                          borderColor: STATUS_COLORS[nextStatus] + '80',
+                          color: STATUS_COLORS[nextStatus],
+                        }}
+                      >
+                        {STATUS_LABELS[nextStatus]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </AppShell>
   );
 }

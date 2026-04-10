@@ -131,10 +131,10 @@ function DischargeRow({ mrn, name, ward, los, targetDate, blockers, status }: Di
 interface ServiceStatusProps {
   name: string;
   status: 'healthy' | 'degraded' | 'unknown';
-  url: string;
+  serviceId: string;
 }
 
-function ServiceStatus({ name, status, url }: ServiceStatusProps) {
+function ServiceStatus({ name, status, serviceId }: ServiceStatusProps) {
   const cfg = {
     healthy: { dot: 'status-dot-green', label: 'Saudável', card: 'service-card-healthy' },
     degraded: {
@@ -147,19 +147,19 @@ function ServiceStatus({ name, status, url }: ServiceStatusProps) {
   const c = cfg[status];
 
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+    <Link href={`/system/services/${serviceId}`} style={{ textDecoration: 'none' }}>
       <div className={`service-card ${c.card}`}>
         <span className={`status-dot ${c.dot}`}></span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
             {name}
           </div>
-          <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
             {c.label}
           </div>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }
 
@@ -255,13 +255,13 @@ const DISCHARGE_PATIENTS: DischargeRowProps[] = [
 ];
 
 const SERVICES: ServiceStatusProps[] = [
-  { name: 'Fluxo de Pacientes', status: 'healthy', url: 'http://patient-flow.172.19.0.6.nip.io' },
-  { name: 'Alta Hospitalar', status: 'healthy', url: 'http://discharge.172.19.0.6.nip.io' },
-  { name: 'Caixa de Tarefas', status: 'healthy', url: 'http://task-inbox.172.19.0.6.nip.io' },
-  { name: 'Auditoria', status: 'healthy', url: 'http://audit.172.19.0.6.nip.io' },
-  { name: 'Gateway de IA', status: 'degraded', url: 'http://ai-gateway.172.19.0.6.nip.io' },
-  { name: 'Motor de Políticas', status: 'healthy', url: 'http://policy-engine.172.19.0.6.nip.io' },
-  { name: 'Agentes', status: 'healthy', url: 'http://agents.172.19.0.6.nip.io' },
+  { name: 'Fluxo de Pacientes', status: 'healthy', serviceId: 'patient-flow' },
+  { name: 'Alta Hospitalar', status: 'healthy', serviceId: 'discharge' },
+  { name: 'Caixa de Tarefas', status: 'healthy', serviceId: 'task-inbox' },
+  { name: 'Auditoria', status: 'healthy', serviceId: 'audit' },
+  { name: 'Gateway de IA', status: 'degraded', serviceId: 'ai-gateway' },
+  { name: 'Motor de Políticas', status: 'healthy', serviceId: 'policy-engine' },
+  { name: 'Agentes', status: 'healthy', serviceId: 'agents' },
 ];
 
 export default function CommandCenterPage() {

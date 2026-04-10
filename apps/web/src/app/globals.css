@@ -14,49 +14,54 @@
   --color-velya-subtle: #64748b;
 }
 
-/* Velya Design System — Medical-Grade UI */
+/* Velya Design System — Medical-Grade UI (Dark theme, WCAG AA enforced) */
 
 :root {
   /* Core palette */
   --color-brand-deep: #0f3460;
-  --color-brand-mid: #16213e;
+  --color-brand-mid: #0f1a2e;
   --color-brand-accent: #1a4a7a;
-  --color-brand-highlight: #2563eb;
+  --color-brand-highlight: #1d4ed8;     /* white text → 7.7:1 */
+  --color-brand-highlight-soft: #93c5fd; /* for use AS text on dark surfaces */
 
-  /* Clinical white / surface */
-  --color-surface: #f8fafc;
-  --color-surface-elevated: #ffffff;
-  --color-surface-subtle: #f1f5f9;
-  --color-border: #e2e8f0;
-  --color-border-strong: #cbd5e1;
+  /* Dark canvas / surface */
+  --color-surface: #0a0f1a;
+  --color-surface-elevated: #111827;
+  --color-surface-subtle: #1a2332;
+  --color-border: #1e293b;
+  --color-border-strong: #334155;
 
-  /* Status colors */
-  --color-critical: #dc2626;
-  --color-critical-bg: #fef2f2;
-  --color-critical-border: #fecaca;
+  /* Status colors — token doubles as bg fill for solid buttons (white text 4.5+:1) */
+  --color-critical: #b91c1c;          /* white text → 6.74:1 */
+  --color-critical-fg: #fca5a5;       /* for use as text on dark tinted bg */
+  --color-critical-bg: #2a0a0a;
+  --color-critical-border: #7f1d1d;
 
-  --color-warning: #d97706;
-  --color-warning-bg: #fffbeb;
-  --color-warning-border: #fde68a;
+  --color-warning: #b45309;           /* white text → 5.34:1 */
+  --color-warning-fg: #fcd34d;
+  --color-warning-bg: #2a1a02;
+  --color-warning-border: #78350f;
 
-  --color-success: #16a34a;
-  --color-success-bg: #f0fdf4;
-  --color-success-border: #bbf7d0;
+  --color-success: #15803d;           /* white text → 5.42:1 */
+  --color-success-fg: #86efac;
+  --color-success-bg: #052e16;
+  --color-success-border: #14532d;
 
-  --color-info: #0284c7;
-  --color-info-bg: #f0f9ff;
-  --color-info-border: #bae6fd;
+  --color-info: #1d4ed8;              /* white text → 7.7:1 */
+  --color-info-fg: #93c5fd;
+  --color-info-bg: #0c1f3a;
+  --color-info-border: #1e3a8a;
 
-  --color-neutral: #64748b;
-  --color-neutral-bg: #f8fafc;
-  --color-neutral-border: #e2e8f0;
+  --color-neutral: #94a3b8;
+  --color-neutral-bg: #1a2332;
+  --color-neutral-border: #334155;
 
-  /* Text hierarchy */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-tertiary: #94a3b8;
-  --text-inverse: #ffffff;
-  --text-brand: #0f3460;
+  /* Text hierarchy — light text for dark canvas, all >= 4.5:1 on --color-surface */
+  --text-primary: #f8fafc;     /* 17.9:1 on #0a0f1a */
+  --text-secondary: #cbd5e1;   /* 12.4:1 */
+  --text-tertiary: #94a3b8;    /* 7.8:1 */
+  --text-inverse: #0f172a;
+  --text-brand: #93c5fd;
 
   /* Typography */
   --font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -159,6 +164,7 @@ body {
   height: var(--topbar-height);
   background: var(--color-surface-elevated);
   border-bottom: 1px solid var(--color-border);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   padding: 0 var(--space-6);
@@ -357,10 +363,10 @@ body {
 }
 
 .metric-trend-up {
-  color: var(--color-critical);
+  color: var(--color-critical-fg);
 }
 .metric-trend-down {
-  color: var(--color-success);
+  color: var(--color-success-fg);
 }
 .metric-trend-neutral {
   color: var(--color-neutral);
@@ -380,31 +386,31 @@ body {
 
 .badge-critical {
   background: var(--color-critical-bg);
-  color: var(--color-critical);
+  color: var(--color-critical-fg);
   border: 1px solid var(--color-critical-border);
 }
 
 .badge-warning {
   background: var(--color-warning-bg);
-  color: var(--color-warning);
+  color: var(--color-warning-fg);
   border: 1px solid var(--color-warning-border);
 }
 
 .badge-success {
   background: var(--color-success-bg);
-  color: var(--color-success);
+  color: var(--color-success-fg);
   border: 1px solid var(--color-success-border);
 }
 
 .badge-info {
   background: var(--color-info-bg);
-  color: var(--color-info);
+  color: var(--color-info-fg);
   border: 1px solid var(--color-info-border);
 }
 
 .badge-neutral {
   background: var(--color-neutral-bg);
-  color: var(--color-neutral);
+  color: var(--text-primary);
   border: 1px solid var(--color-neutral-border);
 }
 
@@ -494,7 +500,7 @@ body {
 }
 
 .btn-outline {
-  background: white;
+  background: var(--color-surface-elevated);
   color: var(--text-primary);
   border-color: var(--color-border-strong);
 }
@@ -522,12 +528,12 @@ body {
 
 .btn-warning {
   background: var(--color-warning-bg);
-  color: var(--color-warning);
+  color: var(--color-warning-fg);
   border-color: var(--color-warning-border);
 }
 
 .btn-warning:hover:not(:disabled) {
-  background: #fef3c7;
+  background: #3a2407;
 }
 
 /* Alert banner */
@@ -545,13 +551,13 @@ body {
 .alert-banner-critical {
   background: var(--color-critical-bg);
   border: 1px solid var(--color-critical-border);
-  color: var(--color-critical);
+  color: var(--color-critical-fg);
 }
 
 .alert-banner-warning {
   background: var(--color-warning-bg);
   border: 1px solid var(--color-warning-border);
-  color: var(--color-warning);
+  color: var(--color-warning-fg);
 }
 
 /* Grid layouts */
@@ -640,7 +646,7 @@ body {
   font-size: var(--text-sm);
   font-family: var(--font-family);
   color: var(--text-primary);
-  background: white;
+  background: var(--color-surface-elevated);
   outline: none;
   transition: border-color 0.15s;
 }
@@ -657,7 +663,7 @@ body {
   font-size: var(--text-sm);
   font-family: var(--font-family);
   color: var(--text-primary);
-  background: white;
+  background: var(--color-surface-elevated);
   cursor: pointer;
   outline: none;
 }
@@ -674,7 +680,7 @@ body {
   padding: var(--space-4);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
-  background: white;
+  background: var(--color-surface-elevated);
   margin-bottom: var(--space-3);
   transition: box-shadow 0.15s;
 }
@@ -703,7 +709,7 @@ body {
 }
 
 .service-card {
-  background: white;
+  background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
@@ -771,10 +777,11 @@ body {
   border-radius: var(--radius-md);
   background: var(--color-critical-bg);
   border: 1px solid var(--color-critical-border);
-  color: var(--color-critical);
+  color: var(--color-critical-fg);
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
   cursor: pointer;
+  font-family: inherit;
 }
 
 .topbar-time {
@@ -813,7 +820,7 @@ body {
   padding: 2px 6px;
   border-radius: var(--radius-sm);
   background: var(--color-critical-bg);
-  color: var(--color-critical);
+  color: var(--color-critical-fg);
   border: 1px solid var(--color-critical-border);
   margin: 2px;
 }

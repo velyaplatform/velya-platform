@@ -427,11 +427,11 @@ export default function IcuPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
         <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
-          <div className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">
+          <div className="text-[10px] uppercase tracking-wider text-white/75 font-semibold">
             Ocupação
           </div>
           <div className="text-2xl font-bold text-white mt-1">{kpis.occupancy}%</div>
-          <div className="text-[10px] text-white/50 mt-0.5">
+          <div className="text-[10px] text-white/75 mt-0.5">
             {kpis.occupied}/{kpis.total} leitos
           </div>
         </div>
@@ -440,42 +440,42 @@ export default function IcuPage() {
             Em ventilação
           </div>
           <div className="text-2xl font-bold text-blue-200 mt-1">{kpis.onVent}</div>
-          <div className="text-[10px] text-white/50 mt-0.5">VM invasiva</div>
+          <div className="text-[10px] text-white/75 mt-0.5">VM invasiva</div>
         </div>
         <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/[0.05] p-3">
           <div className="text-[10px] uppercase tracking-wider text-indigo-300/80 font-semibold">
             Sedados
           </div>
           <div className="text-2xl font-bold text-indigo-200 mt-1">{kpis.sedated}</div>
-          <div className="text-[10px] text-white/50 mt-0.5">RASS ≤ -2</div>
+          <div className="text-[10px] text-white/75 mt-0.5">RASS ≤ -2</div>
         </div>
         <div className="rounded-lg border border-red-500/40 bg-red-500/[0.06] p-3">
           <div className="text-[10px] uppercase tracking-wider text-red-300/80 font-semibold">
             Alertas críticos
           </div>
           <div className="text-2xl font-bold text-red-300 mt-1">{kpis.criticalAlerts}</div>
-          <div className="text-[10px] text-white/50 mt-0.5">Severidade alta</div>
+          <div className="text-[10px] text-white/75 mt-0.5">Severidade alta</div>
         </div>
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.05] p-3">
           <div className="text-[10px] uppercase tracking-wider text-orange-300/80 font-semibold">
             Mort. prevista
           </div>
           <div className="text-2xl font-bold text-orange-300 mt-1">{kpis.mortalityAvg}%</div>
-          <div className="text-[10px] text-white/50 mt-0.5">APACHE II médio</div>
+          <div className="text-[10px] text-white/75 mt-0.5">APACHE II médio</div>
         </div>
         <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.05] p-3">
           <div className="text-[10px] uppercase tracking-wider text-amber-200/80 font-semibold">
             Pendências
           </div>
           <div className="text-2xl font-bold text-amber-200 mt-1">{kpis.pending}</div>
-          <div className="text-[10px] text-white/50 mt-0.5">Ações abertas</div>
+          <div className="text-[10px] text-white/75 mt-0.5">Ações abertas</div>
         </div>
       </div>
 
       {/* Filters */}
       <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3 mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-white/50 uppercase tracking-wider">Severidade</span>
+          <span className="text-[11px] text-white/75 uppercase tracking-wider">Severidade</span>
           <div className="flex gap-1 flex-wrap">
             {(['all', 'critico', 'grave', 'estavel', 'melhorando'] as const).map((s) => (
               <button
@@ -493,7 +493,7 @@ export default function IcuPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-white/50 uppercase tracking-wider">Médico</span>
+          <span className="text-[11px] text-white/75 uppercase tracking-wider">Médico</span>
           <select
             value={filterMd}
             onChange={(e) => setFilterMd(e.target.value)}
@@ -518,8 +518,8 @@ export default function IcuPage() {
                 key={bed.id}
                 className="rounded-lg border border-dashed border-white/15 bg-white/[0.01] p-4 text-center"
               >
-                <div className="text-[10px] uppercase tracking-wider text-white/40">{bed.id}</div>
-                <div className="text-xs text-white/50 mt-2">Livre</div>
+                <div className="text-[10px] uppercase tracking-wider text-white/70">{bed.id}</div>
+                <div className="text-xs text-white/75 mt-2">Livre</div>
               </div>
             );
           }
@@ -534,12 +534,12 @@ export default function IcuPage() {
                   <div className={`w-2 h-2 rounded-full ${cfg.dot}`} />
                   <div className="text-xs font-mono font-bold text-white">{bed.id}</div>
                 </div>
-                <div className="text-[9px] text-white/50">Dia {bed.patient?.icuDay}</div>
+                <div className="text-[9px] text-white/75">Dia {bed.patient?.icuDay}</div>
               </div>
               <div className="text-sm font-semibold text-white/90 truncate">
                 {bed.patient?.name}
               </div>
-              <div className="text-[10px] text-white/55">
+              <div className="text-[10px] text-white/75">
                 {bed.patient?.age}a · {bed.patient?.mrn}
               </div>
               <div className="text-[10px] text-white/65 mt-1 line-clamp-2">
@@ -566,23 +566,23 @@ export default function IcuPage() {
               {bed.vitals && (
                 <div className="grid grid-cols-5 gap-1 mt-2 text-[9px] font-mono">
                   <div className="rounded bg-white/[0.05] px-1 py-0.5 text-center">
-                    <div className="text-white/45">FC</div>
+                    <div className="text-white/70">FC</div>
                     <div className="text-white/90">{bed.vitals.hr}</div>
                   </div>
                   <div className="rounded bg-white/[0.05] px-1 py-0.5 text-center">
-                    <div className="text-white/45">PA</div>
+                    <div className="text-white/70">PA</div>
                     <div className="text-white/90">{bed.vitals.bp}</div>
                   </div>
                   <div className="rounded bg-white/[0.05] px-1 py-0.5 text-center">
-                    <div className="text-white/45">FR</div>
+                    <div className="text-white/70">FR</div>
                     <div className="text-white/90">{bed.vitals.rr}</div>
                   </div>
                   <div className="rounded bg-white/[0.05] px-1 py-0.5 text-center">
-                    <div className="text-white/45">SpO₂</div>
+                    <div className="text-white/70">SpO₂</div>
                     <div className="text-white/90">{bed.vitals.spo2}</div>
                   </div>
                   <div className="rounded bg-white/[0.05] px-1 py-0.5 text-center">
-                    <div className="text-white/45">T°</div>
+                    <div className="text-white/70">T°</div>
                     <div className="text-white/90">{bed.vitals.temp}</div>
                   </div>
                 </div>
@@ -618,7 +618,7 @@ export default function IcuPage() {
               {/* Goals of care bar */}
               {bed.goalsOfCare && (
                 <div className="mt-2 flex items-center justify-between text-[9px]">
-                  <span className="text-white/50">GoC:</span>
+                  <span className="text-white/75">GoC:</span>
                   <span
                     className={`font-semibold ${
                       bed.goalsOfCare === 'definidos'
@@ -649,7 +649,7 @@ export default function IcuPage() {
           >
             <div className="flex items-start justify-between mb-4">
               <div>
-                <div className="text-xs text-white/50 uppercase tracking-wider font-mono">
+                <div className="text-xs text-white/75 uppercase tracking-wider font-mono">
                   {selected.id} · Dia {selected.patient.icuDay} de UTI
                 </div>
                 <h2 className="text-xl font-bold text-white mt-1">{selected.patient.name}</h2>
@@ -660,7 +660,7 @@ export default function IcuPage() {
               </div>
               <button
                 onClick={() => setSelected(null)}
-                className="text-white/50 hover:text-white text-2xl leading-none"
+                className="text-white/75 hover:text-white text-2xl leading-none"
               >
                 ×
               </button>
@@ -670,7 +670,7 @@ export default function IcuPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
               {selected.news2 !== undefined && (
                 <div className="rounded border border-white/10 bg-white/[0.03] p-2">
-                  <div className="text-[10px] uppercase text-white/50">NEWS2</div>
+                  <div className="text-[10px] uppercase text-white/75">NEWS2</div>
                   <div className="text-lg font-bold text-white flex items-center gap-2">
                     {selected.news2}
                     {selected.news2Trend && (
@@ -683,13 +683,13 @@ export default function IcuPage() {
               )}
               {selected.apache2 !== undefined && (
                 <div className="rounded border border-white/10 bg-white/[0.03] p-2">
-                  <div className="text-[10px] uppercase text-white/50">APACHE II</div>
+                  <div className="text-[10px] uppercase text-white/75">APACHE II</div>
                   <div className="text-lg font-bold text-white">{selected.apache2}</div>
                 </div>
               )}
               {selected.predictedMortality !== undefined && (
                 <div className="rounded border border-white/10 bg-white/[0.03] p-2">
-                  <div className="text-[10px] uppercase text-white/50">Mort. prevista</div>
+                  <div className="text-[10px] uppercase text-white/75">Mort. prevista</div>
                   <div className="text-lg font-bold text-orange-300">
                     {selected.predictedMortality}%
                   </div>
@@ -697,7 +697,7 @@ export default function IcuPage() {
               )}
               {selected.sedation && (
                 <div className="rounded border border-white/10 bg-white/[0.03] p-2">
-                  <div className="text-[10px] uppercase text-white/50">RASS</div>
+                  <div className="text-[10px] uppercase text-white/75">RASS</div>
                   <div className="text-lg font-bold text-indigo-200">{selected.sedation.rass}</div>
                 </div>
               )}
@@ -706,7 +706,7 @@ export default function IcuPage() {
             {/* Vitals chart (simple sparkline) */}
             {selected.vitalsHistory && selected.vitalsHistory.length > 0 && (
               <div className="mb-4 rounded border border-white/10 bg-white/[0.02] p-3">
-                <div className="text-[10px] uppercase tracking-wider text-white/50 mb-2">
+                <div className="text-[10px] uppercase tracking-wider text-white/75 mb-2">
                   Tendência Sinais Vitais (últimas 6h)
                 </div>
                 <div className="grid grid-cols-3 gap-3">
@@ -740,7 +740,7 @@ export default function IcuPage() {
                               .join(' ')}
                           />
                         </svg>
-                        <div className="text-[10px] text-white/50 font-mono flex justify-between">
+                        <div className="text-[10px] text-white/75 font-mono flex justify-between">
                           <span>{min}</span>
                           <span>{values[values.length - 1]}</span>
                           <span>{max}</span>
@@ -781,7 +781,7 @@ export default function IcuPage() {
 
             {selected.devices && selected.devices.length > 0 && (
               <div className="mb-4">
-                <div className="text-[10px] uppercase tracking-wider text-white/50 mb-1.5">
+                <div className="text-[10px] uppercase tracking-wider text-white/75 mb-1.5">
                   Dispositivos
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -814,7 +814,7 @@ export default function IcuPage() {
             {/* Medications */}
             {selected.medications && selected.medications.length > 0 && (
               <div className="mb-4">
-                <div className="text-[10px] uppercase tracking-wider text-white/50 mb-1.5">
+                <div className="text-[10px] uppercase tracking-wider text-white/75 mb-1.5">
                   Medicações Ativas
                 </div>
                 <div className="space-y-1">
@@ -824,7 +824,7 @@ export default function IcuPage() {
                       className="flex items-center justify-between text-xs px-3 py-1.5 rounded bg-white/[0.03] border border-white/10"
                     >
                       <span className="text-white/85">{m.name}</span>
-                      <span className="text-white/55 font-mono">
+                      <span className="text-white/75 font-mono">
                         {m.schedule} · {m.lastGiven}
                       </span>
                     </div>
@@ -836,7 +836,7 @@ export default function IcuPage() {
             {/* Procedures */}
             {selected.procedures && selected.procedures.length > 0 && (
               <div className="mb-4">
-                <div className="text-[10px] uppercase tracking-wider text-white/50 mb-1.5">
+                <div className="text-[10px] uppercase tracking-wider text-white/75 mb-1.5">
                   Procedimentos Recentes
                 </div>
                 <div className="space-y-1">
@@ -845,7 +845,7 @@ export default function IcuPage() {
                       key={p.time + p.description}
                       className="text-xs text-white/75 flex gap-3"
                     >
-                      <span className="font-mono text-white/55 w-12">{p.time}</span>
+                      <span className="font-mono text-white/75 w-12">{p.time}</span>
                       <span>{p.description}</span>
                     </div>
                   ))}
@@ -857,7 +857,7 @@ export default function IcuPage() {
             <div className="grid grid-cols-2 gap-3">
               {selected.goalsOfCare && (
                 <div className="rounded border border-white/10 bg-white/[0.03] p-3">
-                  <div className="text-[10px] uppercase text-white/50 mb-1">
+                  <div className="text-[10px] uppercase text-white/75 mb-1">
                     Goals of Care (BRIDGE-ICU)
                   </div>
                   <div className="text-sm font-semibold text-white">
@@ -867,7 +867,7 @@ export default function IcuPage() {
               )}
               {selected.familyMeeting && (
                 <div className="rounded border border-white/10 bg-white/[0.03] p-3">
-                  <div className="text-[10px] uppercase text-white/50 mb-1">Reunião familiar</div>
+                  <div className="text-[10px] uppercase text-white/75 mb-1">Reunião familiar</div>
                   <div className="text-sm font-semibold text-white">
                     {FAMILY_LABEL[selected.familyMeeting]}
                   </div>

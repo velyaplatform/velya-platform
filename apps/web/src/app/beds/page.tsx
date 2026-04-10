@@ -577,11 +577,11 @@ export default function BedsPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
         <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-white/50 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-white/75 font-semibold">
             Taxa de Ocupação
           </div>
           <div className="text-3xl font-bold text-white mt-1">{kpis.occupancyRate}%</div>
-          <div className="text-xs text-white/50 mt-1">
+          <div className="text-xs text-white/75 mt-1">
             {kpis.occupied} de {kpis.total} leitos
           </div>
         </div>
@@ -590,35 +590,35 @@ export default function BedsPage() {
             Disponíveis
           </div>
           <div className="text-3xl font-bold text-emerald-300 mt-1">{kpis.available}</div>
-          <div className="text-xs text-white/50 mt-1">Prontos para admissão</div>
+          <div className="text-xs text-white/75 mt-1">Prontos para admissão</div>
         </div>
         <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.06] p-4">
           <div className="text-[11px] uppercase tracking-wider text-amber-200/80 font-semibold">
             Higienização
           </div>
           <div className="text-3xl font-bold text-amber-200 mt-1">{kpis.cleaning}</div>
-          <div className="text-xs text-white/50 mt-1">Em preparo</div>
+          <div className="text-xs text-white/75 mt-1">Em preparo</div>
         </div>
         <div className="rounded-lg border border-blue-500/30 bg-blue-500/[0.06] p-4">
           <div className="text-[11px] uppercase tracking-wider text-blue-300/80 font-semibold">
             Aguardando Alta
           </div>
           <div className="text-3xl font-bold text-blue-300 mt-1">{kpis.awaitingDischarge}</div>
-          <div className="text-xs text-white/50 mt-1">Liberação iminente</div>
+          <div className="text-xs text-white/75 mt-1">Liberação iminente</div>
         </div>
         <div className="rounded-lg border border-slate-500/30 bg-slate-700/20 p-4">
           <div className="text-[11px] uppercase tracking-wider text-slate-300/80 font-semibold">
             Bloqueados
           </div>
           <div className="text-3xl font-bold text-slate-200 mt-1">{kpis.blocked}</div>
-          <div className="text-xs text-white/50 mt-1">Indisponíveis</div>
+          <div className="text-xs text-white/75 mt-1">Indisponíveis</div>
         </div>
         <div className="rounded-lg border border-red-500/30 bg-red-500/[0.06] p-4">
           <div className="text-[11px] uppercase tracking-wider text-red-300/80 font-semibold">
             Ocupados
           </div>
           <div className="text-3xl font-bold text-red-300 mt-1">{kpis.occupied}</div>
-          <div className="text-xs text-white/50 mt-1">Com paciente ativo</div>
+          <div className="text-xs text-white/75 mt-1">Com paciente ativo</div>
         </div>
       </div>
 
@@ -649,7 +649,7 @@ export default function BedsPage() {
           <option value="reserved">Reservado</option>
           <option value="blocked">Bloqueado</option>
         </select>
-        <div className="ml-auto text-xs text-white/50">
+        <div className="ml-auto text-xs text-white/75">
           Exibindo {filteredBeds.length} de {BEDS.length} leitos
         </div>
       </div>
@@ -662,7 +662,7 @@ export default function BedsPage() {
               <h2 className="text-sm font-semibold text-white/80 uppercase tracking-wider">
                 {ward}
               </h2>
-              <div className="text-xs text-white/40">{beds.length} leitos</div>
+              <div className="text-xs text-white/70">{beds.length} leitos</div>
               <div className="flex-1 h-px bg-white/10" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -695,7 +695,7 @@ export default function BedsPage() {
                         <div className="text-sm font-semibold text-white/90 truncate">
                           {bed.patient.name}
                         </div>
-                        <div className="text-[11px] text-white/55">
+                        <div className="text-[11px] text-white/75">
                           {bed.patient.mrn} · {bed.patient.age} anos · {bed.patient.daysAdmitted}d
                         </div>
                         <div className="text-[11px] text-white/60 truncate mt-0.5">
@@ -733,7 +733,7 @@ export default function BedsPage() {
                     )}
 
                     <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/10">
-                      <span className="text-[10px] text-white/40">Última ação: {bed.lastAction}</span>
+                      <span className="text-[10px] text-white/70">Última ação: {bed.lastAction}</span>
                     </div>
 
                     <div
@@ -789,7 +789,7 @@ export default function BedsPage() {
         ))}
 
         {filteredBeds.length === 0 && (
-          <div className="text-center py-12 text-white/40">
+          <div className="text-center py-12 text-white/70">
             <div className="text-4xl mb-2">🛏️</div>
             <div>Nenhum leito corresponde aos filtros selecionados</div>
           </div>

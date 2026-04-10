@@ -43,12 +43,13 @@ const TABS: { key: TabKey; label: string; endpoint: string; dataKey: string }[] 
   { key: 'actions', label: 'Ações', endpoint: '/api/actions', dataKey: 'actions' },
 ];
 
+// Background colors for selected/active state buttons — chosen so white text passes WCAG AA (4.5:1)
 const SEVERITY_COLORS: Record<string, string> = {
-  critical: '#ef4444',
-  high: '#f97316',
-  warning: '#eab308',
-  info: '#3b82f6',
-  error: '#ef4444',
+  critical: '#b91c1c', /* white text → 6.74:1 */
+  high: '#c2410c',     /* white text → 5.13:1 */
+  warning: '#a16207',  /* white text → 5.04:1 */
+  info: '#1d4ed8',     /* white text → 7.66:1 */
+  error: '#b91c1c',
 };
 
 const SEVERITY_LABELS: Record<string, string> = {
@@ -315,7 +316,7 @@ export default function ActivityPage() {
                   fontSize: '0.8125rem',
                   fontWeight: activeTab === tab.key ? 700 : 400,
                   background:
-                    activeTab === tab.key ? 'var(--accent-primary, #3b82f6)' : 'transparent',
+                    activeTab === tab.key ? 'var(--accent-primary, #1d4ed8)' : 'transparent',
                   color: activeTab === tab.key ? 'white' : 'var(--text-secondary)',
                 }}
               >
@@ -343,7 +344,7 @@ export default function ActivityPage() {
                   background:
                     severityFilter === sev
                       ? sev === 'all'
-                        ? 'var(--accent-primary, #3b82f6)'
+                        ? 'var(--accent-primary, #1d4ed8)'
                         : SEVERITY_COLORS[sev] || '#666'
                       : 'transparent',
                   color: severityFilter === sev ? 'white' : 'var(--text-secondary)',

@@ -302,32 +302,32 @@ export default function EmsPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-white/50 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-white/75 font-semibold">
             Ativas
           </div>
           <div className="text-3xl font-bold text-white mt-1">{kpis.active}</div>
-          <div className="text-xs text-white/50 mt-1">de {AMBULANCES.length} unidades</div>
+          <div className="text-xs text-white/75 mt-1">de {AMBULANCES.length} unidades</div>
         </div>
         <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.06] p-4">
           <div className="text-[11px] uppercase tracking-wider text-amber-200/80 font-semibold">
             Para nós
           </div>
           <div className="text-3xl font-bold text-amber-200 mt-1">{kpis.inboundUs}</div>
-          <div className="text-xs text-white/50 mt-1">Em rota Velya HQ</div>
+          <div className="text-xs text-white/75 mt-1">Em rota Velya HQ</div>
         </div>
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.06] p-4">
           <div className="text-[11px] uppercase tracking-wider text-orange-300/80 font-semibold">
             Próx. 10 min
           </div>
           <div className="text-3xl font-bold text-orange-300 mt-1">{kpis.arrivingSoon}</div>
-          <div className="text-xs text-white/50 mt-1">Chegando</div>
+          <div className="text-xs text-white/75 mt-1">Chegando</div>
         </div>
         <div className="rounded-lg border border-red-500/40 bg-red-500/[0.08] p-4">
           <div className="text-[11px] uppercase tracking-wider text-red-300/80 font-semibold">
             Críticos a caminho
           </div>
           <div className="text-3xl font-bold text-red-300 mt-1">{kpis.criticalEnRoute}</div>
-          <div className="text-xs text-white/50 mt-1">Prioridade vermelha</div>
+          <div className="text-xs text-white/75 mt-1">Prioridade vermelha</div>
         </div>
       </div>
 
@@ -414,7 +414,7 @@ export default function EmsPage() {
             <div className="text-sm font-semibold text-amber-200">Pré-notificações ePCR</div>
           </div>
           {preNotifications.length === 0 && (
-            <div className="text-xs text-white/50">Nenhuma pré-notificação ativa.</div>
+            <div className="text-xs text-white/75">Nenhuma pré-notificação ativa.</div>
           )}
           <div className="flex flex-col gap-3">
             {preNotifications.map((a) => (
@@ -498,10 +498,10 @@ export default function EmsPage() {
                     {a.etaMin !== null && a.status !== 'disponivel' && (
                       <div className="text-lg font-bold text-white leading-none">
                         {a.etaMin}
-                        <span className="text-[10px] text-white/50 ml-0.5">min</span>
+                        <span className="text-[10px] text-white/75 ml-0.5">min</span>
                       </div>
                     )}
-                    <div className="text-[9px] text-white/45">
+                    <div className="text-[9px] text-white/70">
                       desde {a.dispatchedAt} ({a.minutesSinceDispatch}min)
                     </div>
                   </div>
@@ -510,7 +510,7 @@ export default function EmsPage() {
                   <div className="border-t border-white/10 p-4 bg-black/20">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <div className="text-[10px] uppercase tracking-wider text-white/50 mb-1">
+                        <div className="text-[10px] uppercase tracking-wider text-white/75 mb-1">
                           Equipe
                         </div>
                         <div className="text-xs text-white/85 space-y-0.5">
@@ -520,7 +520,7 @@ export default function EmsPage() {
                         </div>
                         {a.patient && (
                           <>
-                            <div className="text-[10px] uppercase tracking-wider text-white/50 mb-1 mt-3">
+                            <div className="text-[10px] uppercase tracking-wider text-white/75 mb-1 mt-3">
                               Paciente
                             </div>
                             <div className="text-xs text-white/85">
@@ -532,26 +532,26 @@ export default function EmsPage() {
                             {a.patient.vitals && (
                               <div className="mt-2 grid grid-cols-4 gap-1 text-[10px]">
                                 <div className="rounded bg-white/[0.04] px-1.5 py-1">
-                                  <div className="text-white/50">PA</div>
+                                  <div className="text-white/75">PA</div>
                                   <div className="text-white/90 font-mono">
                                     {a.patient.vitals.bp}
                                   </div>
                                 </div>
                                 <div className="rounded bg-white/[0.04] px-1.5 py-1">
-                                  <div className="text-white/50">FC</div>
+                                  <div className="text-white/75">FC</div>
                                   <div className="text-white/90 font-mono">
                                     {a.patient.vitals.hr}
                                   </div>
                                 </div>
                                 <div className="rounded bg-white/[0.04] px-1.5 py-1">
-                                  <div className="text-white/50">SpO₂</div>
+                                  <div className="text-white/75">SpO₂</div>
                                   <div className="text-white/90 font-mono">
                                     {a.patient.vitals.spo2}
                                   </div>
                                 </div>
                                 {a.patient.vitals.gcs !== undefined && (
                                   <div className="rounded bg-white/[0.04] px-1.5 py-1">
-                                    <div className="text-white/50">GCS</div>
+                                    <div className="text-white/75">GCS</div>
                                     <div className="text-white/90 font-mono">
                                       {a.patient.vitals.gcs}
                                     </div>
@@ -570,7 +570,7 @@ export default function EmsPage() {
 
                       {/* Timeline + actions */}
                       <div>
-                        <div className="text-[10px] uppercase tracking-wider text-white/50 mb-2">
+                        <div className="text-[10px] uppercase tracking-wider text-white/75 mb-2">
                           Linha do Tempo
                         </div>
                         <div className="flex flex-col gap-1.5">

@@ -1,81 +1,93 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { AppShell } from '../components/app-shell';
 
 type ServiceHealth = 'healthy' | 'degraded' | 'down' | 'unknown' | 'checking';
 
 interface ServiceDef {
+  id: string;
   name: string;
-  url: string;
-  healthPath: string;
+  /** Internal proxied health endpoint exposed by /api/system/health */
+  healthEndpoint: string;
   description: string;
   category: 'core' | 'ai' | 'platform' | 'observability';
+  manageRoute: string;
 }
 
 const SERVICES: ServiceDef[] = [
   {
+    id: 'patient-flow',
     name: 'Fluxo de Pacientes',
-    url: 'http://patient-flow.172.19.0.6.nip.io',
-    healthPath: '/api/v1/health',
+    healthEndpoint: '/api/system/health/patient-flow',
     description: 'Rastreamento em tempo real e orquestração do fluxo de pacientes',
     category: 'core',
+    manageRoute: '/system/services/patient-flow',
   },
   {
+    id: 'discharge',
     name: 'Serviço de Alta',
-    url: 'http://discharge.172.19.0.6.nip.io',
-    healthPath: '/api/v1/health',
+    healthEndpoint: '/api/system/health/discharge',
     description: 'Planejamento de altas, bloqueios e coordenação',
     category: 'core',
+    manageRoute: '/system/services/discharge',
   },
   {
+    id: 'task-inbox',
     name: 'Caixa de Tarefas',
-    url: 'http://task-inbox.172.19.0.6.nip.io',
-    healthPath: '/api/v1/health',
+    healthEndpoint: '/api/system/health/task-inbox',
     description: 'Roteamento de tarefas clínicas e administrativas por prioridade',
     category: 'core',
+    manageRoute: '/system/services/task-inbox',
   },
   {
+    id: 'audit',
     name: 'Auditoria',
-    url: 'http://audit.172.19.0.6.nip.io',
-    healthPath: '/api/v1/health',
+    healthEndpoint: '/api/system/health/audit',
     description: 'Trilha de auditoria clínica e operacional com conformidade HIPAA',
     category: 'platform',
+    manageRoute: '/system/services/audit',
   },
   {
+    id: 'policy-engine',
     name: 'Motor de Políticas',
-    url: 'http://policy-engine.172.19.0.6.nip.io',
-    healthPath: '/api/v1/health',
+    healthEndpoint: '/api/system/health/policy-engine',
     description: 'Controle de acesso por papel e aplicação de políticas clínicas',
     category: 'platform',
+    manageRoute: '/system/services/policy-engine',
   },
   {
+    id: 'ai-gateway',
     name: 'Gateway de IA',
-    url: 'http://ai-gateway.172.19.0.6.nip.io',
-    healthPath: '/api/v1/health',
+    healthEndpoint: '/api/system/health/ai-gateway',
     description: 'Gateway unificado de IA com redação de PHI e controle de taxa',
     category: 'ai',
+    manageRoute: '/system/services/ai-gateway',
   },
   {
+    id: 'agents',
     name: 'Agentes',
-    url: 'http://agents.172.19.0.6.nip.io',
-    healthPath: '/api/v1/health',
+    healthEndpoint: '/api/system/health/agents',
     description: 'Motor de execução de agentes de IA clínicos e operacionais',
     category: 'ai',
+    manageRoute: '/system/services/agents',
   },
   {
-    name: 'Grafana',
-    url: 'http://grafana.172.19.0.6.nip.io',
-    healthPath: '/api/health',
+    id: 'metrics',
+    name: 'Métricas (Grafana)',
+    healthEndpoint: '/api/system/health/metrics',
     description: 'Dashboards de observabilidade e alertas da plataforma',
     category: 'observability',
+    manageRoute: '/observability/metrics',
   },
   {
-    name: 'ArgoCD',
-    url: 'http://argocd.172.19.0.6.nip.io',
-    healthPath: '/healthz',
+    id: 'deploys',
+    name: 'Implantações (ArgoCD)',
+    healthEndpoint: '/api/system/health/deploys',
     description: 'Entrega contínua GitOps e status de sincronização',
     category: 'observability',
+    manageRoute: '/observability/deploys',
   },
 ];
 
@@ -177,7 +189,7 @@ interface ServiceCardProps {
   service: ServiceDef;
   health: ServiceHealth;
   latency?: number;
-  onCheck: (url: string) => void;
+  onCheck: (id: string) => void;
 }
 
 function ServiceCard({ service, health, latency, onCheck }: ServiceCardProps) {
@@ -231,22 +243,22 @@ function ServiceCard({ service, health, latency, onCheck }: ServiceCardProps) {
         {service.description}
       </div>
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', width: '100%' }}>
-        <a
-          href={service.url}
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href={service.manageRoute}
           style={{
-            fontSize: '0.7rem',
+            fontSize: '0.75rem',
             color: 'var(--color-brand-highlight)',
             textDecoration: 'none',
+            fontWeight: 600,
           }}
         >
-          {service.url.replace('http://', '')}
-        </a>
+          Gerenciar →
+        </Link>
         <button
+          type="button"
           className="btn btn-ghost btn-sm"
-          style={{ marginLeft: 'auto', fontSize: '0.7rem', padding: '2px 8px' }}
-          onClick={() => onCheck(service.url)}
+          style={{ marginLeft: 'auto', fontSize: '0.75rem', padding: '4px 10px' }}
+          onClick={() => onCheck(service.id)}
         >
           Re-verificar
         </button>
@@ -261,45 +273,45 @@ export default function SystemPage() {
   const [healthMap, setHealthMap] = useState<Record<string, ServiceHealth>>(() => {
     const initial: Record<string, ServiceHealth> = {};
     SERVICES.forEach((s) => {
-      initial[s.url] = 'checking';
+      initial[s.id] = 'checking';
     });
     return initial;
   });
 
   const [latencyMap, setLatencyMap] = useState<Record<string, number>>({});
 
-  const checkService = useCallback(async (serviceUrl: string, healthPath: string) => {
-    setHealthMap((prev) => ({ ...prev, [serviceUrl]: 'checking' }));
+  const checkService = useCallback(async (serviceId: string, endpoint: string) => {
+    setHealthMap((prev) => ({ ...prev, [serviceId]: 'checking' }));
     const start = Date.now();
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
-      const res = await fetch(`${serviceUrl}${healthPath}`, {
+      const res = await fetch(endpoint, {
         signal: controller.signal,
         cache: 'no-store',
       });
       clearTimeout(timeoutId);
       const elapsed = Date.now() - start;
-      setLatencyMap((prev) => ({ ...prev, [serviceUrl]: elapsed }));
+      setLatencyMap((prev) => ({ ...prev, [serviceId]: elapsed }));
       if (res.ok) {
-        setHealthMap((prev) => ({ ...prev, [serviceUrl]: 'healthy' }));
+        setHealthMap((prev) => ({ ...prev, [serviceId]: 'healthy' }));
       } else if (res.status >= 500) {
-        setHealthMap((prev) => ({ ...prev, [serviceUrl]: 'down' }));
+        setHealthMap((prev) => ({ ...prev, [serviceId]: 'down' }));
       } else {
-        setHealthMap((prev) => ({ ...prev, [serviceUrl]: 'degraded' }));
+        setHealthMap((prev) => ({ ...prev, [serviceId]: 'degraded' }));
       }
     } catch {
-      setHealthMap((prev) => ({ ...prev, [serviceUrl]: 'unknown' }));
+      setHealthMap((prev) => ({ ...prev, [serviceId]: 'unknown' }));
     }
   }, []);
 
   useEffect(() => {
-    SERVICES.forEach((s) => checkService(s.url, s.healthPath));
+    SERVICES.forEach((s) => checkService(s.id, s.healthEndpoint));
   }, [checkService]);
 
-  const handleManualCheck = (url: string) => {
-    const svc = SERVICES.find((s) => s.url === url);
-    if (svc) checkService(svc.url, svc.healthPath);
+  const handleManualCheck = (id: string) => {
+    const svc = SERVICES.find((s) => s.id === id);
+    if (svc) checkService(svc.id, svc.healthEndpoint);
   };
 
   const healthyCount = Object.values(healthMap).filter((h) => h === 'healthy').length;
@@ -377,10 +389,10 @@ export default function SystemPage() {
             <div className="service-grid">
               {categoryServices.map((svc) => (
                 <ServiceCard
-                  key={svc.url}
+                  key={svc.id}
                   service={svc}
-                  health={healthMap[svc.url] ?? 'unknown'}
-                  latency={latencyMap[svc.url]}
+                  health={healthMap[svc.id] ?? 'unknown'}
+                  latency={latencyMap[svc.id]}
                   onCheck={handleManualCheck}
                 />
               ))}
@@ -389,38 +401,21 @@ export default function SystemPage() {
         );
       })}
 
-      {/* Dashboards externos */}
+      {/* Acessos rápidos centralizados */}
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <div className="card-header">
-          <span className="card-title">🔗 Dashboards Externos</span>
+          <span className="card-title">🔗 Painéis Centralizados</span>
         </div>
         <div className="flex gap-3 flex-wrap">
-          <a
-            href="http://grafana.172.19.0.6.nip.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-primary"
-          >
-            📊 Abrir Grafana
-          </a>
-          <a
-            href="http://argocd.172.19.0.6.nip.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-outline"
-          >
-            🔄 Abrir ArgoCD
-          </a>
-          <div
-            style={{
-              marginLeft: 'auto',
-              fontSize: '0.75rem',
-              color: 'var(--text-tertiary)',
-              alignSelf: 'center',
-            }}
-          >
-            Grafana: admin / prom-operator
-          </div>
+          <Link href="/observability/metrics" className="btn btn-primary">
+            📊 Métricas
+          </Link>
+          <Link href="/observability/deploys" className="btn btn-outline">
+            🔄 Implantações
+          </Link>
+          <Link href="/system/services" className="btn btn-outline">
+            ⚙️ Serviços
+          </Link>
         </div>
       </div>
 

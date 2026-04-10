@@ -102,7 +102,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
       : sessionData.userName.slice(0, 2).toUpperCase();
 
   return (
-    <div className="flex min-h-screen bg-[var(--color-surface)]">
+    <div className="flex min-h-screen bg-[var(--color-surface)] text-[var(--text-primary)]">
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
@@ -124,7 +124,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
           {/* Hamburger menu for mobile */}
           <div className="flex items-center gap-3">
             <button
-              className="md:hidden p-1.5 rounded-md text-[var(--text-secondary)] hover:bg-[var(--color-surface-subtle)]"
+              className="md:hidden p-1.5 rounded-md text-[var(--text-primary)] hover:bg-[var(--color-surface-subtle)]"
               onClick={() => setSidebarOpen(true)}
               aria-label="Abrir menu"
             >
@@ -141,35 +141,42 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
           </div>
 
           <div className="topbar-right">
-            <div className="topbar-alerts">
-              <span>{'\uD83D\uDD34'}</span>
-              <span>5 Alertas Criticos</span>
-            </div>
+            <button
+              type="button"
+              onClick={() => router.push('/alerts')}
+              className="topbar-alerts focus:outline-none focus:ring-2 focus:ring-red-300"
+              aria-label="Ver 5 alertas críticos"
+            >
+              <span aria-hidden="true">{'\uD83D\uDD34'}</span>
+              <span className="text-red-200 font-bold">5 Alertas Críticos</span>
+            </button>
             <div className="topbar-time">{currentTime}</div>
             <div className="topbar-user">
               <div className="avatar">{initials}</div>
               <div className="flex flex-col leading-tight">
-                <span>{sessionData.userName}</span>
+                <span className="text-[var(--text-primary)] font-semibold">
+                  {sessionData.userName}
+                </span>
                 {councilBadge && (
-                  <span className="text-[0.65rem] text-blue-300/90 font-medium">
-                    {councilBadge} | Nivel {roleDef?.accessLevel}
+                  <span className="text-[0.7rem] text-[var(--text-secondary)] font-medium">
+                    {councilBadge} | Nível {roleDef?.accessLevel}
                   </span>
                 )}
                 {!councilBadge && (
-                  <span className="text-[0.65rem] text-white/50 font-medium">
-                    Nivel {roleDef?.accessLevel}
+                  <span className="text-[0.7rem] text-[var(--text-secondary)] font-medium">
+                    Nível {roleDef?.accessLevel}
                   </span>
                 )}
               </div>
               <span
-                className={`w-2 h-2 rounded-full ml-1.5 shrink-0 ${
-                  sessionActive ? 'bg-green-500' : 'bg-red-500'
+                className={`w-2.5 h-2.5 rounded-full ml-1.5 shrink-0 ${
+                  sessionActive ? 'bg-green-400' : 'bg-red-400'
                 }`}
-                title={sessionActive ? 'Sessao ativa' : 'Sem sessao'}
+                title={sessionActive ? 'Sessão ativa' : 'Sem sessão'}
               />
               <button
                 onClick={handleLogout}
-                className="bg-transparent border-none text-slate-400 cursor-pointer text-xs font-inherit ml-2 px-2 py-1 rounded"
+                className="bg-transparent border-none text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer text-sm font-medium ml-2 px-2 py-1 rounded min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-300"
                 title="Sair"
               >
                 Sair

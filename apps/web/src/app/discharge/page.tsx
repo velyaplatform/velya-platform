@@ -332,14 +332,14 @@ export default function DischargePage() {
       <div className="grid-metrics">
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-critical)' }}>
           <div className="metric-label">Bloqueados</div>
-          <div className="metric-value" style={{ color: 'var(--color-critical)' }}>
+          <div className="metric-value" style={{ color: 'var(--color-critical-fg)' }}>
             {blockedCount}
           </div>
           <div className="metric-sub">Ação imediata necessária</div>
         </div>
         <div className="metric-card" style={{ borderTop: '3px solid var(--color-warning)' }}>
           <div className="metric-label">Pendentes</div>
-          <div className="metric-value" style={{ color: 'var(--color-warning)' }}>
+          <div className="metric-value" style={{ color: 'var(--color-warning-fg)' }}>
             {pendingCount}
           </div>
           <div className="metric-sub">Aguardando resolução</div>
@@ -472,9 +472,9 @@ export default function DischargePage() {
                           <strong
                             style={
                               patient.los >= 10
-                                ? { color: 'var(--color-critical)' }
+                                ? { color: 'var(--color-critical-fg)' }
                                 : patient.los >= 7
-                                  ? { color: 'var(--color-warning)' }
+                                  ? { color: 'var(--color-warning-fg)' }
                                   : {}
                             }
                           >
