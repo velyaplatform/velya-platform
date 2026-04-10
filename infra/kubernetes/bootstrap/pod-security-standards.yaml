@@ -1,0 +1,90 @@
+# Pod Security Standards (PSS) — namespace-level enforcement.
+#
+# This applies the Kubernetes built-in admission policy to all Velya
+# namespaces. We use the `restricted` profile (the strictest of the three
+# Kubernetes built-in profiles) which:
+#
+#   - Bans privileged containers
+#   - Bans hostNetwork, hostPID, hostIPC
+#   - Bans hostPath volumes
+#   - Bans privilege escalation
+#   - Requires runAsNonRoot
+#   - Requires seccompProfile = RuntimeDefault
+#   - Drops all capabilities (add only NET_BIND_SERVICE allowed)
+#   - Requires read-only root filesystem (best effort)
+#
+# Reference: https://kubernetes.io/docs/concepts/security/pod-security-standards/
+#
+# Two labels per namespace:
+#   pod-security.kubernetes.io/enforce  → blocks non-conforming pods
+#   pod-security.kubernetes.io/audit    → logs violations to audit log
+#   pod-security.kubernetes.io/warn     → returns warning to kubectl users
+#
+# We pin Kubernetes version 1.31 — bumping requires re-validating PSS.
+#
+# Namespaces enforced:
+#   - velya-dev-web         (Next.js)
+#   - velya-dev-core        (clinical services)
+#   - velya-dev-platform    (auth, ai-gateway, policy-engine)
+#   - velya-dev-agents      (ai agents cluster bridge)
+#   - velya-dev-observability (Grafana, Prometheus, Loki, Tempo)
+#
+# `kube-system`, `argocd`, `cert-manager` are NOT enforced because system
+# components may legitimately need elevated privileges.
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velya-dev-web
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: v1.31
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    velya.io/owner: web-team
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velya-dev-core
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: v1.31
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    velya.io/owner: core-services-team
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velya-dev-platform
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: v1.31
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    velya.io/owner: platform-team
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velya-dev-agents
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: v1.31
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    velya.io/owner: agents-team
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velya-dev-observability
+  labels:
+    # Observability stack often needs hostPath for node exporter etc.
+    # Use baseline (less strict) here, with audit at restricted to surface drift.
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: v1.31
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    velya.io/owner: observability-team

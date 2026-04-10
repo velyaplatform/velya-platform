@@ -1,4 +1,5 @@
 import { AppShell } from './components/app-shell';
+import { News2RiskPanel } from './components/news2-risk-panel';
 import Link from 'next/link';
 import {
   PRIORITY_TASKS,
@@ -173,6 +174,11 @@ export default function CommandCenterPage() {
         <Link href="/discharge" className="btn btn-danger btn-sm" style={{ marginLeft: 'auto' }}>
           Resolver Agora →
         </Link>
+      </div>
+
+      {/* NEWS2 Clinical Decision Support */}
+      <div className="mb-6">
+        <News2RiskPanel />
       </div>
 
       {/* Métricas */}

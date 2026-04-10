@@ -1,0 +1,195 @@
+name: Security Supply Chain
+
+# Free security scanners that complement .github/workflows/security.yaml
+# Every tool here has a free tier that works on public AND private repos
+# without paid subscriptions:
+#
+#   - Trivy filesystem    : Aqua Security, Apache 2.0
+#   - Semgrep CI          : Semgrep Community, MIT
+#   - gitleaks            : zricethezav, MIT
+#   - SBOM (Anchore Syft) : Anchore, Apache 2.0
+#   - OSV scanner         : Google, Apache 2.0
+#   - GitHub OIDC + Actions
+#
+# All actions are pinned to commit SHAs per .claude/rules/security.md.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    # Daily 03:00 UTC for fresh CVE catch
+    - cron: '0 3 * * *'
+
+concurrency:
+  group: security-supply-chain-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------
+  # Trivy filesystem scan — finds CVEs in dependencies + config issues
+  # ---------------------------------------------------------------------
+  trivy-fs:
+    name: Trivy Filesystem Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Run Trivy filesystem scan (vulnerabilities + secrets + misconfig)
+        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # 0.30.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs.sarif'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          scanners: 'vuln,secret,misconfig'
+          exit-code: '0' # report only — block via SARIF in code-scanning UI
+
+      - name: Upload Trivy results to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@1b1aada464948af03b950897e5eb522f92603cc2 # v3.24.9
+        with:
+          sarif_file: 'trivy-fs.sarif'
+          category: 'trivy-fs'
+
+  # ---------------------------------------------------------------------
+  # Semgrep — SAST with Velya's policy + community rulesets
+  # ---------------------------------------------------------------------
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: semgrep/semgrep@sha256:5a6f30ad19fc0a4f9c4e2e26bd75f4d9b6f3f7e52a07e34f72d9b76f9e10ad33
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Run Semgrep with the OWASP top-10 + secrets rulesets
+        run: |
+          semgrep ci \
+            --config=p/owasp-top-ten \
+            --config=p/r2c-security-audit \
+            --config=p/typescript \
+            --config=p/nextjs \
+            --config=p/secrets \
+            --sarif --output=semgrep.sarif \
+            --severity=ERROR --severity=WARNING || true
+        env:
+          # Free tier — no token needed for community rulesets
+          SEMGREP_RULES: ''
+
+      - name: Upload Semgrep results to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@1b1aada464948af03b950897e5eb522f92603cc2 # v3.24.9
+        with:
+          sarif_file: 'semgrep.sarif'
+          category: 'semgrep'
+
+  # ---------------------------------------------------------------------
+  # gitleaks — historical secret detection (full repo history)
+  # ---------------------------------------------------------------------
+  gitleaks:
+    name: Gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@83373cf2f8c4db6e24b41c1a9b086bb9619e9cd3 # v2.3.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ''
+          GITLEAKS_NOTIFY_USER_LIST: '@lucaslima4132'
+
+  # ---------------------------------------------------------------------
+  # OSV scanner — Google's open-source vulnerability scanner
+  # ---------------------------------------------------------------------
+  osv:
+    name: OSV Scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Run OSV scanner (lockfile + manifest)
+        uses: google/osv-scanner-action/osv-scanner-action@2c52c6c2cdb9cdd6c08f3aedf08abdf3855fc7d6 # v1.7.4
+        with:
+          scan-args: |-
+            --recursive
+            --skip-git
+            --format=sarif
+            --output=osv.sarif
+            ./
+        continue-on-error: true
+
+      - name: Upload OSV results to GitHub Security
+        if: always() && hashFiles('osv.sarif') != ''
+        uses: github/codeql-action/upload-sarif@1b1aada464948af03b950897e5eb522f92603cc2 # v3.24.9
+        with:
+          sarif_file: 'osv.sarif'
+          category: 'osv'
+
+  # ---------------------------------------------------------------------
+  # SBOM generation — for every push to main
+  # ---------------------------------------------------------------------
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Generate CycloneDX SBOM with Anchore Syft
+        uses: anchore/sbom-action@61119d458adab75f756bc0b9e4bde25725f86a7a # v0.17.2
+        with:
+          path: '.'
+          format: 'cyclonedx-json'
+          artifact-name: 'velya-sbom.cdx.json'
+          upload-artifact: true
+
+  # ---------------------------------------------------------------------
+  # Summary job
+  # ---------------------------------------------------------------------
+  summary:
+    name: Security Supply Chain Summary
+    runs-on: ubuntu-latest
+    needs: [trivy-fs, semgrep, gitleaks, osv]
+    if: always()
+    steps:
+      - run: |
+          echo "## Security Supply Chain" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Trivy Filesystem | ${{ needs.trivy-fs.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Semgrep SAST | ${{ needs.semgrep.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Gitleaks | ${{ needs.gitleaks.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| OSV Scanner | ${{ needs.osv.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All findings are uploaded to the GitHub Security tab." >> $GITHUB_STEP_SUMMARY

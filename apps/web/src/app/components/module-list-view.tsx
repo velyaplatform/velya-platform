@@ -1,9 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AppShell } from './app-shell';
-import { getModuleById, type ColumnDef, type ModuleDef } from '../../lib/module-manifest';
+import {
+  getModuleById,
+  CATEGORY_LABELS,
+  type ColumnDef,
+  type ModuleDef,
+} from '../../lib/module-manifest';
 
 interface ModuleListViewProps {
   moduleId: string;
@@ -11,6 +16,12 @@ interface ModuleListViewProps {
   // reads fields dynamically via column keys.
   data: readonly object[];
 }
+
+type SortDir = 'asc' | 'desc';
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+const DEFAULT_PAGE_SIZE = 25;
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
 
 /**
  * Generic, dark-theme, WCAG-AA list view for any module registered in the
@@ -47,6 +58,10 @@ function ModuleListInner({
   const data = rawData as Record<string, unknown>[];
   const [search, setSearch] = useState('');
   const [filterState, setFilterState] = useState<Record<string, string>>({});
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -68,6 +83,58 @@ function ModuleListInner({
       return true;
     });
   }, [data, search, filterState]);
+
+  const sorted = useMemo(() => {
+    if (!sortKey) return filtered;
+    const dirMult = sortDir === 'asc' ? 1 : -1;
+    const copy = [...filtered];
+    copy.sort((a, b) => {
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      // Null/undefined go last regardless of direction
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+
+      // Numeric comparison
+      if (typeof av === 'number' && typeof bv === 'number') {
+        return (av - bv) * dirMult;
+      }
+
+      // ISO date comparison
+      if (
+        typeof av === 'string' &&
+        typeof bv === 'string' &&
+        ISO_DATE_RE.test(av) &&
+        ISO_DATE_RE.test(bv)
+      ) {
+        const at = Date.parse(av);
+        const bt = Date.parse(bv);
+        if (!Number.isNaN(at) && !Number.isNaN(bt)) {
+          return (at - bt) * dirMult;
+        }
+      }
+
+      // Locale-aware string compare (pt-BR)
+      return String(av).localeCompare(String(bv), 'pt-BR') * dirMult;
+    });
+    return copy;
+  }, [filtered, sortKey, sortDir]);
+
+  // Reset page when any upstream input changes.
+  useEffect(() => {
+    setPage(1);
+  }, [search, filterState, sortKey, sortDir, pageSize]);
+
+  const totalRows = sorted.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const startIdx = totalRows === 0 ? 0 : (safePage - 1) * pageSize;
+  const endIdx = Math.min(startIdx + pageSize, totalRows);
+  const paginated = useMemo(
+    () => sorted.slice(startIdx, endIdx),
+    [sorted, startIdx, endIdx],
+  );
 
   const filterOptions = useMemo(() => {
     const out: Record<string, { value: string; label: string }[]> = {};
@@ -91,8 +158,105 @@ function ModuleListInner({
     return out;
   }, [data, module.filters]);
 
+  const handleHeaderClick = (key: string) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDir('asc');
+      return;
+    }
+    if (sortDir === 'asc') {
+      setSortDir('desc');
+      return;
+    }
+    // was desc → clear sort
+    setSortKey(null);
+    setSortDir('asc');
+  };
+
+  const ariaSortFor = (key: string): 'ascending' | 'descending' | 'none' => {
+    if (sortKey !== key) return 'none';
+    return sortDir === 'asc' ? 'ascending' : 'descending';
+  };
+
+  const sortArrow = (key: string) => {
+    if (sortKey !== key) return '\u2195'; // ↕
+    return sortDir === 'asc' ? '\u2191' : '\u2193'; // ↑ / ↓
+  };
+
+  const clearAllFilters = () => {
+    setSearch('');
+    setFilterState({});
+    setSortKey(null);
+    setSortDir('asc');
+    setPage(1);
+  };
+
+  const handleExportCsv = () => {
+    const headers = module.columns.map((col) => col.label);
+    const escape = (value: string): string => {
+      if (/[",\n\r]/.test(value)) {
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    };
+    const headerLine = headers.map(escape).join(',');
+    const bodyLines = sorted.map((row) =>
+      module.columns
+        .map((col) => {
+          const raw = row[col.key];
+          const text = col.format ? col.format(raw, row) : raw == null ? '' : String(raw);
+          return escape(text);
+        })
+        .join(','),
+    );
+    const csv = [headerLine, ...bodyLines].join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const today = new Date().toISOString().slice(0, 10);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `velya-${module.id}-${today}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const categoryLabel = CATEGORY_LABELS[module.category];
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    Object.values(filterState).some((v) => v && v !== 'all');
+
   return (
     <AppShell pageTitle={module.title}>
+      {/* Breadcrumbs */}
+      <nav aria-label="Trilha de navegação" className="mb-3">
+        <ol className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+          <li>
+            <Link
+              href="/"
+              className="text-blue-300 hover:text-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 rounded"
+            >
+              Início
+            </Link>
+          </li>
+          <li aria-hidden="true" className="text-slate-600">
+            {'\u203A'}
+          </li>
+          <li>
+            <span>{categoryLabel}</span>
+          </li>
+          <li aria-hidden="true" className="text-slate-600">
+            {'\u203A'}
+          </li>
+          <li>
+            <span aria-current="page" className="text-slate-200">
+              {module.title}
+            </span>
+          </li>
+        </ol>
+      </nav>
+
       <div className="page-header">
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
@@ -117,6 +281,11 @@ function ModuleListInner({
             </Link>
           )}
         </div>
+      </div>
+
+      {/* Screen-reader announcements for filter/sort/search changes */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {sorted.length} registros encontrados após filtros.
       </div>
 
       {/* Toolbar */}
@@ -159,8 +328,16 @@ function ModuleListInner({
             </div>
           ) : null,
         )}
+        <button
+          type="button"
+          onClick={handleExportCsv}
+          aria-label="Exportar resultados como CSV"
+          className="min-h-[44px] px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+        >
+          Exportar CSV
+        </button>
         <div className="ml-auto text-xs text-slate-300">
-          {filtered.length} de {data.length} registros
+          {sorted.length} de {data.length} registros
         </div>
       </div>
 
@@ -173,24 +350,52 @@ function ModuleListInner({
                 {module.columns.map((col) => (
                   <th
                     key={col.key}
+                    aria-sort={ariaSortFor(col.key)}
                     className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider whitespace-nowrap"
                   >
-                    {col.label}
+                    <button
+                      type="button"
+                      onClick={() => handleHeaderClick(col.key)}
+                      className="bg-transparent border-none text-inherit font-inherit cursor-pointer flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-blue-300 rounded uppercase tracking-wider"
+                    >
+                      <span>{col.label}</span>
+                      <span aria-hidden="true" className="text-slate-400">
+                        {sortArrow(col.key)}
+                      </span>
+                    </button>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
-              {filtered.length === 0 && (
+              {sorted.length === 0 && (
                 <tr>
-                  <td colSpan={module.columns.length} className="text-center py-12 text-slate-300">
-                    Nenhum registro encontrado.
+                  <td
+                    colSpan={module.columns.length}
+                    className="text-center py-12 text-slate-300"
+                  >
+                    {hasActiveFilters ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <span>
+                          Nenhum registro encontrado para os filtros atuais.
+                        </span>
+                        <button
+                          type="button"
+                          onClick={clearAllFilters}
+                          className="min-h-[44px] px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        >
+                          Limpar filtros
+                        </button>
+                      </div>
+                    ) : (
+                      <span>Nenhum registro encontrado.</span>
+                    )}
                   </td>
                 </tr>
               )}
-              {filtered.map((row, rowIdx) => (
+              {paginated.map((row, rowIdx) => (
                 <tr
-                  key={(row.id as string) ?? rowIdx}
+                  key={(row.id as string) ?? `${startIdx + rowIdx}`}
                   className="hover:bg-slate-800/60 transition-colors"
                 >
                   {module.columns.map((col) => (
@@ -205,6 +410,52 @@ function ModuleListInner({
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Pagination controls */}
+      <div className="flex flex-wrap items-center gap-3 mt-4 text-sm text-slate-300">
+        <div>
+          Mostrando {totalRows === 0 ? 0 : startIdx + 1} a {endIdx} de {totalRows}
+        </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <label htmlFor={`page-size-${module.id}`} className="sr-only">
+            Registros por página
+          </label>
+          <select
+            id={`page-size-${module.id}`}
+            aria-label="Registros por página"
+            value={pageSize}
+            onChange={(e) => setPageSize(Number(e.target.value))}
+            className="min-h-[44px] bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            {PAGE_SIZE_OPTIONS.map((size) => (
+              <option key={size} value={size}>
+                {size} por página
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={safePage <= 1}
+            aria-disabled={safePage <= 1}
+            className="min-h-[44px] px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-800"
+          >
+            Anterior
+          </button>
+          <span className="text-xs text-slate-400" aria-live="polite">
+            Página {safePage} de {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage >= totalPages}
+            aria-disabled={safePage >= totalPages}
+            className="min-h-[44px] px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-800"
+          >
+            Próxima
+          </button>
         </div>
       </div>
     </AppShell>

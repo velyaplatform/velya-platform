@@ -151,9 +151,15 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
               <span className="text-red-200 font-bold">5 Alertas Críticos</span>
             </button>
             <div className="topbar-time">{currentTime}</div>
-            <div className="topbar-user">
+            <button
+              type="button"
+              onClick={() => router.push('/me')}
+              className="topbar-user bg-transparent border-none cursor-pointer min-h-[44px] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 hover:bg-[var(--color-surface-subtle)] px-2 -mx-2"
+              aria-label={`Abrir meu painel — ${sessionData.userName}`}
+              title="Meu painel — atividade, tarefas e perfil"
+            >
               <div className="avatar">{initials}</div>
-              <div className="flex flex-col leading-tight">
+              <div className="flex flex-col leading-tight text-left">
                 <span className="text-[var(--text-primary)] font-semibold">
                   {sessionData.userName}
                 </span>
@@ -173,15 +179,9 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
                   sessionActive ? 'bg-green-400' : 'bg-red-400'
                 }`}
                 title={sessionActive ? 'Sessão ativa' : 'Sem sessão'}
+                aria-hidden="true"
               />
-              <button
-                onClick={handleLogout}
-                className="bg-transparent border-none text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer text-sm font-medium ml-2 px-2 py-1 rounded min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-300"
-                title="Sair"
-              >
-                Sair
-              </button>
-            </div>
+            </button>
           </div>
         </header>
         <main className="app-content">{children}</main>

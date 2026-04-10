@@ -91,6 +91,8 @@ const NAV_ITEMS: NavItemDef[] = [
     label: 'Farm\u00E1cia',
     section: NAV_SECTIONS.GESTAO,
   },
+  // --- Ferramentas clínicas ---
+  { href: '/tools/sepsis', icon: '\uD83E\uDE78', label: 'NEWS2 / Sepse', section: NAV_SECTIONS.ASSISTENCIAL },
   // --- Clínico (ordens, resultados) ---
   { href: '/prescriptions', icon: '\uD83D\uDC8A', label: 'Prescri\u00e7\u00f5es', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/lab/orders',     icon: '\uD83E\uDDEA', label: 'Ordens de Lab',   section: NAV_SECTIONS.ASSISTENCIAL },
@@ -100,6 +102,7 @@ const NAV_ITEMS: NavItemDef[] = [
 
   // --- Equipe em plantão ---
   { href: '/staff-on-duty', icon: '\uD83D\uDC65', label: 'Equipe em Plantão', section: NAV_SECTIONS.GESTAO },
+  { href: '/delegations',   icon: '\uD83D\uDCE9', label: 'Delegações', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/alerts',        icon: '\uD83D\uDD14', label: 'Alertas', badge: 5, section: NAV_SECTIONS.ASSISTENCIAL },
 
   // --- Operações hospitalares ---
@@ -327,50 +330,53 @@ export function Navigation({
         )}
       </nav>
 
-      {/* Suggestion box */}
-      <div className="px-4 py-4 border-t border-white/[0.08]">
+      {/* Suggestion box — prominent CTA */}
+      <div className="px-4 py-4 border-t border-white/10 bg-blue-600/20">
         {suggestionStatus === 'sent' ? (
-          <div className="text-green-300 text-[0.8rem] text-center py-1 font-medium">
-            {'\u2713'} Enviada!
+          <div
+            role="status"
+            className="text-green-200 text-sm text-center py-3 font-semibold bg-green-900/40 border border-green-500/60 rounded-lg"
+          >
+            {'\u2713'} Sugestão enviada — obrigado!
           </div>
         ) : (
-          <div className="flex gap-1.5 items-center">
-            <label htmlFor="sidebar-suggestion" className="sr-only">
+          <div>
+            <label
+              htmlFor="sidebar-suggestion"
+              className="flex items-center gap-2 text-sm font-bold text-white mb-2"
+            >
+              <span aria-hidden="true" className="text-lg">
+                {'\uD83D\uDCA1'}
+              </span>
               Sugerir melhoria
             </label>
-            <input
-              id="sidebar-suggestion"
-              type="text"
-              value={suggestionText}
-              onChange={(e) => setSuggestionText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={'\uD83D\uDCA1 Sugerir melhoria...'}
-              disabled={suggestionStatus === 'sending'}
-              className="flex-1 bg-white/[0.10] border border-white/30 rounded-lg px-3 py-3 text-white text-sm outline-none font-[inherit] placeholder:text-white/75 min-h-[44px]"
-            />
-            <button
-              onClick={handleSuggestionSubmit}
-              disabled={!suggestionText.trim() || suggestionStatus === 'sending'}
-              aria-label="Enviar sugestão"
-              className={`bg-white/15 border-none rounded-lg px-3 py-3 text-white text-sm leading-none min-h-[44px] ${
-                suggestionText.trim() ? 'cursor-pointer hover:bg-white/25' : 'cursor-default'
-              }`}
-            >
-              {'\u2191'}
-            </button>
+            <p className="text-xs text-white/85 mb-2 leading-snug">
+              Viu algo que pode melhorar? Conte para a gente — sua sugestão vai direto para o time.
+            </p>
+            <div className="flex gap-2 items-stretch">
+              <input
+                id="sidebar-suggestion"
+                type="text"
+                value={suggestionText}
+                onChange={(e) => setSuggestionText(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Descreva aqui..."
+                disabled={suggestionStatus === 'sending'}
+                className="flex-1 bg-white text-slate-900 border-2 border-blue-300 rounded-lg px-3 py-3 text-sm outline-none font-[inherit] placeholder:text-slate-500 min-h-[48px] focus:ring-2 focus:ring-blue-200 focus:border-blue-500 disabled:opacity-60"
+              />
+              <button
+                onClick={handleSuggestionSubmit}
+                disabled={!suggestionText.trim() || suggestionStatus === 'sending'}
+                aria-label="Enviar sugestão"
+                className="min-h-[48px] px-4 rounded-lg bg-blue-600 hover:bg-blue-700 border-2 border-blue-300 text-white text-base font-bold focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer transition-colors"
+              >
+                {suggestionStatus === 'sending' ? '...' : 'Enviar'}
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Spacer + Sair button */}
-      <div className="px-3 pt-6 pb-5 mt-auto">
-        <button
-          onClick={onLogout}
-          className="w-full min-h-[44px] bg-red-500/25 border border-red-400/60 rounded-lg py-2 px-4 text-red-100 text-sm font-semibold cursor-pointer font-[inherit] hover:bg-red-500/40 transition-colors focus:outline-none focus:ring-2 focus:ring-red-300"
-        >
-          Sair
-        </button>
-      </div>
     </aside>
   );
 }
