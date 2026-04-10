@@ -118,7 +118,7 @@ async function stabilize(p: Page) {
         }
       `,
     });
-    await p.evaluate(() => (document as any).fonts?.ready);
+    await p.evaluate(() => (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready);
   } catch {
     // ignore stabilize failures — they should never block the run
   }
