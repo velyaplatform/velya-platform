@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '../../../components/app-shell';
+import { PATIENT_INFO } from '../../../../lib/fixtures/patient-cockpits';
 
 // ---------------------------------------------------------------------------
 // Category options
@@ -27,16 +28,6 @@ const PRIORITY_OPTIONS = [
   { value: 'urgente', label: 'Urgente' },
   { value: 'critico', label: 'Critico' },
 ] as const;
-
-// ---------------------------------------------------------------------------
-// Mock patient info (same as patient detail page)
-// ---------------------------------------------------------------------------
-
-const PATIENT_INFO: Record<string, { name: string; mrn: string; ward: string; bed: string }> = {
-  'MRN-004': { name: 'Eleanor Voss', mrn: 'MRN-004', ward: 'Ala 2A', bed: '2A-02' },
-  'MRN-013': { name: 'Peter Hawkins', mrn: 'MRN-013', ward: 'Ala 2A', bed: '2A-10' },
-  'MRN-001': { name: 'James Whitfield', mrn: 'MRN-001', ward: 'Ala 1A', bed: '1A-04' },
-};
 
 // ---------------------------------------------------------------------------
 // Component
