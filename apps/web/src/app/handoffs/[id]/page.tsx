@@ -64,7 +64,6 @@ export default function HandoffDetailPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   async function handleReceive(e: React.FormEvent) {

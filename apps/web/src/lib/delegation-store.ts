@@ -11,7 +11,7 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { join, dirname } from 'path';
+import { dirname } from 'path';
 import { randomBytes } from 'crypto';
 import { audit } from './audit-logger';
 

@@ -4,7 +4,6 @@ import { useState, useMemo } from 'react';
 import { AppShell } from '../components/app-shell';
 import {
   DISCHARGE_PATIENTS,
-  type DischargePatient,
   type DischargeStatus,
 } from '../../lib/fixtures/discharge';
 

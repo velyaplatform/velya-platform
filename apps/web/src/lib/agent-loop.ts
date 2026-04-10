@@ -46,7 +46,7 @@ interface Recommendation {
  * deterministic recommendation. Covers ~80% of common findings without
  * needing an LLM call.
  */
-function classify(finding: CronFinding, job: CronJobDef): Recommendation | null {
+function classify(finding: CronFinding, _job: CronJobDef): Recommendation | null {
   const surface = finding.surface;
   const sev = finding.severity;
 

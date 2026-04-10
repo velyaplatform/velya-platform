@@ -122,12 +122,10 @@ export default function CronDashboardPage() {
   useEffect(() => {
     setLoading(true);
     Promise.all([loadJobs(), loadFindings()]).finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     void loadFindings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [findingsFilter]);
 
   async function runJob(jobId: string) {

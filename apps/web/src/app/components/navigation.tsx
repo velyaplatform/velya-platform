@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  ROLE_DEFINITIONS,
   NAV_SECTIONS,
   resolveUiRole,
   getNavigationSections,
@@ -163,7 +162,7 @@ interface NavigationProps {
 export function Navigation({
   currentRole,
   userName,
-  onLogout,
+  onLogout: _onLogout,
   mobileOpen,
   onMobileClose,
 }: NavigationProps) {
@@ -172,7 +171,6 @@ export function Navigation({
   const [suggestionStatus, setSuggestionStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
 
   const professionalRole = resolveUiRole(currentRole);
-  const roleDef = ROLE_DEFINITIONS[professionalRole];
   const allowedSections = getNavigationSections(professionalRole);
 
   // Filter nav items by allowed sections
@@ -191,8 +189,6 @@ export function Navigation({
   const sectionOrder = [NAV_SECTIONS.ASSISTENCIAL, NAV_SECTIONS.GESTAO, NAV_SECTIONS.ADMINISTRACAO];
 
   const showObservability = allowedSections.includes(NAV_SECTIONS.OBSERVABILIDADE);
-
-  const accessLevelLabel = `Nivel ${roleDef?.accessLevel ?? 0}`;
 
   async function handleSuggestionSubmit() {
     const text = suggestionText.trim();
@@ -223,13 +219,6 @@ export function Navigation({
     // Close mobile sidebar on navigation
     onMobileClose?.();
   }
-
-  const accessLevelBg =
-    roleDef?.accessLevel >= 6
-      ? 'bg-red-500'
-      : roleDef?.accessLevel >= 4
-        ? 'bg-amber-500'
-        : 'bg-gray-500';
 
   return (
     <aside

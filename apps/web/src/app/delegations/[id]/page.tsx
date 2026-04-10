@@ -64,7 +64,6 @@ export default function DelegationDetailPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   async function transition(toStatus: DelegationStatus) {

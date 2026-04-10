@@ -12,14 +12,6 @@ import {
   COCKPITS,
   type EventCategory,
   type TimelineEvent,
-  type VitalSign,
-  type Medication,
-  type LabResult,
-  type CareTeamMember,
-  type HandoffRecord,
-  type DocumentRecord,
-  type AuditRecord,
-  type PatientCockpit,
 } from '../../../lib/fixtures/patient-cockpits';
 
 // ===========================================================================
@@ -169,7 +161,6 @@ export default function PatientCockpitPage() {
     );
   }
 
-  const pendingEvents = allEvents.filter((e) => e.pending);
   const initials = cockpit.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (

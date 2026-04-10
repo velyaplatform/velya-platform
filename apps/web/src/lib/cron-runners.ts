@@ -12,7 +12,7 @@
 import { existsSync, readFileSync, statSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { createFinding, type Severity, type Surface } from './cron-store';
-import { MODULES, getModuleById } from './module-manifest';
+import { MODULES } from './module-manifest';
 import { listLiveRecords } from './entity-resolver';
 import { PATIENTS } from './fixtures/patients';
 import { STAFF } from './fixtures/staff';

@@ -81,16 +81,6 @@ const PRIORITY_CONFIG: Record<Priority, { label: string; className: string }> = 
   normal: { label: 'NORMAL', className: 'bg-slate-500/60 text-white' },
 };
 
-const STEP_TEMPLATE: { key: string; label: string }[] = [
-  { key: 'prescricao', label: 'Prescrição' },
-  { key: 'validacao', label: 'Validação farmacêutica' },
-  { key: 'preparo', label: 'Preparo' },
-  { key: 'dispensacao', label: 'Dispensação' },
-  { key: 'transporte', label: 'Transporte' },
-  { key: 'administracao', label: 'Administração' },
-  { key: 'checagem', label: 'Checagem dupla' },
-];
-
 const NEXT_ACTION: Record<MedStatus, string | null> = {
   prescrita: 'Encaminhar p/ validação',
   'em-validacao': 'Concluir validação',

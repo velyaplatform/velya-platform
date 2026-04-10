@@ -45,7 +45,8 @@ export async function POST(request: NextRequest) {
   }
 
   // Strip the type field and use the rest as details
-  const { type: _omit, ...details } = body;
+  const details = { ...body };
+  delete (details as { type?: unknown }).type;
 
   audit({
     category: 'frontend',
