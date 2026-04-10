@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navigation, type Role } from './navigation';
+import { PatientQuickSwitcher } from './patient-quick-switcher';
 import { ROLE_DEFINITIONS, resolveUiRole } from '../../lib/access-control';
 
 interface AppShellProps {
@@ -150,6 +151,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
               <span aria-hidden="true">{'\uD83D\uDD34'}</span>
               <span className="text-red-200 font-bold">5 Alertas Críticos</span>
             </button>
+            <PatientQuickSwitcher />
             <div className="topbar-time">{currentTime}</div>
             <button
               type="button"

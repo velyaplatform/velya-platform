@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '../../components/app-shell';
+import { pushRecentPatient } from '../../components/recent-patients';
 import {
   COCKPITS,
   type EventCategory,
@@ -108,6 +109,11 @@ export default function PatientCockpitPage() {
   const [realEvents, setRealEvents] = useState<TimelineEvent[]>([]);
 
   const cockpit = COCKPITS[patientId];
+
+  // Push to recent-patients store so the topbar quick switcher remembers it
+  useEffect(() => {
+    if (patientId) pushRecentPatient(patientId);
+  }, [patientId]);
 
   // Fetch real events
   useEffect(() => {
