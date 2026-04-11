@@ -1,6 +1,5 @@
 export * from './velya-alert-banner';
 export * from './velya-bed-tile';
-export * from './velya-ecg-strip';
 export * from './velya-kpi';
 export * from './velya-logo';
 export * from './velya-medical-cross';

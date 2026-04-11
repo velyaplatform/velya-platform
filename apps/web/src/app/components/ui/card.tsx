@@ -4,10 +4,8 @@ import * as React from 'react';
 import { cn } from '../../../lib/utils';
 
 /**
- * Velya Glass Card — primitive reutilizável com variantes.
- *
- * Inspirado em shadcn/ui mas adaptado para o dark glassmorphism médico
- * do Velya: backdrop-blur, borda sutil de slate, shadow-glass.
+ * Velya Card — primitive de card estilo EHR (Epic/Athenahealth-like):
+ * fundo branco, sombra sutil, borda slate-200.
  */
 
 type CardVariant = 'default' | 'elevated' | 'flat' | 'alert' | 'kpi';
@@ -24,36 +22,25 @@ const TONE_BORDER_LEFT: Record<CardTone, string> = {
   critical: 'border-l-4 border-l-red-500',
   warning: 'border-l-4 border-l-amber-500',
   success: 'border-l-4 border-l-emerald-500',
-  info: 'border-l-4 border-l-blue-500',
-  accent: 'border-l-4 border-l-teal-400',
-};
-
-const TONE_GLOW: Record<CardTone, string> = {
-  neutral: '',
-  critical: 'shadow-[0_0_24px_-4px_rgba(239,68,68,0.25)]',
-  warning: 'shadow-[0_0_24px_-4px_rgba(245,158,11,0.22)]',
-  success: '',
-  info: '',
-  accent: 'shadow-[0_0_24px_-4px_rgba(20,184,166,0.25)]',
+  info: 'border-l-4 border-l-sky-500',
+  accent: 'border-l-4 border-l-sky-600',
 };
 
 export const Card = React.forwardRef<HTMLDivElement, VelyaCardProps>(function Card(
   { className, variant = 'default', tone = 'neutral', interactive = false, ...props },
   ref,
 ) {
-  const base =
-    'relative rounded-2xl border backdrop-blur-xl backdrop-saturate-150';
+  const base = 'relative rounded-2xl border';
   const surfaces: Record<CardVariant, string> = {
     default:
-      'bg-[rgba(15,22,35,0.72)] border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.48),inset_0_1px_0_0_rgba(255,255,255,0.04)]',
+      'bg-white border-slate-200 shadow-[0_1px_3px_0_rgba(15,23,42,0.04),0_1px_2px_0_rgba(15,23,42,0.06)]',
     elevated:
-      'bg-[rgba(20,29,47,0.85)] border-white/[0.1] shadow-[0_16px_40px_-8px_rgba(0,0,0,0.6)]',
-    flat:
-      'bg-[rgba(15,22,35,0.5)] border-white/[0.06] shadow-none',
+      'bg-white border-slate-200 shadow-[0_4px_6px_-2px_rgba(15,23,42,0.06),0_12px_20px_-4px_rgba(15,23,42,0.08)]',
+    flat: 'bg-slate-50 border-slate-200 shadow-none',
     alert:
-      'bg-gradient-to-br from-red-500/10 via-[rgba(15,22,35,0.72)] to-[rgba(15,22,35,0.72)] border-red-500/30',
+      'bg-gradient-to-br from-red-50 via-white to-white border-red-200',
     kpi:
-      'bg-[rgba(15,22,35,0.72)] border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.48)] overflow-hidden',
+      'bg-white border-slate-200 shadow-[0_1px_3px_0_rgba(15,23,42,0.04),0_1px_2px_0_rgba(15,23,42,0.06)] overflow-hidden',
   };
 
   return (
@@ -63,9 +50,8 @@ export const Card = React.forwardRef<HTMLDivElement, VelyaCardProps>(function Ca
         base,
         surfaces[variant],
         TONE_BORDER_LEFT[tone],
-        TONE_GLOW[tone],
         interactive &&
-          'transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.16] hover:shadow-[0_16px_40px_-8px_rgba(0,0,0,0.6),0_0_24px_-4px_rgba(20,184,166,0.25)]',
+          'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_6px_-1px_rgba(15,23,42,0.08),0_10px_15px_-3px_rgba(15,23,42,0.1)]',
         className,
       )}
       {...props}
@@ -93,7 +79,7 @@ export const CardTitle = React.forwardRef<
     <h3
       ref={ref}
       className={cn(
-        'text-xs font-semibold uppercase tracking-[0.1em] text-slate-400',
+        'text-sm font-semibold tracking-tight text-slate-900',
         className,
       )}
       {...props}
@@ -105,7 +91,7 @@ export const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(function CardDescription({ className, ...props }, ref) {
-  return <p ref={ref} className={cn('text-sm text-slate-400', className)} {...props} />;
+  return <p ref={ref} className={cn('text-sm text-slate-500', className)} {...props} />;
 });
 
 export const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(

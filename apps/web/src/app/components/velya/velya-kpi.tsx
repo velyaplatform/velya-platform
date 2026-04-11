@@ -6,10 +6,7 @@ import { cn } from '../../../lib/utils';
 import { Card } from '../ui/card';
 
 /**
- * VelyaKPI — Bento tile para KPIs clínicos e operacionais.
- *
- * Exibe: label uppercase + número grande + sublabel/tendência + ícone
- * decorativo no canto. Acento de cor na borda esquerda conforme tom.
+ * VelyaKPI — tile de KPI clínico estilo EHR: white bg + shadow-sm + borda colorida.
  */
 
 type KPITone = 'neutral' | 'critical' | 'warning' | 'success' | 'info' | 'accent';
@@ -28,15 +25,24 @@ export interface VelyaKPIProps {
 }
 
 const TREND_COLORS: Record<KPITrend, string> = {
-  up: 'text-emerald-400',
-  down: 'text-red-400',
-  flat: 'text-slate-400',
+  up: 'text-red-600',
+  down: 'text-emerald-600',
+  flat: 'text-slate-500',
 };
 
 const TREND_ICONS: Record<KPITrend, string> = {
   up: '↑',
   down: '↓',
   flat: '→',
+};
+
+const ICON_BG: Record<KPITone, string> = {
+  neutral: 'text-slate-200',
+  critical: 'text-red-100',
+  warning: 'text-amber-100',
+  success: 'text-emerald-100',
+  info: 'text-sky-100',
+  accent: 'text-sky-100',
 };
 
 export function VelyaKPI({
@@ -51,22 +57,26 @@ export function VelyaKPI({
 }: VelyaKPIProps) {
   return (
     <Card variant="kpi" tone={tone} interactive className={cn('group relative p-5', className)}>
-      {/* Decorative icon — fundo */}
+      {/* Decorative icon */}
       {Icon && (
         <Icon
-          className="absolute right-4 top-4 h-12 w-12 text-white/[0.06] transition-colors group-hover:text-teal-400/20"
+          className={cn(
+            'absolute right-4 top-4 h-12 w-12 transition-colors',
+            ICON_BG[tone],
+            'group-hover:text-sky-200',
+          )}
           strokeWidth={1.5}
           aria-hidden="true"
         />
       )}
 
       <div className="relative">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">
           {label}
         </div>
 
         <div className="mt-3 flex items-baseline gap-2">
-          <div className="text-[2.5rem] font-bold leading-none text-slate-50 tracking-tight tabular-nums">
+          <div className="text-[2.5rem] font-bold leading-none tracking-tight tabular-nums text-slate-900">
             {value}
           </div>
           {trend && (
@@ -76,9 +86,7 @@ export function VelyaKPI({
           )}
         </div>
 
-        {sublabel && (
-          <div className="mt-2 text-xs text-slate-400">{sublabel}</div>
-        )}
+        {sublabel && <div className="mt-2 text-xs text-slate-500">{sublabel}</div>}
 
         {footer && <div className="mt-3">{footer}</div>}
       </div>

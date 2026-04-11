@@ -42,19 +42,19 @@ export function VelyaShiftIndicator({
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/[0.08] px-3 py-1.5 text-xs font-medium',
+        'inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium',
         className,
       )}
     >
       <span className="relative flex h-2 w-2 shrink-0">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
       </span>
-      <Stethoscope className="h-3.5 w-3.5 text-emerald-300" strokeWidth={2.25} />
-      <span className="text-emerald-200">
+      <Stethoscope className="h-3.5 w-3.5 text-emerald-600" strokeWidth={2.25} />
+      <span className="text-emerald-800">
         Plantão {active} · <span className="font-semibold">{doctor}</span>
       </span>
-      <span className="flex items-center gap-1 text-emerald-300/70">
+      <span className="flex items-center gap-1 text-emerald-600/80">
         <Clock className="h-3 w-3" /> até {endTime}
       </span>
     </div>

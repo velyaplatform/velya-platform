@@ -89,9 +89,9 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
 
   if (loading || !sessionData) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0a0e17]">
-        <div className="flex items-center gap-3 text-slate-400">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-400/40 border-t-teal-300" />
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="flex items-center gap-3 text-slate-500">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-500/30 border-t-sky-600" />
           <span className="text-sm">Carregando Velya…</span>
         </div>
       </div>
@@ -110,11 +110,11 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
       : sessionData.userName.slice(0, 2).toUpperCase();
 
   return (
-    <div className="flex min-h-screen bg-[#0a0e17] text-slate-100">
+    <div className="flex min-h-screen bg-slate-50 text-slate-900">
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -127,47 +127,45 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
         onMobileClose={() => setSidebarOpen(false)}
       />
 
-      <div className="flex min-h-screen flex-1 flex-col md:ml-64">
-        {/* Top bar glass */}
-        <header className="sticky top-0 z-40 flex h-[60px] items-center justify-between gap-3 border-b border-white/[0.08] bg-[rgba(10,14,23,0.72)] px-6 backdrop-blur-xl backdrop-saturate-150">
-          {/* Left: hamburger + page title */}
+      <div className="flex min-h-screen flex-1 flex-col md:ml-[260px]">
+        {/* Topbar white, padrão EHR */}
+        <header className="sticky top-0 z-40 flex h-[60px] items-center justify-between gap-3 border-b border-slate-200 bg-white px-6 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+          {/* Left: hamburger + breadcrumb */}
           <div className="flex items-center gap-3">
             <button
-              className="rounded-md p-1.5 text-slate-300 transition-colors hover:bg-white/[0.06] hover:text-slate-100 md:hidden"
+              className="rounded-md p-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 md:hidden"
               onClick={() => setSidebarOpen(true)}
               aria-label="Abrir menu"
             >
               <Menu className="h-5 w-5" />
             </button>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">
                 Velya
               </span>
-              <span className="text-slate-600">/</span>
-              <span className="text-sm font-semibold text-slate-100">{pageTitle}</span>
+              <span className="text-slate-300">/</span>
+              <span className="text-sm font-semibold text-slate-900">{pageTitle}</span>
             </div>
           </div>
 
-          {/* Center: global search + shift indicator */}
+          {/* Center: busca global + shift indicator */}
           <div className="mx-4 hidden max-w-xl flex-1 items-center gap-3 md:flex">
             <button
               type="button"
               onClick={() => {
-                // Dispatch Ctrl+K to open the existing command palette
                 const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
                 window.dispatchEvent(event);
               }}
-              className="group flex h-9 flex-1 items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-left text-sm text-slate-500 transition-all hover:border-teal-400/30 hover:bg-white/[0.05]"
+              className="group flex h-10 flex-1 items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3 text-left text-sm text-slate-400 transition-all hover:border-sky-400 hover:bg-white"
             >
-              <Search className="h-4 w-4 shrink-0 text-slate-500 group-hover:text-teal-300" />
+              <Search className="h-4 w-4 shrink-0 text-slate-400 group-hover:text-sky-600" />
               <span className="flex-1 truncate">
                 Buscar pacientes, tarefas, MRN…
               </span>
-              <kbd className="hidden rounded border border-white/10 bg-white/[0.04] px-1.5 font-mono text-[10px] text-slate-400 sm:inline-block">
+              <kbd className="hidden rounded border border-slate-200 bg-white px-1.5 font-mono text-[10px] text-slate-500 sm:inline-block">
                 ⌘K
               </kbd>
             </button>
-            {/* Shift indicator — operação 24/7 */}
             <div className="hidden lg:block">
               <VelyaShiftIndicator />
             </div>
@@ -179,7 +177,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
               variant="outline"
               size="sm"
               onClick={() => router.push('/alerts')}
-              className="gap-2 border-red-500/30 bg-red-500/10 text-red-300 hover:border-red-400/50 hover:bg-red-500/15 hover:text-red-200"
+              className="gap-2 border-red-200 bg-red-50 text-red-700 hover:border-red-300 hover:bg-red-100 hover:text-red-800"
               aria-label="Ver 5 alertas críticos"
             >
               <AlertOctagon className="h-3.5 w-3.5 animate-pulse" />
@@ -189,23 +187,23 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
             <button
               type="button"
               aria-label="Notificações"
-              className="relative rounded-md p-2 text-slate-300 transition-colors hover:bg-white/[0.06] hover:text-slate-100"
+              className="relative rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
             >
               <Bell className="h-4 w-4" />
-              <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.7)]" />
+              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-sky-500" />
             </button>
 
             <FavoritesMenu />
             <PatientQuickSwitcher />
 
-            <div className="hidden font-mono text-xs text-slate-400 tabular-nums lg:block">
+            <div className="hidden font-mono text-xs text-slate-500 tabular-nums lg:block">
               {currentTime}
             </div>
 
             <button
               type="button"
               onClick={() => router.push('/me')}
-              className="ml-1 flex items-center gap-2.5 rounded-lg border border-white/[0.06] bg-white/[0.03] px-2 py-1 transition-all hover:border-teal-400/30 hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
+              className="ml-1 flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-2 py-1 transition-all hover:border-sky-300 hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
               aria-label={`Abrir meu painel — ${sessionData.userName}`}
               title="Meu painel — atividade, tarefas e perfil"
             >
@@ -213,7 +211,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
                 <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
               </Avatar>
               <div className="hidden flex-col leading-tight text-left md:flex">
-                <span className="text-xs font-semibold text-slate-100">
+                <span className="text-xs font-semibold text-slate-900">
                   {sessionData.userName.split(' ')[0]}{' '}
                   {sessionData.userName.split(' ').slice(-1)[0]?.[0]}.
                 </span>
@@ -224,9 +222,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
               <span
                 className={cn(
                   'h-2 w-2 shrink-0 rounded-full',
-                  sessionActive
-                    ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]'
-                    : 'bg-red-400',
+                  sessionActive ? 'bg-emerald-500' : 'bg-red-500',
                 )}
                 title={sessionActive ? 'Sessão ativa' : 'Sem sessão'}
                 aria-hidden="true"

@@ -6,33 +6,35 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../../lib/utils';
 
 /**
- * Velya Button — shadcn/ui-style com variantes médicas.
- * Acento primary em teal com glow sutil.
+ * Velya Button — estilo EHR/healthcare com acento azul médico (sky-600).
+ * Sem glow ou efeitos gamer — sombra sutil, transição suave.
  */
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0e17] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
         default:
-          'bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-[0_0_16px_-2px_rgba(20,184,166,0.4)] hover:from-teal-400 hover:to-teal-500 hover:shadow-[0_0_24px_-2px_rgba(45,212,191,0.5)] hover:-translate-y-0.5',
+          'bg-sky-600 text-white shadow-sm hover:bg-sky-700 active:bg-sky-800',
         destructive:
-          'bg-red-600 text-white shadow-[0_0_16px_-4px_rgba(239,68,68,0.5)] hover:bg-red-500 hover:shadow-[0_0_24px_-2px_rgba(239,68,68,0.6)]',
+          'bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800',
         outline:
-          'border border-white/15 bg-white/[0.03] text-slate-100 hover:bg-white/[0.06] hover:border-teal-400/40 hover:text-teal-300',
+          'border border-slate-300 bg-white text-slate-700 shadow-sm hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700',
         secondary:
-          'bg-white/[0.06] text-slate-100 border border-white/[0.08] hover:bg-white/[0.1]',
-        ghost: 'text-slate-300 hover:bg-white/[0.06] hover:text-slate-100',
-        link: 'text-teal-400 underline-offset-4 hover:underline hover:text-teal-300',
+          'bg-slate-100 text-slate-900 border border-slate-200 hover:bg-slate-200',
+        ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+        link: 'text-sky-600 underline-offset-4 hover:underline hover:text-sky-700',
         warning:
-          'bg-amber-500/15 text-amber-300 border border-amber-500/35 hover:bg-amber-500/25',
+          'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100',
+        success:
+          'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700',
       },
       size: {
         default: 'h-10 px-4 py-2',
         sm: 'h-8 rounded-md px-3 text-xs',
         lg: 'h-11 rounded-lg px-6 text-base',
         icon: 'h-10 w-10',
-        xs: 'h-7 rounded-md px-2 text-xs',
+        xs: 'h-7 rounded-md px-2.5 text-xs',
       },
     },
     defaultVariants: {

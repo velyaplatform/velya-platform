@@ -5,28 +5,21 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../../lib/utils';
 
 /**
- * Velya Badge — status clínicos (crítico, em risco, ok) com dot opcional.
+ * Velya Badge — pill de status clínico em light theme (red-50/amber-50/...).
  */
 const badgeVariants = cva(
   'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors whitespace-nowrap',
   {
     variants: {
       variant: {
-        default:
-          'border-white/10 bg-white/[0.06] text-slate-200',
-        critical:
-          'border-red-500/35 bg-red-500/12 text-red-300 shadow-[0_0_12px_-2px_rgba(239,68,68,0.25)]',
-        warning:
-          'border-amber-500/35 bg-amber-500/12 text-amber-300',
-        success:
-          'border-emerald-500/35 bg-emerald-500/12 text-emerald-300',
-        info:
-          'border-blue-500/35 bg-blue-500/12 text-blue-300',
-        accent:
-          'border-teal-400/35 bg-teal-400/12 text-teal-300',
-        purple:
-          'border-purple-500/35 bg-purple-500/12 text-purple-300',
-        outline: 'border-white/15 text-slate-200',
+        default: 'border-slate-200 bg-slate-100 text-slate-700',
+        critical: 'border-red-200 bg-red-50 text-red-700',
+        warning: 'border-amber-200 bg-amber-50 text-amber-800',
+        success: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+        info: 'border-sky-200 bg-sky-50 text-sky-700',
+        accent: 'border-sky-200 bg-sky-50 text-sky-700',
+        purple: 'border-violet-200 bg-violet-50 text-violet-700',
+        outline: 'border-slate-300 bg-white text-slate-700',
       },
       size: {
         sm: 'text-[10px] px-2 py-px',
@@ -49,14 +42,14 @@ export interface BadgeProps
 }
 
 const DOT_COLOR: Record<string, string> = {
-  default: 'bg-slate-400',
-  critical: 'bg-red-400',
-  warning: 'bg-amber-400',
-  success: 'bg-emerald-400',
-  info: 'bg-blue-400',
-  accent: 'bg-teal-300',
-  purple: 'bg-purple-400',
-  outline: 'bg-slate-400',
+  default: 'bg-slate-500',
+  critical: 'bg-red-500',
+  warning: 'bg-amber-500',
+  success: 'bg-emerald-500',
+  info: 'bg-sky-500',
+  accent: 'bg-sky-600',
+  purple: 'bg-violet-500',
+  outline: 'bg-slate-500',
 };
 
 export function Badge({

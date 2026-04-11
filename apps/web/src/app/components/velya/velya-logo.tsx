@@ -49,9 +49,9 @@ export function VelyaLogo({
               </>
             ) : (
               <>
-                <stop offset="0" stopColor="#5eead4" />
-                <stop offset="0.5" stopColor="#2dd4bf" />
-                <stop offset="1" stopColor="#14b8a6" />
+                <stop offset="0" stopColor="#38bdf8" />
+                <stop offset="0.5" stopColor="#0ea5e9" />
+                <stop offset="1" stopColor="#0284c7" />
               </>
             )}
           </linearGradient>
@@ -106,13 +106,20 @@ export function VelyaLogo({
           <span
             className={cn(
               'text-lg font-semibold tracking-[0.01em]',
-              mono ? 'text-white' : 'bg-gradient-to-br from-teal-200 via-teal-300 to-teal-500 bg-clip-text text-transparent',
+              mono
+                ? 'text-white'
+                : 'bg-gradient-to-br from-sky-400 via-sky-500 to-sky-700 bg-clip-text text-transparent',
             )}
           >
             Velya
           </span>
           {subtitle && (
-            <span className="mt-1 text-[9px] font-medium uppercase tracking-[0.18em] text-slate-400">
+            <span
+              className={cn(
+                'mt-1 text-[9px] font-medium uppercase tracking-[0.18em]',
+                mono ? 'text-sky-200/70' : 'text-slate-500',
+              )}
+            >
               Plataforma Hospitalar
             </span>
           )}

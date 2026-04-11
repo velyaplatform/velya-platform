@@ -205,12 +205,6 @@ export function Navigation({
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') {
-      handleSuggestionSubmit();
-    }
-  }
-
   function handleNavClick() {
     onMobileClose?.();
   }
@@ -218,15 +212,15 @@ export function Navigation({
   return (
     <aside
       className={cn(
-        'fixed top-0 left-0 bottom-0 z-50 flex w-64 flex-col overflow-y-auto shrink-0',
-        'border-r border-white/[0.08] bg-[rgba(10,14,23,0.88)] backdrop-blur-2xl backdrop-saturate-150',
+        'fixed top-0 left-0 bottom-0 z-50 flex w-[260px] flex-col overflow-y-auto shrink-0',
+        'border-r border-slate-800 bg-[#0f172a] text-slate-300',
         'transition-transform duration-300',
         'md:translate-x-0',
         mobileOpen ? 'translate-x-0' : '-translate-x-full',
       )}
     >
-      {/* Teal vertical accent bar on far left edge */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-teal-400/40 to-transparent" />
+      {/* Sky accent bar on far left edge */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b from-sky-500/0 via-sky-500/50 to-sky-500/0" />
 
       {/* Close button for mobile */}
       <button
@@ -240,22 +234,21 @@ export function Navigation({
       </button>
 
       {/* Logo + selo hospitalar */}
-      <div className="relative border-b border-white/[0.08] px-5 py-5">
+      <div className="relative border-b border-slate-800 px-5 py-5">
         <VelyaLogo size={34} />
-        {/* Cruz médica decorativa no canto */}
-        <div className="absolute right-4 top-4 opacity-20">
+        <div className="absolute right-4 top-4 opacity-25">
           <VelyaMedicalCross size={18} variant="outline" />
         </div>
       </div>
 
-      {/* Pulse strip — banner fino estilo monitor indicando "plataforma viva" */}
-      <div className="border-b border-white/[0.05] bg-gradient-to-r from-transparent via-teal-500/[0.04] to-transparent px-5 py-2">
+      {/* Pulse strip — "sistema em operação 24/7" */}
+      <div className="border-b border-slate-800/60 bg-slate-800/30 px-5 py-2">
         <div className="flex items-center gap-2 text-[10px] font-medium">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
           </span>
-          <span className="text-emerald-300/90">Sistema em operação</span>
+          <span className="text-emerald-300">Sistema em operação</span>
           <span className="ml-auto font-mono text-slate-500">24/7</span>
         </div>
       </div>
@@ -283,22 +276,20 @@ export function Navigation({
                       className={cn(
                         'group relative flex min-h-[38px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
                         isActive
-                          ? 'bg-teal-400/10 text-teal-200 shadow-[inset_0_0_0_1px_rgba(45,212,191,0.25)]'
-                          : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-100',
+                          ? 'bg-sky-500/15 text-sky-100 shadow-[inset_0_0_0_1px_rgba(14,165,233,0.25)]'
+                          : 'text-slate-400 hover:bg-slate-800/70 hover:text-slate-100',
                       )}
                     >
                       {isActive && (
                         <span
                           aria-hidden="true"
-                          className="absolute inset-y-1 left-0 w-[3px] rounded-r-full bg-teal-300 shadow-[0_0_8px_rgba(45,212,191,0.7)]"
+                          className="absolute inset-y-1 left-0 w-[3px] rounded-r-full bg-sky-400"
                         />
                       )}
                       <Icon
                         className={cn(
                           'h-[18px] w-[18px] shrink-0 transition-colors',
-                          isActive
-                            ? 'text-teal-300'
-                            : 'text-slate-500 group-hover:text-slate-300',
+                          isActive ? 'text-sky-300' : 'text-slate-500 group-hover:text-slate-300',
                         )}
                         strokeWidth={2}
                       />
@@ -309,7 +300,7 @@ export function Navigation({
                             'ml-auto rounded-full px-1.5 py-px text-[10px] font-bold tabular-nums',
                             item.badge >= 10 && item.label.includes('Alerta')
                               ? 'bg-red-500/20 text-red-300 ring-1 ring-red-500/40'
-                              : 'bg-white/[0.08] text-slate-300',
+                              : 'bg-slate-800 text-slate-300 ring-1 ring-slate-700',
                           )}
                         >
                           {item.badge}
@@ -332,7 +323,7 @@ export function Navigation({
               <Link
                 href="/observability/metrics"
                 onClick={handleNavClick}
-                className="flex min-h-[38px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/[0.04] hover:text-slate-100"
+                className="flex min-h-[38px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-slate-100"
               >
                 <LineChart className="h-[18px] w-[18px] text-slate-500" strokeWidth={2} />
                 <span>Métricas</span>
@@ -340,7 +331,7 @@ export function Navigation({
               <Link
                 href="/observability/deploys"
                 onClick={handleNavClick}
-                className="flex min-h-[38px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/[0.04] hover:text-slate-100"
+                className="flex min-h-[38px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-slate-100"
               >
                 <GitBranch className="h-[18px] w-[18px] text-slate-500" strokeWidth={2} />
                 <span>Implantações</span>
@@ -351,57 +342,90 @@ export function Navigation({
       </nav>
 
       {/* Selo de compliance hospitalar */}
-      <div className="border-t border-white/[0.08] px-4 py-3">
-        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/15 bg-emerald-500/[0.04] px-2.5 py-2">
+      <div className="border-t border-slate-800 px-4 py-3">
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.06] px-2.5 py-2">
           <VelyaMedicalCross size={18} variant="outline" />
           <div className="min-w-0 flex-1 leading-tight">
             <div className="text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
               Hospital Acreditado
             </div>
-            <div className="truncate text-[9px] font-mono text-emerald-400/70">
+            <div className="truncate text-[9px] font-mono text-emerald-400/80">
               LGPD · CFM 2.314 · HL7 FHIR
             </div>
           </div>
         </div>
       </div>
 
-      {/* Suggestion box */}
-      <div className="border-t border-white/[0.08] bg-gradient-to-br from-teal-500/10 via-transparent to-transparent p-4">
+      {/* Caixa de Recomendações — expandida e visível */}
+      <div className="border-t border-slate-800 bg-gradient-to-br from-sky-900/30 via-slate-900 to-slate-900 p-4">
         {suggestionStatus === 'sent' ? (
           <div
             role="status"
-            className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 py-3 text-center text-sm font-semibold text-emerald-300"
+            className="rounded-xl border border-emerald-500/40 bg-emerald-500/15 px-4 py-4 text-center text-sm font-semibold text-emerald-200"
           >
-            ✓ Sugestão enviada — obrigado!
+            ✓ Recomendação enviada
+            <div className="mt-1 text-[11px] font-normal text-emerald-300/80">
+              Obrigado pelo feedback!
+            </div>
           </div>
         ) : (
           <div>
-            <label
-              htmlFor="sidebar-suggestion"
-              className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-slate-200"
+            {/* Header com ícone e título em destaque */}
+            <div className="mb-3 flex items-start gap-2.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sky-500/15 ring-1 ring-sky-500/40">
+                <Lightbulb className="h-4 w-4 text-sky-300" strokeWidth={2.25} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <label
+                  htmlFor="sidebar-suggestion"
+                  className="block text-[13px] font-semibold text-slate-100"
+                >
+                  Enviar recomendação
+                </label>
+                <p className="mt-0.5 text-[11px] leading-snug text-slate-400">
+                  Viu algo que pode melhorar? Conte pra gente.
+                </p>
+              </div>
+            </div>
+
+            {/* Textarea multiline com ação clara */}
+            <textarea
+              id="sidebar-suggestion"
+              value={suggestionText}
+              onChange={(e) => setSuggestionText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                  handleSuggestionSubmit();
+                }
+              }}
+              placeholder="Descreva sua recomendação, problema ou ideia..."
+              disabled={suggestionStatus === 'sending'}
+              rows={3}
+              className="w-full resize-none rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 outline-none transition-colors focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 disabled:opacity-60"
+            />
+
+            <button
+              onClick={handleSuggestionSubmit}
+              disabled={!suggestionText.trim() || suggestionStatus === 'sending'}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-sky-600 px-3 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-sky-500 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Lightbulb className="h-3.5 w-3.5 text-teal-300" />
-              Sugerir melhoria
-            </label>
-            <div className="flex gap-1.5">
-              <input
-                id="sidebar-suggestion"
-                type="text"
-                value={suggestionText}
-                onChange={(e) => setSuggestionText(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="O que pode melhorar?"
-                disabled={suggestionStatus === 'sending'}
-                className="min-w-0 flex-1 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-teal-400/60 focus:ring-2 focus:ring-teal-400/20 disabled:opacity-60"
-              />
-              <button
-                onClick={handleSuggestionSubmit}
-                disabled={!suggestionText.trim() || suggestionStatus === 'sending'}
-                aria-label="Enviar sugestão"
-                className="shrink-0 rounded-md bg-gradient-to-br from-teal-500 to-teal-600 px-3 py-2 text-xs font-semibold text-white shadow-[0_0_12px_-2px_rgba(20,184,166,0.4)] transition-all hover:-translate-y-px hover:from-teal-400 hover:to-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {suggestionStatus === 'sending' ? '…' : 'Enviar'}
-              </button>
+              {suggestionStatus === 'sending' ? (
+                <>
+                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  Enviando…
+                </>
+              ) : (
+                <>
+                  <Lightbulb className="h-3.5 w-3.5" />
+                  Enviar recomendação
+                </>
+              )}
+            </button>
+
+            <div className="mt-1.5 flex items-center justify-center gap-1 text-[9px] text-slate-600">
+              <kbd className="rounded bg-slate-800 px-1 font-mono text-slate-400">⌘</kbd>
+              <kbd className="rounded bg-slate-800 px-1 font-mono text-slate-400">↵</kbd>
+              <span>para enviar</span>
             </div>
           </div>
         )}

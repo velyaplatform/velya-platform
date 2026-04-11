@@ -101,13 +101,13 @@ export default function PatientsPage() {
       {/* Page header */}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-400">
+          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700">
             <Users className="h-3 w-3" /> Pacientes
           </div>
-          <h1 className="bg-gradient-to-br from-slate-50 via-slate-200 to-slate-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             Lista de Pacientes
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-slate-500">
             {MOCK_PATIENTS.length} internados — {blockedCount} bloqueados, {atRiskCount} em risco,{' '}
             {onTrackCount} no prazo
           </p>
@@ -127,8 +127,8 @@ export default function PatientsPage() {
           className={cn(
             'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
             statusFilter === 'all'
-              ? 'border-teal-400/40 bg-teal-400/10 text-teal-200'
-              : 'border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-slate-200',
+              ? 'border-sky-300 bg-sky-50 text-sky-800'
+              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50',
           )}
         >
           Todos <span className="font-mono tabular-nums">{MOCK_PATIENTS.length}</span>
@@ -139,8 +139,8 @@ export default function PatientsPage() {
           className={cn(
             'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
             statusFilter === 'blocked'
-              ? 'border-red-500/50 bg-red-500/12 text-red-200 shadow-[0_0_16px_-4px_rgba(239,68,68,0.4)]'
-              : 'border-red-500/25 bg-red-500/[0.04] text-red-300 hover:bg-red-500/10',
+              ? 'border-red-300 bg-red-100 text-red-800 shadow-sm'
+              : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100',
           )}
         >
           <VelyaStatusDot tone="critical" pulse size="sm" />
@@ -152,8 +152,8 @@ export default function PatientsPage() {
           className={cn(
             'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
             statusFilter === 'at-risk'
-              ? 'border-amber-500/50 bg-amber-500/12 text-amber-200'
-              : 'border-amber-500/25 bg-amber-500/[0.04] text-amber-300 hover:bg-amber-500/10',
+              ? 'border-amber-300 bg-amber-100 text-amber-800'
+              : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
           )}
         >
           <VelyaStatusDot tone="warning" size="sm" />
@@ -165,8 +165,8 @@ export default function PatientsPage() {
           className={cn(
             'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
             statusFilter === 'on-track'
-              ? 'border-emerald-500/50 bg-emerald-500/12 text-emerald-200'
-              : 'border-emerald-500/25 bg-emerald-500/[0.04] text-emerald-300 hover:bg-emerald-500/10',
+              ? 'border-emerald-300 bg-emerald-100 text-emerald-800'
+              : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
           )}
         >
           <VelyaStatusDot tone="success" size="sm" />
@@ -177,7 +177,7 @@ export default function PatientsPage() {
       {/* Filter bar */}
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <div className="relative min-w-[280px] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             type="text"
             placeholder="Buscar por nome ou MRN..."
@@ -187,9 +187,9 @@ export default function PatientsPage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="h-3.5 w-3.5 text-slate-500" />
+          <Filter className="h-3.5 w-3.5 text-slate-400" />
           <select
-            className="h-10 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-slate-100 outline-none focus:border-teal-400/60"
+            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
             value={wardFilter}
             onChange={(e) => setWardFilter(e.target.value)}
           >
@@ -201,7 +201,7 @@ export default function PatientsPage() {
             ))}
           </select>
           <select
-            className="h-10 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-slate-100 outline-none focus:border-teal-400/60"
+            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
             value={riskFilter}
             onChange={(e) => setRiskFilter(e.target.value)}
           >
@@ -218,7 +218,7 @@ export default function PatientsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.08] bg-white/[0.02] text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+              <tr className="border-b border-slate-200 bg-slate-50 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
                 <th className="px-5 py-3">Paciente</th>
                 <th className="px-3 py-3">Ala / Leito</th>
                 <th className="px-3 py-3">Diagnóstico</th>
@@ -231,13 +231,13 @@ export default function PatientsPage() {
                 <th className="px-5 py-3 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody className="divide-y divide-slate-100">
               {sorted.length === 0 ? (
                 <tr>
                   <td colSpan={10}>
                     <div className="flex flex-col items-center gap-3 px-5 py-16 text-slate-500">
                       <Search className="h-10 w-10 opacity-40" strokeWidth={1.25} />
-                      <div className="text-sm font-semibold text-slate-400">
+                      <div className="text-sm font-semibold text-slate-600">
                         Nenhum paciente corresponde aos filtros
                       </div>
                       <div className="text-xs text-slate-500">
@@ -251,11 +251,11 @@ export default function PatientsPage() {
                   <tr
                     key={patient.mrn}
                     className={cn(
-                      'transition-colors hover:bg-white/[0.03]',
+                      'transition-colors hover:bg-slate-50',
                       patient.dischargeStatus === 'blocked' &&
-                        'bg-red-500/[0.03] hover:bg-red-500/[0.07]',
+                        'bg-red-50/40 hover:bg-red-50',
                       patient.dischargeStatus === 'at-risk' &&
-                        'bg-amber-500/[0.03] hover:bg-amber-500/[0.06]',
+                        'bg-amber-50/40 hover:bg-amber-50',
                     )}
                   >
                     <td className="px-5 py-3">
@@ -268,9 +268,9 @@ export default function PatientsPage() {
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <div className="truncate font-semibold text-slate-100">{patient.name}</div>
+                          <div className="truncate font-semibold text-slate-900">{patient.name}</div>
                           <div className="text-[11px] text-slate-500">
-                            <span className="font-mono text-teal-300">{patient.mrn}</span>
+                            <span className="font-mono text-sky-700">{patient.mrn}</span>
                             <span className="mx-1.5">·</span>
                             {patient.age}a
                           </div>
@@ -278,27 +278,27 @@ export default function PatientsPage() {
                       </div>
                     </td>
                     <td className="px-3 py-3">
-                      <div className="text-sm text-slate-200">{patient.ward}</div>
+                      <div className="text-sm text-slate-700">{patient.ward}</div>
                       <div className="text-[11px] text-slate-500">Leito {patient.bed}</div>
                     </td>
                     <td className="px-3 py-3">
                       <div
-                        className="max-w-[180px] truncate text-sm text-slate-300"
+                        className="max-w-[180px] truncate text-sm text-slate-700"
                         title={patient.diagnosis}
                       >
                         {patient.diagnosis}
                       </div>
                     </td>
-                    <td className="px-3 py-3 text-sm text-slate-300">{patient.admissionDate}</td>
+                    <td className="px-3 py-3 text-sm text-slate-700">{patient.admissionDate}</td>
                     <td className="px-3 py-3">
                       <span
                         className={cn(
                           'font-mono font-semibold tabular-nums',
                           patient.los > 10
-                            ? 'text-red-300'
+                            ? 'text-red-700'
                             : patient.los > 6
-                              ? 'text-amber-300'
-                              : 'text-slate-200',
+                              ? 'text-amber-700'
+                              : 'text-slate-900',
                         )}
                       >
                         {patient.los}
@@ -327,7 +327,7 @@ export default function PatientsPage() {
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-3 text-sm text-slate-300">{patient.consultant}</td>
+                    <td className="px-3 py-3 text-sm text-slate-700">{patient.consultant}</td>
                     <td className="px-3 py-3">
                       <Badge variant={RISK_VARIANT[patient.riskLevel]} withDot>
                         {RISK_LABELS[patient.riskLevel]}

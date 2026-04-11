@@ -9,10 +9,8 @@ import { Button } from './ui/button';
 import { VelyaSectionHeader } from './velya/velya-section';
 
 /**
- * NEWS2 Risk Panel — clinical decision support widget for the home dashboard.
- *
- * Shows every ICU patient with NEWS2 ≥ 5 (Surviving Sepsis Campaign 2024
- * threshold for triggering the Hour-1 Bundle), sorted by score descending.
+ * NEWS2 Risk Panel — clinical decision support widget.
+ * Mostra pacientes com NEWS2 ≥ 5 (SSC 2024 Hour-1 Bundle threshold).
  */
 export function News2RiskPanel() {
   const highRiskBeds = useMemo(() => {
@@ -23,7 +21,7 @@ export function News2RiskPanel() {
   }, []);
 
   return (
-    <Card tone="critical" className="border-red-500/30">
+    <Card tone="critical" className="border-red-200">
       <CardHeader>
         <VelyaSectionHeader
           title="NEWS2 — Alerta clínico"
@@ -41,7 +39,7 @@ export function News2RiskPanel() {
 
       <CardContent>
         {highRiskBeds.length === 0 ? (
-          <p className="rounded-lg border border-white/[0.06] bg-white/[0.02] py-4 text-center text-sm text-slate-400">
+          <p className="rounded-lg border border-slate-200 bg-slate-50 py-4 text-center text-sm text-slate-500">
             Nenhum paciente com NEWS2 ≥ 5 no momento.
           </p>
         ) : (
@@ -54,22 +52,22 @@ export function News2RiskPanel() {
                 trend === 'subindo' ? TrendingUp : trend === 'caindo' ? TrendingDown : Minus;
               const trendColor =
                 trend === 'subindo'
-                  ? 'text-red-400'
+                  ? 'text-red-600'
                   : trend === 'caindo'
-                    ? 'text-emerald-400'
-                    : 'text-slate-400';
+                    ? 'text-emerald-600'
+                    : 'text-slate-500';
 
               const scoreClass =
                 score >= 7
-                  ? 'bg-red-500/15 text-red-300 ring-2 ring-red-500/50 shadow-[0_0_16px_-2px_rgba(239,68,68,0.35)]'
-                  : 'bg-amber-500/15 text-amber-300 ring-2 ring-amber-500/50';
+                  ? 'bg-red-100 text-red-700 ring-2 ring-red-300'
+                  : 'bg-amber-100 text-amber-700 ring-2 ring-amber-300';
 
               return (
                 <li key={bed.id}>
                   <Link
                     href={`/patients/${bed.patient.mrn}`}
                     aria-live="polite"
-                    className="group flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-3 transition-all hover:border-red-500/30 hover:bg-red-500/[0.04] focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                    className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 transition-all hover:border-red-300 hover:bg-red-50/50 hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                   >
                     <span
                       className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-mono text-lg font-bold tabular-nums ${scoreClass}`}
@@ -78,16 +76,16 @@ export function News2RiskPanel() {
                       {score}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold text-slate-100">
+                      <div className="truncate text-sm font-semibold text-slate-900">
                         {bed.patient.name}
                       </div>
-                      <div className="truncate text-[11px] text-slate-400">
-                        <span className="font-mono text-teal-300">{bed.patient.mrn}</span>
-                        <span className="mx-1.5 text-slate-600">·</span>
+                      <div className="truncate text-[11px] text-slate-500">
+                        <span className="font-mono text-sky-700">{bed.patient.mrn}</span>
+                        <span className="mx-1.5 text-slate-300">·</span>
                         {bed.patient.age}a
-                        <span className="mx-1.5 text-slate-600">·</span>
+                        <span className="mx-1.5 text-slate-300">·</span>
                         {bed.id}
-                        <span className="mx-1.5 text-slate-600">·</span>
+                        <span className="mx-1.5 text-slate-300">·</span>
                         {bed.patient.diagnosis}
                       </div>
                     </div>

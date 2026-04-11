@@ -28,7 +28,6 @@ import { VelyaAlertBanner } from './components/velya/velya-alert-banner';
 import { VelyaStatusDot } from './components/velya/velya-status-dot';
 import { VelyaSparkline } from './components/velya/velya-sparkline';
 import { VelyaSectionHeader } from './components/velya/velya-section';
-import { VelyaECGStrip } from './components/velya/velya-ecg-strip';
 import { VelyaMedicalCross } from './components/velya/velya-medical-cross';
 import {
   PRIORITY_TASKS,
@@ -47,11 +46,11 @@ function TaskRow({ priority, type, description, patient, assignee, due }: TaskRo
       ? 'border-l-red-500'
       : priority === 'warning'
         ? 'border-l-amber-500'
-        : 'border-l-white/10';
+        : 'border-l-slate-300';
 
   return (
     <div
-      className={`group mb-3 flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 transition-all hover:border-white/[0.1] hover:bg-white/[0.04] border-l-2 ${borderColor}`}
+      className={`group mb-3 flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-slate-300 hover:shadow-md border-l-[3px] ${borderColor}`}
     >
       <div className="min-w-0 flex-1">
         <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -65,11 +64,11 @@ function TaskRow({ priority, type, description, patient, assignee, due }: TaskRo
             <Clock className="h-3 w-3" /> {due}
           </span>
         </div>
-        <div className="mb-1 text-sm font-semibold text-slate-100">{description}</div>
-        <div className="text-xs text-slate-400">
-          <span className="font-mono text-teal-300">{patient}</span>
-          <span className="mx-2 text-slate-600">·</span>
-          <span className="text-slate-400">Resp.: {assignee}</span>
+        <div className="mb-1 text-sm font-semibold text-slate-900">{description}</div>
+        <div className="text-xs text-slate-500">
+          <span className="font-mono text-sky-700">{patient}</span>
+          <span className="mx-2 text-slate-300">·</span>
+          <span className="text-slate-600">Resp.: {assignee}</span>
         </div>
       </div>
       <div className="flex shrink-0 flex-col gap-1.5">
@@ -95,25 +94,25 @@ function DischargeRow({ mrn, name, ward, los, targetDate, blockers, status }: Di
     <tr
       className={
         status === 'blocked'
-          ? 'bg-red-500/[0.04] hover:bg-red-500/[0.08]'
+          ? 'bg-red-50/50 hover:bg-red-50'
           : status === 'pending'
-            ? 'bg-amber-500/[0.04] hover:bg-amber-500/[0.08]'
-            : 'hover:bg-white/[0.04]'
+            ? 'bg-amber-50/50 hover:bg-amber-50'
+            : 'hover:bg-slate-50'
       }
     >
       <td className="py-3 pr-4">
-        <div className="font-semibold text-slate-100">{name}</div>
+        <div className="font-semibold text-slate-900">{name}</div>
         <div className="font-mono text-[11px] text-slate-500">{mrn}</div>
       </td>
-      <td className="py-3 pr-4 text-sm text-slate-300">{ward}</td>
+      <td className="py-3 pr-4 text-sm text-slate-700">{ward}</td>
       <td className="py-3 pr-4">
-        <span className="font-mono font-semibold tabular-nums text-slate-200">{los}</span>
+        <span className="font-mono font-semibold tabular-nums text-slate-900">{los}</span>
         <span className="text-xs text-slate-500">d</span>
       </td>
-      <td className="py-3 pr-4 text-sm text-slate-300">{targetDate}</td>
+      <td className="py-3 pr-4 text-sm text-slate-700">{targetDate}</td>
       <td className="py-3 pr-4">
         {blockers.length === 0 ? (
-          <span className="text-xs text-slate-500">—</span>
+          <span className="text-xs text-slate-400">—</span>
         ) : (
           <div className="flex flex-wrap gap-1">
             {blockers.map((b) => (
@@ -148,17 +147,17 @@ function ServiceStatus({ name, status, serviceId }: ServiceStatusProps) {
   const cfg = {
     healthy: { tone: 'success' as const, label: 'Saudável', border: 'border-l-emerald-500' },
     degraded: { tone: 'warning' as const, label: 'Degradado', border: 'border-l-amber-500' },
-    unknown: { tone: 'neutral' as const, label: 'Desconhecido', border: 'border-l-slate-500' },
+    unknown: { tone: 'neutral' as const, label: 'Desconhecido', border: 'border-l-slate-400' },
   }[status];
 
   return (
     <Link
       href={`/system/services/${serviceId}`}
-      className={`flex items-center gap-3 rounded-lg border border-white/[0.08] border-l-2 bg-white/[0.02] px-3 py-2.5 no-underline transition-colors hover:border-white/[0.16] hover:bg-white/[0.05] ${cfg.border}`}
+      className={`flex items-center gap-3 rounded-lg border border-slate-200 border-l-[3px] bg-white px-3 py-2.5 no-underline transition-all hover:border-slate-300 hover:shadow-sm ${cfg.border}`}
     >
       <VelyaStatusDot tone={cfg.tone} pulse={status === 'degraded'} />
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-slate-100">{name}</div>
+        <div className="text-sm font-semibold text-slate-900">{name}</div>
         <div className="text-[11px] text-slate-500">{cfg.label}</div>
       </div>
     </Link>
@@ -213,7 +212,6 @@ const EXCEPTIONS = [
   },
 ];
 
-// Sparkline fixtures — dados dos últimos 7 dias
 const TMI_TREND = [5.5, 5.8, 5.6, 5.4, 5.5, 5.3, 5.2];
 const OCUPACAO_TREND = [82, 84, 85, 86, 85, 86, 87];
 const ADMISSIONS_TREND = [4, 3, 5, 4, 6, 5, 3];
@@ -221,40 +219,33 @@ const ADMISSIONS_TREND = [4, 3, 5, 4, 6, 5, 3];
 export default function CommandCenterPage() {
   return (
     <AppShell pageTitle="Centro de Comando">
-      {/* Hospital vital-signs strip — "plataforma viva 24/7" */}
-      <div className="mb-6 overflow-hidden rounded-2xl border border-white/[0.06] bg-[rgba(3,7,18,0.6)] backdrop-blur-md">
-        <div className="flex items-center justify-between border-b border-white/[0.05] px-5 py-2.5">
-          <div className="flex items-center gap-2.5">
-            <VelyaMedicalCross size={16} />
-            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-teal-300">
-              Sinais Vitais do Hospital
-            </span>
-            <span className="font-mono text-[10px] text-slate-500">· Monitoramento contínuo</span>
-          </div>
-          <div className="flex items-center gap-4 text-[10px] font-mono">
-            <span className="text-slate-500">
-              <span className="text-slate-400">BPM</span>{' '}
-              <span className="text-emerald-300">72</span>
-            </span>
-            <span className="text-slate-500">
-              <span className="text-slate-400">SpO₂</span>{' '}
-              <span className="text-emerald-300">98%</span>
-            </span>
-            <span className="text-slate-500">
-              <span className="text-slate-400">Ocup.</span>{' '}
-              <span className="text-teal-300">87%</span>
-            </span>
-            <span className="hidden items-center gap-1 text-emerald-400 sm:flex">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]" />
-              ONLINE
-            </span>
-          </div>
+      {/* Strip estático de status operacional do hospital */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
+        <div className="flex items-center gap-2.5">
+          <VelyaMedicalCross size={16} />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-sky-700">
+            Status Operacional do Hospital
+          </span>
+          <span className="font-mono text-[11px] text-slate-400">· Monitoramento contínuo</span>
         </div>
-        <VelyaECGStrip
-          height={44}
-          className="rounded-none border-0 bg-transparent"
-          speed="normal"
-        />
+        <div className="flex items-center gap-5 font-mono text-[12px]">
+          <span className="text-slate-500">
+            <span className="text-slate-400">Internados</span>{' '}
+            <span className="font-semibold text-slate-900">47</span>
+          </span>
+          <span className="text-slate-500">
+            <span className="text-slate-400">UTI</span>{' '}
+            <span className="font-semibold text-slate-900">12/16</span>
+          </span>
+          <span className="text-slate-500">
+            <span className="text-slate-400">Ocupação</span>{' '}
+            <span className="font-semibold text-sky-700">87%</span>
+          </span>
+          <span className="hidden items-center gap-1 text-emerald-600 sm:flex">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            ONLINE
+          </span>
+        </div>
       </div>
 
       {/* Banner de Alerta Crítico */}
@@ -275,13 +266,13 @@ export default function CommandCenterPage() {
       {/* Page title */}
       <div className="mb-6 flex items-end justify-between">
         <div>
-          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-400">
-            <VelyaStatusDot tone="accent" pulse size="sm" /> Tempo real
+          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700">
+            <VelyaStatusDot tone="success" pulse size="sm" /> Tempo real
           </div>
-          <h1 className="bg-gradient-to-br from-slate-50 via-slate-200 to-slate-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             Centro de Comando
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-slate-500">
             Visão unificada de pacientes, altas, tarefas e saúde do sistema
           </p>
         </div>
@@ -403,24 +394,24 @@ export default function CommandCenterPage() {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="group flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 no-underline transition-all hover:border-teal-400/30 hover:bg-white/[0.05]"
+                    className="group flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 no-underline transition-all hover:border-sky-300 hover:bg-sky-50"
                   >
                     <span
                       className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
                         item.tone === 'critical'
-                          ? 'bg-red-500/15 text-red-300 ring-1 ring-red-500/35'
-                          : 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/35'
+                          ? 'bg-red-50 text-red-600 ring-1 ring-red-200'
+                          : 'bg-amber-50 text-amber-600 ring-1 ring-amber-200'
                       }`}
                     >
                       <Icon className="h-3.5 w-3.5" />
                     </span>
-                    <span className="flex-1 text-xs font-medium text-slate-200">
+                    <span className="flex-1 text-xs font-medium text-slate-800">
                       {item.label}
                     </span>
                     <Badge variant={item.tone} size="sm">
                       {item.count}
                     </Badge>
-                    <ChevronRight className="h-3.5 w-3.5 text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:text-teal-300" />
+                    <ChevronRight className="h-3.5 w-3.5 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-sky-600" />
                   </Link>
                 );
               })}
@@ -469,7 +460,7 @@ export default function CommandCenterPage() {
         <CardContent className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.08] text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+              <tr className="border-b border-slate-200 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
                 <th className="pb-3 pr-4">Paciente</th>
                 <th className="pb-3 pr-4">Ala</th>
                 <th className="pb-3 pr-4">TMI</th>
@@ -479,7 +470,7 @@ export default function CommandCenterPage() {
                 <th className="pb-3 pr-4">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.05]">
+            <tbody className="divide-y divide-slate-100">
               {DISCHARGE_PATIENTS.map((p) => (
                 <DischargeRow key={p.mrn} {...p} />
               ))}

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { cn } from '../../../lib/utils';
 
 /**
- * VelyaPageHeader — header padrão de página com título gradiente + ações.
+ * VelyaPageHeader — header padrão de página em light theme.
  */
 export interface VelyaPageHeaderProps {
   title: React.ReactNode;
@@ -30,16 +30,12 @@ export function VelyaPageHeader({
     >
       <div>
         {eyebrow && (
-          <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-400">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700">
             {eyebrow}
           </div>
         )}
-        <h1 className="bg-gradient-to-br from-slate-50 via-slate-200 to-slate-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent">
-          {title}
-        </h1>
-        {subtitle && (
-          <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
-        )}
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">{title}</h1>
+        {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
       </div>
 
       {actions && <div className="flex items-center gap-2">{actions}</div>}

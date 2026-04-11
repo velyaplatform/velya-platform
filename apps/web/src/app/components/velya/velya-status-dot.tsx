@@ -6,21 +6,12 @@ import { cn } from '../../../lib/utils';
 type StatusTone = 'critical' | 'warning' | 'success' | 'info' | 'accent' | 'neutral';
 
 const COLOR: Record<StatusTone, string> = {
-  critical: 'bg-red-400',
-  warning: 'bg-amber-400',
-  success: 'bg-emerald-400',
-  info: 'bg-blue-400',
-  accent: 'bg-teal-300',
+  critical: 'bg-red-500',
+  warning: 'bg-amber-500',
+  success: 'bg-emerald-500',
+  info: 'bg-sky-500',
+  accent: 'bg-sky-600',
   neutral: 'bg-slate-400',
-};
-
-const GLOW: Record<StatusTone, string> = {
-  critical: 'shadow-[0_0_10px_rgba(248,113,113,0.55)]',
-  warning: 'shadow-[0_0_10px_rgba(251,191,36,0.45)]',
-  success: 'shadow-[0_0_10px_rgba(52,211,153,0.45)]',
-  info: 'shadow-[0_0_10px_rgba(96,165,250,0.45)]',
-  accent: 'shadow-[0_0_10px_rgba(45,212,191,0.5)]',
-  neutral: '',
 };
 
 export interface VelyaStatusDotProps {
@@ -47,9 +38,7 @@ export function VelyaStatusDot({
           )}
         />
       )}
-      <span
-        className={cn('relative inline-flex h-full w-full rounded-full', COLOR[tone], GLOW[tone])}
-      />
+      <span className={cn('relative inline-flex h-full w-full rounded-full', COLOR[tone])} />
     </span>
   );
 }
