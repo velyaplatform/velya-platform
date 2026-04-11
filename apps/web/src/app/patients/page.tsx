@@ -183,7 +183,7 @@ export default function PatientsPage() {
             placeholder="Buscar por nome ou MRN..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            style={{ paddingLeft: '2.25rem' }}
           />
         </div>
         <div className="flex items-center gap-2">

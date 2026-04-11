@@ -86,14 +86,17 @@ export default function LoginPage() {
               Email
             </label>
             <div className="relative">
-              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+              <Mail
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+                aria-hidden="true"
+              />
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu.email@hospital.com"
-                className="pl-9"
+                style={{ paddingLeft: '2.25rem' }}
                 autoComplete="email"
                 autoFocus
                 required
@@ -109,14 +112,17 @@ export default function LoginPage() {
               Senha
             </label>
             <div className="relative">
-              <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+              <Lock
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+                aria-hidden="true"
+              />
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Sua senha"
-                className="pl-9"
+                style={{ paddingLeft: '2.25rem' }}
                 autoComplete="current-password"
                 required
               />
