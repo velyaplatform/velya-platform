@@ -48,26 +48,6 @@ function runCmd(cmd: string, cwd: string = REPO_ROOT): { ok: boolean; output: st
   }
 }
 
-function findFiles(pattern: RegExp, root: string): string[] {
-  const found: string[] = [];
-  const walk = (dir: string): void => {
-    const entries = spawnSync('ls', ['-1A', dir], { encoding: 'utf-8' });
-    if (entries.status !== 0) return;
-    for (const name of entries.stdout.split('\n').filter(Boolean)) {
-      if (name === 'node_modules' || name === '.next' || name === 'dist' || name === '.git') continue;
-      const full = join(dir, name);
-      const stat = spawnSync('stat', ['-c', '%F', full], { encoding: 'utf-8' });
-      if (stat.stdout.trim() === 'directory') {
-        walk(full);
-      } else if (pattern.test(name)) {
-        found.push(full);
-      }
-    }
-  };
-  walk(root);
-  return found;
-}
-
 async function main(): Promise<void> {
   const findings: Finding[] = [];
   const webRoot = join(REPO_ROOT, 'apps/web');

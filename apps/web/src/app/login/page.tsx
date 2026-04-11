@@ -142,11 +142,11 @@ export default function LoginPage() {
             )}
           </Button>
 
-          <div className="pt-2 text-center text-xs text-neutral-500">
+          <div className="pt-2 text-center text-sm text-neutral-500">
             Não tem conta?{' '}
             <Link
               href="/register"
-              className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-3 font-semibold text-blue-600 hover:text-blue-700 hover:underline"
             >
               Cadastrar
             </Link>

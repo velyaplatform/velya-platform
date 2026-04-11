@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Run Trivy filesystem scan (vulnerabilities + secrets + misconfig)
-        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # 0.30.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -71,7 +71,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     container:
-      image: semgrep/semgrep@sha256:5a6f30ad19fc0a4f9c4e2e26bd75f4d9b6f3f7e52a07e34f72d9b76f9e10ad33
+      # semgrep/semgrep:latest amd64 (pushed 2026-03-31, see Docker Hub API)
+      image: semgrep/semgrep@sha256:500acf49f5e5785aa89af609b983f0427ac8cd08f7e34146277df6cffb002759
     permissions:
       contents: read
       security-events: write
@@ -135,7 +136,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Run OSV scanner (lockfile + manifest)
-        uses: google/osv-scanner-action/osv-scanner-action@2c52c6c2cdb9cdd6c08f3aedf08abdf3855fc7d6 # v1.7.4
+        uses: google/osv-scanner-action/osv-scanner-action@c51854704019a247608d928f370c98740469d4b5 # v2.3.5
         with:
           scan-args: |-
             --recursive

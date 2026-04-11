@@ -15,7 +15,7 @@
  *   2 — agent fatal error
  */
 
-import { execSync, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 

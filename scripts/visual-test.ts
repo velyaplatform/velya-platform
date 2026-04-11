@@ -150,13 +150,24 @@ async function runAxeOnPage(p: Page): Promise<AxeSummary> {
   };
 }
 
+// String-based polyfill for `__name`. Passed verbatim to page.evaluate so
+// it is NOT parsed by tsx/esbuild and therefore never gets wrapped by the
+// keep-names transform (which is the root cause of the ReferenceError we
+// are trying to fix). Any arrow/const helper we put in this file gets
+// wrapped with `__name(fn, "name")` by esbuild, and that helper does not
+// exist in the Playwright browser context.
+const __NAME_POLYFILL =
+  '(function(){if(typeof globalThis.__name!=="function"){globalThis.__name=function(f){return f;};}})()';
+
 async function runGeometryChecks(p: Page, isMobile: boolean): Promise<GeometryIssue[]> {
-  // IMPORTANT: this MUST be an anonymous arrow expression. A named function
-  // expression like `function geometryEval(...)` causes tsx/esbuild to inject
-  // `__name(geometryEval, "geometryEval")` for stack-trace preservation, and
-  // that helper does not exist inside the Playwright browser context — every
-  // call would crash with "ReferenceError: __name is not defined". The arrow
-  // form sidesteps the helper entirely.
+  // IMPORTANT: modern tsx/esbuild wraps every named function/arrow with
+  // `__name(fn, "name")` for stack-trace preservation (the keep-names
+  // transform, on by default for ES2022+). The helper exists in the Node
+  // runtime but NOT in the Playwright browser context, so any inline helper
+  // (including arrows assigned to `const`s) makes the evaluate body throw
+  // "ReferenceError: __name is not defined" the first time a named helper
+  // is declared. We install a no-op shim before running the geometry checks.
+  await p.evaluate(__NAME_POLYFILL);
   return p.evaluate(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (opts: any): GeometryIssue[] => {

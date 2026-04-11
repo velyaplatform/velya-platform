@@ -82,7 +82,9 @@ export function VelyaLogo({
           {subtitle && (
             <span
               className={cn(
-                'mt-1 text-[9px] font-medium uppercase tracking-[0.18em]',
+                // 12px minimum to satisfy WCAG small-font checks
+                // (visual-test rejects anything below 12px).
+                'mt-1 text-xs font-medium uppercase tracking-[0.18em]',
                 mono ? 'text-white/60' : 'text-neutral-500',
               )}
             >

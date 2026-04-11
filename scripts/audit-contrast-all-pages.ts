@@ -53,11 +53,15 @@ async function login(page: Page) {
   await page.waitForTimeout(1500);
 }
 
+// See scripts/visual-test.ts for the full explanation. tsx/esbuild wraps
+// named arrows with `__name(fn, "name")` and that helper does not exist in
+// the Playwright browser context. We install a no-op shim via a string
+// payload (strings are not parsed by esbuild) before running the evaluate.
+const __NAME_POLYFILL =
+  '(function(){if(typeof globalThis.__name!=="function"){globalThis.__name=function(f){return f;};}})()';
+
 async function findContrastIssues(p: Page, pageName: string): Promise<ContrastIssue[]> {
-  // IMPORTANT: anonymous arrow only — see scripts/visual-test.ts for the
-  // tsx/__name reasoning. Named function expressions are evaluated by
-  // Playwright in the browser context where esbuild's __name helper does
-  // not exist, causing "ReferenceError: __name is not defined".
+  await p.evaluate(__NAME_POLYFILL);
   return p.evaluate((pageName: string): ContrastIssue[] => {
     // Inner helpers MUST be const arrows (not function declarations) for the
     // same tsx/__name reason — see runGeometryChecks in scripts/visual-test.ts.

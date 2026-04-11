@@ -96,22 +96,24 @@ export default function RegisterPage() {
     }
   }
 
+  // Light-theme input per the Velya UI standard (white bg, dark text, blue
+  // accent). min-h-[44px] hits the WCAG 2.2 AA touch-target minimum.
   const inputClass =
-    'w-full min-h-[44px] bg-white/10 border border-white/30 rounded-lg px-3.5 py-2.5 text-white text-base placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition';
+    'w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition';
 
   return (
-    <main className="min-h-screen bg-velya-bg flex items-center justify-center px-4 py-8">
+    <main className="flex min-h-screen items-center justify-center bg-white px-4 py-8">
       <section
         aria-labelledby="register-title"
-        className="w-full max-w-[520px] bg-velya-card rounded-2xl p-8 sm:p-10 shadow-2xl border border-velya-border"
+        className="w-full max-w-[520px] rounded-2xl border border-slate-200 bg-white p-8 shadow-sm sm:p-10"
       >
         {/* Header */}
-        <header className="text-center mb-8">
-          <div className="text-2xl font-bold text-white tracking-tight">Velya</div>
-          <div className="text-xs text-slate-600 uppercase tracking-widest mt-1 font-medium">
+        <header className="mb-8 text-center">
+          <div className="text-2xl font-bold tracking-tight text-neutral-900">Velya</div>
+          <div className="mt-1 text-xs font-medium uppercase tracking-widest text-neutral-500">
             Plataforma Hospitalar
           </div>
-          <h1 id="register-title" className="text-xl font-semibold text-white mt-6">
+          <h1 id="register-title" className="mt-6 text-xl font-semibold text-neutral-900">
             Criar Conta
           </h1>
         </header>
@@ -121,7 +123,7 @@ export default function RegisterPage() {
           {error && (
             <div
               role="alert"
-              className="bg-red-500/20 border border-red-400/50 rounded-lg px-4 py-3 text-red-800 text-sm"
+              className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             >
               {error}
             </div>
@@ -206,7 +208,7 @@ export default function RegisterPage() {
               aria-label="Profissão ou função no hospital"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full min-h-[44px] bg-slate-50 border border-white/30 rounded-lg px-3.5 py-2.5 text-white text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition cursor-pointer"
+              className="w-full min-h-[44px] cursor-pointer rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               required
             >
               <option value="">Selecione sua função</option>
@@ -254,16 +256,16 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full min-h-[48px] bg-blue-700 hover:bg-blue-800 text-white font-semibold text-base rounded-lg mt-2 transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-velya-card"
+            className="mt-2 inline-flex min-h-[48px] w-full cursor-pointer items-center justify-center rounded-lg bg-blue-600 px-6 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Criando conta...' : 'Criar Conta'}
           </button>
 
-          <div className="text-center mt-2 py-2">
-            <span className="text-sm text-slate-600">Já tem conta? </span>
+          <div className="mt-2 py-2 text-center">
+            <span className="text-sm text-neutral-500">Já tem conta? </span>
             <Link
               href="/login"
-              className="text-sm font-semibold text-blue-700 hover:text-blue-800 underline-offset-2 hover:underline transition inline-block min-h-[44px] leading-[44px]"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-3 text-sm font-semibold text-blue-600 transition hover:text-blue-700 hover:underline"
             >
               Entrar
             </Link>

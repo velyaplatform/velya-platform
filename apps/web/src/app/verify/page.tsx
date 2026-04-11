@@ -92,22 +92,23 @@ function VerifyForm() {
   if (!email) return null;
 
   return (
-    <main className="min-h-screen bg-velya-bg flex items-center justify-center px-4 py-8">
+    <main className="flex min-h-screen items-center justify-center bg-white px-4 py-8">
       <section
         aria-labelledby="verify-title"
-        className="w-full max-w-[440px] bg-velya-card rounded-2xl p-8 sm:p-10 shadow-2xl border border-velya-border"
+        className="w-full max-w-[440px] rounded-2xl border border-slate-200 bg-white p-8 shadow-sm sm:p-10"
       >
         {/* Header */}
-        <header className="text-center mb-6">
-          <div className="text-2xl font-bold text-white tracking-tight">Velya</div>
-          <div className="text-xs text-slate-600 uppercase tracking-widest mt-1 font-medium">
+        <header className="mb-6 text-center">
+          <div className="text-2xl font-bold tracking-tight text-neutral-900">Velya</div>
+          <div className="mt-1 text-xs font-medium uppercase tracking-widest text-neutral-500">
             Plataforma Hospitalar
           </div>
-          <h1 id="verify-title" className="text-xl font-semibold text-white mt-6">
+          <h1 id="verify-title" className="mt-6 text-xl font-semibold text-neutral-900">
             Verificar Email
           </h1>
-          <p className="text-sm text-slate-600 mt-2">
-            Código de verificação enviado para <strong className="text-white">{email}</strong>
+          <p className="mt-2 text-sm text-neutral-500">
+            Código de verificação enviado para{' '}
+            <strong className="text-neutral-900">{email}</strong>
           </p>
         </header>
 
@@ -115,10 +116,10 @@ function VerifyForm() {
         {currentDevCode && (
           <div
             role="status"
-            className="bg-yellow-500/20 border border-yellow-400/50 rounded-lg px-4 py-3 text-yellow-800 text-sm text-center mb-4"
+            className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-800"
           >
             <strong>Modo desenvolvimento</strong> — código:{' '}
-            <span className="font-mono text-lg font-bold tracking-[0.15em] text-yellow-800">
+            <span className="font-mono text-lg font-bold tracking-[0.15em] text-amber-900">
               {currentDevCode}
             </span>
           </div>
@@ -129,7 +130,7 @@ function VerifyForm() {
           {error && (
             <div
               role="alert"
-              className="bg-red-500/20 border border-red-400/50 rounded-lg px-4 py-3 text-red-800 text-sm text-center"
+              className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700"
             >
               {error}
             </div>
@@ -137,14 +138,14 @@ function VerifyForm() {
           {success && (
             <div
               role="status"
-              className="bg-green-500/20 border border-green-400/50 rounded-lg px-4 py-3 text-green-800 text-sm text-center"
+              className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm text-emerald-700"
             >
               {success}
             </div>
           )}
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="code" className="text-sm font-medium text-slate-700 text-center">
+            <label htmlFor="code" className="text-center text-sm font-medium text-neutral-700">
               Código de 6 dígitos
             </label>
             <input
@@ -157,7 +158,7 @@ function VerifyForm() {
                 setCode(val);
               }}
               placeholder="000000"
-              className="w-full min-h-[56px] bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white text-2xl font-mono text-center tracking-[0.3em] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+              className="w-full min-h-[56px] rounded-lg border border-slate-300 bg-white px-4 py-3 text-center font-mono text-2xl tracking-[0.3em] text-neutral-900 shadow-sm placeholder:text-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               maxLength={6}
               autoFocus
               autoComplete="one-time-code"
@@ -168,7 +169,7 @@ function VerifyForm() {
           <button
             type="submit"
             disabled={loading || code.length !== 6}
-            className="w-full min-h-[48px] bg-blue-700 hover:bg-blue-800 text-white font-semibold text-base rounded-lg transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-velya-card"
+            className="inline-flex min-h-[48px] w-full cursor-pointer items-center justify-center rounded-lg bg-blue-600 px-6 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Verificando...' : 'Verificar'}
           </button>
@@ -178,16 +179,16 @@ function VerifyForm() {
               type="button"
               onClick={handleResend}
               disabled={resending}
-              className="bg-transparent border-none text-blue-700 hover:text-blue-800 text-sm font-semibold cursor-pointer underline transition disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] px-4"
+              className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent px-4 text-sm font-semibold text-blue-600 underline transition hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {resending ? 'Reenviando...' : 'Reenviar código'}
             </button>
           </div>
 
-          <div className="text-center py-1">
+          <div className="py-1 text-center">
             <Link
               href="/register"
-              className="text-sm text-slate-600 hover:text-white transition inline-block min-h-[44px] leading-[44px] px-4 underline-offset-2 hover:underline"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-4 text-sm text-neutral-500 underline-offset-2 transition hover:text-neutral-900 hover:underline"
             >
               Voltar ao cadastro
             </Link>
@@ -202,9 +203,10 @@ export default function VerifyPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-velya-bg flex items-center justify-center text-white">
+        <main className="flex min-h-screen items-center justify-center bg-white text-neutral-500">
+          <h1 className="sr-only">Verificação de Email</h1>
           Carregando...
-        </div>
+        </main>
       }
     >
       <VerifyForm />
