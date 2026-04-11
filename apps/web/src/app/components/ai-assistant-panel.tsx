@@ -373,7 +373,7 @@ export function AiAssistantPanel() {
         aria-label="Abrir assistente de IA (Ctrl+J)"
         aria-expanded={isOpen}
         title="Assistente de IA — Ctrl+J"
-        className="fixed bottom-24 right-6 z-[80] min-h-[52px] min-w-[52px] px-4 py-2.5 rounded-full bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold shadow-2xl border-2 border-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-300"
+        className="gh-fab-sidebar-anchor min-h-[44px] min-w-[44px] px-3 py-2 rounded-full bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold shadow-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
       >
         <span aria-hidden="true">{'\u2728'}</span> IA
       </button>

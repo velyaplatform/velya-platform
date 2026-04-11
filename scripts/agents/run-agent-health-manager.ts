@@ -18,6 +18,14 @@
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import {
+  installOfflineFatalHandler,
+  kubectlAvailable,
+  offlineReason,
+  writeOfflineReport,
+} from './shared/offline-guard';
+
+const AGENT_NAME = 'agent-health-manager';
 
 interface Finding {
   severity: 'critical' | 'high' | 'medium' | 'low';
@@ -130,7 +138,23 @@ function jobsOwnedBy(jobs: JobItem[], cronJobName: string): JobItem[] {
 async function main(): Promise<void> {
   const findings: Finding[] = [];
 
-  console.log('[agent-health-manager] Listing worker CronJobs…');
+  if (!kubectlAvailable(KUBECTL_CONTEXT)) {
+    const reason = offlineReason();
+    console.log(
+      `[${AGENT_NAME}] offline mode (${reason}) — skipping cluster probes, writing empty report`,
+    );
+    writeOfflineReport({
+      agent: AGENT_NAME,
+      layer: 2,
+      outRoot: OUT_DIR,
+      outSubdir: 'manager-audit',
+      timestamp,
+      reason,
+    });
+    return;
+  }
+
+  console.log(`[${AGENT_NAME}] Listing worker CronJobs…`);
   const cronRes = kubectl([
     'get',
     'cronjob',
@@ -309,7 +333,4 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error) => {
-  console.error('[agent-health-manager] Fatal:', error);
-  process.exit(2);
-});
+main().catch(installOfflineFatalHandler(AGENT_NAME));

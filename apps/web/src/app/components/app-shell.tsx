@@ -2,14 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, Menu, Search, AlertOctagon } from 'lucide-react';
+import Link from 'next/link';
+import {
+  Bell,
+  Menu,
+  Search,
+  AlertOctagon,
+  Plus,
+  Inbox as InboxIcon,
+} from 'lucide-react';
 import { FavoritesMenu } from './favorites-menu';
 import { Navigation, type Role } from './navigation';
 import { PatientQuickSwitcher } from './patient-quick-switcher';
 import { ROLE_DEFINITIONS, resolveUiRole } from '../../lib/access-control';
 import { Avatar, AvatarFallback } from './ui/avatar';
-import { Button } from './ui/button';
-import { cn } from '../../lib/utils';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -23,6 +29,33 @@ interface SessionData {
   email: string;
   setor: string;
   conselhoProfissional?: string;
+}
+
+/**
+ * GitHub-inspired Velya mark — V dentro do quadrado, branco no header preto.
+ */
+function VelyaMark({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path
+        d="M16 2 L28 8 L28 20 C28 25 22 30 16 30 C10 30 4 25 4 20 L4 8 Z"
+        fill="currentColor"
+      />
+      <path
+        d="M10 12 L16 22 L22 12"
+        stroke="#1f2328"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export function AppShell({ children, pageTitle }: AppShellProps) {
@@ -70,10 +103,22 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
 
   if (loading || !sessionData) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="flex items-center gap-3 text-neutral-500">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-200 border-t-blue-600" />
-          <span className="text-sm">Carregando Velya…</span>
+      <div
+        className="flex min-h-screen items-center justify-center"
+        style={{ background: 'var(--canvas-default)' }}
+      >
+        <div
+          className="flex items-center gap-3"
+          style={{ color: 'var(--fg-muted)', fontSize: 'var(--text-base)' }}
+        >
+          <div
+            className="h-4 w-4 animate-spin rounded-full border-2"
+            style={{
+              borderColor: 'var(--border-default)',
+              borderTopColor: 'var(--accent-fg)',
+            }}
+          />
+          <span>Carregando Velya…</span>
         </div>
       </div>
     );
@@ -91,110 +136,251 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
       : sessionData.userName.slice(0, 2).toUpperCase();
 
   return (
-    <div className="flex min-h-screen bg-white text-neutral-900">
-      {/* Mobile backdrop */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-neutral-900/40 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <div className="app-shell">
+      {/* ============================================================
+          GITHUB-STYLE DARK HEADER (top bar)
+          ============================================================ */}
+      <header className="gh-header">
+        {/* Mobile menu trigger */}
+        <button
+          type="button"
+          className="gh-header-icon-btn md:hidden"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Abrir menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
 
-      <Navigation
-        currentRole={currentRole}
-        userName={sessionData.userName}
-        onLogout={handleLogout}
-        mobileOpen={sidebarOpen}
-        onMobileClose={() => setSidebarOpen(false)}
-      />
+        {/* Logo / mark */}
+        <Link
+          href="/"
+          className="flex items-center"
+          style={{ color: 'var(--header-fg)', padding: '0 8px' }}
+          aria-label="Velya home"
+        >
+          <VelyaMark className="h-8 w-8" />
+        </Link>
 
-      <div className="flex min-h-screen flex-1 flex-col md:ml-[260px]">
-        {/* Topbar: branco limpo, só título da página (sem "Velya /" duplicado) */}
-        <header className="sticky top-0 z-40 flex h-[60px] items-center justify-between gap-3 border-b border-neutral-200 bg-white px-6">
-          <div className="flex items-center gap-3">
-            <button
-              className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 md:hidden"
-              onClick={() => setSidebarOpen(true)}
-              aria-label="Abrir menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            <h1 className="text-[15px] font-semibold text-neutral-900">{pageTitle}</h1>
-          </div>
-
-          {/* Center: busca global única */}
-          <div className="mx-4 hidden max-w-xl flex-1 md:block">
-            <button
-              type="button"
-              onClick={() => {
-                const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
-                window.dispatchEvent(event);
+        {/* Search (header style) */}
+        <div className="hidden md:flex flex-1 min-w-0 items-center">
+          <button
+            type="button"
+            className="gh-header-search"
+            onClick={() => {
+              const event = new KeyboardEvent('keydown', {
+                key: 'k',
+                ctrlKey: true,
+                bubbles: true,
+              });
+              window.dispatchEvent(event);
+            }}
+            style={{ cursor: 'text', textAlign: 'left' }}
+          >
+            <Search className="h-4 w-4 mr-2 shrink-0" style={{ color: '#7d8590' }} />
+            <span
+              style={{
+                color: '#7d8590',
+                fontSize: 14,
+                flex: 1,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
-              className="group flex h-10 w-full items-center gap-2.5 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-left text-sm text-neutral-500 transition-colors hover:border-neutral-300 hover:bg-white"
             >
-              <Search className="h-4 w-4 shrink-0 text-neutral-600 group-hover:text-neutral-600" />
-              <span className="flex-1 truncate">Buscar pacientes, tarefas, MRN…</span>
-              <kbd className="hidden rounded border border-neutral-200 bg-white px-1.5 font-mono text-[10px] text-neutral-500 sm:inline-block">
-                ⌘K
-              </kbd>
-            </button>
-          </div>
+              Type <kbd style={{
+                padding: '0 4px',
+                margin: '0 4px',
+                fontSize: 11,
+                background: 'transparent',
+                border: '1px solid #32383f',
+                color: '#7d8590',
+                borderRadius: 4,
+              }}>/</kbd>{' '}to search
+            </span>
+          </button>
+        </div>
 
-          {/* Right: alertas + bell + user */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/alerts')}
-              className="gap-2 border-red-200 bg-red-50 text-red-700 hover:border-red-300 hover:bg-red-100"
-              aria-label="Ver 5 alertas críticos"
-            >
-              <AlertOctagon className="h-3.5 w-3.5" />
-              <span className="font-semibold">5 Críticos</span>
-            </Button>
+        {/* Header nav (hidden on small) */}
+        <nav className="hidden lg:flex items-center gap-1">
+          <Link href="/patients" className="gh-header-nav-link">
+            Pacientes
+          </Link>
+          <Link href="/tasks" className="gh-header-nav-link">
+            Tarefas
+          </Link>
+          <Link href="/alerts" className="gh-header-nav-link">
+            Alertas
+          </Link>
+          <Link href="/agents" className="gh-header-nav-link">
+            Agentes
+          </Link>
+        </nav>
 
-            <button
-              type="button"
-              aria-label="Notificações"
-              className="relative rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
-            >
-              <Bell className="h-4 w-4" />
-            </button>
+        <div className="flex-1 md:flex-none" />
 
-            <FavoritesMenu />
-            <PatientQuickSwitcher />
+        {/* Right side: plus, inbox, notifications, profile */}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            className="gh-header-icon-btn"
+            aria-label="Criar novo"
+            title="Criar"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
 
-            <button
-              type="button"
-              onClick={() => router.push('/me')}
-              className="ml-1 flex items-center gap-2.5 rounded-md border border-neutral-200 bg-white px-2 py-1 transition-colors hover:border-neutral-300 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              aria-label={`Abrir meu painel — ${sessionData.userName}`}
-              title="Meu painel"
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
-              </Avatar>
-              <div className="hidden flex-col leading-tight text-left md:flex">
-                <span className="text-xs font-semibold text-neutral-900">
-                  {sessionData.userName}
-                </span>
+          <button
+            type="button"
+            className="gh-header-icon-btn"
+            onClick={() => router.push('/inbox')}
+            aria-label="Inbox"
+            title="Inbox"
+          >
+            <InboxIcon className="h-4 w-4" />
+          </button>
+
+          <button
+            type="button"
+            className="gh-header-icon-btn relative"
+            onClick={() => router.push('/alerts')}
+            aria-label="Alertas críticos"
+            title="5 alertas críticos"
+          >
+            <Bell className="h-4 w-4" />
+            <span
+              style={{
+                position: 'absolute',
+                top: 4,
+                right: 4,
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: 'var(--danger-emphasis)',
+                border: '2px solid var(--header-bg)',
+              }}
+              aria-hidden="true"
+            />
+          </button>
+
+          <FavoritesMenu />
+          <PatientQuickSwitcher />
+
+          {/* Profile button */}
+          <button
+            type="button"
+            onClick={() => router.push('/me')}
+            className="gh-header-icon-btn"
+            style={{ padding: 0, width: 32, height: 32 }}
+            aria-label={`Meu painel — ${sessionData.userName}`}
+            title="Meu painel"
+          >
+            <Avatar className="h-8 w-8" style={{ border: '1px solid rgba(255,255,255,0.15)' }}>
+              <AvatarFallback
+                className="text-[10px]"
+                style={{ background: '#32383f', color: '#ffffff' }}
+              >
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </button>
+        </div>
+      </header>
+
+      {/* ============================================================
+          BODY (sidebar + content)
+          ============================================================ */}
+      <div className="app-main">
+        {/* Mobile backdrop */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-40 md:hidden"
+            style={{ background: 'rgba(31, 35, 40, 0.4)', top: 'var(--header-height)' }}
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        <Navigation
+          currentRole={currentRole}
+          userName={sessionData.userName}
+          onLogout={handleLogout}
+          mobileOpen={sidebarOpen}
+          onMobileClose={() => setSidebarOpen(false)}
+        />
+
+        <div className="app-content-wrapper flex min-h-full flex-1 flex-col">
+          {/* Sub-header — repo-style com título da página + ações */}
+          <div
+            className="flex items-center justify-between gap-3 px-6"
+            style={{
+              height: 48,
+              borderBottom: '1px solid var(--border-default)',
+              background: 'var(--canvas-default)',
+              position: 'sticky',
+              top: 'var(--header-height)',
+              zIndex: 30,
+            }}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <h1
+                className="truncate"
+                style={{
+                  fontSize: 'var(--text-base)',
+                  fontWeight: 600,
+                  color: 'var(--fg-default)',
+                  margin: 0,
+                }}
+              >
+                {pageTitle}
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => router.push('/alerts')}
+                className="btn btn-sm"
+                style={{
+                  color: 'var(--danger-fg)',
+                  background: 'var(--danger-subtle)',
+                  borderColor: '#ffcecb',
+                }}
+                aria-label="Ver 5 alertas críticos"
+              >
+                <AlertOctagon className="h-3.5 w-3.5" />
+                <span style={{ fontWeight: 600 }}>5 Críticos</span>
+              </button>
+
+              <div
+                className="hidden md:flex items-center gap-2"
+                style={{ fontSize: 'var(--text-sm)', color: 'var(--fg-muted)' }}
+              >
+                <span
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{
+                    background: sessionActive
+                      ? 'var(--success-emphasis)'
+                      : 'var(--danger-emphasis)',
+                  }}
+                  aria-hidden="true"
+                />
+                <span>{sessionData.userName}</span>
                 {councilBadge && (
-                  <span className="text-[10px] text-neutral-500">{councilBadge}</span>
+                  <span style={{ color: 'var(--fg-subtle)' }}>· {councilBadge}</span>
                 )}
               </div>
-              <span
-                className={cn(
-                  'h-2 w-2 shrink-0 rounded-full',
-                  sessionActive ? 'bg-green-600' : 'bg-red-600',
-                )}
-                title={sessionActive ? 'Sessão ativa' : 'Sem sessão'}
-                aria-hidden="true"
-              />
-            </button>
+            </div>
           </div>
-        </header>
 
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+          <main
+            className="flex-1 overflow-y-auto"
+            style={{
+              padding: 'var(--space-6)',
+              background: 'var(--canvas-default)',
+            }}
+          >
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   );

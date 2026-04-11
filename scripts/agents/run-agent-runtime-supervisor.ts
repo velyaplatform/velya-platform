@@ -19,6 +19,14 @@
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import {
+  installOfflineFatalHandler,
+  kubectlAvailable,
+  offlineReason,
+  writeOfflineReport,
+} from './shared/offline-guard';
+
+const AGENT_NAME = 'agent-runtime-supervisor';
 
 interface Finding {
   severity: 'critical' | 'high' | 'medium' | 'low';
@@ -109,6 +117,23 @@ function isUnpinnedImage(image: string | undefined): boolean {
 async function main(): Promise<void> {
   const findings: Finding[] = [];
   let prunedCount = 0;
+
+  if (!kubectlAvailable(KUBECTL_CONTEXT)) {
+    const reason = offlineReason();
+    console.log(
+      `[${AGENT_NAME}] offline mode (${reason}) — skipping cluster probes, writing empty report`,
+    );
+    writeOfflineReport({
+      agent: AGENT_NAME,
+      layer: 2,
+      outRoot: OUT_DIR,
+      outSubdir: 'supervisor-audit',
+      timestamp,
+      reason,
+      extra: { prunedCount: 0 },
+    });
+    return;
+  }
 
   // 1. Prune completed Jobs older than 24h
   console.log('[agent-runtime-supervisor] Listing Jobs for prune…');
@@ -278,7 +303,4 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error) => {
-  console.error('[agent-runtime-supervisor] Fatal:', error);
-  process.exit(2);
-});
+main().catch(installOfflineFatalHandler(AGENT_NAME));

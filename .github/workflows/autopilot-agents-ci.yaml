@@ -106,11 +106,15 @@ jobs:
         env:
           VELYA_AUDIT_OUT: /tmp/velya-autopilot
           VELYA_DRY_RUN: 'true'
-          # No kubeconfig / argocd creds in this smoke job — agents must
-          # fail gracefully (exit != 0 is fine, crash is not).
-          # pin-rot-agent: skip upstream HTTP calls in smoke (no GH_TOKEN,
-          # no docker hub token, no rate-limit budget). Production CronJob
-          # runs without this flag and does the real verification.
+          # Global smoke/offline flag — read by any agent that shells out to
+          # kubectl, argocd, aws, gh, docker, etc. Each agent is expected to
+          # detect this and either probe-skip its external dependency or
+          # write an empty "offline" report and exit 0. The smoke workflow
+          # has no cluster, no kubeconfig, no secrets — crashing (exit 2)
+          # is always a contract violation when this flag is set.
+          VELYA_SMOKE_OFFLINE: 'true'
+          # pin-rot-agent-specific offline flag (kept for compat; new agents
+          # should use VELYA_SMOKE_OFFLINE only).
           VELYA_PIN_ROT_OFFLINE: 'true'
         run: |
           mkdir -p /tmp/velya-autopilot

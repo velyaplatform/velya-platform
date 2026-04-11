@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -59,7 +59,6 @@ import {
   resolveUiRole,
   getNavigationSections,
 } from '../../lib/access-control';
-import { VelyaLogo } from './velya/velya-logo';
 import { cn } from '../../lib/utils';
 
 const ROLES = [
@@ -158,6 +157,11 @@ interface NavigationProps {
   onMobileClose?: () => void;
 }
 
+const SIDEBAR_MIN_WIDTH = 200;
+const SIDEBAR_MAX_WIDTH = 420;
+const SIDEBAR_DEFAULT_WIDTH = 260;
+const SIDEBAR_WIDTH_STORAGE_KEY = 'velya:sidebar-width';
+
 export function Navigation({
   currentRole,
   userName,
@@ -168,6 +172,108 @@ export function Navigation({
   const pathname = usePathname();
   const [suggestionText, setSuggestionText] = useState('');
   const [suggestionStatus, setSuggestionStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+  // sidebarWidth is the React-visible width used at idle, on mount, and
+  // for aria-valuenow. During an active drag we bypass it entirely and
+  // write only to refs + the DOM (asideRef.style.width and the CSS var)
+  // so the entire Navigation tree (40+ nav items + the recommendation
+  // textarea) does not re-render at 120 Hz.
+  const [sidebarWidth, setSidebarWidth] = useState<number>(SIDEBAR_DEFAULT_WIDTH);
+  const [isResizing, setIsResizing] = useState(false);
+  const widthRef = useRef<number>(SIDEBAR_DEFAULT_WIDTH);
+  const asideRef = useRef<HTMLElement | null>(null);
+  const dragStartXRef = useRef<number>(0);
+  const dragStartWidthRef = useRef<number>(SIDEBAR_DEFAULT_WIDTH);
+
+  // Hydrate persisted width on mount and sync --sidebar-width CSS var.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = parseInt(raw, 10);
+      if (
+        Number.isNaN(parsed) ||
+        parsed < SIDEBAR_MIN_WIDTH ||
+        parsed > SIDEBAR_MAX_WIDTH ||
+        parsed === SIDEBAR_DEFAULT_WIDTH
+      ) {
+        return;
+      }
+      widthRef.current = parsed;
+      setSidebarWidth(parsed);
+      document.documentElement.style.setProperty('--sidebar-width', `${parsed}px`);
+    } catch {
+      // localStorage disabled — keep default
+    }
+  }, []);
+
+  // applyWidth has two modes:
+  //   { commit: false } (default) → DOM-only write during drag, no React state.
+  //   { commit: true }             → also setSidebarWidth + persist to localStorage.
+  const applyWidth = useCallback((next: number, commit = false) => {
+    const clamped = Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, next));
+    if (clamped === widthRef.current && !commit) return clamped;
+    widthRef.current = clamped;
+    document.documentElement.style.setProperty('--sidebar-width', `${clamped}px`);
+    if (asideRef.current) asideRef.current.style.width = `${clamped}px`;
+    if (commit) {
+      setSidebarWidth(clamped);
+      try {
+        localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(clamped));
+      } catch {
+        /* localStorage disabled — DOM still updated */
+      }
+    }
+    return clamped;
+  }, []);
+
+  const handleResizeStart = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    dragStartXRef.current = event.clientX;
+    dragStartWidthRef.current = widthRef.current;
+    setIsResizing(true);
+    (event.target as HTMLElement).setPointerCapture(event.pointerId);
+  }, []);
+
+  const handleResizeMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!isResizing) return;
+      const delta = event.clientX - dragStartXRef.current;
+      applyWidth(dragStartWidthRef.current + delta);
+    },
+    [isResizing, applyWidth],
+  );
+
+  const handleResizeEnd = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!isResizing) return;
+      setIsResizing(false);
+      try {
+        (event.target as HTMLElement).releasePointerCapture(event.pointerId);
+      } catch {
+        /* stale pointer id */
+      }
+      // Single React commit at drag end persists the live width.
+      applyWidth(widthRef.current, true);
+    },
+    [isResizing, applyWidth],
+  );
+
+  const handleResizeKey = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      const STEP = event.shiftKey ? 24 : 8;
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        applyWidth(widthRef.current - STEP, true);
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        applyWidth(widthRef.current + STEP, true);
+      } else if (event.key === 'Home') {
+        event.preventDefault();
+        applyWidth(SIDEBAR_DEFAULT_WIDTH, true);
+      }
+    },
+    [sidebarWidth, applyWidth],
+  );
 
   const professionalRole = resolveUiRole(currentRole);
   const allowedSections = getNavigationSections(professionalRole);
@@ -210,14 +316,50 @@ export function Navigation({
 
   return (
     <aside
+      ref={asideRef}
       className={cn(
-        'fixed top-0 left-0 bottom-0 z-50 flex w-[260px] flex-col overflow-y-auto shrink-0',
-        'border-r border-neutral-200 bg-white text-neutral-800',
-        'transition-transform duration-300',
+        'fixed left-0 bottom-0 z-40 flex flex-col overflow-y-auto shrink-0',
+        'border-r bg-white text-neutral-800',
+        !isResizing && 'transition-transform duration-300',
         'md:translate-x-0',
         mobileOpen ? 'translate-x-0' : '-translate-x-full',
       )}
+      style={{
+        top: 'var(--header-height)',
+        width: `${sidebarWidth}px`,
+        borderColor: 'var(--border-default)',
+        background: 'var(--canvas-default)',
+        color: 'var(--fg-default)',
+      }}
     >
+      {/* Resize handle — 4px wide column flush with the right border.
+          Drag to resize, keyboard left/right to nudge, Home to reset. */}
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Redimensionar sidebar (arraste ou use setas esquerda/direita; Home para resetar)"
+        aria-valuemin={SIDEBAR_MIN_WIDTH}
+        aria-valuemax={SIDEBAR_MAX_WIDTH}
+        aria-valuenow={sidebarWidth}
+        tabIndex={0}
+        onPointerDown={handleResizeStart}
+        onPointerMove={handleResizeMove}
+        onPointerUp={handleResizeEnd}
+        onPointerCancel={handleResizeEnd}
+        onKeyDown={handleResizeKey}
+        className="hidden md:block"
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: -2,
+          bottom: 0,
+          width: 6,
+          cursor: 'col-resize',
+          zIndex: 50,
+          background: isResizing ? 'var(--accent-fg)' : 'transparent',
+          transition: isResizing ? 'none' : 'background 120ms ease',
+        }}
+      />
 
       {/* Close button for mobile */}
       <button
@@ -230,22 +372,17 @@ export function Navigation({
         </svg>
       </button>
 
-      {/* Logo */}
-      <div className="border-b border-neutral-200 px-5 py-5">
-        <VelyaLogo size={32} />
-      </div>
-
       {/* Nav sections */}
       <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
         {sectionOrder.map((section, sectionIdx) => {
           const items = groupedItems[section];
           if (!items || items.length === 0) return null;
           return (
-            <div key={section} className={sectionIdx > 0 ? 'mt-4' : ''}>
-              <div className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
+            <div key={section} className={sectionIdx > 0 ? 'mt-3' : ''}>
+              <div className="gh-sidenav-section-title">
                 {SECTION_LABELS[section]}
               </div>
-              <div className="flex flex-col gap-0.5">
+              <div className="gh-sidenav">
                 {items.map((item) => {
                   const isActive =
                     item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
@@ -255,29 +392,30 @@ export function Navigation({
                       key={item.href}
                       href={item.href}
                       onClick={handleNavClick}
-                      className={cn(
-                        'group relative flex min-h-[38px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                        isActive
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900',
-                      )}
+                      className={cn('gh-sidenav-item', isActive && 'is-active')}
                     >
                       <Icon
-                        className={cn(
-                          'h-[18px] w-[18px] shrink-0',
-                          isActive ? 'text-blue-600' : 'text-neutral-500',
-                        )}
+                        className="h-[16px] w-[16px] shrink-0"
+                        style={{
+                          color: isActive ? 'var(--accent-fg)' : 'var(--fg-muted)',
+                        }}
                         strokeWidth={2}
                       />
                       <span className="truncate">{item.label}</span>
                       {item.badge !== undefined && item.badge > 0 && (
                         <span
-                          className={cn(
-                            'ml-auto rounded-full px-1.5 py-px text-[10px] font-semibold tabular-nums',
-                            item.badge >= 5 && item.label.includes('Alerta')
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-neutral-100 text-neutral-600',
-                          )}
+                          className="ml-auto gh-label"
+                          style={{
+                            background:
+                              item.badge >= 5 && item.label.includes('Alerta')
+                                ? 'var(--danger-subtle)'
+                                : 'var(--canvas-subtle)',
+                            color:
+                              item.badge >= 5 && item.label.includes('Alerta')
+                                ? 'var(--danger-fg)'
+                                : 'var(--fg-muted)',
+                            borderColor: 'var(--border-default)',
+                          }}
                         >
                           {item.badge}
                         </span>
@@ -291,25 +429,31 @@ export function Navigation({
         })}
 
         {showObservability && (
-          <div className="mt-4">
-            <div className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
-              Observabilidade
-            </div>
-            <div className="flex flex-col gap-0.5">
+          <div className="mt-3">
+            <div className="gh-sidenav-section-title">Observabilidade</div>
+            <div className="gh-sidenav">
               <Link
                 href="/observability/metrics"
                 onClick={handleNavClick}
-                className="flex min-h-[38px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                className="gh-sidenav-item"
               >
-                <LineChart className="h-[18px] w-[18px] text-neutral-500" strokeWidth={2} />
+                <LineChart
+                  className="h-[16px] w-[16px]"
+                  style={{ color: 'var(--fg-muted)' }}
+                  strokeWidth={2}
+                />
                 <span>Métricas</span>
               </Link>
               <Link
                 href="/observability/deploys"
                 onClick={handleNavClick}
-                className="flex min-h-[38px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                className="gh-sidenav-item"
               >
-                <GitBranch className="h-[18px] w-[18px] text-neutral-500" strokeWidth={2} />
+                <GitBranch
+                  className="h-[16px] w-[16px]"
+                  style={{ color: 'var(--fg-muted)' }}
+                  strokeWidth={2}
+                />
                 <span>Implantações</span>
               </Link>
             </div>
@@ -317,32 +461,50 @@ export function Navigation({
         )}
       </nav>
 
-      {/* Caixa de Recomendações — expandida e visível */}
-      <div className="border-t border-neutral-200 bg-neutral-50 p-4">
+      {/* Caixa de Recomendações — estilo Primer */}
+      <div
+        className="p-4"
+        style={{
+          borderTop: '1px solid var(--border-default)',
+          background: 'var(--canvas-subtle)',
+        }}
+      >
         {suggestionStatus === 'sent' ? (
           <div
             role="status"
-            className="rounded-lg border border-green-200 bg-green-50 px-4 py-4 text-center text-sm font-semibold text-green-800"
+            className="gh-flash gh-flash-success"
+            style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 600 }}
           >
             ✓ Recomendação enviada
-            <div className="mt-1 text-[11px] font-normal text-green-700">
-              Obrigado pelo feedback.
-            </div>
           </div>
         ) : (
           <div>
-            <div className="mb-3 flex items-start gap-2.5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50">
-                <Lightbulb className="h-4 w-4 text-blue-600" strokeWidth={2.25} />
-              </div>
+            <div className="mb-2 flex items-start gap-2">
+              <Lightbulb
+                className="h-4 w-4 mt-0.5 shrink-0"
+                style={{ color: 'var(--attention-emphasis)' }}
+                strokeWidth={2}
+              />
               <div className="min-w-0 flex-1">
                 <label
                   htmlFor="sidebar-suggestion"
-                  className="block text-[13px] font-semibold text-neutral-900"
+                  className="block"
+                  style={{
+                    fontSize: 'var(--text-sm)',
+                    fontWeight: 600,
+                    color: 'var(--fg-default)',
+                  }}
                 >
                   Enviar recomendação
                 </label>
-                <p className="mt-0.5 text-[11px] leading-snug text-neutral-600">
+                <p
+                  className="mt-0.5"
+                  style={{
+                    fontSize: 'var(--text-xs)',
+                    color: 'var(--fg-muted)',
+                    lineHeight: 1.4,
+                  }}
+                >
                   Viu algo que pode melhorar? Conte pra gente.
                 </p>
               </div>
@@ -358,33 +520,40 @@ export function Navigation({
                   handleSuggestionSubmit();
                 }
               }}
-              placeholder="Descreva sua recomendação, problema ou ideia..."
+              placeholder="Descreva sua recomendação…"
               disabled={suggestionStatus === 'sending'}
               rows={3}
-              className="w-full resize-none rounded-md border border-neutral-300 bg-white px-3 py-2 text-xs text-neutral-900 placeholder:text-neutral-600 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
+              className="gh-input w-full"
+              style={{ resize: 'none', fontSize: 'var(--text-xs)' }}
             />
 
             <button
               onClick={handleSuggestionSubmit}
               disabled={!suggestionText.trim() || suggestionStatus === 'sending'}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn btn-primary btn-sm mt-2 w-full"
             >
               {suggestionStatus === 'sending' ? (
                 <>
-                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  <span
+                    className="h-3 w-3 animate-spin rounded-full border-2"
+                    style={{ borderColor: 'rgba(255,255,255,0.4)', borderTopColor: '#fff' }}
+                  />
                   Enviando…
                 </>
               ) : (
                 <>
                   <Lightbulb className="h-3.5 w-3.5" />
-                  Enviar recomendação
+                  Enviar
                 </>
               )}
             </button>
 
-            <div className="mt-1.5 flex items-center justify-center gap-1 text-[9px] text-neutral-500">
-              <kbd className="rounded border border-neutral-300 bg-white px-1 font-mono text-neutral-600">⌘</kbd>
-              <kbd className="rounded border border-neutral-300 bg-white px-1 font-mono text-neutral-600">↵</kbd>
+            <div
+              className="mt-2 flex items-center justify-center gap-1"
+              style={{ fontSize: 10, color: 'var(--fg-subtle)' }}
+            >
+              <kbd>⌘</kbd>
+              <kbd>↵</kbd>
               <span>para enviar</span>
             </div>
           </div>

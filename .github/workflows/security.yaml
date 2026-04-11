@@ -52,7 +52,13 @@ jobs:
     name: Dependency Review
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: github.event_name == 'pull_request'
+    # actions/dependency-review-action requires the repository's "Dependency
+    # graph" feature to be enabled under Settings → Security → Security and
+    # analysis. When that is off the action hard-fails with "Dependency review
+    # is not supported on this repository" and blocks every PR.
+    # Gate on a repo variable so we can flip it on atomically with the
+    # settings change, and fall back to "continue" until then.
+    if: github.event_name == 'pull_request' && vars.VELYA_DEPENDENCY_GRAPH_ENABLED == 'true'
     permissions:
       contents: read
       pull-requests: write

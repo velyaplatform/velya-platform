@@ -19,6 +19,13 @@
 import { execSync, spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import {
+  installOfflineFatalHandler,
+  OFFLINE_MODE,
+  writeOfflineReport,
+} from './shared/offline-guard';
+
+const AGENT_NAME = 'frontend-quality-agent';
 
 interface Finding {
   severity: 'critical' | 'high' | 'medium' | 'low';
@@ -51,6 +58,21 @@ function runCmd(cmd: string, cwd: string = REPO_ROOT): { ok: boolean; output: st
 async function main(): Promise<void> {
   const findings: Finding[] = [];
   const webRoot = join(REPO_ROOT, 'apps/web');
+
+  // Offline/smoke mode — skip typecheck + lint + build + contrast; they
+  // exceed the 90 s per-agent smoke budget in autopilot-agents-ci.yaml.
+  // Production CronJobs run without this flag.
+  if (OFFLINE_MODE) {
+    writeOfflineReport({
+      agent: AGENT_NAME,
+      layer: 1,
+      outRoot: OUT_DIR,
+      outSubdir: 'frontend-audit',
+      timestamp,
+      reason: 'VELYA_SMOKE_OFFLINE=true',
+    });
+    return;
+  }
 
   // 1. Typecheck
   console.log('[frontend-quality] Running typecheck…');
@@ -167,7 +189,4 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error) => {
-  console.error('[frontend-quality] Fatal:', error);
-  process.exit(2);
-});
+main().catch(installOfflineFatalHandler(AGENT_NAME));
