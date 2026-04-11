@@ -28,6 +28,8 @@ import { VelyaAlertBanner } from './components/velya/velya-alert-banner';
 import { VelyaStatusDot } from './components/velya/velya-status-dot';
 import { VelyaSparkline } from './components/velya/velya-sparkline';
 import { VelyaSectionHeader } from './components/velya/velya-section';
+import { VelyaECGStrip } from './components/velya/velya-ecg-strip';
+import { VelyaMedicalCross } from './components/velya/velya-medical-cross';
 import {
   PRIORITY_TASKS,
   DISCHARGE_PATIENTS,
@@ -219,6 +221,42 @@ const ADMISSIONS_TREND = [4, 3, 5, 4, 6, 5, 3];
 export default function CommandCenterPage() {
   return (
     <AppShell pageTitle="Centro de Comando">
+      {/* Hospital vital-signs strip — "plataforma viva 24/7" */}
+      <div className="mb-6 overflow-hidden rounded-2xl border border-white/[0.06] bg-[rgba(3,7,18,0.6)] backdrop-blur-md">
+        <div className="flex items-center justify-between border-b border-white/[0.05] px-5 py-2.5">
+          <div className="flex items-center gap-2.5">
+            <VelyaMedicalCross size={16} />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-teal-300">
+              Sinais Vitais do Hospital
+            </span>
+            <span className="font-mono text-[10px] text-slate-500">· Monitoramento contínuo</span>
+          </div>
+          <div className="flex items-center gap-4 text-[10px] font-mono">
+            <span className="text-slate-500">
+              <span className="text-slate-400">BPM</span>{' '}
+              <span className="text-emerald-300">72</span>
+            </span>
+            <span className="text-slate-500">
+              <span className="text-slate-400">SpO₂</span>{' '}
+              <span className="text-emerald-300">98%</span>
+            </span>
+            <span className="text-slate-500">
+              <span className="text-slate-400">Ocup.</span>{' '}
+              <span className="text-teal-300">87%</span>
+            </span>
+            <span className="hidden items-center gap-1 text-emerald-400 sm:flex">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]" />
+              ONLINE
+            </span>
+          </div>
+        </div>
+        <VelyaECGStrip
+          height={44}
+          className="rounded-none border-0 bg-transparent"
+          speed="normal"
+        />
+      </div>
+
       {/* Banner de Alerta Crítico */}
       <VelyaAlertBanner
         severity="critical"

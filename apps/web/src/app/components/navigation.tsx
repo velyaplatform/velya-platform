@@ -60,6 +60,7 @@ import {
   getNavigationSections,
 } from '../../lib/access-control';
 import { VelyaLogo } from './velya/velya-logo';
+import { VelyaMedicalCross } from './velya/velya-medical-cross';
 import { cn } from '../../lib/utils';
 
 const ROLES = [
@@ -238,9 +239,25 @@ export function Navigation({
         </svg>
       </button>
 
-      {/* Logo */}
-      <div className="border-b border-white/[0.08] px-5 py-5">
+      {/* Logo + selo hospitalar */}
+      <div className="relative border-b border-white/[0.08] px-5 py-5">
         <VelyaLogo size={34} />
+        {/* Cruz médica decorativa no canto */}
+        <div className="absolute right-4 top-4 opacity-20">
+          <VelyaMedicalCross size={18} variant="outline" />
+        </div>
+      </div>
+
+      {/* Pulse strip — banner fino estilo monitor indicando "plataforma viva" */}
+      <div className="border-b border-white/[0.05] bg-gradient-to-r from-transparent via-teal-500/[0.04] to-transparent px-5 py-2">
+        <div className="flex items-center gap-2 text-[10px] font-medium">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]" />
+          </span>
+          <span className="text-emerald-300/90">Sistema em operação</span>
+          <span className="ml-auto font-mono text-slate-500">24/7</span>
+        </div>
       </div>
 
       {/* Nav sections */}
@@ -332,6 +349,21 @@ export function Navigation({
           </div>
         )}
       </nav>
+
+      {/* Selo de compliance hospitalar */}
+      <div className="border-t border-white/[0.08] px-4 py-3">
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/15 bg-emerald-500/[0.04] px-2.5 py-2">
+          <VelyaMedicalCross size={18} variant="outline" />
+          <div className="min-w-0 flex-1 leading-tight">
+            <div className="text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
+              Hospital Acreditado
+            </div>
+            <div className="truncate text-[9px] font-mono text-emerald-400/70">
+              LGPD · CFM 2.314 · HL7 FHIR
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Suggestion box */}
       <div className="border-t border-white/[0.08] bg-gradient-to-br from-teal-500/10 via-transparent to-transparent p-4">

@@ -9,6 +9,7 @@ import { PatientQuickSwitcher } from './patient-quick-switcher';
 import { ROLE_DEFINITIONS, resolveUiRole } from '../../lib/access-control';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Button } from './ui/button';
+import { VelyaShiftIndicator } from './velya/velya-shift-indicator';
 import { cn } from '../../lib/utils';
 
 interface AppShellProps {
@@ -147,8 +148,8 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
             </div>
           </div>
 
-          {/* Center: global search */}
-          <div className="mx-4 hidden max-w-xl flex-1 md:block">
+          {/* Center: global search + shift indicator */}
+          <div className="mx-4 hidden max-w-xl flex-1 items-center gap-3 md:flex">
             <button
               type="button"
               onClick={() => {
@@ -156,7 +157,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
                 const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
                 window.dispatchEvent(event);
               }}
-              className="group flex h-9 w-full items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-left text-sm text-slate-500 transition-all hover:border-teal-400/30 hover:bg-white/[0.05]"
+              className="group flex h-9 flex-1 items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-left text-sm text-slate-500 transition-all hover:border-teal-400/30 hover:bg-white/[0.05]"
             >
               <Search className="h-4 w-4 shrink-0 text-slate-500 group-hover:text-teal-300" />
               <span className="flex-1 truncate">
@@ -166,6 +167,10 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
                 ⌘K
               </kbd>
             </button>
+            {/* Shift indicator — operação 24/7 */}
+            <div className="hidden lg:block">
+              <VelyaShiftIndicator />
+            </div>
           </div>
 
           {/* Right: actions + user */}

@@ -69,6 +69,15 @@ export function VelyaLogo({
           <circle cx="24" cy="24" r="22" fill={`url(#${gradId})`} opacity="0.08" />
         )}
 
+        {/* Ghost medical cross atrás — identidade hospitalar sutil */}
+        {!mono && (
+          <path
+            d="M 20 10 H 28 V 20 H 38 V 28 H 28 V 38 H 20 V 28 H 10 V 20 H 20 Z"
+            fill={`url(#${gradId})`}
+            opacity="0.06"
+          />
+        )}
+
         {/* Left arm of V + ECG pulse + right arm
             Path: V desce do topo-esquerdo até o centro inferior, onde vira
             um pequeno pulso cardíaco (p-qrs-t simplificado) e depois sobe
