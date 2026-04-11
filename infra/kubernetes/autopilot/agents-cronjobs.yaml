@@ -79,6 +79,17 @@ rules:
   - apiGroups: ['batch']
     resources: ['cronjobs']
     verbs: ['patch']
+  # k8s-troubleshooter-agent: delete Evicted pods, rollout restart deployments
+  - apiGroups: ['']
+    resources: ['pods']
+    verbs: ['delete']
+  - apiGroups: ['apps']
+    resources: ['deployments']
+    verbs: ['patch'] # rollout restart = patch annotation
+  # argocd-healer-agent: refresh + sync Applications (patch for operation + annotation)
+  - apiGroups: ['argoproj.io']
+    resources: ['applications']
+    verbs: ['patch', 'update']
 
 ---
 # Namespace-scoped: criar ServiceAccounts faltantes dentro dos namespaces velya-dev-*
@@ -343,6 +354,78 @@ spec:
               emptyDir: {}
 
 ---
+# Backend quality agent — roda a cada 4 horas (lint + test + audit)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-backend-quality-agent
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: backend-quality
+    velya.io/layer: "1"
+spec:
+  schedule: '30 */4 * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            velya.io/agent: backend-quality
+            velya.io/component: autopilot
+            velya.io/layer: "1"
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-backend-quality.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_REPO_ROOT
+                  value: /workspace
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+                limits:
+                  cpu: 2000m
+                  memory: 2Gi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: false # lint/test writes tsbuildinfo
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
+
+---
 # =============================================================================
 # LAYER 2 — MANAGERS (supervisionam Layer 1 workers)
 # =============================================================================
@@ -545,6 +628,196 @@ spec:
                   value: /data/velya-autopilot
                 - name: VELYA_DRY_RUN
                   value: 'true'
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
+
+---
+# =============================================================================
+# LAYER 1 — GITOPS & RUNTIME WORKERS (ArgoCD + kubectl)
+# =============================================================================
+
+# RoleBinding adicional: autopilot SA pode patch Applications no namespace argocd
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: velya-autopilot-argocd-apps
+  namespace: argocd
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: velya-autopilot-remediator
+subjects:
+  - kind: ServiceAccount
+    name: velya-autopilot-sa
+    namespace: velya-dev-platform
+
+---
+# ArgoCD healer agent — roda a cada 10 minutos
+# Detecta OutOfSync/Missing/Degraded e auto-remedia via refresh + sync
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-argocd-healer-agent
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: argocd-healer
+    velya.io/layer: "1"
+spec:
+  schedule: '*/10 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            velya.io/agent: argocd-healer
+            velya.io/component: autopilot
+            velya.io/layer: "1"
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-argocd-healer.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_DRY_RUN
+                  value: 'false'
+                # When ARGOCD_SERVER/ARGOCD_AUTH_TOKEN unset, the script falls back
+                # to kubectl on applications.argoproj.io in the argocd namespace.
+                - name: ARGOCD_PROJECT_FILTER
+                  value: default
+                # Grafana correlation (optional — ConfigMap/Secret are not required to exist)
+                - name: GRAFANA_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: velya-autopilot-config
+                      key: grafana-url
+                      optional: true
+                - name: GRAFANA_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-autopilot-grafana
+                      key: token
+                      optional: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
+
+---
+# K8s troubleshooter agent — roda a cada 10 minutos
+# Valida nodes/PVCs/deployments, troubleshoota pods quebrados via kubectl nativo
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-k8s-troubleshooter-agent
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: k8s-troubleshooter
+    velya.io/layer: "1"
+spec:
+  schedule: '*/10 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            velya.io/agent: k8s-troubleshooter
+            velya.io/component: autopilot
+            velya.io/layer: "1"
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-k8s-troubleshooter.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_DRY_RUN
+                  value: 'false'
+                - name: VELYA_NS_ALLOWLIST
+                  value: 'velya-dev-core,velya-dev-platform,velya-dev-agents,velya-dev-observability'
               resources:
                 requests:
                   cpu: 100m

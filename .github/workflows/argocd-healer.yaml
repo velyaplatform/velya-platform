@@ -1,0 +1,221 @@
+name: ArgoCD + K8s healer (scheduled esteira)
+
+# Esteira automática que roda os agents de validação/auto-remediação:
+#   1. argocd-healer-agent  — valida Applications, refresh + sync automáticos
+#   2. k8s-troubleshooter-agent — valida nodes/pods/PVCs, rollout restart e cleanup
+#
+# Triggers:
+#   - schedule: a cada 10 minutos (mesmo cadence das CronJobs in-cluster,
+#     mas executando fora do cluster como backstop)
+#   - push em main quando qualquer um dos scripts/infra muda
+#   - workflow_dispatch (manual)
+#
+# Cada run escreve os reports JSON como artifact, e se exit code 1 abre issue.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/agents/run-argocd-healer.ts'
+      - 'scripts/agents/run-k8s-troubleshooter.ts'
+      - 'scripts/agents/run-infra-health.ts'
+      - 'infra/argocd/**'
+      - '.github/workflows/argocd-healer.yaml'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (no remediation)'
+        required: false
+        default: 'false'
+      agent:
+        description: 'Which agent(s) to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - argocd-healer
+          - k8s-troubleshooter
+          - infra-health
+
+permissions:
+  contents: read
+  issues: write # open issues for escalated findings
+
+concurrency:
+  group: argocd-healer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  healer:
+    name: Run healer agents against ${{ vars.VELYA_CLUSTER_NAME || 'velya-dev' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: velya-dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: '22'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Configure AWS credentials (OIDC)
+        if: vars.VELYA_AWS_ROLE_ARN != ''
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+        with:
+          role-to-assume: ${{ vars.VELYA_AWS_ROLE_ARN }}
+          aws-region: ${{ vars.VELYA_AWS_REGION || 'us-east-1' }}
+
+      - name: Configure kubectl for EKS
+        if: vars.VELYA_EKS_CLUSTER != ''
+        run: |
+          aws eks update-kubeconfig \
+            --name "${{ vars.VELYA_EKS_CLUSTER }}" \
+            --region "${{ vars.VELYA_AWS_REGION || 'us-east-1' }}"
+          kubectl config current-context
+          kubectl get ns -o name | head -20
+
+      - name: Install argocd CLI
+        run: |
+          ARGOCD_VERSION="v2.11.3"
+          curl -sSL -o argocd \
+            "https://github.com/argoproj/argo-cd/releases/download/${ARGOCD_VERSION}/argocd-linux-amd64"
+          chmod +x argocd
+          sudo mv argocd /usr/local/bin/argocd
+          argocd version --client
+
+      - name: Prepare audit output dir
+        run: mkdir -p /tmp/velya-autopilot
+
+      # --- argocd-healer ---
+      - name: Run argocd-healer-agent
+        id: argocd_healer
+        if: >-
+          github.event.inputs.agent == 'all' ||
+          github.event.inputs.agent == 'argocd-healer' ||
+          github.event_name != 'workflow_dispatch'
+        continue-on-error: true
+        env:
+          VELYA_AUDIT_OUT: /tmp/velya-autopilot
+          VELYA_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+          ARGOCD_INSECURE: ${{ vars.ARGOCD_INSECURE || 'false' }}
+          GRAFANA_URL: ${{ vars.GRAFANA_URL }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+        run: |
+          set +e
+          npx tsx scripts/agents/run-argocd-healer.ts
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      # --- k8s-troubleshooter ---
+      - name: Run k8s-troubleshooter-agent
+        id: k8s_troubleshooter
+        if: >-
+          github.event.inputs.agent == 'all' ||
+          github.event.inputs.agent == 'k8s-troubleshooter' ||
+          github.event_name != 'workflow_dispatch'
+        continue-on-error: true
+        env:
+          VELYA_AUDIT_OUT: /tmp/velya-autopilot
+          VELYA_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          VELYA_NS_ALLOWLIST: 'velya-dev-core,velya-dev-platform,velya-dev-agents,velya-dev-observability'
+        run: |
+          set +e
+          npx tsx scripts/agents/run-k8s-troubleshooter.ts
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      # --- infra-health (re-usa o agent existente na mesma esteira) ---
+      - name: Run infra-health-agent
+        id: infra_health
+        if: >-
+          github.event.inputs.agent == 'all' ||
+          github.event.inputs.agent == 'infra-health' ||
+          github.event_name != 'workflow_dispatch'
+        continue-on-error: true
+        env:
+          VELYA_AUDIT_OUT: /tmp/velya-autopilot
+          VELYA_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        run: |
+          set +e
+          npx tsx scripts/agents/run-infra-health.ts
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Upload audit reports
+        if: always()
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: velya-autopilot-reports-${{ github.run_id }}
+          path: /tmp/velya-autopilot/
+          retention-days: 14
+
+      - name: Summarise findings
+        if: always()
+        run: |
+          {
+            echo "## Velya autopilot healer run"
+            echo ""
+            echo "| Agent | Exit | Report |"
+            echo "|---|---|---|"
+            echo "| argocd-healer | ${{ steps.argocd_healer.outputs.exit_code || 'skipped' }} | argocd-audit/latest.json |"
+            echo "| k8s-troubleshooter | ${{ steps.k8s_troubleshooter.outputs.exit_code || 'skipped' }} | k8s-troubleshoot/latest.json |"
+            echo "| infra-health | ${{ steps.infra_health.outputs.exit_code || 'skipped' }} | infra-audit/ |"
+            echo ""
+            for report in /tmp/velya-autopilot/*/latest.json; do
+              [ -f "$report" ] || continue
+              echo "### $(basename "$(dirname "$report")")"
+              echo '```json'
+              jq '{timestamp, totalFindings, bySeverity, byRemediation}' "$report" 2>/dev/null || cat "$report"
+              echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open issue on escalated findings
+        if: >-
+          steps.argocd_healer.outputs.exit_code == '1' ||
+          steps.k8s_troubleshooter.outputs.exit_code == '1' ||
+          steps.infra_health.outputs.exit_code == '1'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const reports = [];
+            const dir = '/tmp/velya-autopilot';
+            for (const sub of fs.readdirSync(dir, { withFileTypes: true })) {
+              if (!sub.isDirectory()) continue;
+              const f = path.join(dir, sub.name, 'latest.json');
+              if (fs.existsSync(f)) {
+                reports.push({ agent: sub.name, content: fs.readFileSync(f, 'utf-8') });
+              }
+            }
+            const body = [
+              '### Velya autopilot healer — escalated findings',
+              '',
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              '',
+              ...reports.map(r => `<details><summary>${r.agent}</summary>\n\n\`\`\`json\n${r.content.slice(0, 8000)}\n\`\`\`\n\n</details>`),
+            ].join('\n');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[autopilot] Healer escalation — ${new Date().toISOString().slice(0, 19)}`,
+              body,
+              labels: ['autopilot', 'healer', 'needs-triage'],
+            });
+
+      - name: Fail job if any agent escalated
+        if: >-
+          steps.argocd_healer.outputs.exit_code == '1' ||
+          steps.k8s_troubleshooter.outputs.exit_code == '1' ||
+          steps.infra_health.outputs.exit_code == '1'
+        run: |
+          echo "::error::One or more healer agents escalated findings — see issue & artifacts"
+          exit 1

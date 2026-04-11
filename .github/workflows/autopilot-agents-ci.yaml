@@ -89,10 +89,10 @@ jobs:
             npx tsc --noEmit --allowJs --skipLibCheck --esModuleInterop --resolveJsonModule --target es2022 --module nodenext --moduleResolution nodenext "$script"
           done
 
-  smoke-infra-health:
-    name: Smoke — run-infra-health (dry-run, no cluster)
+  smoke-all-agents:
+    name: Smoke — all run-*.ts agents (dry-run, auto-discovery)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -102,21 +102,77 @@ jobs:
           node-version: '22'
       - name: Install deps
         run: npm ci
-      - name: Run (expected to fail gracefully without cluster)
+      - name: Discover & smoke every agent entrypoint
         env:
           VELYA_AUDIT_OUT: /tmp/velya-autopilot
           VELYA_DRY_RUN: 'true'
+          # No kubeconfig / argocd creds in this smoke job — agents must
+          # fail gracefully (exit != 0 is fine, crash is not).
         run: |
           mkdir -p /tmp/velya-autopilot
-          # Expect non-zero when there's no kube config, which is fine.
-          npx tsx scripts/agents/run-infra-health.ts || true
-          # Sanity: agent should at least write a report file
+          failed=()
+          for script in scripts/agents/run-*.ts; do
+            [ -f "$script" ] || continue
+            name=$(basename "$script" .ts)
+            echo "::group::$name"
+            if timeout 90 npx tsx "$script"; then
+              echo "$name → ok"
+            else
+              code=$?
+              if [ "$code" -eq 1 ]; then
+                # Exit 1 = findings, still a clean run
+                echo "$name → findings (exit 1, acceptable in smoke)"
+              else
+                echo "::error::$name crashed with exit $code"
+                failed+=("$name")
+              fi
+            fi
+            echo "::endgroup::"
+          done
+          echo "## Smoke results" >> "$GITHUB_STEP_SUMMARY"
+          echo "Discovered $(ls scripts/agents/run-*.ts 2>/dev/null | wc -l) agents" >> "$GITHUB_STEP_SUMMARY"
           ls -la /tmp/velya-autopilot/ || true
+          if [ "${#failed[@]}" -gt 0 ]; then
+            echo "::error::Crashed agents: ${failed[*]}"
+            exit 1
+          fi
+
+      - name: Assert every run-*.ts has a matching .claude/agents/*.md
+        run: |
+          missing=()
+          for script in scripts/agents/run-*.ts; do
+            [ -f "$script" ] || continue
+            # run-foo-bar.ts → foo-bar-agent.md (preferred) or foo-bar.md (legacy)
+            base=$(basename "$script" .ts | sed 's/^run-//')
+            if [ ! -f ".claude/agents/${base}-agent.md" ] && [ ! -f ".claude/agents/${base}.md" ]; then
+              missing+=("$base")
+            fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Agents without .claude/agents docs: ${missing[*]}"
+            exit 1
+          fi
+
+      - name: Assert every run-*.ts has a CronJob in agents-cronjobs.yaml
+        run: |
+          missing=()
+          for script in scripts/agents/run-*.ts; do
+            [ -f "$script" ] || continue
+            name=$(basename "$script" .ts)
+            if ! grep -q "$name" infra/kubernetes/autopilot/agents-cronjobs.yaml; then
+              missing+=("$name")
+            fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Agents without in-cluster CronJob: ${missing[*]}"
+            echo "::error::Add a CronJob entry in infra/kubernetes/autopilot/agents-cronjobs.yaml"
+            exit 1
+          fi
 
   build-image:
     name: Build autopilot agents image
     runs-on: ubuntu-latest
-    needs: [lint-manifests, typecheck-scripts]
+    needs: [lint-manifests, typecheck-scripts, smoke-all-agents]
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 15
     outputs:

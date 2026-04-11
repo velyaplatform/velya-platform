@@ -1,0 +1,378 @@
+#!/usr/bin/env tsx
+/**
+ * run-argocd-healer.ts — Entry point for argocd-healer-agent.
+ *
+ * Detecta ArgoCD Applications em estado ruim (OutOfSync, Missing, Degraded,
+ * SyncFailed, Unknown) e aplica remediações seguras:
+ *   1. `argocd app refresh` (hard) — força reconciliação com Git
+ *   2. `argocd app sync` — retriga sync quando drift detectado
+ *   3. Correlaciona com alertas do Grafana/Prometheus quando `GRAFANA_URL` setado
+ *   4. Em caso de falha persistente, escala com report estruturado
+ *
+ * Funciona de DOIS jeitos:
+ *   - Via `argocd` CLI quando `ARGOCD_SERVER` + `ARGOCD_AUTH_TOKEN` estão no env
+ *   - Via `kubectl` nos CRDs applications.argoproj.io quando roda in-cluster
+ *
+ * Designed to run as:
+ *   - GitHub Actions workflow step (.github/workflows/argocd-healer.yaml)
+ *   - Kubernetes CronJob (infra/kubernetes/autopilot/agents-cronjobs.yaml)
+ *   - Local CLI: `npx tsx scripts/agents/run-argocd-healer.ts`
+ *
+ * Exit codes:
+ *   0 — all healthy or successfully remediated
+ *   1 — findings requiring human review
+ *   2 — agent fatal error
+ *
+ * Envs:
+ *   VELYA_AUDIT_OUT        default /data/velya-autopilot
+ *   VELYA_DRY_RUN          default false
+ *   ARGOCD_SERVER          optional — host:port of argocd server
+ *   ARGOCD_AUTH_TOKEN      optional — JWT for argocd CLI
+ *   ARGOCD_INSECURE        default false
+ *   ARGOCD_PROJECT_FILTER  optional — only heal apps in this project
+ *   ARGOCD_APP_FILTER      optional — regex; only heal matching app names
+ *   GRAFANA_URL            optional — base URL to fetch firing alerts
+ *   GRAFANA_TOKEN          optional — bearer token for Grafana
+ *   KUBECTL_CONTEXT        optional — context when using kubectl fallback
+ */
+
+import { spawnSync } from 'node:child_process';
+import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+
+interface Finding {
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  rule: string;
+  application: string;
+  namespace?: string;
+  syncStatus?: string;
+  healthStatus?: string;
+  message?: string;
+  remediation?: 'applied' | 'pr' | 'escalated' | 'none';
+  remediationDetail?: string;
+  grafanaAlerts?: string[];
+}
+
+interface ArgoApp {
+  metadata: { name: string; namespace: string };
+  spec: { project?: string };
+  status: {
+    sync?: { status?: string; revision?: string };
+    health?: { status?: string; message?: string };
+    operationState?: { phase?: string; message?: string };
+    conditions?: Array<{ type: string; message: string }>;
+  };
+}
+
+const OUT_DIR = process.env.VELYA_AUDIT_OUT ?? '/data/velya-autopilot';
+const DRY_RUN = process.env.VELYA_DRY_RUN === 'true';
+const ARGOCD_SERVER = process.env.ARGOCD_SERVER ?? '';
+const ARGOCD_AUTH_TOKEN = process.env.ARGOCD_AUTH_TOKEN ?? '';
+const ARGOCD_INSECURE = process.env.ARGOCD_INSECURE === 'true';
+const PROJECT_FILTER = process.env.ARGOCD_PROJECT_FILTER ?? '';
+const APP_FILTER = process.env.ARGOCD_APP_FILTER ?? '';
+const GRAFANA_URL = process.env.GRAFANA_URL ?? '';
+const GRAFANA_TOKEN = process.env.GRAFANA_TOKEN ?? '';
+const KUBECTL_CONTEXT = process.env.KUBECTL_CONTEXT ?? '';
+
+const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+const useCli = Boolean(ARGOCD_SERVER && ARGOCD_AUTH_TOKEN);
+
+function ensureDir(path: string): void {
+  if (!existsSync(path)) mkdirSync(path, { recursive: true });
+}
+
+function run(
+  cmd: string,
+  args: string[],
+  opts: { timeoutMs?: number; input?: string } = {},
+): { ok: boolean; stdout: string; stderr: string } {
+  const result = spawnSync(cmd, args, {
+    encoding: 'utf-8',
+    timeout: opts.timeoutMs ?? 30_000,
+    maxBuffer: 16 * 1024 * 1024,
+    input: opts.input,
+  });
+  return {
+    ok: result.status === 0,
+    stdout: result.stdout ?? '',
+    stderr: result.stderr ?? '',
+  };
+}
+
+function argocd(args: string[]): { ok: boolean; stdout: string; stderr: string } {
+  const base = [
+    '--server',
+    ARGOCD_SERVER,
+    '--auth-token',
+    ARGOCD_AUTH_TOKEN,
+    '--grpc-web',
+  ];
+  if (ARGOCD_INSECURE) base.push('--insecure');
+  return run('argocd', [...base, ...args]);
+}
+
+function kubectl(args: string[]): { ok: boolean; stdout: string; stderr: string } {
+  const fullArgs = KUBECTL_CONTEXT
+    ? ['--context', KUBECTL_CONTEXT, '--request-timeout=15s', ...args]
+    : ['--request-timeout=15s', ...args];
+  return run('kubectl', fullArgs);
+}
+
+function listApps(): ArgoApp[] {
+  if (useCli) {
+    const result = argocd(['app', 'list', '-o', 'json']);
+    if (!result.ok) {
+      console.error('[argocd-healer] argocd app list failed:', result.stderr);
+      return [];
+    }
+    try {
+      return JSON.parse(result.stdout) as ArgoApp[];
+    } catch (e) {
+      console.error('[argocd-healer] failed to parse argocd output:', e);
+      return [];
+    }
+  }
+
+  // Fallback: kubectl on the CRD
+  const result = kubectl(['get', 'applications.argoproj.io', '-n', 'argocd', '-o', 'json']);
+  if (!result.ok) {
+    console.error('[argocd-healer] kubectl get applications failed:', result.stderr);
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(result.stdout) as { items: ArgoApp[] };
+    return parsed.items ?? [];
+  } catch (e) {
+    console.error('[argocd-healer] failed to parse kubectl output:', e);
+    return [];
+  }
+}
+
+function refreshApp(name: string): { ok: boolean; output: string } {
+  if (DRY_RUN) return { ok: true, output: `[dry-run] would refresh ${name}` };
+  if (useCli) {
+    const r = argocd(['app', 'get', name, '--refresh', '--hard-refresh']);
+    return { ok: r.ok, output: `${r.stdout}${r.stderr}` };
+  }
+  // Fallback via annotation
+  const r = kubectl([
+    'annotate',
+    '-n',
+    'argocd',
+    `application.argoproj.io/${name}`,
+    'argocd.argoproj.io/refresh=hard',
+    '--overwrite',
+  ]);
+  return { ok: r.ok, output: `${r.stdout}${r.stderr}` };
+}
+
+function syncApp(name: string): { ok: boolean; output: string } {
+  if (DRY_RUN) return { ok: true, output: `[dry-run] would sync ${name}` };
+  if (useCli) {
+    const r = argocd(['app', 'sync', name, '--prune=false', '--timeout', '180']);
+    return { ok: r.ok, output: `${r.stdout}${r.stderr}` };
+  }
+  // Fallback: patch with sync operation
+  const patch = JSON.stringify({
+    operation: {
+      sync: { revision: 'HEAD', prune: false, syncOptions: ['CreateNamespace=true'] },
+    },
+  });
+  const r = kubectl([
+    'patch',
+    '-n',
+    'argocd',
+    `application.argoproj.io/${name}`,
+    '--type=merge',
+    '-p',
+    patch,
+  ]);
+  return { ok: r.ok, output: `${r.stdout}${r.stderr}` };
+}
+
+interface GrafanaAlert {
+  labels?: { alertname?: string; severity?: string };
+  annotations?: { summary?: string };
+  state?: string;
+}
+
+async function fetchGrafanaAlerts(): Promise<GrafanaAlert[]> {
+  if (!GRAFANA_URL) return [];
+  try {
+    const url = `${GRAFANA_URL.replace(/\/$/, '')}/api/alertmanager/grafana/api/v2/alerts?active=true`;
+    const headers: Record<string, string> = { accept: 'application/json' };
+    if (GRAFANA_TOKEN) headers.authorization = `Bearer ${GRAFANA_TOKEN}`;
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      console.error(`[argocd-healer] grafana fetch failed: ${res.status}`);
+      return [];
+    }
+    return (await res.json()) as GrafanaAlert[];
+  } catch (e) {
+    console.error('[argocd-healer] grafana fetch error:', e);
+    return [];
+  }
+}
+
+function correlateAlerts(app: string, alerts: GrafanaAlert[]): string[] {
+  const matches: string[] = [];
+  for (const a of alerts) {
+    const name = a.labels?.alertname ?? '';
+    const summary = a.annotations?.summary ?? '';
+    const blob = `${name} ${summary}`.toLowerCase();
+    if (blob.includes(app.toLowerCase()) || blob.includes('argocd')) {
+      matches.push(`${a.labels?.severity ?? 'info'}: ${name} — ${summary}`);
+    }
+  }
+  return matches;
+}
+
+function severityFromStatus(sync: string, health: string): Finding['severity'] {
+  if (health === 'Degraded' || health === 'Missing') return 'high';
+  if (sync === 'OutOfSync' && health !== 'Healthy') return 'high';
+  if (sync === 'OutOfSync') return 'medium';
+  if (health === 'Unknown') return 'medium';
+  return 'low';
+}
+
+async function main(): Promise<void> {
+  console.log(`[argocd-healer] mode=${useCli ? 'cli' : 'kubectl'} dryRun=${DRY_RUN}`);
+  const findings: Finding[] = [];
+
+  const apps = listApps().filter((app) => {
+    if (PROJECT_FILTER && app.spec.project !== PROJECT_FILTER) return false;
+    if (APP_FILTER && !new RegExp(APP_FILTER).test(app.metadata.name)) return false;
+    return true;
+  });
+  console.log(`[argocd-healer] ${apps.length} applications in scope`);
+
+  const alerts = await fetchGrafanaAlerts();
+  if (alerts.length) console.log(`[argocd-healer] ${alerts.length} grafana alerts active`);
+
+  for (const app of apps) {
+    const name = app.metadata.name;
+    const sync = app.status.sync?.status ?? 'Unknown';
+    const health = app.status.health?.status ?? 'Unknown';
+    const opPhase = app.status.operationState?.phase ?? '';
+    const opMsg = app.status.operationState?.message ?? '';
+    const conditionMsgs = (app.status.conditions ?? [])
+      .filter((c) => c.type.toLowerCase().includes('error'))
+      .map((c) => `${c.type}: ${c.message}`)
+      .join(' | ');
+
+    const isHealthy = sync === 'Synced' && health === 'Healthy';
+    if (isHealthy) {
+      console.log(`  ✓ ${name} [${sync}/${health}]`);
+      continue;
+    }
+
+    const severity = severityFromStatus(sync, health);
+    const grafanaMatches = correlateAlerts(name, alerts);
+
+    const finding: Finding = {
+      severity,
+      rule: `argocd-app-unhealthy`,
+      application: name,
+      namespace: app.metadata.namespace,
+      syncStatus: sync,
+      healthStatus: health,
+      message: [opPhase, opMsg, conditionMsgs, app.status.health?.message]
+        .filter(Boolean)
+        .join(' | '),
+      remediation: 'none',
+      grafanaAlerts: grafanaMatches.length ? grafanaMatches : undefined,
+    };
+
+    console.log(
+      `  ✗ ${name} [${sync}/${health}] ${opPhase ? `op=${opPhase}` : ''}`,
+    );
+
+    // Remediation step 1: hard refresh
+    const refresh = refreshApp(name);
+    if (!refresh.ok) {
+      finding.remediation = 'escalated';
+      finding.remediationDetail = `refresh failed: ${refresh.output.slice(0, 500)}`;
+      findings.push(finding);
+      continue;
+    }
+
+    // Remediation step 2: if still OutOfSync after refresh, sync it
+    if (sync === 'OutOfSync' || health === 'Missing') {
+      const synced = syncApp(name);
+      finding.remediation = synced.ok ? 'applied' : 'escalated';
+      finding.remediationDetail = `refresh=ok sync=${synced.ok ? 'ok' : 'failed'}: ${synced.output.slice(0, 500)}`;
+    } else if (health === 'Degraded') {
+      // Degraded usually requires code/image/config fix — escalate
+      finding.remediation = 'escalated';
+      finding.remediationDetail = `refresh=ok; degraded state requires manual fix (likely image/config)`;
+    } else {
+      finding.remediation = 'applied';
+      finding.remediationDetail = `refresh=ok`;
+    }
+
+    findings.push(finding);
+  }
+
+  // Output
+  const severityRank: Record<Finding['severity'], number> = {
+    critical: 0,
+    high: 1,
+    medium: 2,
+    low: 3,
+  };
+  findings.sort((a, b) => severityRank[a.severity] - severityRank[b.severity]);
+
+  const report = {
+    timestamp,
+    agent: 'argocd-healer-agent',
+    mode: useCli ? 'argocd-cli' : 'kubectl',
+    dryRun: DRY_RUN,
+    totalApps: apps.length,
+    totalFindings: findings.length,
+    bySeverity: {
+      critical: findings.filter((f) => f.severity === 'critical').length,
+      high: findings.filter((f) => f.severity === 'high').length,
+      medium: findings.filter((f) => f.severity === 'medium').length,
+      low: findings.filter((f) => f.severity === 'low').length,
+    },
+    byRemediation: {
+      applied: findings.filter((f) => f.remediation === 'applied').length,
+      escalated: findings.filter((f) => f.remediation === 'escalated').length,
+      none: findings.filter((f) => !f.remediation || f.remediation === 'none').length,
+    },
+    grafanaIntegration: Boolean(GRAFANA_URL),
+    grafanaAlertsActive: alerts.length,
+    findings,
+  };
+
+  ensureDir(join(OUT_DIR, 'argocd-audit'));
+  const outFile = join(OUT_DIR, 'argocd-audit', `${timestamp}.json`);
+  writeFileSync(outFile, JSON.stringify(report, null, 2));
+
+  // Also write a latest.json alias for dashboards
+  writeFileSync(join(OUT_DIR, 'argocd-audit', 'latest.json'), JSON.stringify(report, null, 2));
+
+  console.log(`[argocd-healer] ${findings.length} findings → ${outFile}`);
+  console.log(
+    `  severity: crit=${report.bySeverity.critical} high=${report.bySeverity.high} med=${report.bySeverity.medium} low=${report.bySeverity.low}`,
+  );
+  console.log(
+    `  remediation: applied=${report.byRemediation.applied} escalated=${report.byRemediation.escalated} none=${report.byRemediation.none}`,
+  );
+
+  const escalated = findings.filter(
+    (f) =>
+      (f.remediation === 'escalated' || f.remediation === 'none') &&
+      (f.severity === 'critical' || f.severity === 'high'),
+  );
+  if (escalated.length) {
+    console.error(`[argocd-healer] ${escalated.length} high/critical findings require human review`);
+    process.exit(1);
+  }
+}
+
+main().catch((error) => {
+  console.error('[argocd-healer] Fatal:', error);
+  process.exit(2);
+});
