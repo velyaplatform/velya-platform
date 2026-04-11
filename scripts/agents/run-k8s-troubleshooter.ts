@@ -45,6 +45,7 @@
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { acquireLock, releaseLock, type AgentSessionLock } from './shared/session-lock.js';
 
 interface Finding {
   severity: 'critical' | 'high' | 'medium' | 'low';
@@ -59,6 +60,16 @@ interface Finding {
 
 const OUT_DIR = process.env.VELYA_AUDIT_OUT ?? '/data/velya-autopilot';
 const DRY_RUN = process.env.VELYA_DRY_RUN === 'true';
+// Feature flag: velya.autopilot.cooperative-locking (ADR-0016 follow-up #1).
+// When enabled, each namespace-level mutation (pod delete, job prune,
+// rollout restart) takes a short-lived exclusive lock on the namespace
+// before touching kubectl. This prevents two concurrent runs of this same
+// agent from racing on the same namespace. Serialization with the
+// argocd-healer-agent is NOT guaranteed by this flag alone — that
+// requires both agents to lock on the same target kind, which is tracked
+// as follow-up #2 in ADR-0016 after we've measured lock contention.
+const COOPERATIVE_LOCKING = process.env.VELYA_COOPERATIVE_LOCKING === 'true';
+const LOCK_TTL_MS = 60 * 1000; // 60 s — mutations are quick (delete/restart)
 const KUBECTL_CONTEXT = process.env.KUBECTL_CONTEXT ?? '';
 const NS_ALLOWLIST = (process.env.VELYA_NS_ALLOWLIST ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 const CRASH_AGE_MIN = Number(process.env.VELYA_CRASH_AGE_MIN ?? '5');
@@ -88,6 +99,38 @@ function kubectl(args: string[], timeoutMs = 30_000): { ok: boolean; stdout: str
 function isVelyaNs(ns: string): boolean {
   if (NS_ALLOWLIST.length) return NS_ALLOWLIST.includes(ns);
   return ns.startsWith('velya-') || ns === 'argocd';
+}
+
+type KubectlResult = { ok: boolean; stdout: string; stderr: string };
+
+/**
+ * Run a namespace-scoped kubectl mutation under a cooperative lock.
+ * When `COOPERATIVE_LOCKING` is off, delegates straight to `fn`.
+ * When ON, takes an `agent-session-lock` on the namespace for the
+ * duration of `fn`. If the lock cannot be acquired because another
+ * agent holds it, the mutation is skipped and `{ok:false, stderr:'lock-held'}`
+ * is returned — the caller will then mark the finding as escalated.
+ */
+function withNamespaceLock(
+  namespace: string,
+  reason: string,
+  fn: () => KubectlResult,
+): KubectlResult {
+  if (!COOPERATIVE_LOCKING) return fn();
+  const lock: AgentSessionLock | null = acquireLock({
+    agent: 'k8s-troubleshooter-agent',
+    target: { kind: 'k8s-namespace', name: namespace },
+    ttlMs: LOCK_TTL_MS,
+    reason,
+  });
+  if (!lock) {
+    return { ok: false, stdout: '', stderr: 'lock-held: another agent owns this namespace' };
+  }
+  try {
+    return fn();
+  } finally {
+    releaseLock(lock);
+  }
 }
 
 function shortStr(s: string | undefined, n = 400): string {
@@ -214,7 +257,9 @@ function handleBrokenPods(findings: Finding[]): void {
       };
       const del = DRY_RUN
         ? { ok: true, stdout: '[dry-run]', stderr: '' }
-        : kubectl(['delete', 'pod', pod.metadata.name, '-n', ns, '--wait=false']);
+        : withNamespaceLock(ns, `delete evicted pod ${pod.metadata.name}`, () =>
+            kubectl(['delete', 'pod', pod.metadata.name, '-n', ns, '--wait=false']),
+          );
       f.remediation = del.ok ? 'applied' : 'escalated';
       f.remediationDetail = shortStr(`${del.stdout}${del.stderr}`);
       findings.push(f);
@@ -258,7 +303,9 @@ function handleBrokenPods(findings: Finding[]): void {
           restartedDeployments.add(key);
           const restart = DRY_RUN
             ? { ok: true, stdout: '[dry-run]', stderr: '' }
-            : kubectl(['rollout', 'restart', `deployment/${deploy}`, '-n', ns]);
+            : withNamespaceLock(ns, `rollout restart deployment/${deploy}`, () =>
+                kubectl(['rollout', 'restart', `deployment/${deploy}`, '-n', ns]),
+              );
           f.remediation = restart.ok ? 'applied' : 'escalated';
           f.remediationDetail = `rollout restart deployment/${deploy}: ${shortStr(`${restart.stdout}${restart.stderr}`, 300)}`;
         } else {
@@ -359,7 +406,16 @@ function pruneCompletedJobs(findings: Finding[]): void {
         };
         const del = DRY_RUN
           ? { ok: true, stdout: '[dry-run]', stderr: '' }
-          : kubectl(['delete', 'job', j.metadata.name, '-n', j.metadata.namespace, '--wait=false']);
+          : withNamespaceLock(j.metadata.namespace, `prune completed job ${j.metadata.name}`, () =>
+              kubectl([
+                'delete',
+                'job',
+                j.metadata.name,
+                '-n',
+                j.metadata.namespace,
+                '--wait=false',
+              ]),
+            );
         f.remediation = del.ok ? 'applied' : 'escalated';
         f.remediationDetail = shortStr(`${del.stdout}${del.stderr}`);
         findings.push(f);

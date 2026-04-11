@@ -263,3 +263,28 @@ claims:
     kind: file_exists
     path: docs/operations/clinical-control-plane.md
     severity: critical
+
+  # --- ADR-0016 follow-up: cooperative-locking + agent-sync CronJob -----
+  - id: cooperative-locking-flag-in-argocd-healer
+    memory: project_velya_platform_state
+    kind: file_contains
+    path: scripts/agents/run-argocd-healer.ts
+    regex: 'VELYA_COOPERATIVE_LOCKING'
+    severity: critical
+  - id: cooperative-locking-flag-in-k8s-troubleshooter
+    memory: project_velya_platform_state
+    kind: file_contains
+    path: scripts/agents/run-k8s-troubleshooter.ts
+    regex: 'VELYA_COOPERATIVE_LOCKING'
+    severity: critical
+  - id: agent-sync-snapshot-cronjob-defined
+    memory: project_velya_platform_state
+    kind: file_contains
+    path: infra/kubernetes/autopilot/agents-cronjobs.yaml
+    regex: 'velya-agent-sync-snapshot'
+    severity: critical
+  - id: cooperative-locking-integration-test-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: scripts/agents/shared/cooperative-locking.integration.test.ts
+    severity: critical
