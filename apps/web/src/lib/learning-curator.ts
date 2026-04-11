@@ -32,6 +32,15 @@
 
 import { listFindings, recordLearning, type CronFinding, type Severity } from './cron-store';
 
+/** Maximum number of findings read from the cron store per analysis pass. */
+const FINDINGS_READ_LIMIT = 200;
+/** Unresolved-recurrence count at which raw confidence saturates to 1. */
+const CONFIDENCE_SATURATION_CAP = 10;
+/** Minimum occurrences required for a pattern to qualify for promotion. */
+const PROMOTION_MIN_OCCURRENCES = 5;
+/** Minimum confidence score required for a pattern to qualify for promotion. */
+const PROMOTION_MIN_CONFIDENCE = 0.7;
+
 export interface LearningPattern {
   patternId: string;
   surface: string;
@@ -84,7 +93,7 @@ function clamp01(value: number): number {
  * repeated patterns. Returns a list ordered by occurrences (desc).
  */
 export function summarizeLearnings(): LearningPattern[] {
-  const findings = listFindings({ limit: 200 });
+  const findings = listFindings({ limit: FINDINGS_READ_LIMIT });
   const accumulators = new Map<string, PatternAccumulator>();
 
   for (const finding of findings) {
@@ -122,9 +131,10 @@ export function summarizeLearnings(): LearningPattern[] {
   for (const acc of accumulators.values()) {
     const occurrences = acc.findings.length;
     // occurrences / (1 + recentResolved), then normalise to 0..1 by a soft
-    // cap of 10 — 10 or more unresolved repetitions saturate confidence at 1.
+    // cap — CONFIDENCE_SATURATION_CAP or more unresolved repetitions saturate
+    // confidence at 1.
     const rawConfidence = occurrences / (1 + acc.resolvedCount);
-    const confidence = clamp01(rawConfidence / 10);
+    const confidence = clamp01(rawConfidence / CONFIDENCE_SATURATION_CAP);
     patterns.push({
       patternId: acc.patternId,
       surface: acc.surface,
@@ -134,7 +144,7 @@ export function summarizeLearnings(): LearningPattern[] {
       firstSeen: acc.firstSeen,
       lastSeen: acc.lastSeen,
       confidence,
-      qualifiesForPromotion: occurrences >= 5 && confidence > 0.7,
+      qualifiesForPromotion: occurrences >= PROMOTION_MIN_OCCURRENCES && confidence > PROMOTION_MIN_CONFIDENCE,
     });
   }
 
