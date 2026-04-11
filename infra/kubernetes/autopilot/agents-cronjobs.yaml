@@ -71,10 +71,14 @@ rules:
   - apiGroups: ['autoscaling']
     resources: ['horizontalpodautoscalers']
     verbs: ['delete']
-  # Prune completed Jobs
+  # Prune completed Jobs (L2 supervisor) + delete stuck Jobs (L2 health manager)
   - apiGroups: ['batch']
     resources: ['jobs']
-    verbs: ['delete']
+    verbs: ['delete', 'patch']
+  # Suspend/resume CronJobs (L2 supervisor)
+  - apiGroups: ['batch']
+    resources: ['cronjobs']
+    verbs: ['patch']
 
 ---
 # Namespace-scoped: criar ServiceAccounts faltantes dentro dos namespaces velya-dev-*
@@ -237,7 +241,7 @@ spec:
               type: RuntimeDefault
           containers:
             - name: agent
-              image: velya-autopilot-agents:latest
+              image: velya-autopilot-agents:v3
               imagePullPolicy: IfNotPresent
               command: ['npx', 'tsx', 'scripts/agents/run-infra-health.ts']
               env:
@@ -250,6 +254,7 @@ spec:
                   cpu: 100m
                   memory: 256Mi
                 limits:
+                  cpu: 500m
                   memory: 512Mi
               securityContext:
                 allowPrivilegeEscalation: false
@@ -305,7 +310,7 @@ spec:
               type: RuntimeDefault
           containers:
             - name: agent
-              image: velya-autopilot-agents:latest
+              image: velya-autopilot-agents:v3
               imagePullPolicy: IfNotPresent
               command: ['npx', 'tsx', 'scripts/agents/run-frontend-quality.ts']
               env:
@@ -318,10 +323,238 @@ spec:
                   cpu: 500m
                   memory: 1Gi
                 limits:
+                  cpu: 2000m
                   memory: 2Gi
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: false # next build precisa escrever .next
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
+
+---
+# =============================================================================
+# LAYER 2 — MANAGERS (supervisionam Layer 1 workers)
+# =============================================================================
+
+# Agent health manager — detecta failures, silêncio, stuck jobs
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-health-manager
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: agent-health-manager
+    velya.io/layer: "2"
+    velya.io/watches: layer-1-workers
+spec:
+  schedule: '*/30 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            velya.io/agent: agent-health-manager
+            velya.io/component: autopilot
+            velya.io/layer: "2"
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-agent-health-manager.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_DRY_RUN
+                  value: 'false'
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
+
+---
+# Agent runtime supervisor — hygiene (prune, PVC, image pinning)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-runtime-supervisor
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: agent-runtime-supervisor
+    velya.io/layer: "2"
+    velya.io/watches: layer-1-workers
+spec:
+  schedule: '0 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            velya.io/agent: agent-runtime-supervisor
+            velya.io/component: autopilot
+            velya.io/layer: "2"
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-agent-runtime-supervisor.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_DRY_RUN
+                  value: 'false'
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
+
+---
+# =============================================================================
+# LAYER 3 — GOVERNORS (supervisionam Layer 2 managers e os próprios governors)
+# =============================================================================
+
+# Meta governance auditor — audita os governors existentes (read-only)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-meta-governance-auditor
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: meta-governance-auditor
+    velya.io/layer: "3"
+    velya.io/watches: layer-3-governors
+spec:
+  schedule: '0 12 * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 14
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 900
+      template:
+        metadata:
+          labels:
+            velya.io/agent: meta-governance-auditor
+            velya.io/component: autopilot
+            velya.io/layer: "3"
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-meta-governance-auditor.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_DRY_RUN
+                  value: 'true'
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
                 capabilities:
                   drop: ['ALL']
               volumeMounts:

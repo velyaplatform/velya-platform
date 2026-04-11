@@ -8,6 +8,7 @@ import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { VelyaCombobox } from '../components/ui/combobox';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { VelyaStatusDot } from '../components/velya/velya-status-dot';
 import { MOCK_PATIENTS, type Patient } from '../../lib/fixtures/patients-list';
@@ -188,28 +189,36 @@ export default function PatientsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Filter className="h-3.5 w-3.5 text-slate-500" />
-          <select
-            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-            value={wardFilter}
-            onChange={(e) => setWardFilter(e.target.value)}
-          >
-            <option value="all">Todas as Alas</option>
-            {wards.map((w) => (
-              <option key={w} value={w}>
-                {w}
-              </option>
-            ))}
-          </select>
-          <select
-            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-            value={riskFilter}
-            onChange={(e) => setRiskFilter(e.target.value)}
-          >
-            <option value="all">Todos os Riscos</option>
-            <option value="high">Alto Risco</option>
-            <option value="medium">Médio Risco</option>
-            <option value="low">Baixo Risco</option>
-          </select>
+          <div className="w-[220px]">
+            <VelyaCombobox
+              ariaLabel="Filtrar por ala"
+              placeholder="Todas as Alas"
+              searchPlaceholder="Buscar ala..."
+              emptyText="Nenhuma ala encontrada."
+              value={wardFilter}
+              onChange={setWardFilter}
+              options={[
+                { value: 'all', label: 'Todas as Alas' },
+                ...wards.map((w) => ({ value: w, label: w })),
+              ]}
+            />
+          </div>
+          <div className="w-[200px]">
+            <VelyaCombobox
+              ariaLabel="Filtrar por risco"
+              placeholder="Todos os Riscos"
+              searchPlaceholder="Buscar risco..."
+              emptyText="Nenhum risco encontrado."
+              value={riskFilter}
+              onChange={setRiskFilter}
+              options={[
+                { value: 'all', label: 'Todos os Riscos' },
+                { value: 'high', label: 'Alto Risco' },
+                { value: 'medium', label: 'Médio Risco' },
+                { value: 'low', label: 'Baixo Risco' },
+              ]}
+            />
+          </div>
         </div>
       </div>
 

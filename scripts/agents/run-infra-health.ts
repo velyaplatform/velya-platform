@@ -39,8 +39,14 @@ function ensureDir(path: string): void {
 }
 
 function kubectl(args: string[]): { ok: boolean; stdout: string; stderr: string } {
-  const fullArgs = KUBECTL_CONTEXT ? ['--context', KUBECTL_CONTEXT, ...args] : args;
-  const result = spawnSync('kubectl', fullArgs, { encoding: 'utf-8' });
+  const fullArgs = KUBECTL_CONTEXT
+    ? ['--context', KUBECTL_CONTEXT, '--request-timeout=15s', ...args]
+    : ['--request-timeout=15s', ...args];
+  const result = spawnSync('kubectl', fullArgs, {
+    encoding: 'utf-8',
+    timeout: 30_000, // hard kill after 30s to avoid stuck pods
+    maxBuffer: 16 * 1024 * 1024,
+  });
   return {
     ok: result.status === 0,
     stdout: result.stdout ?? '',
