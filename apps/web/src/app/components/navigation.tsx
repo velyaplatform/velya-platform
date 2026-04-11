@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -157,6 +157,11 @@ interface NavigationProps {
   onMobileClose?: () => void;
 }
 
+const SIDEBAR_MIN_WIDTH = 200;
+const SIDEBAR_MAX_WIDTH = 420;
+const SIDEBAR_DEFAULT_WIDTH = 260;
+const SIDEBAR_WIDTH_STORAGE_KEY = 'velya:sidebar-width';
+
 export function Navigation({
   currentRole,
   userName,
@@ -167,6 +172,104 @@ export function Navigation({
   const pathname = usePathname();
   const [suggestionText, setSuggestionText] = useState('');
   const [suggestionStatus, setSuggestionStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [sidebarWidth, setSidebarWidth] = useState<number>(SIDEBAR_DEFAULT_WIDTH);
+  const [isResizing, setIsResizing] = useState(false);
+  const dragStartXRef = useRef<number>(0);
+  const dragStartWidthRef = useRef<number>(SIDEBAR_DEFAULT_WIDTH);
+
+  // Hydrate persisted width on mount and sync --sidebar-width CSS variable
+  // so .app-content-wrapper (globals.css) stays aligned.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
+      if (raw) {
+        const parsed = parseInt(raw, 10);
+        if (!Number.isNaN(parsed) && parsed >= SIDEBAR_MIN_WIDTH && parsed <= SIDEBAR_MAX_WIDTH) {
+          setSidebarWidth(parsed);
+          document.documentElement.style.setProperty('--sidebar-width', `${parsed}px`);
+        }
+      }
+    } catch {
+      // localStorage may be disabled — fall back to default
+    }
+  }, []);
+
+  const applyWidth = useCallback((next: number) => {
+    const clamped = Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, next));
+    setSidebarWidth(clamped);
+    document.documentElement.style.setProperty('--sidebar-width', `${clamped}px`);
+    return clamped;
+  }, []);
+
+  const handleResizeStart = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      dragStartXRef.current = event.clientX;
+      dragStartWidthRef.current = sidebarWidth;
+      setIsResizing(true);
+      (event.target as HTMLElement).setPointerCapture(event.pointerId);
+    },
+    [sidebarWidth],
+  );
+
+  const handleResizeMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!isResizing) return;
+      const delta = event.clientX - dragStartXRef.current;
+      applyWidth(dragStartWidthRef.current + delta);
+    },
+    [isResizing, applyWidth],
+  );
+
+  const handleResizeEnd = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!isResizing) return;
+      setIsResizing(false);
+      try {
+        (event.target as HTMLElement).releasePointerCapture(event.pointerId);
+      } catch {
+        /* ignore stale pointer id */
+      }
+      try {
+        localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(sidebarWidth));
+      } catch {
+        /* ignore disabled storage */
+      }
+    },
+    [isResizing, sidebarWidth],
+  );
+
+  const handleResizeKey = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      const STEP = event.shiftKey ? 24 : 8;
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        const next = applyWidth(sidebarWidth - STEP);
+        try {
+          localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(next));
+        } catch {
+          /* ignore */
+        }
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        const next = applyWidth(sidebarWidth + STEP);
+        try {
+          localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(next));
+        } catch {
+          /* ignore */
+        }
+      } else if (event.key === 'Home') {
+        event.preventDefault();
+        applyWidth(SIDEBAR_DEFAULT_WIDTH);
+        try {
+          localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(SIDEBAR_DEFAULT_WIDTH));
+        } catch {
+          /* ignore */
+        }
+      }
+    },
+    [sidebarWidth, applyWidth],
+  );
 
   const professionalRole = resolveUiRole(currentRole);
   const allowedSections = getNavigationSections(professionalRole);
@@ -210,19 +313,48 @@ export function Navigation({
   return (
     <aside
       className={cn(
-        'fixed left-0 bottom-0 z-40 flex w-[260px] flex-col overflow-y-auto shrink-0',
+        'fixed left-0 bottom-0 z-40 flex flex-col overflow-y-auto shrink-0',
         'border-r bg-white text-neutral-800',
-        'transition-transform duration-300',
+        !isResizing && 'transition-transform duration-300',
         'md:translate-x-0',
         mobileOpen ? 'translate-x-0' : '-translate-x-full',
       )}
       style={{
         top: 'var(--header-height)',
+        width: `${sidebarWidth}px`,
         borderColor: 'var(--border-default)',
         background: 'var(--canvas-default)',
         color: 'var(--fg-default)',
       }}
     >
+      {/* Resize handle — 4px wide column flush with the right border.
+          Drag to resize, keyboard left/right to nudge, Home to reset. */}
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Redimensionar sidebar (arraste ou use setas esquerda/direita; Home para resetar)"
+        aria-valuemin={SIDEBAR_MIN_WIDTH}
+        aria-valuemax={SIDEBAR_MAX_WIDTH}
+        aria-valuenow={sidebarWidth}
+        tabIndex={0}
+        onPointerDown={handleResizeStart}
+        onPointerMove={handleResizeMove}
+        onPointerUp={handleResizeEnd}
+        onPointerCancel={handleResizeEnd}
+        onKeyDown={handleResizeKey}
+        className="hidden md:block"
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: -2,
+          bottom: 0,
+          width: 6,
+          cursor: 'col-resize',
+          zIndex: 50,
+          background: isResizing ? 'var(--accent-fg)' : 'transparent',
+          transition: isResizing ? 'none' : 'background 120ms ease',
+        }}
+      />
 
       {/* Close button for mobile */}
       <button

@@ -357,17 +357,14 @@ export function CommandPalette(): React.ReactElement {
   // is closed. Research shows most users do not know command palettes
   // exist, so a persistent affordance is critical.
   const triggerButton = !isOpen ? (
-    <button
-      type="button"
-      onClick={openPalette}
-      aria-label="Abrir paleta de comandos (Ctrl ou Cmd + K)"
-      className="fixed bottom-4 right-4 z-40 inline-flex min-h-[44px] min-w-[44px] items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-4 py-2 text-sm font-medium text-slate-900 shadow-lg shadow-black/40 backdrop-blur transition hover:bg-slate-50 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-    >
-      <span aria-hidden="true" className="font-mono text-slate-700">
-        ⌘K
-      </span>
-      <span>Buscar</span>
-    </button>
+    // Command-palette's visual FAB is redundant — the dark header already
+    // exposes the "Type / to search" button that opens the same overlay,
+    // and the Cmd+K / Ctrl+K keybinding still works from anywhere. Keeping
+    // it also duplicated on the bottom-right caused a field-over-field
+    // overlap with the action column of dense tables (patients, tasks).
+    // Render null so the palette is only reachable via the header and the
+    // keyboard, matching the github.com pattern.
+    null
   ) : null;
 
   if (!isOpen) {

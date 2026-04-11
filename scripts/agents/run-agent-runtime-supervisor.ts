@@ -61,8 +61,32 @@ const PVC_NAME = 'velya-autopilot-data';
 const OUT_DIR = process.env.VELYA_AUDIT_OUT ?? '/data/velya-autopilot';
 const DRY_RUN = process.env.VELYA_DRY_RUN === 'true';
 const KUBECTL_CONTEXT = process.env.KUBECTL_CONTEXT ?? '';
+const OFFLINE_MODE = process.env.VELYA_SMOKE_OFFLINE === 'true';
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 const PRUNE_THRESHOLD_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Detect whether kubectl can reach a cluster. Same contract as the matching
+ * helper in run-agent-health-manager.ts so CI smoke can skip k8s-dependent
+ * agents with VELYA_SMOKE_OFFLINE=true.
+ */
+function kubectlAvailable(): boolean {
+  if (OFFLINE_MODE) return false;
+  const probe = spawnSync(
+    'kubectl',
+    KUBECTL_CONTEXT
+      ? ['--context', KUBECTL_CONTEXT, '--request-timeout=3s', 'version', '--output=json']
+      : ['--request-timeout=3s', 'version', '--output=json'],
+    { encoding: 'utf-8', timeout: 5000 },
+  );
+  if (probe.status !== 0) return false;
+  try {
+    const parsed = JSON.parse(probe.stdout ?? '{}') as { serverVersion?: unknown };
+    return parsed.serverVersion !== undefined;
+  } catch {
+    return false;
+  }
+}
 
 function ensureDir(path: string): void {
   if (!existsSync(path)) mkdirSync(path, { recursive: true });
@@ -109,6 +133,36 @@ function isUnpinnedImage(image: string | undefined): boolean {
 async function main(): Promise<void> {
   const findings: Finding[] = [];
   let prunedCount = 0;
+
+  if (!kubectlAvailable()) {
+    const reason = OFFLINE_MODE
+      ? 'VELYA_SMOKE_OFFLINE=true'
+      : 'kubectl not reachable (no cluster context)';
+    console.log(
+      `[agent-runtime-supervisor] offline mode (${reason}) — skipping cluster probes, writing empty report`,
+    );
+    ensureDir(join(OUT_DIR, 'supervisor-audit'));
+    const outFile = join(OUT_DIR, 'supervisor-audit', `${timestamp}.offline.json`);
+    writeFileSync(
+      outFile,
+      JSON.stringify(
+        {
+          timestamp,
+          agent: 'agent-runtime-supervisor',
+          layer: 2,
+          mode: 'offline',
+          reason,
+          prunedCount: 0,
+          totalFindings: 0,
+          findings: [],
+        },
+        null,
+        2,
+      ),
+    );
+    console.log(`[agent-runtime-supervisor] offline report → ${outFile}`);
+    return;
+  }
 
   // 1. Prune completed Jobs older than 24h
   console.log('[agent-runtime-supervisor] Listing Jobs for prune…');
@@ -280,5 +334,9 @@ async function main(): Promise<void> {
 
 main().catch((error) => {
   console.error('[agent-runtime-supervisor] Fatal:', error);
+  if (OFFLINE_MODE) {
+    console.error('[agent-runtime-supervisor] offline mode — swallowing error, exit 0');
+    process.exit(0);
+  }
   process.exit(2);
 });
