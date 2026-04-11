@@ -30,7 +30,7 @@ export function VelyaPageHeader({
     >
       <div>
         {eyebrow && (
-          <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-700">
             {eyebrow}
           </div>
         )}

@@ -172,7 +172,7 @@ export default function News2Calculator() {
         : 'BAIXO RISCO';
 
   const inputClass =
-    'w-full min-h-[44px] rounded-md border border-slate-600 bg-slate-800 px-3 py-2 text-slate-50 placeholder-slate-400 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400';
+    'w-full min-h-[44px] rounded-md border border-slate-600 bg-slate-800 px-3 py-2 text-slate-50 placeholder-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400';
   const labelClass = 'mb-1 block text-sm font-semibold text-slate-100';
 
   return (
@@ -226,7 +226,7 @@ export default function News2Calculator() {
             type="checkbox"
             checked={onSupplementalO2}
             onChange={(event) => setOnSupplementalO2(event.target.checked)}
-            className="h-5 w-5 min-h-[44px] cursor-pointer rounded border-slate-500 bg-slate-800 text-sky-400 focus:ring-2 focus:ring-sky-400"
+            className="h-5 w-5 min-h-[44px] cursor-pointer rounded border-slate-500 bg-slate-800 text-blue-400 focus:ring-2 focus:ring-blue-400"
           />
           <label htmlFor="news2-o2" className="ml-3 text-sm font-semibold text-slate-100">
             Paciente em O2 suplementar

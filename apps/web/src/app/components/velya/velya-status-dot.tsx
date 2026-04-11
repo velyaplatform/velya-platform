@@ -6,12 +6,12 @@ import { cn } from '../../../lib/utils';
 type StatusTone = 'critical' | 'warning' | 'success' | 'info' | 'accent' | 'neutral';
 
 const COLOR: Record<StatusTone, string> = {
-  critical: 'bg-red-500',
-  warning: 'bg-amber-500',
-  success: 'bg-emerald-500',
-  info: 'bg-sky-500',
-  accent: 'bg-sky-600',
-  neutral: 'bg-slate-400',
+  critical: 'bg-red-600',
+  warning: 'bg-amber-600',
+  success: 'bg-green-600',
+  info: 'bg-blue-600',
+  accent: 'bg-blue-600',
+  neutral: 'bg-neutral-400',
 };
 
 export interface VelyaStatusDotProps {

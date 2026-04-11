@@ -39,88 +39,87 @@
 }
 
 :root {
-  /* --- CANVAS & SURFACES (light) --- */
-  --color-bg-base: #f8fafc;          /* slate-50 — fundo principal off-white */
+  /* --- CANVAS & SURFACES — puro branco + pretos --- */
+  --color-bg-base: #ffffff;          /* fundo principal PURO branco */
   --color-bg-surface: #ffffff;       /* cards */
-  --color-bg-elevated: #f1f5f9;      /* slate-100 — hover, elevação */
-  --color-bg-hover: #f1f5f9;
-  --color-bg-subtle: #f8fafc;
-  --color-bg-muted: #e2e8f0;
+  --color-bg-elevated: #fafafa;      /* hover/elevação — quase imperceptível */
+  --color-bg-hover: #f5f5f5;
+  --color-bg-subtle: #fafafa;
+  --color-bg-muted: #f5f5f5;
 
-  /* Glass panels (quando necessário) */
-  --color-bg-glass: rgba(255, 255, 255, 0.85);
-  --color-bg-glass-strong: rgba(255, 255, 255, 0.96);
+  /* Glass panels (só quando necessário) */
+  --color-bg-glass: #ffffff;
+  --color-bg-glass-strong: #ffffff;
 
-  /* Borders em slate suaves */
-  --color-border-glass: #e2e8f0;         /* slate-200 */
-  --color-border-glass-strong: #cbd5e1;  /* slate-300 */
-  --color-border: #e2e8f0;
-  --color-border-strong: #cbd5e1;
+  /* Borders sutis — preto 8-14% */
+  --color-border-glass: #e5e5e5;
+  --color-border-glass-strong: #d4d4d4;
+  --color-border: #e5e5e5;
+  --color-border-strong: #d4d4d4;
 
-  /* --- LEGACY aliases para páginas ainda não migradas --- */
-  --color-surface: var(--color-bg-base);
-  --color-surface-elevated: var(--color-bg-surface);
-  --color-surface-subtle: var(--color-bg-elevated);
+  /* --- LEGACY aliases --- */
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-surface-subtle: #fafafa;
 
-  /* --- SIDEBAR (dark navy estilo Epic Hyperspace / Athenahealth) --- */
-  --color-brand-deep: #020617;       /* slate-950 */
-  --color-brand-mid: #0f172a;        /* slate-900 — sidebar principal */
-  --color-brand-accent: #1e293b;     /* slate-800 */
-  --color-brand-highlight: #0284c7;  /* sky-600 — acento médico */
-  --color-brand-highlight-soft: #38bdf8;
+  /* --- SIDEBAR agora também branca --- */
+  --color-brand-deep: #ffffff;
+  --color-brand-mid: #ffffff;
+  --color-brand-accent: #f5f5f5;
+  --color-brand-highlight: #0f172a;
+  --color-brand-highlight-soft: #334155;
 
-  /* --- ACENTO primário: azul médico (Medical Blue) --- */
-  --color-accent: #0284c7;           /* sky-600 */
-  --color-accent-glow: #0ea5e9;      /* sky-500 */
-  --color-accent-soft: rgba(14, 165, 233, 0.08);
-  --color-accent-softer: rgba(14, 165, 233, 0.04);
-  --color-accent-border: #bae6fd;    /* sky-200 */
-  --color-accent-dark: #075985;      /* sky-800 */
+  /* --- ACENTO: azul único discreto, zero glow --- */
+  --color-accent: #2563eb;           /* blue-600 — ação primária */
+  --color-accent-glow: #2563eb;      /* mesmo valor, sem glow */
+  --color-accent-soft: #eff6ff;      /* blue-50 — background sutil */
+  --color-accent-softer: #f8fafc;
+  --color-accent-border: #dbeafe;    /* blue-100 */
+  --color-accent-dark: #1d4ed8;      /* blue-700 */
 
-  /* --- ACENTO secundário: teal (vital signs, positive indicators) --- */
-  --color-accent-teal: #0d9488;      /* teal-600 */
-  --color-accent-teal-soft: rgba(13, 148, 136, 0.08);
+  --color-accent-teal: #2563eb;
+  --color-accent-teal-soft: #eff6ff;
 
-  /* --- STATUS CLÍNICOS (cores clássicas de EHR) --- */
-  --color-critical: #dc2626;         /* red-600 */
-  --color-critical-solid: #b91c1c;
-  --color-critical-fg: #b91c1c;
-  --color-critical-bg: #fef2f2;      /* red-50 */
-  --color-critical-border: #fecaca;  /* red-200 */
+  /* --- STATUS CLÍNICOS (soft, sem saturação neon) --- */
+  --color-critical: #b91c1c;         /* red-700 */
+  --color-critical-solid: #991b1b;
+  --color-critical-fg: #991b1b;
+  --color-critical-bg: #fef2f2;
+  --color-critical-border: #fecaca;
 
-  --color-warning: #d97706;          /* amber-600 */
-  --color-warning-solid: #b45309;
-  --color-warning-fg: #b45309;
-  --color-warning-bg: #fffbeb;       /* amber-50 */
-  --color-warning-border: #fde68a;   /* amber-200 */
+  --color-warning: #b45309;          /* amber-700 */
+  --color-warning-solid: #92400e;
+  --color-warning-fg: #92400e;
+  --color-warning-bg: #fffbeb;
+  --color-warning-border: #fde68a;
 
-  --color-success: #16a34a;          /* green-600 */
-  --color-success-solid: #15803d;
-  --color-success-fg: #15803d;
-  --color-success-bg: #f0fdf4;       /* green-50 */
-  --color-success-border: #bbf7d0;   /* green-200 */
+  --color-success: #15803d;          /* green-700 */
+  --color-success-solid: #166534;
+  --color-success-fg: #166534;
+  --color-success-bg: #f0fdf4;
+  --color-success-border: #bbf7d0;
 
-  --color-info: #0284c7;             /* sky-600 */
-  --color-info-solid: #0369a1;
-  --color-info-fg: #0369a1;
-  --color-info-bg: #f0f9ff;          /* sky-50 */
-  --color-info-border: #bae6fd;      /* sky-200 */
+  --color-info: #1d4ed8;
+  --color-info-solid: #1e40af;
+  --color-info-fg: #1e40af;
+  --color-info-bg: #eff6ff;
+  --color-info-border: #dbeafe;
 
-  --color-purple: #7c3aed;
+  --color-purple: #6d28d9;
   --color-purple-bg: #f5f3ff;
   --color-purple-border: #ddd6fe;
 
-  --color-neutral: #64748b;
-  --color-neutral-bg: #f1f5f9;
-  --color-neutral-border: #cbd5e1;
+  --color-neutral: #525252;
+  --color-neutral-bg: #fafafa;
+  --color-neutral-border: #e5e5e5;
 
-  /* --- TEXTO (light theme) --- */
-  --text-primary: #0f172a;           /* slate-900 — títulos e conteúdo principal */
-  --text-secondary: #334155;         /* slate-700 — sublabels */
-  --text-tertiary: #64748b;          /* slate-500 — metadados */
-  --text-muted: #94a3b8;             /* slate-400 — placeholders */
+  /* --- TEXTO pretos sólidos --- */
+  --text-primary: #0a0a0a;           /* preto quase puro */
+  --text-secondary: #262626;
+  --text-tertiary: #525252;
+  --text-muted: #737373;
   --text-inverse: #ffffff;
-  --text-brand: #0284c7;             /* sky-600 */
+  --text-brand: #1d4ed8;
 
   /* --- TYPOGRAFIA --- */
   /* Inter primeiro — padrão em templates médicos Figma community */

@@ -49,7 +49,7 @@ function colorFromName(name: string): string {
     'from-rose-500 to-red-700',
     'from-amber-500 to-orange-700',
     'from-emerald-500 to-teal-700',
-    'from-blue-500 to-sky-700',
+    'from-blue-500 to-blue-700',
   ];
   return palette[Math.abs(hash) % palette.length];
 }
@@ -101,7 +101,7 @@ export default function PatientsPage() {
       {/* Page header */}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700">
+          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-700">
             <Users className="h-3 w-3" /> Pacientes
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
@@ -127,7 +127,7 @@ export default function PatientsPage() {
           className={cn(
             'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
             statusFilter === 'all'
-              ? 'border-sky-300 bg-sky-50 text-sky-800'
+              ? 'border-blue-300 bg-blue-50 text-blue-800'
               : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50',
           )}
         >
@@ -143,7 +143,7 @@ export default function PatientsPage() {
               : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100',
           )}
         >
-          <VelyaStatusDot tone="critical" pulse size="sm" />
+          <VelyaStatusDot tone="critical" size="sm" />
           Bloqueados <span className="font-mono tabular-nums">{blockedCount}</span>
         </button>
         <button
@@ -189,7 +189,7 @@ export default function PatientsPage() {
         <div className="flex items-center gap-2">
           <Filter className="h-3.5 w-3.5 text-slate-400" />
           <select
-            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             value={wardFilter}
             onChange={(e) => setWardFilter(e.target.value)}
           >
@@ -201,7 +201,7 @@ export default function PatientsPage() {
             ))}
           </select>
           <select
-            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             value={riskFilter}
             onChange={(e) => setRiskFilter(e.target.value)}
           >
@@ -270,7 +270,7 @@ export default function PatientsPage() {
                         <div className="min-w-0">
                           <div className="truncate font-semibold text-slate-900">{patient.name}</div>
                           <div className="text-[11px] text-slate-500">
-                            <span className="font-mono text-sky-700">{patient.mrn}</span>
+                            <span className="font-mono text-blue-700">{patient.mrn}</span>
                             <span className="mx-1.5">·</span>
                             {patient.age}a
                           </div>
@@ -309,7 +309,6 @@ export default function PatientsPage() {
                       <Badge
                         variant={STATUS_VARIANT[patient.dischargeStatus]}
                         withDot
-                        pulse={patient.dischargeStatus === 'blocked'}
                       >
                         {STATUS_LABELS[patient.dischargeStatus]}
                       </Badge>

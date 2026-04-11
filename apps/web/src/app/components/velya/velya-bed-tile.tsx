@@ -48,9 +48,9 @@ const STATUS_CONFIG: Record<
   },
   reserved: {
     label: 'Reservado',
-    ring: 'border-sky-200',
-    bg: 'bg-sky-50',
-    text: 'text-sky-700',
+    ring: 'border-blue-200',
+    bg: 'bg-blue-50',
+    text: 'text-blue-700',
     icon: UserCheck,
   },
   maintenance: {

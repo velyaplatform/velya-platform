@@ -26,8 +26,8 @@ export function VelyaSectionHeader({
     <div className={cn('mb-4 flex items-start justify-between gap-3', className)}>
       <div className="flex items-center gap-2.5">
         {Icon && (
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-50 ring-1 ring-sky-200">
-            <Icon className="h-3.5 w-3.5 text-sky-600" strokeWidth={2.25} />
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 ring-1 ring-blue-200">
+            <Icon className="h-3.5 w-3.5 text-blue-600" strokeWidth={2.25} />
           </span>
         )}
         <div>

@@ -41,8 +41,8 @@ const ICON_BG: Record<KPITone, string> = {
   critical: 'text-red-100',
   warning: 'text-amber-100',
   success: 'text-emerald-100',
-  info: 'text-sky-100',
-  accent: 'text-sky-100',
+  info: 'text-blue-100',
+  accent: 'text-blue-100',
 };
 
 export function VelyaKPI({
@@ -63,7 +63,7 @@ export function VelyaKPI({
           className={cn(
             'absolute right-4 top-4 h-12 w-12 transition-colors',
             ICON_BG[tone],
-            'group-hover:text-sky-200',
+            'group-hover:text-blue-200',
           )}
           strokeWidth={1.5}
           aria-hidden="true"

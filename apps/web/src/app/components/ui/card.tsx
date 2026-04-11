@@ -22,8 +22,8 @@ const TONE_BORDER_LEFT: Record<CardTone, string> = {
   critical: 'border-l-4 border-l-red-500',
   warning: 'border-l-4 border-l-amber-500',
   success: 'border-l-4 border-l-emerald-500',
-  info: 'border-l-4 border-l-sky-500',
-  accent: 'border-l-4 border-l-sky-600',
+  info: 'border-l-4 border-l-blue-500',
+  accent: 'border-l-4 border-l-blue-600',
 };
 
 export const Card = React.forwardRef<HTMLDivElement, VelyaCardProps>(function Card(

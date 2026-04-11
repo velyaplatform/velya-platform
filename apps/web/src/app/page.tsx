@@ -28,7 +28,6 @@ import { VelyaAlertBanner } from './components/velya/velya-alert-banner';
 import { VelyaStatusDot } from './components/velya/velya-status-dot';
 import { VelyaSparkline } from './components/velya/velya-sparkline';
 import { VelyaSectionHeader } from './components/velya/velya-section';
-import { VelyaMedicalCross } from './components/velya/velya-medical-cross';
 import {
   PRIORITY_TASKS,
   DISCHARGE_PATIENTS,
@@ -54,7 +53,7 @@ function TaskRow({ priority, type, description, patient, assignee, due }: TaskRo
     >
       <div className="min-w-0 flex-1">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <Badge variant={badgeVariant} size="sm" withDot pulse={priority === 'urgent'}>
+          <Badge variant={badgeVariant} size="sm" withDot>
             {badgeLabel}
           </Badge>
           <Badge variant="outline" size="sm">
@@ -66,7 +65,7 @@ function TaskRow({ priority, type, description, patient, assignee, due }: TaskRo
         </div>
         <div className="mb-1 text-sm font-semibold text-slate-900">{description}</div>
         <div className="text-xs text-slate-500">
-          <span className="font-mono text-sky-700">{patient}</span>
+          <span className="font-mono text-blue-700">{patient}</span>
           <span className="mx-2 text-slate-300">·</span>
           <span className="text-slate-600">Resp.: {assignee}</span>
         </div>
@@ -124,7 +123,7 @@ function DischargeRow({ mrn, name, ward, los, targetDate, blockers, status }: Di
         )}
       </td>
       <td className="py-3 pr-4">
-        <Badge variant={config.variant} withDot pulse={status === 'blocked'}>
+        <Badge variant={config.variant} withDot>
           {config.label}
         </Badge>
       </td>
@@ -155,7 +154,7 @@ function ServiceStatus({ name, status, serviceId }: ServiceStatusProps) {
       href={`/system/services/${serviceId}`}
       className={`flex items-center gap-3 rounded-lg border border-slate-200 border-l-[3px] bg-white px-3 py-2.5 no-underline transition-all hover:border-slate-300 hover:shadow-sm ${cfg.border}`}
     >
-      <VelyaStatusDot tone={cfg.tone} pulse={status === 'degraded'} />
+      <VelyaStatusDot tone={cfg.tone} />
       <div className="min-w-0 flex-1">
         <div className="text-sm font-semibold text-slate-900">{name}</div>
         <div className="text-[11px] text-slate-500">{cfg.label}</div>
@@ -219,35 +218,6 @@ const ADMISSIONS_TREND = [4, 3, 5, 4, 6, 5, 3];
 export default function CommandCenterPage() {
   return (
     <AppShell pageTitle="Centro de Comando">
-      {/* Strip estático de status operacional do hospital */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
-        <div className="flex items-center gap-2.5">
-          <VelyaMedicalCross size={16} />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-sky-700">
-            Status Operacional do Hospital
-          </span>
-          <span className="font-mono text-[11px] text-slate-400">· Monitoramento contínuo</span>
-        </div>
-        <div className="flex items-center gap-5 font-mono text-[12px]">
-          <span className="text-slate-500">
-            <span className="text-slate-400">Internados</span>{' '}
-            <span className="font-semibold text-slate-900">47</span>
-          </span>
-          <span className="text-slate-500">
-            <span className="text-slate-400">UTI</span>{' '}
-            <span className="font-semibold text-slate-900">12/16</span>
-          </span>
-          <span className="text-slate-500">
-            <span className="text-slate-400">Ocupação</span>{' '}
-            <span className="font-semibold text-sky-700">87%</span>
-          </span>
-          <span className="hidden items-center gap-1 text-emerald-600 sm:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            ONLINE
-          </span>
-        </div>
-      </div>
-
       {/* Banner de Alerta Crítico */}
       <VelyaAlertBanner
         severity="critical"
@@ -263,17 +233,14 @@ export default function CommandCenterPage() {
         className="mb-6"
       />
 
-      {/* Page title */}
+      {/* Page actions */}
       <div className="mb-6 flex items-end justify-between">
         <div>
-          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700">
-            <VelyaStatusDot tone="success" pulse size="sm" /> Tempo real
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            Centro de Comando
+          <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
+            Visão geral
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Visão unificada de pacientes, altas, tarefas e saúde do sistema
+          <p className="mt-1 text-sm text-neutral-500">
+            {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -394,7 +361,7 @@ export default function CommandCenterPage() {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="group flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 no-underline transition-all hover:border-sky-300 hover:bg-sky-50"
+                    className="group flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 no-underline transition-all hover:border-blue-300 hover:bg-blue-50"
                   >
                     <span
                       className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
@@ -411,7 +378,7 @@ export default function CommandCenterPage() {
                     <Badge variant={item.tone} size="sm">
                       {item.count}
                     </Badge>
-                    <ChevronRight className="h-3.5 w-3.5 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-sky-600" />
+                    <ChevronRight className="h-3.5 w-3.5 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-600" />
                   </Link>
                 );
               })}

@@ -60,7 +60,6 @@ import {
   getNavigationSections,
 } from '../../lib/access-control';
 import { VelyaLogo } from './velya/velya-logo';
-import { VelyaMedicalCross } from './velya/velya-medical-cross';
 import { cn } from '../../lib/utils';
 
 const ROLES = [
@@ -213,18 +212,16 @@ export function Navigation({
     <aside
       className={cn(
         'fixed top-0 left-0 bottom-0 z-50 flex w-[260px] flex-col overflow-y-auto shrink-0',
-        'border-r border-slate-800 bg-[#0f172a] text-slate-300',
+        'border-r border-neutral-200 bg-white text-neutral-800',
         'transition-transform duration-300',
         'md:translate-x-0',
         mobileOpen ? 'translate-x-0' : '-translate-x-full',
       )}
     >
-      {/* Sky accent bar on far left edge */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b from-sky-500/0 via-sky-500/50 to-sky-500/0" />
 
       {/* Close button for mobile */}
       <button
-        className="absolute top-3 right-3 rounded-md p-1 text-slate-300 hover:text-white md:hidden"
+        className="absolute top-3 right-3 rounded-md p-1 text-neutral-500 hover:text-neutral-900 md:hidden"
         onClick={onMobileClose}
         aria-label="Fechar menu"
       >
@@ -233,24 +230,9 @@ export function Navigation({
         </svg>
       </button>
 
-      {/* Logo + selo hospitalar */}
-      <div className="relative border-b border-slate-800 px-5 py-5">
-        <VelyaLogo size={34} />
-        <div className="absolute right-4 top-4 opacity-25">
-          <VelyaMedicalCross size={18} variant="outline" />
-        </div>
-      </div>
-
-      {/* Pulse strip — "sistema em operação 24/7" */}
-      <div className="border-b border-slate-800/60 bg-slate-800/30 px-5 py-2">
-        <div className="flex items-center gap-2 text-[10px] font-medium">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-          </span>
-          <span className="text-emerald-300">Sistema em operação</span>
-          <span className="ml-auto font-mono text-slate-500">24/7</span>
-        </div>
+      {/* Logo */}
+      <div className="border-b border-neutral-200 px-5 py-5">
+        <VelyaLogo size={32} />
       </div>
 
       {/* Nav sections */}
@@ -260,7 +242,7 @@ export function Navigation({
           if (!items || items.length === 0) return null;
           return (
             <div key={section} className={sectionIdx > 0 ? 'mt-4' : ''}>
-              <div className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              <div className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
                 {SECTION_LABELS[section]}
               </div>
               <div className="flex flex-col gap-0.5">
@@ -274,22 +256,16 @@ export function Navigation({
                       href={item.href}
                       onClick={handleNavClick}
                       className={cn(
-                        'group relative flex min-h-[38px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                        'group relative flex min-h-[38px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                         isActive
-                          ? 'bg-sky-500/15 text-sky-100 shadow-[inset_0_0_0_1px_rgba(14,165,233,0.25)]'
-                          : 'text-slate-400 hover:bg-slate-800/70 hover:text-slate-100',
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900',
                       )}
                     >
-                      {isActive && (
-                        <span
-                          aria-hidden="true"
-                          className="absolute inset-y-1 left-0 w-[3px] rounded-r-full bg-sky-400"
-                        />
-                      )}
                       <Icon
                         className={cn(
-                          'h-[18px] w-[18px] shrink-0 transition-colors',
-                          isActive ? 'text-sky-300' : 'text-slate-500 group-hover:text-slate-300',
+                          'h-[18px] w-[18px] shrink-0',
+                          isActive ? 'text-blue-600' : 'text-neutral-500',
                         )}
                         strokeWidth={2}
                       />
@@ -297,10 +273,10 @@ export function Navigation({
                       {item.badge !== undefined && item.badge > 0 && (
                         <span
                           className={cn(
-                            'ml-auto rounded-full px-1.5 py-px text-[10px] font-bold tabular-nums',
-                            item.badge >= 10 && item.label.includes('Alerta')
-                              ? 'bg-red-500/20 text-red-300 ring-1 ring-red-500/40'
-                              : 'bg-slate-800 text-slate-300 ring-1 ring-slate-700',
+                            'ml-auto rounded-full px-1.5 py-px text-[10px] font-semibold tabular-nums',
+                            item.badge >= 5 && item.label.includes('Alerta')
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-neutral-100 text-neutral-600',
                           )}
                         >
                           {item.badge}
@@ -316,24 +292,24 @@ export function Navigation({
 
         {showObservability && (
           <div className="mt-4">
-            <div className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <div className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
               Observabilidade
             </div>
             <div className="flex flex-col gap-0.5">
               <Link
                 href="/observability/metrics"
                 onClick={handleNavClick}
-                className="flex min-h-[38px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-slate-100"
+                className="flex min-h-[38px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
               >
-                <LineChart className="h-[18px] w-[18px] text-slate-500" strokeWidth={2} />
+                <LineChart className="h-[18px] w-[18px] text-neutral-500" strokeWidth={2} />
                 <span>Métricas</span>
               </Link>
               <Link
                 href="/observability/deploys"
                 onClick={handleNavClick}
-                className="flex min-h-[38px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-slate-100"
+                className="flex min-h-[38px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
               >
-                <GitBranch className="h-[18px] w-[18px] text-slate-500" strokeWidth={2} />
+                <GitBranch className="h-[18px] w-[18px] text-neutral-500" strokeWidth={2} />
                 <span>Implantações</span>
               </Link>
             </div>
@@ -341,54 +317,37 @@ export function Navigation({
         )}
       </nav>
 
-      {/* Selo de compliance hospitalar */}
-      <div className="border-t border-slate-800 px-4 py-3">
-        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.06] px-2.5 py-2">
-          <VelyaMedicalCross size={18} variant="outline" />
-          <div className="min-w-0 flex-1 leading-tight">
-            <div className="text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
-              Hospital Acreditado
-            </div>
-            <div className="truncate text-[9px] font-mono text-emerald-400/80">
-              LGPD · CFM 2.314 · HL7 FHIR
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Caixa de Recomendações — expandida e visível */}
-      <div className="border-t border-slate-800 bg-gradient-to-br from-sky-900/30 via-slate-900 to-slate-900 p-4">
+      <div className="border-t border-neutral-200 bg-neutral-50 p-4">
         {suggestionStatus === 'sent' ? (
           <div
             role="status"
-            className="rounded-xl border border-emerald-500/40 bg-emerald-500/15 px-4 py-4 text-center text-sm font-semibold text-emerald-200"
+            className="rounded-lg border border-green-200 bg-green-50 px-4 py-4 text-center text-sm font-semibold text-green-800"
           >
             ✓ Recomendação enviada
-            <div className="mt-1 text-[11px] font-normal text-emerald-300/80">
-              Obrigado pelo feedback!
+            <div className="mt-1 text-[11px] font-normal text-green-700">
+              Obrigado pelo feedback.
             </div>
           </div>
         ) : (
           <div>
-            {/* Header com ícone e título em destaque */}
             <div className="mb-3 flex items-start gap-2.5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sky-500/15 ring-1 ring-sky-500/40">
-                <Lightbulb className="h-4 w-4 text-sky-300" strokeWidth={2.25} />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50">
+                <Lightbulb className="h-4 w-4 text-blue-600" strokeWidth={2.25} />
               </div>
               <div className="min-w-0 flex-1">
                 <label
                   htmlFor="sidebar-suggestion"
-                  className="block text-[13px] font-semibold text-slate-100"
+                  className="block text-[13px] font-semibold text-neutral-900"
                 >
                   Enviar recomendação
                 </label>
-                <p className="mt-0.5 text-[11px] leading-snug text-slate-400">
+                <p className="mt-0.5 text-[11px] leading-snug text-neutral-600">
                   Viu algo que pode melhorar? Conte pra gente.
                 </p>
               </div>
             </div>
 
-            {/* Textarea multiline com ação clara */}
             <textarea
               id="sidebar-suggestion"
               value={suggestionText}
@@ -401,13 +360,13 @@ export function Navigation({
               placeholder="Descreva sua recomendação, problema ou ideia..."
               disabled={suggestionStatus === 'sending'}
               rows={3}
-              className="w-full resize-none rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 outline-none transition-colors focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 disabled:opacity-60"
+              className="w-full resize-none rounded-md border border-neutral-300 bg-white px-3 py-2 text-xs text-neutral-900 placeholder:text-neutral-400 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
             />
 
             <button
               onClick={handleSuggestionSubmit}
               disabled={!suggestionText.trim() || suggestionStatus === 'sending'}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-sky-600 px-3 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-sky-500 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {suggestionStatus === 'sending' ? (
                 <>
@@ -422,9 +381,9 @@ export function Navigation({
               )}
             </button>
 
-            <div className="mt-1.5 flex items-center justify-center gap-1 text-[9px] text-slate-600">
-              <kbd className="rounded bg-slate-800 px-1 font-mono text-slate-400">⌘</kbd>
-              <kbd className="rounded bg-slate-800 px-1 font-mono text-slate-400">↵</kbd>
+            <div className="mt-1.5 flex items-center justify-center gap-1 text-[9px] text-neutral-500">
+              <kbd className="rounded border border-neutral-300 bg-white px-1 font-mono text-neutral-600">⌘</kbd>
+              <kbd className="rounded border border-neutral-300 bg-white px-1 font-mono text-neutral-600">↵</kbd>
               <span>para enviar</span>
             </div>
           </div>

@@ -3,13 +3,10 @@ import type { ReactNode } from 'react';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import './globals.css';
-import { AiAssistantPanel } from './components/ai-assistant-panel';
-import { CommandPalette } from './components/command-palette';
+import { AuthenticatedUiProviders } from './components/authenticated-ui-providers';
 import { ErrorBoundary } from './components/error-boundary';
 import { ErrorReporter } from './components/error-reporter';
 import { NavTelemetryMount } from './components/nav-telemetry-mount';
-import { OnboardingTour } from './components/onboarding-tour';
-import { ShortcutsHelp } from './components/shortcuts-help';
 import { ToastProvider } from './components/toast-provider';
 
 export const metadata: Metadata = {
@@ -25,10 +22,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ErrorBoundary>
           <ToastProvider>
             {children}
-            <CommandPalette />
-            <AiAssistantPanel />
-            <ShortcutsHelp />
-            <OnboardingTour />
+            <AuthenticatedUiProviders />
             <NavTelemetryMount />
           </ToastProvider>
         </ErrorBoundary>

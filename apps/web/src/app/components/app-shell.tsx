@@ -9,7 +9,6 @@ import { PatientQuickSwitcher } from './patient-quick-switcher';
 import { ROLE_DEFINITIONS, resolveUiRole } from '../../lib/access-control';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Button } from './ui/button';
-import { VelyaShiftIndicator } from './velya/velya-shift-indicator';
 import { cn } from '../../lib/utils';
 
 interface AppShellProps {
@@ -31,7 +30,6 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [sessionActive, setSessionActive] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [currentTime, setCurrentTime] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -65,23 +63,6 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
       });
   }, [router]);
 
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false,
-        }),
-      );
-    };
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
@@ -89,9 +70,9 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
 
   if (loading || !sessionData) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="flex items-center gap-3 text-slate-500">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-500/30 border-t-sky-600" />
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="flex items-center gap-3 text-neutral-500">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-200 border-t-blue-600" />
           <span className="text-sm">Carregando Velya…</span>
         </div>
       </div>
@@ -110,11 +91,11 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
       : sessionData.userName.slice(0, 2).toUpperCase();
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900">
+    <div className="flex min-h-screen bg-white text-neutral-900">
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-neutral-900/40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -128,101 +109,84 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
       />
 
       <div className="flex min-h-screen flex-1 flex-col md:ml-[260px]">
-        {/* Topbar white, padrão EHR */}
-        <header className="sticky top-0 z-40 flex h-[60px] items-center justify-between gap-3 border-b border-slate-200 bg-white px-6 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
-          {/* Left: hamburger + breadcrumb */}
+        {/* Topbar: branco limpo, só título da página (sem "Velya /" duplicado) */}
+        <header className="sticky top-0 z-40 flex h-[60px] items-center justify-between gap-3 border-b border-neutral-200 bg-white px-6">
           <div className="flex items-center gap-3">
             <button
-              className="rounded-md p-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 md:hidden"
+              className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 md:hidden"
               onClick={() => setSidebarOpen(true)}
               aria-label="Abrir menu"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">
-                Velya
-              </span>
-              <span className="text-slate-300">/</span>
-              <span className="text-sm font-semibold text-slate-900">{pageTitle}</span>
-            </div>
+            <h1 className="text-[15px] font-semibold text-neutral-900">{pageTitle}</h1>
           </div>
 
-          {/* Center: busca global + shift indicator */}
-          <div className="mx-4 hidden max-w-xl flex-1 items-center gap-3 md:flex">
+          {/* Center: busca global única */}
+          <div className="mx-4 hidden max-w-xl flex-1 md:block">
             <button
               type="button"
               onClick={() => {
                 const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
                 window.dispatchEvent(event);
               }}
-              className="group flex h-10 flex-1 items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3 text-left text-sm text-slate-400 transition-all hover:border-sky-400 hover:bg-white"
+              className="group flex h-10 w-full items-center gap-2.5 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-left text-sm text-neutral-500 transition-colors hover:border-neutral-300 hover:bg-white"
             >
-              <Search className="h-4 w-4 shrink-0 text-slate-400 group-hover:text-sky-600" />
-              <span className="flex-1 truncate">
-                Buscar pacientes, tarefas, MRN…
-              </span>
-              <kbd className="hidden rounded border border-slate-200 bg-white px-1.5 font-mono text-[10px] text-slate-500 sm:inline-block">
+              <Search className="h-4 w-4 shrink-0 text-neutral-400 group-hover:text-neutral-600" />
+              <span className="flex-1 truncate">Buscar pacientes, tarefas, MRN…</span>
+              <kbd className="hidden rounded border border-neutral-200 bg-white px-1.5 font-mono text-[10px] text-neutral-500 sm:inline-block">
                 ⌘K
               </kbd>
             </button>
-            <div className="hidden lg:block">
-              <VelyaShiftIndicator />
-            </div>
           </div>
 
-          {/* Right: actions + user */}
+          {/* Right: alertas + bell + user */}
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => router.push('/alerts')}
-              className="gap-2 border-red-200 bg-red-50 text-red-700 hover:border-red-300 hover:bg-red-100 hover:text-red-800"
+              className="gap-2 border-red-200 bg-red-50 text-red-700 hover:border-red-300 hover:bg-red-100"
               aria-label="Ver 5 alertas críticos"
             >
-              <AlertOctagon className="h-3.5 w-3.5 animate-pulse" />
+              <AlertOctagon className="h-3.5 w-3.5" />
               <span className="font-semibold">5 Críticos</span>
             </Button>
 
             <button
               type="button"
               aria-label="Notificações"
-              className="relative rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+              className="relative rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
             >
               <Bell className="h-4 w-4" />
-              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-sky-500" />
             </button>
 
             <FavoritesMenu />
             <PatientQuickSwitcher />
 
-            <div className="hidden font-mono text-xs text-slate-500 tabular-nums lg:block">
-              {currentTime}
-            </div>
-
             <button
               type="button"
               onClick={() => router.push('/me')}
-              className="ml-1 flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-2 py-1 transition-all hover:border-sky-300 hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+              className="ml-1 flex items-center gap-2.5 rounded-md border border-neutral-200 bg-white px-2 py-1 transition-colors hover:border-neutral-300 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               aria-label={`Abrir meu painel — ${sessionData.userName}`}
-              title="Meu painel — atividade, tarefas e perfil"
+              title="Meu painel"
             >
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
               </Avatar>
               <div className="hidden flex-col leading-tight text-left md:flex">
-                <span className="text-xs font-semibold text-slate-900">
+                <span className="text-xs font-semibold text-neutral-900">
                   {sessionData.userName.split(' ')[0]}{' '}
                   {sessionData.userName.split(' ').slice(-1)[0]?.[0]}.
                 </span>
-                <span className="text-[10px] text-slate-500">
-                  {councilBadge ?? `Nível ${roleDef?.accessLevel}`}
-                </span>
+                {councilBadge && (
+                  <span className="text-[10px] text-neutral-500">{councilBadge}</span>
+                )}
               </div>
               <span
                 className={cn(
                   'h-2 w-2 shrink-0 rounded-full',
-                  sessionActive ? 'bg-emerald-500' : 'bg-red-500',
+                  sessionActive ? 'bg-green-600' : 'bg-red-600',
                 )}
                 title={sessionActive ? 'Sessão ativa' : 'Sem sessão'}
                 aria-hidden="true"

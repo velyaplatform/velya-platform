@@ -80,7 +80,7 @@ export function News2RiskPanel() {
                         {bed.patient.name}
                       </div>
                       <div className="truncate text-[11px] text-slate-500">
-                        <span className="font-mono text-sky-700">{bed.patient.mrn}</span>
+                        <span className="font-mono text-blue-700">{bed.patient.mrn}</span>
                         <span className="mx-1.5 text-slate-300">·</span>
                         {bed.patient.age}a
                         <span className="mx-1.5 text-slate-300">·</span>

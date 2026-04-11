@@ -6,24 +6,24 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../../lib/utils';
 
 /**
- * Velya Button — estilo EHR/healthcare com acento azul médico (sky-600).
+ * Velya Button — estilo EHR/healthcare com acento azul médico (blue-600).
  * Sem glow ou efeitos gamer — sombra sutil, transição suave.
  */
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
         default:
-          'bg-sky-600 text-white shadow-sm hover:bg-sky-700 active:bg-sky-800',
+          'bg-blue-600 text-white shadow-sm hover:bg-blue-700 active:bg-blue-800',
         destructive:
           'bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800',
         outline:
-          'border border-slate-300 bg-white text-slate-700 shadow-sm hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700',
+          'border border-slate-300 bg-white text-slate-700 shadow-sm hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700',
         secondary:
           'bg-slate-100 text-slate-900 border border-slate-200 hover:bg-slate-200',
         ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-        link: 'text-sky-600 underline-offset-4 hover:underline hover:text-sky-700',
+        link: 'text-blue-600 underline-offset-4 hover:underline hover:text-blue-700',
         warning:
           'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100',
         success:

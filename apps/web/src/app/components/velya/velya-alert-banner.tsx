@@ -32,10 +32,10 @@ const SEVERITY_CONFIG: Record<
   },
   info: {
     icon: Info,
-    ring: 'border-sky-200',
-    bg: 'bg-sky-50',
-    text: 'text-sky-900',
-    iconBg: 'bg-sky-100 text-sky-600',
+    ring: 'border-blue-200',
+    bg: 'bg-blue-50',
+    text: 'text-blue-900',
+    iconBg: 'bg-blue-100 text-blue-600',
   },
   success: {
     icon: CheckCircle2,
@@ -52,7 +52,6 @@ export interface VelyaAlertBannerProps {
   description?: React.ReactNode;
   action?: React.ReactNode;
   className?: string;
-  pulse?: boolean;
 }
 
 export function VelyaAlertBanner({
@@ -61,7 +60,6 @@ export function VelyaAlertBanner({
   description,
   action,
   className,
-  pulse = true,
 }: VelyaAlertBannerProps) {
   const cfg = SEVERITY_CONFIG[severity];
   const Icon = cfg.icon;
@@ -70,7 +68,7 @@ export function VelyaAlertBanner({
     <div
       role="alert"
       className={cn(
-        'relative flex items-center gap-4 rounded-xl border px-5 py-4 shadow-sm',
+        'relative flex items-center gap-4 rounded-lg border px-5 py-4',
         cfg.ring,
         cfg.bg,
         className,
@@ -78,9 +76,8 @@ export function VelyaAlertBanner({
     >
       <div
         className={cn(
-          'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
+          'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
           cfg.iconBg,
-          pulse && severity === 'critical' && 'animate-pulse',
         )}
       >
         <Icon className="h-5 w-5" />

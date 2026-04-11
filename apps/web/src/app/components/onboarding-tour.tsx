@@ -1,6 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
+
+/** Rotas onde o tour NÃO deve abrir — telas pré-login e callbacks. */
+const AUTH_ROUTES = new Set(['/login', '/register', '/verify']);
 
 type Placement = 'top' | 'bottom' | 'left' | 'right';
 
@@ -91,6 +95,9 @@ function dispatchCompletedEvent(reason: 'completed' | 'skipped'): void {
 }
 
 export function OnboardingTour() {
+  const pathname = usePathname();
+  const isOnAuthRoute = AUTH_ROUTES.has(pathname ?? '');
+
   const [isActive, setIsActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState<TargetRect>(EMPTY_RECT);
@@ -98,29 +105,43 @@ export function OnboardingTour() {
   const [viewport, setViewport] = useState({ width: 0, height: 0 });
   const nextButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Initial mount: activate tour if not completed.
+  // Initial mount: activate tour if not completed AND not on auth route.
   useEffect(() => {
     if (typeof window === 'undefined') {
+      return;
+    }
+    if (isOnAuthRoute) {
       return;
     }
     if (!readCompletedFlag()) {
       setIsActive(true);
       setStepIndex(0);
     }
-  }, []);
+  }, [isOnAuthRoute]);
 
-  // Listen for external re-trigger.
+  // Listen for external re-trigger (só fora das rotas de auth).
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
     }
     const handler = () => {
+      if (isOnAuthRoute) {
+        return;
+      }
       setStepIndex(0);
       setIsActive(true);
     };
     window.addEventListener(START_EVENT, handler);
     return () => window.removeEventListener(START_EVENT, handler);
-  }, []);
+  }, [isOnAuthRoute]);
+
+  // Se mudou pra rota de auth, fecha o tour.
+  useEffect(() => {
+    if (isOnAuthRoute && isActive) {
+      setIsActive(false);
+      setStepIndex(0);
+    }
+  }, [isOnAuthRoute, isActive]);
 
   const currentStep = STEPS[stepIndex];
 
