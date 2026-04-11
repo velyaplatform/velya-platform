@@ -177,6 +177,7 @@ export default function DischargePage() {
                 <th style={{ width: '36px' }}>
                   <input
                     type="checkbox"
+                    aria-label="Selecionar todos os pacientes"
                     checked={selected.size === sorted.length && sorted.length > 0}
                     onChange={selectAll}
                     style={{ cursor: 'pointer' }}
@@ -219,6 +220,7 @@ export default function DischargePage() {
                         <td onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
+                            aria-label={`Selecionar ${patient.name} (${patient.mrn})`}
                             checked={selected.has(patient.mrn)}
                             onChange={() => toggleSelect(patient.mrn)}
                             style={{ cursor: 'pointer' }}

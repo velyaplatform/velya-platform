@@ -346,7 +346,12 @@ export default function PatientsPage() {
                         <Button asChild size="xs">
                           <Link href={`/patients/${patient.mrn}`}>Ver</Link>
                         </Button>
-                        <Button size="xs" variant="outline">
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          aria-label={`Tarefas de ${patient.name}`}
+                          title="Ver tarefas do paciente"
+                        >
                           <ClipboardList className="h-3 w-3" />
                         </Button>
                       </div>
