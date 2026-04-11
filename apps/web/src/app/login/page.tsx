@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AlertCircle, Mail, Lock, ArrowRight } from 'lucide-react';
+import { VelyaLogo } from '../components/velya/velya-logo';
+import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,26 +43,58 @@ export default function LoginPage() {
 
       router.push('/');
     } catch {
-      setError('Erro de conexao. Tente novamente.');
+      setError('Erro de conexão. Tente novamente.');
       setLoading(false);
     }
   }
 
   return (
-    <main className="min-h-screen bg-velya-bg flex items-center justify-center px-4 py-8">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0a0e17] px-4 py-8">
+      {/* Decorative glow background */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `
+            radial-gradient(ellipse 60% 50% at 50% 10%, rgba(20,184,166,0.15), transparent 60%),
+            radial-gradient(ellipse 40% 30% at 80% 80%, rgba(59,130,246,0.08), transparent 60%),
+            radial-gradient(ellipse 30% 20% at 20% 80%, rgba(168,85,247,0.08), transparent 60%)
+          `,
+        }}
+      />
+      {/* Decorative grid */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }}
+      />
+
       <section
         aria-labelledby="login-title"
-        className="w-full max-w-[420px] bg-velya-card rounded-2xl p-8 sm:p-10 shadow-2xl border border-velya-border"
+        className="relative w-full max-w-[440px] rounded-3xl border border-white/[0.08] bg-[rgba(15,22,35,0.72)] p-8 shadow-[0_24px_64px_-16px_rgba(0,0,0,0.7),inset_0_1px_0_0_rgba(255,255,255,0.04)] backdrop-blur-2xl backdrop-saturate-150 sm:p-10"
       >
-        {/* Header */}
-        <header className="text-center mb-8">
-          <div className="text-2xl font-bold text-white tracking-tight">Velya</div>
-          <div className="text-xs text-slate-300 uppercase tracking-widest mt-1 font-medium">
-            Plataforma Hospitalar
+        {/* Teal top accent line */}
+        <div className="absolute inset-x-10 -top-px h-px bg-gradient-to-r from-transparent via-teal-400/60 to-transparent" />
+
+        {/* Logo */}
+        <header className="mb-8 flex flex-col items-center">
+          <VelyaLogo size={56} wordmark={false} />
+          <div className="mt-4 flex flex-col items-center">
+            <div className="bg-gradient-to-br from-teal-200 via-teal-300 to-teal-500 bg-clip-text text-2xl font-semibold tracking-tight text-transparent">
+              Velya
+            </div>
+            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+              Plataforma Hospitalar
+            </div>
           </div>
-          <h1 id="login-title" className="text-xl font-semibold text-white mt-6">
+          <h1 id="login-title" className="mt-6 text-lg font-semibold text-slate-100">
             Entrar
           </h1>
+          <p className="mt-1 text-xs text-slate-400">
+            Acesso à sua central de operações clínicas
+          </p>
         </header>
 
         {/* Form */}
@@ -66,63 +102,81 @@ export default function LoginPage() {
           {error && (
             <div
               role="alert"
-              className="bg-red-500/20 border border-red-400/50 rounded-lg px-4 py-3 text-red-200 text-sm text-center"
+              className="flex items-center gap-2 rounded-lg border border-red-500/35 bg-red-500/10 px-3 py-2.5 text-sm text-red-200"
             >
-              {error}
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-sm font-medium text-slate-200">
+            <label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-slate-400">
               Email
             </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu.email@hospital.com"
-              className="w-full min-h-[44px] bg-white/10 border border-white/30 rounded-lg px-3.5 py-2.5 text-white text-base placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-              autoComplete="email"
-              autoFocus
-              required
-            />
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu.email@hospital.com"
+                className="pl-9"
+                autoComplete="email"
+                autoFocus
+                required
+              />
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="password" className="text-sm font-medium text-slate-200">
+            <label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-slate-400">
               Senha
             </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Sua senha"
-              className="w-full min-h-[44px] bg-white/10 border border-white/30 rounded-lg px-3.5 py-2.5 text-white text-base placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-              autoComplete="current-password"
-              required
-            />
+            <div className="relative">
+              <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Sua senha"
+                className="pl-9"
+                autoComplete="current-password"
+                required
+              />
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full min-h-[48px] bg-blue-700 hover:bg-blue-800 text-white font-semibold text-base rounded-lg mt-2 transition disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-velya-card"
-          >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
+          <Button type="submit" disabled={loading} size="lg" className="mt-2 w-full">
+            {loading ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                Entrando…
+              </>
+            ) : (
+              <>
+                Entrar <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </Button>
 
-          <div className="text-center mt-2 py-2">
-            <span className="text-sm text-slate-300">Não tem conta? </span>
+          <div className="mt-2 text-center">
+            <span className="text-xs text-slate-500">Não tem conta? </span>
             <Link
               href="/register"
-              className="text-sm font-semibold text-blue-300 hover:text-blue-200 underline-offset-2 hover:underline transition inline-block min-h-[44px] leading-[44px]"
+              className="text-xs font-semibold text-teal-300 hover:text-teal-200 hover:underline"
             >
               Cadastrar
             </Link>
           </div>
         </form>
+
+        {/* Footer badge */}
+        <div className="mt-8 flex items-center justify-center gap-2 text-[10px] text-slate-600">
+          <span className="h-1.5 w-1.5 rounded-full bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.7)]" />
+          <span className="font-mono uppercase tracking-wider">Sessão TLS · WCAG AA</span>
+        </div>
       </section>
     </main>
   );

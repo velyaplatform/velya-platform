@@ -4,10 +4,63 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  LayoutDashboard,
+  Users,
+  ListChecks,
+  HeartPulse,
+  Stethoscope,
+  Building2,
+  Pill,
+  FlaskConical,
+  BarChart3,
+  ScanLine,
+  FileImage,
+  UserCheck,
+  ArrowLeftRight,
+  RefreshCw,
+  Inbox,
+  Search,
+  Bell,
+  Package,
+  Sparkles,
+  ArrowRightLeft,
+  UtensilsCrossed,
+  Boxes,
+  FileText,
+  Wrench,
+  Trash2,
+  Contact,
+  Store,
+  DollarSign,
+  FileSpreadsheet,
+  XCircle,
+  AlertTriangle,
+  ShieldCheck,
+  IdCard,
+  FileSignature,
+  Settings,
+  ClipboardList,
+  Lock,
+  Clock,
+  Bot,
+  Lightbulb,
+  DoorOpen,
+  BedDouble,
+  Scissors,
+  Ambulance,
+  Activity,
+  Syringe,
+  LineChart,
+  GitBranch,
+  type LucideIcon,
+} from 'lucide-react';
+import {
   NAV_SECTIONS,
   resolveUiRole,
   getNavigationSections,
 } from '../../lib/access-control';
+import { VelyaLogo } from './velya/velya-logo';
+import { cn } from '../../lib/utils';
 
 const ROLES = [
   'Coordenador de Ala',
@@ -28,7 +81,7 @@ type Role = (typeof ROLES)[number];
 
 interface NavItemDef {
   href: string;
-  icon: string;
+  icon: LucideIcon;
   label: string;
   badge?: number;
   section: string;
@@ -37,119 +90,63 @@ interface NavItemDef {
 
 const NAV_ITEMS: NavItemDef[] = [
   // --- Assistencial ---
-  { href: '/', icon: '\u2B1B', label: 'Centro de Comando', section: NAV_SECTIONS.ASSISTENCIAL },
-  {
-    href: '/patients',
-    icon: '\uD83E\uDDD1\u200D\u2695\uFE0F',
-    label: 'Pacientes',
-    badge: 47,
-    section: NAV_SECTIONS.ASSISTENCIAL,
-  },
-  {
-    href: '/tasks',
-    icon: '\u2705',
-    label: 'Caixa de Tarefas',
-    badge: 12,
-    section: NAV_SECTIONS.ASSISTENCIAL,
-  },
-  // --- Gestao ---
-  {
-    href: '/discharge',
-    icon: '\uD83C\uDFE0',
-    label: 'Torre de Altas',
-    badge: 5,
-    section: NAV_SECTIONS.GESTAO,
-  },
-  {
-    href: '/beds',
-    icon: '\uD83D\uDECF\uFE0F',
-    label: 'Leitos',
-    section: NAV_SECTIONS.GESTAO,
-  },
-  {
-    href: '/surgery',
-    icon: '\u2695\uFE0F',
-    label: 'Centro Cir\u00FArgico',
-    section: NAV_SECTIONS.GESTAO,
-  },
-  {
-    href: '/ems',
-    icon: '\uD83D\uDE91',
-    label: 'Ambul\u00E2ncias',
-    section: NAV_SECTIONS.GESTAO,
-  },
-  {
-    href: '/icu',
-    icon: '\uD83D\uDC89',
-    label: 'UTI',
-    section: NAV_SECTIONS.GESTAO,
-  },
-  {
-    href: '/pharmacy',
-    icon: '\uD83D\uDC8A',
-    label: 'Farm\u00E1cia',
-    section: NAV_SECTIONS.GESTAO,
-  },
-  // --- Ferramentas clínicas ---
-  { href: '/tools/sepsis', icon: '\uD83E\uDE78', label: 'NEWS2 / Sepse', section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/specialties',  icon: '\uD83E\uDE7A', label: 'Especialidades', section: NAV_SECTIONS.GESTAO },
-  { href: '/wards',        icon: '\uD83C\uDFE5', label: 'Alas e Setores', section: NAV_SECTIONS.GESTAO },
-  // --- Clínico (ordens, resultados) ---
-  { href: '/prescriptions', icon: '\uD83D\uDC8A', label: 'Prescri\u00e7\u00f5es', section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/lab/orders',     icon: '\uD83E\uDDEA', label: 'Ordens de Lab',   section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/lab/results',    icon: '\uD83D\uDCCA', label: 'Resultados Lab',  section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/imaging/orders', icon: '\uD83E\uDE7B', label: 'Ordens de Imagem', section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/imaging/results',icon: '\uD83D\uDDBC\uFE0F', label: 'Laudos de Imagem', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/', icon: LayoutDashboard, label: 'Centro de Comando', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/patients', icon: Users, label: 'Pacientes', badge: 47, section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/tasks', icon: ListChecks, label: 'Caixa de Tarefas', badge: 12, section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/tools/sepsis', icon: HeartPulse, label: 'NEWS2 / Sepse', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/prescriptions', icon: Pill, label: 'Prescrições', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/lab/orders', icon: FlaskConical, label: 'Ordens de Lab', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/lab/results', icon: BarChart3, label: 'Resultados Lab', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/imaging/orders', icon: ScanLine, label: 'Ordens de Imagem', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/imaging/results', icon: FileImage, label: 'Laudos de Imagem', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/delegations', icon: ArrowLeftRight, label: 'Delegações', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/handoffs', icon: RefreshCw, label: 'Passagem de Plantão', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/inbox', icon: Inbox, label: 'Caixa de Entrada', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/search', icon: Search, label: 'Busca Global', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/alerts', icon: Bell, label: 'Alertas', badge: 5, section: NAV_SECTIONS.ASSISTENCIAL },
 
-  // --- Equipe em plantão ---
-  { href: '/staff-on-duty', icon: '\uD83D\uDC65', label: 'Equipe em Plantão', section: NAV_SECTIONS.GESTAO },
-  { href: '/delegations',   icon: '\uD83D\uDCE9', label: 'Delegações', section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/handoffs',      icon: '\uD83D\uDD04', label: 'Passagem de Plantão', section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/inbox',         icon: '\uD83D\uDCE5', label: 'Caixa de Entrada', section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/search',        icon: '\uD83D\uDD0D', label: 'Busca Global', section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/alerts',        icon: '\uD83D\uDD14', label: 'Alertas', badge: 5, section: NAV_SECTIONS.ASSISTENCIAL },
+  // --- Gestão ---
+  { href: '/discharge', icon: DoorOpen, label: 'Torre de Altas', badge: 5, section: NAV_SECTIONS.GESTAO },
+  { href: '/beds', icon: BedDouble, label: 'Leitos', section: NAV_SECTIONS.GESTAO },
+  { href: '/surgery', icon: Scissors, label: 'Centro Cirúrgico', section: NAV_SECTIONS.GESTAO },
+  { href: '/ems', icon: Ambulance, label: 'Ambulâncias', section: NAV_SECTIONS.GESTAO },
+  { href: '/icu', icon: Activity, label: 'UTI SmartICU', section: NAV_SECTIONS.GESTAO },
+  { href: '/pharmacy', icon: Syringe, label: 'Farmácia', section: NAV_SECTIONS.GESTAO },
+  { href: '/specialties', icon: Stethoscope, label: 'Especialidades', section: NAV_SECTIONS.GESTAO },
+  { href: '/wards', icon: Building2, label: 'Alas e Setores', section: NAV_SECTIONS.GESTAO },
+  { href: '/staff-on-duty', icon: UserCheck, label: 'Equipe em Plantão', section: NAV_SECTIONS.GESTAO },
+  { href: '/pharmacy/stock', icon: Package, label: 'Estoque Farmácia', section: NAV_SECTIONS.GESTAO },
+  { href: '/cleaning/tasks', icon: Sparkles, label: 'Higienização', section: NAV_SECTIONS.GESTAO },
+  { href: '/transport/orders', icon: ArrowRightLeft, label: 'Transporte Interno', section: NAV_SECTIONS.GESTAO },
+  { href: '/meals/orders', icon: UtensilsCrossed, label: 'Nutrição', section: NAV_SECTIONS.GESTAO },
 
-  // --- Operações hospitalares ---
-  { href: '/pharmacy/stock',    icon: '\uD83C\uDFEA', label: 'Estoque Farm\u00e1cia', section: NAV_SECTIONS.GESTAO },
-  { href: '/cleaning/tasks',    icon: '\uD83E\uDDF9', label: 'Higieniza\u00e7\u00e3o',   section: NAV_SECTIONS.GESTAO },
-  { href: '/transport/orders',  icon: '\uD83D\uDEB6', label: 'Transporte Interno',      section: NAV_SECTIONS.GESTAO },
-  { href: '/meals/orders',      icon: '\uD83C\uDF7D\uFE0F', label: 'Nutri\u00e7\u00e3o',  section: NAV_SECTIONS.GESTAO },
-
-  // --- Suprimentos e ativos ---
-  { href: '/supply/items',            icon: '\uD83D\uDCE6', label: 'Cat\u00e1logo de Itens', section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/supply/purchase-orders',  icon: '\uD83D\uDCDD', label: 'Ordens de Compra',       section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/assets',                  icon: '\uD83D\uDD27', label: 'Ativos e Equip.',        section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/facility/work-orders',    icon: '\uD83D\uDEE0\uFE0F', label: 'Manuten\u00e7\u00e3o',  section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/waste/manifests',         icon: '\uD83D\uDDD1\uFE0F', label: 'Res\u00edduos (RSS)',   section: NAV_SECTIONS.ADMINISTRACAO },
-
-  // --- Cadastros ---
-  { href: '/employees', icon: '\uD83D\uDCC7', label: 'Funcion\u00e1rios', section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/suppliers', icon: '\uD83C\uDFEC', label: 'Fornecedores',       section: NAV_SECTIONS.ADMINISTRACAO },
-
-  // --- Faturamento ---
-  { href: '/billing/charges', icon: '\uD83D\uDCB0', label: 'Cobran\u00e7as', section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/billing/claims',  icon: '\uD83D\uDCC4', label: 'Contas Hospitalares', section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/billing/denials', icon: '\u274C',       label: 'Glosas',          section: NAV_SECTIONS.ADMINISTRACAO },
-
-  // --- Qualidade e governança ---
-  { href: '/quality/incidents',         icon: '\u26A0\uFE0F', label: 'Eventos Adversos', section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/governance/audit-events',   icon: '\uD83D\uDD0D', label: 'Trilha de Auditoria', section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/governance/credentials',    icon: '\uD83C\uDD94', label: 'Credenciais',        section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/governance/consent-forms',  icon: '\u270D\uFE0F', label: 'Consentimentos',     section: NAV_SECTIONS.ADMINISTRACAO },
-
-  // --- Sistema ---
-  { href: '/system',   icon: '\u2699\uFE0F', label: 'Status do Sistema', section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/activity', icon: '\uD83D\uDCCB', label: 'Log de Atividade',  section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/audit',    icon: '\uD83D\uDD12', label: 'Auditoria',         section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/cron',     icon: '\u23F0',       label: 'Cron Jobs',         section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/agents',   icon: '\uD83E\uDD16', label: 'Agentes',           section: NAV_SECTIONS.ADMINISTRACAO },
-  { href: '/suggestions', icon: '\uD83D\uDCA1', label: 'Sugestoes',      section: NAV_SECTIONS.ADMINISTRACAO },
+  // --- Administração ---
+  { href: '/supply/items', icon: Boxes, label: 'Catálogo de Itens', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/supply/purchase-orders', icon: FileText, label: 'Ordens de Compra', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/assets', icon: Wrench, label: 'Ativos e Equip.', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/facility/work-orders', icon: Wrench, label: 'Manutenção', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/waste/manifests', icon: Trash2, label: 'Resíduos (RSS)', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/employees', icon: Contact, label: 'Funcionários', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/suppliers', icon: Store, label: 'Fornecedores', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/billing/charges', icon: DollarSign, label: 'Cobranças', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/billing/claims', icon: FileSpreadsheet, label: 'Contas Hospitalares', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/billing/denials', icon: XCircle, label: 'Glosas', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/quality/incidents', icon: AlertTriangle, label: 'Eventos Adversos', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/governance/audit-events', icon: ShieldCheck, label: 'Trilha de Auditoria', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/governance/credentials', icon: IdCard, label: 'Credenciais', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/governance/consent-forms', icon: FileSignature, label: 'Consentimentos', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/system', icon: Settings, label: 'Status do Sistema', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/activity', icon: ClipboardList, label: 'Log de Atividade', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/audit', icon: Lock, label: 'Auditoria', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/cron', icon: Clock, label: 'Cron Jobs', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/agents', icon: Bot, label: 'Agentes', section: NAV_SECTIONS.ADMINISTRACAO },
+  { href: '/suggestions', icon: Lightbulb, label: 'Sugestões', section: NAV_SECTIONS.ADMINISTRACAO },
 ];
 
 const SECTION_LABELS: Record<string, string> = {
   [NAV_SECTIONS.ASSISTENCIAL]: 'Assistencial',
-  [NAV_SECTIONS.GESTAO]: 'Gestao',
-  [NAV_SECTIONS.ADMINISTRACAO]: 'Administracao',
+  [NAV_SECTIONS.GESTAO]: 'Gestão',
+  [NAV_SECTIONS.ADMINISTRACAO]: 'Administração',
   [NAV_SECTIONS.OBSERVABILIDADE]: 'Observabilidade',
 };
 
@@ -175,10 +172,8 @@ export function Navigation({
   const professionalRole = resolveUiRole(currentRole);
   const allowedSections = getNavigationSections(professionalRole);
 
-  // Filter nav items by allowed sections
   const visibleNavItems = NAV_ITEMS.filter((item) => allowedSections.includes(item.section));
 
-  // Group visible items by section for rendering
   const groupedItems: Record<string, NavItemDef[]> = {};
   for (const item of visibleNavItems) {
     if (!groupedItems[item.section]) {
@@ -187,9 +182,7 @@ export function Navigation({
     groupedItems[item.section].push(item);
   }
 
-  // Section render order
   const sectionOrder = [NAV_SECTIONS.ASSISTENCIAL, NAV_SECTIONS.GESTAO, NAV_SECTIONS.ADMINISTRACAO];
-
   const showObservability = allowedSections.includes(NAV_SECTIONS.OBSERVABILIDADE);
 
   async function handleSuggestionSubmit() {
@@ -218,75 +211,90 @@ export function Navigation({
   }
 
   function handleNavClick() {
-    // Close mobile sidebar on navigation
     onMobileClose?.();
   }
 
   return (
     <aside
-      className={`
-        fixed top-0 left-0 bottom-0 z-50
-        w-60 bg-[var(--color-brand-mid)] flex flex-col shrink-0 overflow-y-auto
-        transition-transform duration-200
-        md:translate-x-0
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}
+      className={cn(
+        'fixed top-0 left-0 bottom-0 z-50 flex w-64 flex-col overflow-y-auto shrink-0',
+        'border-r border-white/[0.08] bg-[rgba(10,14,23,0.88)] backdrop-blur-2xl backdrop-saturate-150',
+        'transition-transform duration-300',
+        'md:translate-x-0',
+        mobileOpen ? 'translate-x-0' : '-translate-x-full',
+      )}
     >
+      {/* Teal vertical accent bar on far left edge */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-teal-400/40 to-transparent" />
+
       {/* Close button for mobile */}
       <button
-        className="absolute top-3 right-3 p-1 rounded text-white/85 hover:text-white md:hidden"
+        className="absolute top-3 right-3 rounded-md p-1 text-slate-300 hover:text-white md:hidden"
         onClick={onMobileClose}
         aria-label="Fechar menu"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
+        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
 
-      <div className="px-5 py-5 border-b border-white/[0.08]">
-        <div className="text-xl font-bold text-white tracking-tight">Velya</div>
-        <div className="text-xs text-white/75 mt-0.5 tracking-widest uppercase font-medium">
-          Plataforma Hospitalar
-        </div>
+      {/* Logo */}
+      <div className="border-b border-white/[0.08] px-5 py-5">
+        <VelyaLogo size={34} />
       </div>
 
-      <nav className="flex-1 px-2 py-4 flex flex-col gap-1">
+      {/* Nav sections */}
+      <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
         {sectionOrder.map((section, sectionIdx) => {
           const items = groupedItems[section];
           if (!items || items.length === 0) return null;
           return (
-            <div key={section} className={sectionIdx > 0 ? 'mt-3' : ''}>
-              <div className="text-[10px] font-semibold text-white/75 uppercase tracking-wider px-3 pt-3 pb-2.5">
+            <div key={section} className={sectionIdx > 0 ? 'mt-4' : ''}>
+              <div className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                 {SECTION_LABELS[section]}
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-0.5">
                 {items.map((item) => {
                   const isActive =
                     item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+                  const Icon = item.icon;
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       onClick={handleNavClick}
-                      className={`
-                        flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                        no-underline transition-colors duration-150 min-h-[40px]
-                        ${
-                          isActive
-                            ? 'bg-blue-600/25 text-white border-l-[3px] border-blue-500 pl-[calc(0.75rem-3px)]'
-                            : 'text-white/85 hover:bg-white/[0.08] hover:text-white'
-                        }
-                      `}
+                      className={cn(
+                        'group relative flex min-h-[38px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                        isActive
+                          ? 'bg-teal-400/10 text-teal-200 shadow-[inset_0_0_0_1px_rgba(45,212,191,0.25)]'
+                          : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-100',
+                      )}
                     >
-                      <span className="text-base w-5 text-center shrink-0">{item.icon}</span>
-                      <span>{item.label}</span>
+                      {isActive && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute inset-y-1 left-0 w-[3px] rounded-r-full bg-teal-300 shadow-[0_0_8px_rgba(45,212,191,0.7)]"
+                        />
+                      )}
+                      <Icon
+                        className={cn(
+                          'h-[18px] w-[18px] shrink-0 transition-colors',
+                          isActive
+                            ? 'text-teal-300'
+                            : 'text-slate-500 group-hover:text-slate-300',
+                        )}
+                        strokeWidth={2}
+                      />
+                      <span className="truncate">{item.label}</span>
                       {item.badge !== undefined && item.badge > 0 && (
-                        <span className="ml-auto bg-red-600 text-white text-[10px] font-bold px-1.5 py-px rounded-full min-w-[18px] text-center">
+                        <span
+                          className={cn(
+                            'ml-auto rounded-full px-1.5 py-px text-[10px] font-bold tabular-nums',
+                            item.badge >= 10 && item.label.includes('Alerta')
+                              ? 'bg-red-500/20 text-red-300 ring-1 ring-red-500/40'
+                              : 'bg-white/[0.08] text-slate-300',
+                          )}
+                        >
                           {item.badge}
                         </span>
                       )}
@@ -299,26 +307,25 @@ export function Navigation({
         })}
 
         {showObservability && (
-          <div className="mt-3">
-            <div className="text-[10px] font-semibold text-white/75 uppercase tracking-wider px-3 pt-3 pb-2.5">
+          <div className="mt-4">
+            <div className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
               Observabilidade
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-0.5">
               <Link
                 href="/observability/metrics"
                 onClick={handleNavClick}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/85 hover:bg-white/[0.08] hover:text-white no-underline transition-colors duration-150 min-h-[40px]"
+                className="flex min-h-[38px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/[0.04] hover:text-slate-100"
               >
-                <span className="text-base w-5 text-center shrink-0">{'\uD83D\uDCCA'}</span>
+                <LineChart className="h-[18px] w-[18px] text-slate-500" strokeWidth={2} />
                 <span>Métricas</span>
               </Link>
-
               <Link
                 href="/observability/deploys"
                 onClick={handleNavClick}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/85 hover:bg-white/[0.08] hover:text-white no-underline transition-colors duration-150 min-h-[40px]"
+                className="flex min-h-[38px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/[0.04] hover:text-slate-100"
               >
-                <span className="text-base w-5 text-center shrink-0">{'\uD83D\uDD04'}</span>
+                <GitBranch className="h-[18px] w-[18px] text-slate-500" strokeWidth={2} />
                 <span>Implantações</span>
               </Link>
             </div>
@@ -326,53 +333,47 @@ export function Navigation({
         )}
       </nav>
 
-      {/* Suggestion box — prominent CTA */}
-      <div className="px-4 py-4 border-t border-white/10 bg-blue-600/20">
+      {/* Suggestion box */}
+      <div className="border-t border-white/[0.08] bg-gradient-to-br from-teal-500/10 via-transparent to-transparent p-4">
         {suggestionStatus === 'sent' ? (
           <div
             role="status"
-            className="text-green-200 text-sm text-center py-3 font-semibold bg-green-900/40 border border-green-500/60 rounded-lg"
+            className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 py-3 text-center text-sm font-semibold text-emerald-300"
           >
-            {'\u2713'} Sugestão enviada — obrigado!
+            ✓ Sugestão enviada — obrigado!
           </div>
         ) : (
           <div>
             <label
               htmlFor="sidebar-suggestion"
-              className="flex items-center gap-2 text-sm font-bold text-white mb-2"
+              className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-slate-200"
             >
-              <span aria-hidden="true" className="text-lg">
-                {'\uD83D\uDCA1'}
-              </span>
+              <Lightbulb className="h-3.5 w-3.5 text-teal-300" />
               Sugerir melhoria
             </label>
-            <p className="text-xs text-white/85 mb-2 leading-snug">
-              Viu algo que pode melhorar? Conte para a gente — sua sugestão vai direto para o time.
-            </p>
-            <div className="flex gap-2 items-stretch">
+            <div className="flex gap-1.5">
               <input
                 id="sidebar-suggestion"
                 type="text"
                 value={suggestionText}
                 onChange={(e) => setSuggestionText(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Descreva aqui..."
+                placeholder="O que pode melhorar?"
                 disabled={suggestionStatus === 'sending'}
-                className="flex-1 bg-white text-slate-900 border-2 border-blue-300 rounded-lg px-3 py-3 text-sm outline-none font-[inherit] placeholder:text-slate-500 min-h-[48px] focus:ring-2 focus:ring-blue-200 focus:border-blue-500 disabled:opacity-60"
+                className="min-w-0 flex-1 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-teal-400/60 focus:ring-2 focus:ring-teal-400/20 disabled:opacity-60"
               />
               <button
                 onClick={handleSuggestionSubmit}
                 disabled={!suggestionText.trim() || suggestionStatus === 'sending'}
                 aria-label="Enviar sugestão"
-                className="min-h-[48px] px-4 rounded-lg bg-blue-600 hover:bg-blue-700 border-2 border-blue-300 text-white text-base font-bold focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                className="shrink-0 rounded-md bg-gradient-to-br from-teal-500 to-teal-600 px-3 py-2 text-xs font-semibold text-white shadow-[0_0_12px_-2px_rgba(20,184,166,0.4)] transition-all hover:-translate-y-px hover:from-teal-400 hover:to-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {suggestionStatus === 'sending' ? '...' : 'Enviar'}
+                {suggestionStatus === 'sending' ? '…' : 'Enviar'}
               </button>
             </div>
           </div>
         )}
       </div>
-
     </aside>
   );
 }

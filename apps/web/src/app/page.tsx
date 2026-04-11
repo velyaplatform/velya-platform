@@ -1,6 +1,33 @@
+'use client';
+
+import Link from 'next/link';
+import {
+  Activity,
+  AlertTriangle,
+  ArrowUpRight,
+  BedDouble,
+  ChevronRight,
+  ClipboardList,
+  Clock,
+  DoorOpen,
+  Flame,
+  HeartPulse,
+  Pill,
+  Plus,
+  Stethoscope,
+  TrendingDown,
+  Users,
+} from 'lucide-react';
 import { AppShell } from './components/app-shell';
 import { News2RiskPanel } from './components/news2-risk-panel';
-import Link from 'next/link';
+import { Card, CardContent, CardHeader } from './components/ui/card';
+import { Badge } from './components/ui/badge';
+import { Button } from './components/ui/button';
+import { VelyaKPI } from './components/velya/velya-kpi';
+import { VelyaAlertBanner } from './components/velya/velya-alert-banner';
+import { VelyaStatusDot } from './components/velya/velya-status-dot';
+import { VelyaSparkline } from './components/velya/velya-sparkline';
+import { VelyaSectionHeader } from './components/velya/velya-section';
 import {
   PRIORITY_TASKS,
   DISCHARGE_PATIENTS,
@@ -8,109 +35,102 @@ import {
   type DischargeRowProps,
 } from '../lib/fixtures/home-dashboard';
 
-interface MetricCardProps {
-  label: string;
-  value: string | number;
-  sub?: string;
-  trendClass?: string;
-  accent?: string;
-}
-
-function MetricCard({ label, value, sub, trendClass, accent }: MetricCardProps) {
-  return (
-    <div className="metric-card" style={accent ? { borderTop: `3px solid ${accent}` } : {}}>
-      <div className="metric-label">{label}</div>
-      <div className={`metric-value${trendClass ? ` ${trendClass}` : ''}`}>{value}</div>
-      {sub && <div className="metric-sub">{sub}</div>}
-    </div>
-  );
-}
-
 function TaskRow({ priority, type, description, patient, assignee, due }: TaskRowProps) {
-  const borderClass =
+  const badgeVariant =
+    priority === 'urgent' ? 'critical' : priority === 'warning' ? 'warning' : 'default';
+  const badgeLabel =
+    priority === 'urgent' ? 'URGENTE' : priority === 'warning' ? 'ALTO' : 'NORMAL';
+  const borderColor =
     priority === 'urgent'
-      ? 'task-item-urgent'
+      ? 'border-l-red-500'
       : priority === 'warning'
-        ? 'task-item-warning'
-        : 'task-item-normal';
-
-  const badgeClass =
-    priority === 'urgent'
-      ? 'badge-urgent'
-      : priority === 'warning'
-        ? 'badge-warning'
-        : 'badge-neutral';
-
-  const badgeLabel = priority === 'urgent' ? 'URGENTE' : priority === 'warning' ? 'ALTO' : 'NORMAL';
+        ? 'border-l-amber-500'
+        : 'border-l-white/10';
 
   return (
-    <div className={`task-item ${borderClass}`}>
-      <div style={{ flex: 1 }}>
-        <div className="flex items-center gap-2 mb-2">
-          <span className={`badge ${badgeClass}`}>{badgeLabel}</span>
-          <span className="badge badge-neutral">{type}</span>
-          <span className="text-xs text-tertiary ml-auto">{due}</span>
+    <div
+      className={`group mb-3 flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 transition-all hover:border-white/[0.1] hover:bg-white/[0.04] border-l-2 ${borderColor}`}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <Badge variant={badgeVariant} size="sm" withDot pulse={priority === 'urgent'}>
+            {badgeLabel}
+          </Badge>
+          <Badge variant="outline" size="sm">
+            {type}
+          </Badge>
+          <span className="ml-auto flex items-center gap-1 text-[11px] text-slate-500">
+            <Clock className="h-3 w-3" /> {due}
+          </span>
         </div>
-        <div className="font-semibold text-sm" style={{ marginBottom: '4px' }}>
-          {description}
-        </div>
-        <div className="text-xs text-secondary">
-          Paciente: <strong>{patient}</strong> · Responsável: {assignee}
+        <div className="mb-1 text-sm font-semibold text-slate-100">{description}</div>
+        <div className="text-xs text-slate-400">
+          <span className="font-mono text-teal-300">{patient}</span>
+          <span className="mx-2 text-slate-600">·</span>
+          <span className="text-slate-400">Resp.: {assignee}</span>
         </div>
       </div>
-      <div className="flex flex-col gap-2" style={{ minWidth: '120px' }}>
-        <button className="btn btn-primary btn-sm">✓ Concluir</button>
-        <button className="btn btn-outline btn-sm">↑ Escalar</button>
+      <div className="flex shrink-0 flex-col gap-1.5">
+        <Button size="xs" variant="default">
+          ✓ Concluir
+        </Button>
+        <Button size="xs" variant="ghost">
+          <ArrowUpRight className="h-3 w-3" /> Escalar
+        </Button>
       </div>
     </div>
   );
 }
 
 function DischargeRow({ mrn, name, ward, los, targetDate, blockers, status }: DischargeRowProps) {
-  const statusConfig = {
-    ready: { badge: 'badge-success', label: 'Pronto', dot: 'status-dot-green' },
-    blocked: { badge: 'badge-critical', label: 'Bloqueado', dot: 'status-dot-red' },
-    pending: { badge: 'badge-warning', label: 'Pendente', dot: 'status-dot-amber' },
-  };
-
-  const cfg = statusConfig[status];
+  const config = {
+    ready: { variant: 'success' as const, label: 'Pronto' },
+    blocked: { variant: 'critical' as const, label: 'Bloqueado' },
+    pending: { variant: 'warning' as const, label: 'Pendente' },
+  }[status];
 
   return (
     <tr
-      className={status === 'blocked' ? 'row-critical' : status === 'pending' ? 'row-warning' : ''}
+      className={
+        status === 'blocked'
+          ? 'bg-red-500/[0.04] hover:bg-red-500/[0.08]'
+          : status === 'pending'
+            ? 'bg-amber-500/[0.04] hover:bg-amber-500/[0.08]'
+            : 'hover:bg-white/[0.04]'
+      }
     >
-      <td>
-        <div className="font-semibold">{name}</div>
-        <div className="text-xs text-tertiary">{mrn}</div>
+      <td className="py-3 pr-4">
+        <div className="font-semibold text-slate-100">{name}</div>
+        <div className="font-mono text-[11px] text-slate-500">{mrn}</div>
       </td>
-      <td>{ward}</td>
-      <td>
-        <strong>{los}</strong>d
+      <td className="py-3 pr-4 text-sm text-slate-300">{ward}</td>
+      <td className="py-3 pr-4">
+        <span className="font-mono font-semibold tabular-nums text-slate-200">{los}</span>
+        <span className="text-xs text-slate-500">d</span>
       </td>
-      <td>{targetDate}</td>
-      <td>
+      <td className="py-3 pr-4 text-sm text-slate-300">{targetDate}</td>
+      <td className="py-3 pr-4">
         {blockers.length === 0 ? (
-          <span className="text-xs text-tertiary">Nenhum</span>
+          <span className="text-xs text-slate-500">—</span>
         ) : (
-          blockers.map((b) => (
-            <span key={b} className="blocker-tag">
-              {b}
-            </span>
-          ))
+          <div className="flex flex-wrap gap-1">
+            {blockers.map((b) => (
+              <Badge key={b} variant="critical" size="sm">
+                {b}
+              </Badge>
+            ))}
+          </div>
         )}
       </td>
-      <td>
-        <span className={`badge ${cfg.badge}`}>
-          <span className={`status-dot ${cfg.dot}`}></span>
-          {cfg.label}
-        </span>
+      <td className="py-3 pr-4">
+        <Badge variant={config.variant} withDot pulse={status === 'blocked'}>
+          {config.label}
+        </Badge>
       </td>
-      <td>
-        <div className="flex gap-2">
-          <Link href="/discharge" className="btn btn-sm btn-outline">
-            Ver
-          </Link>
-        </div>
+      <td className="py-3 pr-4">
+        <Button asChild size="xs" variant="outline">
+          <Link href="/discharge">Ver</Link>
+        </Button>
       </td>
     </tr>
   );
@@ -124,28 +144,20 @@ interface ServiceStatusProps {
 
 function ServiceStatus({ name, status, serviceId }: ServiceStatusProps) {
   const cfg = {
-    healthy: { dot: 'status-dot-green', label: 'Saudável', card: 'service-card-healthy' },
-    degraded: {
-      dot: 'status-dot-amber status-dot-pulse',
-      label: 'Degradado',
-      card: 'service-card-degraded',
-    },
-    unknown: { dot: 'status-dot-grey', label: 'Desconhecido', card: 'service-card-unknown' },
-  };
-  const c = cfg[status];
+    healthy: { tone: 'success' as const, label: 'Saudável', border: 'border-l-emerald-500' },
+    degraded: { tone: 'warning' as const, label: 'Degradado', border: 'border-l-amber-500' },
+    unknown: { tone: 'neutral' as const, label: 'Desconhecido', border: 'border-l-slate-500' },
+  }[status];
 
   return (
-    <Link href={`/system/services/${serviceId}`} style={{ textDecoration: 'none' }}>
-      <div className={`service-card ${c.card}`}>
-        <span className={`status-dot ${c.dot}`}></span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-            {name}
-          </div>
-          <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-            {c.label}
-          </div>
-        </div>
+    <Link
+      href={`/system/services/${serviceId}`}
+      className={`flex items-center gap-3 rounded-lg border border-white/[0.08] border-l-2 bg-white/[0.02] px-3 py-2.5 no-underline transition-colors hover:border-white/[0.16] hover:bg-white/[0.05] ${cfg.border}`}
+    >
+      <VelyaStatusDot tone={cfg.tone} pulse={status === 'degraded'} />
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-semibold text-slate-100">{name}</div>
+        <div className="text-[11px] text-slate-500">{cfg.label}</div>
       </div>
     </Link>
   );
@@ -161,19 +173,153 @@ const SERVICES: ServiceStatusProps[] = [
   { name: 'Agentes', status: 'healthy', serviceId: 'agents' },
 ];
 
+const EXCEPTIONS = [
+  {
+    label: 'TMI > 10d sem plano de alta',
+    count: 3,
+    tone: 'critical' as const,
+    href: '/patients',
+    icon: AlertTriangle,
+  },
+  {
+    label: 'Sem documentação de visita médica hoje',
+    count: 7,
+    tone: 'warning' as const,
+    href: '/tasks',
+    icon: Stethoscope,
+  },
+  {
+    label: 'Medicação não reconciliada',
+    count: 2,
+    tone: 'critical' as const,
+    href: '/tasks',
+    icon: Pill,
+  },
+  {
+    label: 'Termos de consentimento ausentes',
+    count: 4,
+    tone: 'warning' as const,
+    href: '/tasks',
+    icon: ClipboardList,
+  },
+  {
+    label: 'Encaminhamentos pendentes >48h',
+    count: 2,
+    tone: 'warning' as const,
+    href: '/tasks',
+    icon: ArrowUpRight,
+  },
+];
+
+// Sparkline fixtures — dados dos últimos 7 dias
+const TMI_TREND = [5.5, 5.8, 5.6, 5.4, 5.5, 5.3, 5.2];
+const OCUPACAO_TREND = [82, 84, 85, 86, 85, 86, 87];
+const ADMISSIONS_TREND = [4, 3, 5, 4, 6, 5, 3];
+
 export default function CommandCenterPage() {
   return (
     <AppShell pageTitle="Centro de Comando">
       {/* Banner de Alerta Crítico */}
-      <div className="alert-banner alert-banner-critical">
-        <span style={{ fontSize: '1.1rem' }}>🚨</span>
-        <strong>3 pacientes bloqueados para alta há mais de 24h</strong>
-        <span style={{ fontWeight: 400 }}>
-          &mdash; Eleanor Voss (transporte), Marcus Bell (plano de saúde), Diana Reyes (farmácia)
-        </span>
-        <Link href="/discharge" className="btn btn-danger btn-sm" style={{ marginLeft: 'auto' }}>
-          Resolver Agora →
-        </Link>
+      <VelyaAlertBanner
+        severity="critical"
+        title="3 pacientes bloqueados para alta há mais de 24h"
+        description="Eleanor Voss (transporte) · Marcus Bell (plano de saúde) · Diana Reyes (farmácia)"
+        action={
+          <Button asChild variant="destructive" size="sm">
+            <Link href="/discharge">
+              Resolver Agora <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </Button>
+        }
+        className="mb-6"
+      />
+
+      {/* Page title */}
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-400">
+            <VelyaStatusDot tone="accent" pulse size="sm" /> Tempo real
+          </div>
+          <h1 className="bg-gradient-to-br from-slate-50 via-slate-200 to-slate-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent">
+            Centro de Comando
+          </h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Visão unificada de pacientes, altas, tarefas e saúde do sistema
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/tools/sepsis">
+              <HeartPulse className="h-3.5 w-3.5" /> NEWS2
+            </Link>
+          </Button>
+          <Button asChild size="sm">
+            <Link href="/patients/new">
+              <Plus className="h-3.5 w-3.5" /> Novo Paciente
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Bento Grid — KPIs */}
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <VelyaKPI
+          label="Total Internados"
+          value={47}
+          sublabel="3 admitidos hoje"
+          icon={Users}
+          tone="info"
+          footer={<VelyaSparkline data={ADMISSIONS_TREND} width={140} height={28} tone="accent" />}
+        />
+        <VelyaKPI
+          label="Altas Pendentes"
+          value={12}
+          sublabel="Meta: alta até 14:00"
+          icon={DoorOpen}
+          tone="warning"
+        />
+        <VelyaKPI
+          label="Altas Bloqueadas"
+          value={5}
+          sublabel="↑ 2 desde ontem"
+          trend="up"
+          icon={AlertTriangle}
+          tone="critical"
+        />
+        <VelyaKPI
+          label="TMI Médio"
+          value="5,2"
+          sublabel="dias · ↓ 0,3d vs semana anterior"
+          trend="down"
+          icon={TrendingDown}
+          tone="success"
+          footer={<VelyaSparkline data={TMI_TREND} width={140} height={28} tone="success" />}
+        />
+      </div>
+
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <VelyaKPI
+          label="Tarefas Abertas"
+          value={34}
+          sublabel="12 vencem nas próximas 2h"
+          icon={ClipboardList}
+          tone="warning"
+        />
+        <VelyaKPI
+          label="Ocupação de Leitos"
+          value="87%"
+          sublabel="52 / 60 leitos"
+          icon={BedDouble}
+          tone="accent"
+          footer={<VelyaSparkline data={OCUPACAO_TREND} width={160} height={28} tone="accent" />}
+        />
+        <VelyaKPI
+          label="Pacientes em Alerta"
+          value={8}
+          sublabel="NEWS2 ≥ 5 · Ativar Hour-1"
+          icon={HeartPulse}
+          tone="critical"
+        />
       </div>
 
       {/* NEWS2 Clinical Decision Support */}
@@ -181,204 +327,128 @@ export default function CommandCenterPage() {
         <News2RiskPanel />
       </div>
 
-      {/* Métricas */}
-      <div className="grid-metrics">
-        <MetricCard
-          label="Total Internados"
-          value={47}
-          sub="3 admitidos hoje"
-          accent="var(--color-brand-highlight)"
-        />
-        <MetricCard
-          label="Altas Pendentes"
-          value={12}
-          sub="Meta: alta até 14:00"
-          accent="var(--color-warning)"
-        />
-        <MetricCard
-          label="Altas Bloqueadas"
-          value={5}
-          sub="↑ 2 desde ontem"
-          trendClass="metric-trend-up"
-          accent="var(--color-critical)"
-        />
-        <MetricCard
-          label="TMI Médio (dias)"
-          value="5,2"
-          sub="↓ 0,3d vs semana anterior"
-          trendClass="metric-trend-down"
-          accent="var(--color-success)"
-        />
-        <MetricCard
-          label="Tarefas Abertas"
-          value={34}
-          sub="12 vencem nas próximas 2h"
-          accent="var(--color-warning)"
-        />
-        <MetricCard
-          label="Ocupação de Leitos"
-          value="87%"
-          sub="52 / 60 leitos"
-          accent="var(--color-brand-deep)"
-        />
-      </div>
-
-      {/* Grade principal */}
-      <div className="grid-2">
+      {/* Main grid: tasks + exceptions + system health */}
+      <div className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
         {/* Caixa de Tarefas Prioritárias */}
-        <div>
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">⚡ Caixa de Ações Prioritárias</span>
-              <Link href="/tasks" className="card-action">
-                Ver Todas as 34 →
-              </Link>
-            </div>
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <VelyaSectionHeader
+              title="Caixa de Ações Prioritárias"
+              icon={Flame}
+              action={
+                <Button asChild variant="ghost" size="xs">
+                  <Link href="/tasks">
+                    Ver todas as 34 <ChevronRight className="h-3 w-3" />
+                  </Link>
+                </Button>
+              }
+            />
+          </CardHeader>
+          <CardContent>
             {PRIORITY_TASKS.map((task, i) => (
               <TaskRow key={i} {...task} />
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Coluna direita */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {/* Quadro de Exceções */}
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">🔥 Exceções — Em Risco Agora</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {[
-                {
-                  label: 'TMI > 10d sem plano de alta',
-                  count: 3,
-                  color: 'var(--color-critical)',
-                  href: '/patients',
-                },
-                {
-                  label: 'Sem documentação de visita médica hoje',
-                  count: 7,
-                  color: 'var(--color-warning)',
-                  href: '/tasks',
-                },
-                {
-                  label: 'Medicação não reconciliada',
-                  count: 2,
-                  color: 'var(--color-critical)',
-                  href: '/tasks',
-                },
-                {
-                  label: 'Termos de consentimento ausentes',
-                  count: 4,
-                  color: 'var(--color-warning)',
-                  href: '/tasks',
-                },
-                {
-                  label: 'Encaminhamentos pendentes há mais de 48h',
-                  count: 2,
-                  color: 'var(--color-warning)',
-                  href: '/tasks',
-                },
-              ].map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    padding: '0.625rem 0.875rem',
-                    borderRadius: '8px',
-                    background: 'var(--color-surface-subtle)',
-                    textDecoration: 'none',
-                    border: '1px solid var(--color-border)',
-                  }}
-                >
-                  <span
-                    style={{
-                      minWidth: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: item.color,
-                      color: 'white',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 700,
-                      fontSize: '0.75rem',
-                    }}
+        {/* Right column: exceptions + system health */}
+        <div className="flex flex-col gap-5">
+          {/* Exceções */}
+          <Card>
+            <CardHeader>
+              <VelyaSectionHeader title="Exceções — Em Risco Agora" icon={AlertTriangle} />
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              {EXCEPTIONS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="group flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 no-underline transition-all hover:border-teal-400/30 hover:bg-white/[0.05]"
                   >
-                    {item.count}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '0.875rem',
-                      color: 'var(--text-primary)',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                  <span
-                    style={{
-                      marginLeft: 'auto',
-                      color: 'var(--color-brand-highlight)',
-                      fontSize: '0.75rem',
-                    }}
-                  >
-                    →
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                        item.tone === 'critical'
+                          ? 'bg-red-500/15 text-red-300 ring-1 ring-red-500/35'
+                          : 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/35'
+                      }`}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="flex-1 text-xs font-medium text-slate-200">
+                      {item.label}
+                    </span>
+                    <Badge variant={item.tone} size="sm">
+                      {item.count}
+                    </Badge>
+                    <ChevronRight className="h-3.5 w-3.5 text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:text-teal-300" />
+                  </Link>
+                );
+              })}
+            </CardContent>
+          </Card>
 
           {/* Saúde do Sistema */}
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">⚙️ Saúde do Sistema</span>
-              <Link href="/system" className="card-action">
-                Status Completo →
-              </Link>
-            </div>
-            <div className="service-grid">
+          <Card>
+            <CardHeader>
+              <VelyaSectionHeader
+                title="Saúde do Sistema"
+                icon={Activity}
+                action={
+                  <Button asChild variant="ghost" size="xs">
+                    <Link href="/system">
+                      Status <ChevronRight className="h-3 w-3" />
+                    </Link>
+                  </Button>
+                }
+              />
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 gap-2">
               {SERVICES.map((svc) => (
                 <ServiceStatus key={svc.name} {...svc} />
               ))}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
       {/* Torre de Altas — Prévia */}
-      <div className="card" style={{ marginTop: '1.25rem' }}>
-        <div className="card-header">
-          <span className="card-title">🏠 Torre de Controle de Altas</span>
-          <Link href="/discharge" className="card-action">
-            Torre Completa →
-          </Link>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="data-table">
+      <Card>
+        <CardHeader>
+          <VelyaSectionHeader
+            title="Torre de Controle de Altas"
+            icon={DoorOpen}
+            action={
+              <Button asChild variant="ghost" size="xs">
+                <Link href="/discharge">
+                  Torre completa <ChevronRight className="h-3 w-3" />
+                </Link>
+              </Button>
+            }
+          />
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <table className="w-full text-sm">
             <thead>
-              <tr>
-                <th>Paciente</th>
-                <th>Ala</th>
-                <th>TMI</th>
-                <th>Alta Prevista</th>
-                <th>Bloqueios</th>
-                <th>Status</th>
-                <th>Ações</th>
+              <tr className="border-b border-white/[0.08] text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+                <th className="pb-3 pr-4">Paciente</th>
+                <th className="pb-3 pr-4">Ala</th>
+                <th className="pb-3 pr-4">TMI</th>
+                <th className="pb-3 pr-4">Alta Prevista</th>
+                <th className="pb-3 pr-4">Bloqueios</th>
+                <th className="pb-3 pr-4">Status</th>
+                <th className="pb-3 pr-4">Ações</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/[0.05]">
               {DISCHARGE_PATIENTS.map((p) => (
                 <DischargeRow key={p.mrn} {...p} />
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </AppShell>
   );
 }

@@ -2,8 +2,16 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { Plus, Search, Filter, Users, ClipboardList } from 'lucide-react';
 import { AppShell } from '../components/app-shell';
+import { Card } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Avatar, AvatarFallback } from '../components/ui/avatar';
+import { VelyaStatusDot } from '../components/velya/velya-status-dot';
 import { MOCK_PATIENTS, type Patient } from '../../lib/fixtures/patients-list';
+import { cn } from '../../lib/utils';
 
 const STATUS_LABELS: Record<Patient['dischargeStatus'], string> = {
   'on-track': 'No Prazo',
@@ -18,19 +26,39 @@ const RISK_LABELS: Record<Patient['riskLevel'], string> = {
   low: 'Baixo',
 };
 
-const STATUS_BADGE_CLASS: Record<Patient['dischargeStatus'], string> = {
-  'on-track': 'badge-success',
-  'at-risk': 'badge-warning',
-  blocked: 'badge-critical',
-  discharged: 'badge-neutral',
+const STATUS_VARIANT: Record<Patient['dischargeStatus'], 'success' | 'warning' | 'critical' | 'default'> = {
+  'on-track': 'success',
+  'at-risk': 'warning',
+  blocked: 'critical',
+  discharged: 'default',
 };
 
-const ROW_CLASS: Record<Patient['dischargeStatus'], string> = {
-  blocked: 'row-critical',
-  'at-risk': 'row-warning',
-  'on-track': '',
-  discharged: '',
+const RISK_VARIANT: Record<Patient['riskLevel'], 'critical' | 'warning' | 'success'> = {
+  high: 'critical',
+  medium: 'warning',
+  low: 'success',
 };
+
+/** Cor estável gerada a partir do hash do nome — usada no avatar fallback */
+function colorFromName(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  const palette = [
+    'from-teal-500 to-cyan-700',
+    'from-purple-500 to-indigo-700',
+    'from-rose-500 to-red-700',
+    'from-amber-500 to-orange-700',
+    'from-emerald-500 to-teal-700',
+    'from-blue-500 to-sky-700',
+  ];
+  return palette[Math.abs(hash) % palette.length];
+}
+
+function initials(name: string): string {
+  const parts = name.split(' ').filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
 
 export default function PatientsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,191 +97,250 @@ export default function PatientsPage() {
   );
 
   return (
-    <AppShell pageTitle="Lista de Pacientes">
-      <div className="page-header">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="page-title">Pacientes</h1>
-            <p className="page-subtitle">
-              {MOCK_PATIENTS.length} internados &mdash; {blockedCount} bloqueados, {atRiskCount} em
-              risco, {onTrackCount} no prazo
-            </p>
+    <AppShell pageTitle="Pacientes">
+      {/* Page header */}
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-400">
+            <Users className="h-3 w-3" /> Pacientes
           </div>
-          <Link
-            href="/patients/new"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold no-underline hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            {'\u2795'} Novo Paciente
+          <h1 className="bg-gradient-to-br from-slate-50 via-slate-200 to-slate-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent">
+            Lista de Pacientes
+          </h1>
+          <p className="mt-1 text-sm text-slate-400">
+            {MOCK_PATIENTS.length} internados — {blockedCount} bloqueados, {atRiskCount} em risco,{' '}
+            {onTrackCount} no prazo
+          </p>
+        </div>
+        <Button asChild size="sm">
+          <Link href="/patients/new">
+            <Plus className="h-3.5 w-3.5" /> Novo Paciente
           </Link>
+        </Button>
+      </div>
+
+      {/* Status chips — filtros rápidos */}
+      <div className="mb-5 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setStatusFilter('all')}
+          className={cn(
+            'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
+            statusFilter === 'all'
+              ? 'border-teal-400/40 bg-teal-400/10 text-teal-200'
+              : 'border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-slate-200',
+          )}
+        >
+          Todos <span className="font-mono tabular-nums">{MOCK_PATIENTS.length}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('blocked')}
+          className={cn(
+            'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
+            statusFilter === 'blocked'
+              ? 'border-red-500/50 bg-red-500/12 text-red-200 shadow-[0_0_16px_-4px_rgba(239,68,68,0.4)]'
+              : 'border-red-500/25 bg-red-500/[0.04] text-red-300 hover:bg-red-500/10',
+          )}
+        >
+          <VelyaStatusDot tone="critical" pulse size="sm" />
+          Bloqueados <span className="font-mono tabular-nums">{blockedCount}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('at-risk')}
+          className={cn(
+            'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
+            statusFilter === 'at-risk'
+              ? 'border-amber-500/50 bg-amber-500/12 text-amber-200'
+              : 'border-amber-500/25 bg-amber-500/[0.04] text-amber-300 hover:bg-amber-500/10',
+          )}
+        >
+          <VelyaStatusDot tone="warning" size="sm" />
+          Em risco <span className="font-mono tabular-nums">{atRiskCount}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('on-track')}
+          className={cn(
+            'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
+            statusFilter === 'on-track'
+              ? 'border-emerald-500/50 bg-emerald-500/12 text-emerald-200'
+              : 'border-emerald-500/25 bg-emerald-500/[0.04] text-emerald-300 hover:bg-emerald-500/10',
+          )}
+        >
+          <VelyaStatusDot tone="success" size="sm" />
+          No prazo <span className="font-mono tabular-nums">{onTrackCount}</span>
+        </button>
+      </div>
+
+      {/* Filter bar */}
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <div className="relative min-w-[280px] flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+          <Input
+            type="text"
+            placeholder="Buscar por nome ou MRN..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="h-3.5 w-3.5 text-slate-500" />
+          <select
+            className="h-10 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-slate-100 outline-none focus:border-teal-400/60"
+            value={wardFilter}
+            onChange={(e) => setWardFilter(e.target.value)}
+          >
+            <option value="all">Todas as Alas</option>
+            {wards.map((w) => (
+              <option key={w} value={w}>
+                {w}
+              </option>
+            ))}
+          </select>
+          <select
+            className="h-10 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-slate-100 outline-none focus:border-teal-400/60"
+            value={riskFilter}
+            onChange={(e) => setRiskFilter(e.target.value)}
+          >
+            <option value="all">Todos os Riscos</option>
+            <option value="high">Alto Risco</option>
+            <option value="medium">Médio Risco</option>
+            <option value="low">Baixo Risco</option>
+          </select>
         </div>
       </div>
 
-      {/* Resumo por status */}
-      <div className="flex gap-3 mb-5 flex-wrap">
-        <span className="badge badge-critical">
-          <span className="status-dot status-dot-red"></span>
-          {blockedCount} Bloqueados
-        </span>
-        <span className="badge badge-warning">
-          <span className="status-dot status-dot-amber"></span>
-          {atRiskCount} Em Risco
-        </span>
-        <span className="badge badge-success">
-          <span className="status-dot status-dot-green"></span>
-          {onTrackCount} No Prazo
-        </span>
-      </div>
-
-      {/* Barra de filtros */}
-      <div className="filter-bar">
-        <input
-          className="search-input"
-          type="text"
-          placeholder="🔍  Buscar por nome ou MRN..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <select
-          className="filter-select"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="all">Todos os Status</option>
-          <option value="blocked">Bloqueado</option>
-          <option value="at-risk">Em Risco</option>
-          <option value="on-track">No Prazo</option>
-          <option value="discharged">Alta</option>
-        </select>
-        <select
-          className="filter-select"
-          value={wardFilter}
-          onChange={(e) => setWardFilter(e.target.value)}
-        >
-          <option value="all">Todas as Alas</option>
-          {wards.map((w) => (
-            <option key={w} value={w}>
-              {w}
-            </option>
-          ))}
-        </select>
-        <select
-          className="filter-select"
-          value={riskFilter}
-          onChange={(e) => setRiskFilter(e.target.value)}
-        >
-          <option value="all">Todos os Riscos</option>
-          <option value="high">Alto Risco</option>
-          <option value="medium">Médio Risco</option>
-          <option value="low">Baixo Risco</option>
-        </select>
-      </div>
-
-      <div className="card" style={{ padding: 0 }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="data-table">
+      {/* Table card */}
+      <Card className="overflow-hidden p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
             <thead>
-              <tr>
-                <th>Paciente</th>
-                <th>Ala / Leito</th>
-                <th>Diagnóstico</th>
-                <th>Internado em</th>
-                <th>TMI</th>
-                <th>Status de Alta</th>
-                <th>Bloqueios</th>
-                <th>Médico</th>
-                <th>Risco</th>
-                <th>Ações</th>
+              <tr className="border-b border-white/[0.08] bg-white/[0.02] text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+                <th className="px-5 py-3">Paciente</th>
+                <th className="px-3 py-3">Ala / Leito</th>
+                <th className="px-3 py-3">Diagnóstico</th>
+                <th className="px-3 py-3">Internado</th>
+                <th className="px-3 py-3">TMI</th>
+                <th className="px-3 py-3">Status de Alta</th>
+                <th className="px-3 py-3">Bloqueios</th>
+                <th className="px-3 py-3">Médico</th>
+                <th className="px-3 py-3">Risco</th>
+                <th className="px-5 py-3 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/[0.04]">
               {sorted.length === 0 ? (
                 <tr>
                   <td colSpan={10}>
-                    <div className="empty-state">
-                      <div className="empty-state-icon">🔍</div>
-                      <div className="empty-state-title">
+                    <div className="flex flex-col items-center gap-3 px-5 py-16 text-slate-500">
+                      <Search className="h-10 w-10 opacity-40" strokeWidth={1.25} />
+                      <div className="text-sm font-semibold text-slate-400">
                         Nenhum paciente corresponde aos filtros
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        Tente limpar filtros ou ajustar a busca.
                       </div>
                     </div>
                   </td>
                 </tr>
               ) : (
                 sorted.map((patient) => (
-                  <tr key={patient.mrn} className={ROW_CLASS[patient.dischargeStatus]}>
-                    <td>
-                      <div className="font-semibold">{patient.name}</div>
-                      <div className="text-xs text-tertiary">
-                        {patient.mrn} · {patient.age} anos
+                  <tr
+                    key={patient.mrn}
+                    className={cn(
+                      'transition-colors hover:bg-white/[0.03]',
+                      patient.dischargeStatus === 'blocked' &&
+                        'bg-red-500/[0.03] hover:bg-red-500/[0.07]',
+                      patient.dischargeStatus === 'at-risk' &&
+                        'bg-amber-500/[0.03] hover:bg-amber-500/[0.06]',
+                    )}
+                  >
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarFallback
+                            className={cn('bg-gradient-to-br text-white', colorFromName(patient.name))}
+                          >
+                            {initials(patient.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <div className="truncate font-semibold text-slate-100">{patient.name}</div>
+                          <div className="text-[11px] text-slate-500">
+                            <span className="font-mono text-teal-300">{patient.mrn}</span>
+                            <span className="mx-1.5">·</span>
+                            {patient.age}a
+                          </div>
+                        </div>
                       </div>
                     </td>
-                    <td>
-                      <div className="text-sm">{patient.ward}</div>
-                      <div className="text-xs text-tertiary">Leito {patient.bed}</div>
+                    <td className="px-3 py-3">
+                      <div className="text-sm text-slate-200">{patient.ward}</div>
+                      <div className="text-[11px] text-slate-500">Leito {patient.bed}</div>
                     </td>
-                    <td>
+                    <td className="px-3 py-3">
                       <div
-                        className="text-sm truncate"
-                        style={{ maxWidth: '180px' }}
+                        className="max-w-[180px] truncate text-sm text-slate-300"
                         title={patient.diagnosis}
                       >
                         {patient.diagnosis}
                       </div>
                     </td>
-                    <td className="text-sm">{patient.admissionDate}</td>
-                    <td>
-                      <strong
-                        style={
+                    <td className="px-3 py-3 text-sm text-slate-300">{patient.admissionDate}</td>
+                    <td className="px-3 py-3">
+                      <span
+                        className={cn(
+                          'font-mono font-semibold tabular-nums',
                           patient.los > 10
-                            ? { color: 'var(--color-critical-fg)' }
+                            ? 'text-red-300'
                             : patient.los > 6
-                              ? { color: 'var(--color-warning-fg)' }
-                              : {}
-                        }
+                              ? 'text-amber-300'
+                              : 'text-slate-200',
+                        )}
                       >
-                        {patient.los}d
-                      </strong>
-                    </td>
-                    <td>
-                      <span className={`badge ${STATUS_BADGE_CLASS[patient.dischargeStatus]}`}>
-                        {STATUS_LABELS[patient.dischargeStatus]}
+                        {patient.los}
+                        <span className="text-xs text-slate-500">d</span>
                       </span>
                     </td>
-                    <td>
+                    <td className="px-3 py-3">
+                      <Badge
+                        variant={STATUS_VARIANT[patient.dischargeStatus]}
+                        withDot
+                        pulse={patient.dischargeStatus === 'blocked'}
+                      >
+                        {STATUS_LABELS[patient.dischargeStatus]}
+                      </Badge>
+                    </td>
+                    <td className="px-3 py-3">
                       {patient.blockersCount === 0 ? (
-                        <span className="text-xs text-tertiary">—</span>
+                        <span className="text-xs text-slate-500">—</span>
                       ) : (
-                        <div>
+                        <div className="flex flex-wrap gap-1">
                           {patient.blockers.map((b) => (
-                            <span key={b} className="blocker-tag">
+                            <Badge key={b} variant="critical" size="sm">
                               {b}
-                            </span>
+                            </Badge>
                           ))}
                         </div>
                       )}
                     </td>
-                    <td className="text-sm">{patient.consultant}</td>
-                    <td>
-                      <span
-                        className={`badge ${
-                          patient.riskLevel === 'high'
-                            ? 'badge-critical'
-                            : patient.riskLevel === 'medium'
-                              ? 'badge-warning'
-                              : 'badge-success'
-                        }`}
-                      >
+                    <td className="px-3 py-3 text-sm text-slate-300">{patient.consultant}</td>
+                    <td className="px-3 py-3">
+                      <Badge variant={RISK_VARIANT[patient.riskLevel]} withDot>
                         {RISK_LABELS[patient.riskLevel]}
-                      </span>
+                      </Badge>
                     </td>
-                    <td>
-                      <div className="flex gap-2">
-                        <Link
-                          href={`/patients/${patient.mrn}`}
-                          className="btn btn-sm btn-primary no-underline"
-                        >
-                          Ver
-                        </Link>
-                        <button className="btn btn-sm btn-outline">Tarefas</button>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button asChild size="xs">
+                          <Link href={`/patients/${patient.mrn}`}>Ver</Link>
+                        </Button>
+                        <Button size="xs" variant="outline">
+                          <ClipboardList className="h-3 w-3" />
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -262,9 +349,9 @@ export default function PatientsPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
-      <div className="text-xs text-tertiary mt-2" style={{ textAlign: 'right' }}>
+      <div className="mt-3 text-right text-xs text-slate-500">
         Exibindo {sorted.length} de {MOCK_PATIENTS.length} pacientes
       </div>
     </AppShell>
