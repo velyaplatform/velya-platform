@@ -87,6 +87,11 @@ SKIP_DIRS=(
     'coverage'
     '.terraform'
     '.tofu'
+    # Vitest/Jest convention — colocated test directories use double underscore
+    '__tests__'
+    '__mocks__'
+    '__snapshots__'
+    '__fixtures__'
 )
 
 is_exception() {
@@ -195,6 +200,15 @@ while IFS= read -r file; do
 
         # Hidden directories are ok
         [[ "$part" == .* ]] && continue
+
+        # Next.js dynamic route segments are bracketed and framework-mandated:
+        #   [id] / [jobId] / [...slug] / [[...catchAll]]
+        # The bracket syntax is enforced by the App Router and the inner name
+        # is the TypeScript param identifier (camelCase by convention).
+        # These cannot be kebab-case without breaking routing — skip them.
+        if [[ "$part" == \[*\] ]]; then
+            continue
+        fi
 
         # Check for kebab-case
         if echo "$part" | grep -qE '[A-Z_]'; then
