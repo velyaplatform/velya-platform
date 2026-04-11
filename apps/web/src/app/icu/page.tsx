@@ -23,7 +23,7 @@ const SEVERITY_CONFIG: Record<
   },
   grave: {
     label: 'Grave',
-    className: 'bg-orange-500/20 text-orange-200 border-orange-500/50',
+    className: 'bg-orange-500/20 text-orange-800 border-orange-500/50',
     dot: 'bg-orange-400',
     border: 'border-orange-500/50 bg-orange-500/[0.04]',
   },
@@ -41,7 +41,7 @@ const SEVERITY_CONFIG: Record<
   },
   vazio: {
     label: 'Livre',
-    className: 'bg-slate-600/10 text-slate-500 border-slate-500/30',
+    className: 'bg-slate-600/10 text-slate-500 border-slate-300/30',
     dot: 'bg-slate-500',
     border: 'border-white/10 bg-white/[0.02]',
   },
@@ -73,7 +73,7 @@ const FAMILY_LABEL: Record<FamilyMeetingStatus, string> = {
 
 function news2Badge(score: number): string {
   if (score >= 7) return 'bg-red-600/30 text-red-800 border border-red-500/60';
-  if (score >= 5) return 'bg-orange-500/25 text-orange-200 border border-orange-500/50';
+  if (score >= 5) return 'bg-orange-500/25 text-orange-800 border border-orange-500/50';
   if (score >= 3) return 'bg-amber-400/20 text-amber-800 border border-amber-400/50';
   return 'bg-emerald-500/20 text-emerald-800 border border-emerald-500/50';
 }
@@ -150,10 +150,10 @@ export default function IcuPage() {
           <div className="text-[10px] text-white/75 mt-0.5">VM invasiva</div>
         </div>
         <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/[0.05] p-3">
-          <div className="text-[10px] uppercase tracking-wider text-indigo-300/80 font-semibold">
+          <div className="text-[10px] uppercase tracking-wider text-indigo-700/80 font-semibold">
             Sedados
           </div>
-          <div className="text-2xl font-bold text-indigo-200 mt-1">{kpis.sedated}</div>
+          <div className="text-2xl font-bold text-indigo-800 mt-1">{kpis.sedated}</div>
           <div className="text-[10px] text-white/75 mt-0.5">RASS ≤ -2</div>
         </div>
         <div className="rounded-lg border border-red-500/40 bg-red-500/[0.06] p-3">
@@ -164,10 +164,10 @@ export default function IcuPage() {
           <div className="text-[10px] text-white/75 mt-0.5">Severidade alta</div>
         </div>
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.05] p-3">
-          <div className="text-[10px] uppercase tracking-wider text-orange-300/80 font-semibold">
+          <div className="text-[10px] uppercase tracking-wider text-orange-700/80 font-semibold">
             Mort. prevista
           </div>
-          <div className="text-2xl font-bold text-orange-300 mt-1">{kpis.mortalityAvg}%</div>
+          <div className="text-2xl font-bold text-orange-700 mt-1">{kpis.mortalityAvg}%</div>
           <div className="text-[10px] text-white/75 mt-0.5">APACHE II médio</div>
         </div>
         <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.05] p-3">
@@ -308,7 +308,7 @@ export default function IcuPage() {
                   </span>
                 )}
                 {bed.sedation && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-200 border border-indigo-500/40">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-800 border border-indigo-500/40">
                     RASS {bed.sedation.rass}
                   </span>
                 )}
@@ -397,7 +397,7 @@ export default function IcuPage() {
               {selected.predictedMortality !== undefined && (
                 <div className="rounded border border-white/10 bg-white/[0.03] p-2">
                   <div className="text-[10px] uppercase text-white/75">Mort. prevista</div>
-                  <div className="text-lg font-bold text-orange-300">
+                  <div className="text-lg font-bold text-orange-700">
                     {selected.predictedMortality}%
                   </div>
                 </div>
@@ -405,7 +405,7 @@ export default function IcuPage() {
               {selected.sedation && (
                 <div className="rounded border border-white/10 bg-white/[0.03] p-2">
                   <div className="text-[10px] uppercase text-white/75">RASS</div>
-                  <div className="text-lg font-bold text-indigo-200">{selected.sedation.rass}</div>
+                  <div className="text-lg font-bold text-indigo-800">{selected.sedation.rass}</div>
                 </div>
               )}
             </div>
@@ -510,7 +510,7 @@ export default function IcuPage() {
                 <div className="text-[10px] uppercase tracking-wider text-amber-800 mb-1.5">
                   Alertas Ativos
                 </div>
-                <ul className="text-xs text-amber-100/90 space-y-0.5">
+                <ul className="text-xs text-amber-800/90 space-y-0.5">
                   {selected.alerts.map((a) => (
                     <li key={a}>⚠ {a}</li>
                   ))}

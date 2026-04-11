@@ -142,7 +142,7 @@ export function ShortcutsHelp() {
               <table className="w-full text-sm">
                 <tbody>
                   {section.entries.map((entry, idx) => (
-                    <tr key={idx} className="border-b border-slate-800 last:border-0">
+                    <tr key={idx} className="border-b border-slate-200 last:border-0">
                       <td className="py-2 pr-3 whitespace-nowrap align-top">
                         {entry.combo.map((key, kIdx) => (
                           <span key={kIdx}>

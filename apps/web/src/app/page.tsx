@@ -67,7 +67,7 @@ function TaskRow({ priority, type, description, patient, assignee, due }: TaskRo
         <div className="text-xs text-slate-500">
           <span className="font-mono text-blue-700">{patient}</span>
           <span className="mx-2 text-slate-600">·</span>
-          <span className="text-slate-600">Resp.: {assignee}</span>
+          <span className="text-slate-600">Responsável: {assignee}</span>
         </div>
       </div>
       <div className="flex shrink-0 flex-col gap-1.5">
@@ -175,7 +175,7 @@ const SERVICES: ServiceStatusProps[] = [
 
 const EXCEPTIONS = [
   {
-    label: 'TMI > 10d sem plano de alta',
+    label: 'Tempo de Internação > 10d sem plano de alta',
     count: 3,
     tone: 'critical' as const,
     href: '/patients',
@@ -283,7 +283,7 @@ export default function CommandCenterPage() {
           tone="critical"
         />
         <VelyaKPI
-          label="TMI Médio"
+          label="Tempo de Internação Médio"
           value="5,2"
           sublabel="dias · ↓ 0,3d vs semana anterior"
           trend="down"
@@ -430,7 +430,7 @@ export default function CommandCenterPage() {
               <tr className="border-b border-slate-200 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
                 <th className="pb-3 pr-4">Paciente</th>
                 <th className="pb-3 pr-4">Ala</th>
-                <th className="pb-3 pr-4">TMI</th>
+                <th className="pb-3 pr-4">Tempo de Internação</th>
                 <th className="pb-3 pr-4">Alta Prevista</th>
                 <th className="pb-3 pr-4">Bloqueios</th>
                 <th className="pb-3 pr-4">Status</th>

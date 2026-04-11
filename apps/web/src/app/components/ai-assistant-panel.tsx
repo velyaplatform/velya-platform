@@ -492,7 +492,7 @@ export function AiAssistantPanel() {
                     <div
                       key={idx}
                       role="alert"
-                      className="bg-red-900/40 border border-red-700 text-red-100 text-sm rounded-lg px-3 py-2"
+                      className="bg-red-50/40 border border-red-700 text-red-800 text-sm rounded-lg px-3 py-2"
                     >
                       {m.content}
                     </div>
@@ -567,7 +567,7 @@ export function AiAssistantPanel() {
                           type="button"
                           onClick={() => void confirmAction(m.agentPendingAction!)}
                           disabled={isLoading}
-                          className="min-h-[40px] px-4 py-2 rounded-md bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-60"
+                          className="min-h-[40px] px-4 py-2 rounded-md bg-amber-100 hover:bg-amber-50 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-60"
                         >
                           ✓ {m.agentPendingAction.label}
                         </button>

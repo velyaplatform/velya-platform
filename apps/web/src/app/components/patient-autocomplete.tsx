@@ -131,7 +131,7 @@ export function PatientAutocomplete({
     <div className="relative flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-medium text-slate-700">
         {label}
-        {required && <span className="text-red-400 ml-0.5">*</span>}
+        {required && <span className="text-red-700 ml-0.5">*</span>}
       </label>
       <input
         ref={inputRef}

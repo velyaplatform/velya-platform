@@ -83,8 +83,8 @@ export default function AllergyAlert({
       aria-live="assertive"
       className="rounded-lg border-2 border-red-500 bg-red-950 p-5 text-red-50 shadow-lg"
     >
-      <h3 className="text-xl font-bold text-red-100">{'\u26A0 ALERGIA RELATADA'}</h3>
-      <p className="mt-2 text-sm text-red-100">{explanation}</p>
+      <h3 className="text-xl font-bold text-red-800">{'\u26A0 ALERGIA RELATADA'}</h3>
+      <p className="mt-2 text-sm text-red-800">{explanation}</p>
       <p className="mt-1 text-xs text-red-800">
         Prontuario: <span className="font-semibold">{patientMrn}</span>
       </p>
@@ -92,7 +92,7 @@ export default function AllergyAlert({
         <button
           type="button"
           onClick={onRecognize}
-          className="min-h-[44px] rounded-md border border-red-300 bg-red-900 px-4 py-2 text-sm font-semibold text-red-50 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-300"
+          className="min-h-[44px] rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-50 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300"
         >
           Reconhecer e continuar
         </button>

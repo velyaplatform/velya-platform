@@ -150,7 +150,7 @@ export default function MePage() {
               type="button"
               onClick={handleLogout}
               disabled={loggingOut}
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-red-700/60 text-red-800 hover:bg-red-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-60"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-red-700/60 text-red-800 hover:bg-red-50/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-60"
             >
               {loggingOut ? 'Saindo...' : 'Sair da plataforma'}
             </button>

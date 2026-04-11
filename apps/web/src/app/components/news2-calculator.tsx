@@ -226,7 +226,7 @@ export default function News2Calculator() {
             type="checkbox"
             checked={onSupplementalO2}
             onChange={(event) => setOnSupplementalO2(event.target.checked)}
-            className="h-5 w-5 min-h-[44px] cursor-pointer rounded border-slate-500 bg-slate-50 text-blue-400 focus:ring-2 focus:ring-blue-400"
+            className="h-5 w-5 min-h-[44px] cursor-pointer rounded border-slate-300 bg-slate-50 text-blue-700 focus:ring-2 focus:ring-blue-400"
           />
           <label htmlFor="news2-o2" className="ml-3 text-sm font-semibold text-slate-900">
             Paciente em O2 suplementar
@@ -324,7 +324,7 @@ export default function News2Calculator() {
 
         {result.hasAnyThree ? (
           <p
-            className="mt-4 rounded-md border border-orange-400 bg-orange-950 px-3 py-2 text-sm font-semibold text-orange-200"
+            className="mt-4 rounded-md border border-orange-400 bg-orange-950 px-3 py-2 text-sm font-semibold text-orange-800"
             role="status"
           >
             &gt;= 1 parametro com pontuacao 3 - escalada clinica
@@ -368,7 +368,7 @@ export default function News2Calculator() {
           aria-live="assertive"
           className="mt-6 rounded-lg border-2 border-red-500 bg-red-950 p-5"
         >
-          <h3 className="text-xl font-bold text-red-100">ACIONAR SEPSIS HOUR-1 BUNDLE</h3>
+          <h3 className="text-xl font-bold text-red-800">ACIONAR SEPSIS HOUR-1 BUNDLE</h3>
           <p className="mt-1 text-sm text-red-800">
             Criterio de gatilho: NEWS2 &gt;= 5 ou parametro isolado com pontuacao 3. Siga as acoes
             do bundle em ate 1 hora (Surviving Sepsis Campaign 2024).

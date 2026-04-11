@@ -5,8 +5,8 @@ import { AppShell } from '../components/app-shell';
 import { ALERTS, type CriticalAlert } from '../../lib/fixtures/alerts';
 
 const SEVERITY_BADGE: Record<CriticalAlert['severity'], string> = {
-  critical: 'bg-red-900/40 text-red-800 border-red-700/60',
-  high: 'bg-amber-900/40 text-amber-800 border-amber-700/60',
+  critical: 'bg-red-50/40 text-red-800 border-red-700/60',
+  high: 'bg-amber-50/40 text-amber-800 border-amber-700/60',
 };
 
 export default function AlertsPage() {

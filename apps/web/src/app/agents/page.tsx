@@ -68,18 +68,18 @@ const OFFICE_ICON: Record<string, string> = {
 
 const STAGE_COLOR: Record<string, string> = {
   draft: 'bg-slate-100/50 text-slate-700 border-slate-300',
-  sandbox: 'bg-purple-900/40 text-purple-200 border-purple-700',
-  shadow: 'bg-amber-900/40 text-amber-800 border-amber-700',
-  probation: 'bg-orange-900/40 text-orange-200 border-orange-700',
-  active: 'bg-green-900/50 text-green-800 border-green-700',
+  sandbox: 'bg-purple-50/40 text-purple-800 border-purple-700',
+  shadow: 'bg-amber-50/40 text-amber-800 border-amber-700',
+  probation: 'bg-orange-50/40 text-orange-800 border-orange-700',
+  active: 'bg-green-50/50 text-green-800 border-green-700',
   deprecated: 'bg-slate-50 text-slate-600 border-slate-300',
   retired: 'bg-white text-slate-500 border-slate-200',
 };
 
 const RISK_COLOR: Record<string, string> = {
-  safe: 'bg-green-900/30 text-green-800 border-green-700/50',
-  review: 'bg-amber-900/30 text-amber-800 border-amber-700/50',
-  critical: 'bg-red-900/30 text-red-800 border-red-700/50',
+  safe: 'bg-green-50/30 text-green-800 border-green-700/50',
+  review: 'bg-amber-50/30 text-amber-800 border-amber-700/50',
+  critical: 'bg-red-50/30 text-red-800 border-red-700/50',
 };
 
 function scoreColor(value: number): string {
@@ -416,7 +416,7 @@ function AgentCard({
             type="button"
             onClick={onRelease}
             disabled={busy}
-            className="text-[11px] font-bold px-3 py-1.5 rounded bg-green-700 hover:bg-green-800 text-white focus:outline-none focus:ring-2 focus:ring-green-300 disabled:opacity-60"
+            className="text-[11px] font-bold px-3 py-1.5 rounded bg-green-100 hover:bg-green-50 text-white focus:outline-none focus:ring-2 focus:ring-green-300 disabled:opacity-60"
           >
             ✓ Liberar
           </button>
@@ -425,7 +425,7 @@ function AgentCard({
             type="button"
             onClick={onQuarantine}
             disabled={busy}
-            className="text-[11px] font-bold px-3 py-1.5 rounded bg-amber-700 hover:bg-amber-800 text-white focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-60"
+            className="text-[11px] font-bold px-3 py-1.5 rounded bg-amber-100 hover:bg-amber-50 text-white focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-60"
           >
             ⏸ Quarentena
           </button>

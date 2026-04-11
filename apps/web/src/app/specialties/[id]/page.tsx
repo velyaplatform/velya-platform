@@ -163,9 +163,9 @@ export default function SpecialtyDetailPage() {
             {involvedStaff.map((s) => {
               const presenceClass =
                 s.presence === 'on-duty'
-                  ? 'bg-green-900/40 text-green-800 border-green-700/60'
+                  ? 'bg-green-50/40 text-green-800 border-green-700/60'
                   : s.presence === 'on-break'
-                    ? 'bg-amber-900/40 text-amber-800 border-amber-700/60'
+                    ? 'bg-amber-50/40 text-amber-800 border-amber-700/60'
                     : 'bg-slate-50 text-slate-600 border-slate-300';
               return (
                 <li key={s.id}>

@@ -20,7 +20,7 @@ const STATUS_CONFIG: Record<
   },
   'em-rota-coleta': {
     label: 'Em rota à cena',
-    badge: 'bg-indigo-500/15 text-indigo-200 border border-indigo-500/40',
+    badge: 'bg-indigo-500/15 text-indigo-800 border border-indigo-500/40',
     dot: 'bg-indigo-400',
     ring: 'ring-indigo-400/40',
   },
@@ -119,10 +119,10 @@ export default function EmsPage() {
           <div className="text-xs text-white/75 mt-1">Em rota Velya HQ</div>
         </div>
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-orange-300/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-orange-700/80 font-semibold">
             Próx. 10 min
           </div>
-          <div className="text-3xl font-bold text-orange-300 mt-1">{kpis.arrivingSoon}</div>
+          <div className="text-3xl font-bold text-orange-700 mt-1">{kpis.arrivingSoon}</div>
           <div className="text-xs text-white/75 mt-1">Chegando</div>
         </div>
         <div className="rounded-lg border border-red-500/40 bg-red-500/[0.08] p-4">
@@ -226,7 +226,7 @@ export default function EmsPage() {
                 className="rounded-md border border-amber-500/20 bg-amber-500/[0.04] p-3"
               >
                 <div className="flex items-center justify-between">
-                  <div className="text-xs font-bold text-amber-100">{a.unit}</div>
+                  <div className="text-xs font-bold text-amber-800">{a.unit}</div>
                   <div className="text-[10px] text-amber-800/80">ETA {a.etaMin} min</div>
                 </div>
                 {a.patient && (

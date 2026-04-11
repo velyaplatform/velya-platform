@@ -25,12 +25,12 @@ const CATEGORY_CONFIG: Record<
   emergencia: { icon: '\uD83D\uDE91', label: 'Emergencia', colorBg: 'bg-red-950/40', colorText: 'text-red-800', colorBorder: 'border-red-700' },
   admissao: { icon: '\uD83C\uDFE5', label: 'Admissao', colorBg: 'bg-blue-950/40', colorText: 'text-blue-800', colorBorder: 'border-blue-700' },
   avaliacao: { icon: '\uD83D\uDC68\u200D\u2695\uFE0F', label: 'Avaliacao', colorBg: 'bg-green-950/40', colorText: 'text-green-800', colorBorder: 'border-green-700' },
-  medicacao: { icon: '\uD83D\uDC8A', label: 'Medicacao', colorBg: 'bg-purple-950/40', colorText: 'text-purple-200', colorBorder: 'border-purple-700' },
-  exame: { icon: '\uD83D\uDD2C', label: 'Exame', colorBg: 'bg-orange-950/40', colorText: 'text-orange-200', colorBorder: 'border-orange-700' },
+  medicacao: { icon: '\uD83D\uDC8A', label: 'Medicacao', colorBg: 'bg-purple-950/40', colorText: 'text-purple-800', colorBorder: 'border-purple-700' },
+  exame: { icon: '\uD83D\uDD2C', label: 'Exame', colorBg: 'bg-orange-950/40', colorText: 'text-orange-800', colorBorder: 'border-orange-700' },
   evolucao: { icon: '\uD83D\uDCCB', label: 'Evolucao', colorBg: 'bg-slate-50', colorText: 'text-slate-700', colorBorder: 'border-slate-300' },
-  handoff: { icon: '\uD83E\uDD1D', label: 'Handoff', colorBg: 'bg-yellow-950/40', colorText: 'text-yellow-200', colorBorder: 'border-yellow-700' },
+  handoff: { icon: '\uD83E\uDD1D', label: 'Handoff', colorBg: 'bg-yellow-950/40', colorText: 'text-yellow-800', colorBorder: 'border-yellow-700' },
   alerta: { icon: '\u26A0\uFE0F', label: 'Alerta', colorBg: 'bg-red-950/40', colorText: 'text-red-800', colorBorder: 'border-red-700' },
-  chamada: { icon: '\uD83D\uDCDE', label: 'Chamada', colorBg: 'bg-cyan-950/40', colorText: 'text-cyan-200', colorBorder: 'border-cyan-700' },
+  chamada: { icon: '\uD83D\uDCDE', label: 'Chamada', colorBg: 'bg-cyan-950/40', colorText: 'text-cyan-800', colorBorder: 'border-cyan-700' },
   alta: { icon: '\uD83C\uDFE0', label: 'Alta', colorBg: 'bg-emerald-950/40', colorText: 'text-emerald-800', colorBorder: 'border-emerald-700' },
 };
 
@@ -47,7 +47,7 @@ function news2Color(score: number): string {
   if (score >= 7) return 'bg-red-700 text-white';
   if (score >= 5) return 'bg-orange-700 text-white';
   if (score >= 3) return 'bg-amber-400 text-slate-900';
-  return 'bg-green-800 text-white';
+  return 'bg-green-50 text-white';
 }
 
 function news2Label(score: number): string {
@@ -221,7 +221,7 @@ export default function PatientCockpitPage() {
               NEWS2: {cockpit.news2Score} ({news2Label(cockpit.news2Score)})
             </span>
             <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-slate-50 text-slate-700 border border-slate-300">
-              TMI: {cockpit.los}d
+              Tempo de Internação: {cockpit.los}d
             </span>
             <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-slate-50 text-slate-700 border border-slate-300">
               {cockpit.ward} &middot; Leito {cockpit.bed}
@@ -291,7 +291,7 @@ export default function PatientCockpitPage() {
                       }`}>
                         <span className={`shrink-0 mt-0.5 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                           pa.urgency === 'critico' ? 'bg-red-700 text-white' :
-                          pa.urgency === 'urgente' ? 'bg-amber-700 text-white' : 'bg-slate-100 text-slate-900'
+                          pa.urgency === 'urgente' ? 'bg-amber-100 text-white' : 'bg-slate-100 text-slate-900'
                         }`}>{pa.urgency}</span>
                         <div className="min-w-0 flex-1">
                           <div className="text-sm font-semibold text-slate-900">{pa.action}</div>
@@ -343,9 +343,9 @@ export default function PatientCockpitPage() {
                   </div>
                 </div>
                 <div className="bg-purple-950/40 border border-purple-700/60 rounded-lg p-4">
-                  <div className="text-[10px] font-bold text-purple-300 uppercase mb-2">Medicacoes Ativas</div>
-                  <div className="text-3xl font-bold text-purple-200">{cockpit.medications.filter(m => m.status === 'ativa').length}</div>
-                  <div className="text-xs text-purple-300 mt-1">
+                  <div className="text-[10px] font-bold text-purple-700 uppercase mb-2">Medicacoes Ativas</div>
+                  <div className="text-3xl font-bold text-purple-800">{cockpit.medications.filter(m => m.status === 'ativa').length}</div>
+                  <div className="text-xs text-purple-700 mt-1">
                     Proxima dose: {cockpit.medications.find(m => m.status === 'ativa' && m.nextDose)?.nextDose || 'N/A'}
                   </div>
                 </div>
@@ -546,7 +546,7 @@ export default function PatientCockpitPage() {
                     {cockpit.labs.filter(l => l.status === 'solicitado' || l.status === 'em_andamento').map((lab) => (
                       <div key={lab.id} className="bg-amber-950/40 border border-amber-700 rounded-lg p-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-amber-100">{lab.name}</span>
+                          <span className="text-sm font-semibold text-amber-800">{lab.name}</span>
                           <span className="text-xs font-bold text-amber-800 uppercase">{lab.status === 'solicitado' ? 'Solicitado' : 'Em andamento'}</span>
                         </div>
                         <div className="text-xs text-amber-800 mt-1">Solicitado em: {lab.requestDate}</div>
@@ -640,7 +640,7 @@ export default function PatientCockpitPage() {
                     </thead>
                     <tbody>
                       {cockpit.vitals.map((v, i) => (
-                        <tr key={i} className="border-b border-slate-800 hover:bg-slate-50 text-slate-900">
+                        <tr key={i} className="border-b border-slate-200 hover:bg-slate-50 text-slate-900">
                           <td className="px-3 py-2 font-mono text-xs text-slate-600">{v.timestamp}</td>
                           <td className="px-3 py-2 text-center font-semibold">{v.fc}</td>
                           <td className="px-3 py-2 text-center font-semibold">{v.pas}/{v.pad}</td>
@@ -718,7 +718,7 @@ export default function PatientCockpitPage() {
                     <div key={i} className="bg-yellow-950/40 border border-yellow-700 rounded-lg p-3">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs font-mono text-slate-600">{h.timestamp}</span>
-                        <span className="text-xs font-bold text-yellow-200">{h.from} {'\u2192'} {h.to}</span>
+                        <span className="text-xs font-bold text-yellow-800">{h.from} {'\u2192'} {h.to}</span>
                       </div>
                       <div className="text-sm text-slate-700">{h.summary}</div>
                     </div>

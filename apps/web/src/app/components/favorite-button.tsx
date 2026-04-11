@@ -28,7 +28,7 @@ export function FavoriteButton({ scope, entry, label, className }: FavoriteButto
       title={fav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
       className={`min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold border focus:outline-none focus:ring-2 focus:ring-amber-300 ${
         fav
-          ? 'bg-amber-900/40 border-amber-600 text-amber-100 hover:bg-amber-900/60'
+          ? 'bg-amber-50/40 border-amber-600 text-amber-800 hover:bg-amber-50/60'
           : 'bg-slate-50 border-slate-300 text-slate-900 hover:bg-slate-100'
       } ${className ?? ''}`}
     >

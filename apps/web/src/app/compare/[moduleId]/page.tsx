@@ -200,7 +200,7 @@ function CompareModuleInner() {
         >
           <span
             aria-hidden="true"
-            className="inline-block w-5 h-5 border-2 border-slate-500 border-t-blue-400 rounded-full animate-spin"
+            className="inline-block w-5 h-5 border-2 border-slate-300 border-t-blue-400 rounded-full animate-spin"
           />
           Carregando {ids.length} registros...
         </div>
@@ -386,12 +386,12 @@ function CompareModuleInner() {
             {editableColumns.map((col) => {
               const isDiff = diffByColumn[col.key];
               const rowBase = isDiff
-                ? 'bg-amber-900/20 border-l-4 border-amber-500'
+                ? 'bg-amber-50/20 border-l-4 border-amber-500'
                 : 'bg-white';
               return (
                 <tr
                   key={col.key}
-                  className={`${rowBase} border-b border-slate-800 last:border-b-0`}
+                  className={`${rowBase} border-b border-slate-200 last:border-b-0`}
                   {...(isDiff ? { 'aria-label': 'diferença' } : {})}
                 >
                   <th
@@ -402,7 +402,7 @@ function CompareModuleInner() {
                       <span>{col.label}</span>
                       {isDiff && (
                         <span
-                          className="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-amber-700/50 text-amber-100 border border-amber-500/60"
+                          className="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-amber-100/50 text-amber-800 border border-amber-500/60"
                           aria-hidden="true"
                         >
                           diff

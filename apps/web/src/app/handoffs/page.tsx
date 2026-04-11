@@ -8,8 +8,8 @@ import type { ShiftHandoff, HandoffStatus } from '@/lib/handoff-store';
 const STATUS_BADGE: Record<HandoffStatus, string> = {
   draft: 'bg-slate-50 text-slate-600 border-slate-300',
   sent: 'bg-blue-900/40 text-blue-800 border-blue-700/60',
-  'awaiting-readback': 'bg-amber-900/40 text-amber-800 border-amber-700/60',
-  completed: 'bg-green-900/40 text-green-800 border-green-700/60',
+  'awaiting-readback': 'bg-amber-50/40 text-amber-800 border-amber-700/60',
+  completed: 'bg-green-50/40 text-green-800 border-green-700/60',
   cancelled: 'bg-slate-50 text-slate-500 border-slate-200',
 };
 

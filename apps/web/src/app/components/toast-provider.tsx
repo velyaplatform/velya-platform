@@ -66,14 +66,14 @@ const VARIANT_STYLES: Record<
   }
 > = {
   success: {
-    container: 'bg-green-900/60 border-green-600 text-green-100',
+    container: 'bg-green-50/60 border-green-600 text-green-800',
     icon: 'text-green-700',
     iconChar: '\u2713',
     role: 'status',
     ariaLive: 'polite',
   },
   error: {
-    container: 'bg-red-900/60 border-red-600 text-red-100',
+    container: 'bg-red-50/60 border-red-600 text-red-800',
     icon: 'text-red-700',
     iconChar: '\u26A0\uFE0F',
     role: 'alert',
@@ -87,7 +87,7 @@ const VARIANT_STYLES: Record<
     ariaLive: 'polite',
   },
   warning: {
-    container: 'bg-amber-900/60 border-amber-600 text-amber-100',
+    container: 'bg-amber-50/60 border-amber-600 text-amber-800',
     icon: 'text-amber-700',
     iconChar: '\u26A1',
     role: 'status',

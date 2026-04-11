@@ -568,7 +568,7 @@ function badgeClass(value: string): string {
       v,
     )
   ) {
-    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-green-900/40 text-green-800 border-green-700/60 whitespace-nowrap';
+    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-green-50/40 text-green-800 border-green-700/60 whitespace-nowrap';
   }
   // Warning / in-progress / pending / routine
   if (
@@ -582,11 +582,11 @@ function badgeClass(value: string): string {
   if (
     /critical|urgent|stat|emergency|failed|denied|crítico|urgente|emerg|negad|falha/.test(v)
   ) {
-    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-red-900/40 text-red-800 border-red-700/60 whitespace-nowrap';
+    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-red-50/40 text-red-800 border-red-700/60 whitespace-nowrap';
   }
   // Warning yellow
   if (/warning|warn|on-hold|draft|atras|alerta|rascunho|em-revisao|suspen/.test(v)) {
-    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-amber-900/40 text-amber-800 border-amber-700/60 whitespace-nowrap';
+    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-amber-50/40 text-amber-800 border-amber-700/60 whitespace-nowrap';
   }
   // Default slate
   return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-slate-50 text-slate-700 border-slate-300 whitespace-nowrap';

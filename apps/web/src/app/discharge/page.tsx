@@ -95,7 +95,7 @@ export default function DischargePage() {
           <span>🚨</span>
           <strong>{blockedCount} pacientes bloqueados</strong>
           <span style={{ fontWeight: 400 }}>
-            — intervenção imediata necessária para evitar excesso de TMI
+            — intervenção imediata necessária para evitar excesso de Tempo de Internação
           </span>
         </div>
       )}
@@ -184,7 +184,7 @@ export default function DischargePage() {
                 </th>
                 <th>Paciente</th>
                 <th>Ala</th>
-                <th>TMI</th>
+                <th>Tempo de Internação</th>
                 <th>Alta Prevista</th>
                 <th>Bloqueios</th>
                 <th>Responsável</th>

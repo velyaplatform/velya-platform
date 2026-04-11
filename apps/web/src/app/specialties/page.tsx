@@ -36,14 +36,14 @@ import { HOSPITAL_WARDS } from '../../lib/fixtures/hospital-wards';
 
 const COUNCIL_COLOR: Record<string, string> = {
   CRM: 'bg-blue-900/40 text-blue-800 border-blue-700/60',
-  CRN: 'bg-green-900/40 text-green-800 border-green-700/60',
-  COREN: 'bg-amber-900/40 text-amber-800 border-amber-700/60',
-  CRF: 'bg-purple-900/40 text-purple-200 border-purple-700/60',
-  CREFITO: 'bg-cyan-900/40 text-cyan-200 border-cyan-700/60',
-  CRP: 'bg-pink-900/40 text-pink-200 border-pink-700/60',
-  CFFa: 'bg-indigo-900/40 text-indigo-200 border-indigo-700/60',
-  CRO: 'bg-teal-900/40 text-teal-200 border-teal-700/60',
-  CRESS: 'bg-orange-900/40 text-orange-200 border-orange-700/60',
+  CRN: 'bg-green-50/40 text-green-800 border-green-700/60',
+  COREN: 'bg-amber-50/40 text-amber-800 border-amber-700/60',
+  CRF: 'bg-purple-50/40 text-purple-800 border-purple-700/60',
+  CREFITO: 'bg-cyan-50/40 text-cyan-800 border-cyan-700/60',
+  CRP: 'bg-pink-50/40 text-pink-800 border-pink-700/60',
+  CFFa: 'bg-indigo-50/40 text-indigo-800 border-indigo-700/60',
+  CRO: 'bg-teal-50/40 text-teal-800 border-teal-700/60',
+  CRESS: 'bg-orange-50/40 text-orange-800 border-orange-700/60',
 };
 
 const CATEGORY_ICON: Record<SpecialtyCategory, string> = {
@@ -276,7 +276,7 @@ export default function SpecialtiesHubPage() {
                           href={`/specialties/${spec.id}`}
                           className={`block bg-white border rounded-xl p-4 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 ${
                             muted
-                              ? 'border-slate-800 opacity-60 hover:opacity-90 hover:border-slate-200'
+                              ? 'border-slate-200 opacity-60 hover:opacity-90 hover:border-slate-200'
                               : 'border-slate-200 hover:border-blue-700 hover:bg-slate-50/60'
                           }`}
                         >

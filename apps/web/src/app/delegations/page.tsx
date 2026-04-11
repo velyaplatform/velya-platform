@@ -7,10 +7,10 @@ import type { Delegation, DelegationStatus } from '@/lib/delegation-store';
 
 const STATUS_BADGE: Record<DelegationStatus, string> = {
   open: 'bg-blue-900/40 text-blue-800 border-blue-700/60',
-  acknowledged: 'bg-cyan-900/40 text-cyan-200 border-cyan-700/60',
-  'in-progress': 'bg-amber-900/40 text-amber-800 border-amber-700/60',
-  blocked: 'bg-red-900/40 text-red-800 border-red-700/60',
-  completed: 'bg-green-900/40 text-green-800 border-green-700/60',
+  acknowledged: 'bg-cyan-50/40 text-cyan-800 border-cyan-700/60',
+  'in-progress': 'bg-amber-50/40 text-amber-800 border-amber-700/60',
+  blocked: 'bg-red-50/40 text-red-800 border-red-700/60',
+  completed: 'bg-green-50/40 text-green-800 border-green-700/60',
   declined: 'bg-slate-50 text-slate-600 border-slate-300',
   cancelled: 'bg-slate-50 text-slate-500 border-slate-200',
 };
@@ -33,8 +33,8 @@ const PRIORITY_LABEL: Record<string, string> = {
 };
 
 const PRIORITY_BADGE: Record<string, string> = {
-  urgent: 'bg-red-900/40 text-red-800 border-red-700/60',
-  high: 'bg-amber-900/40 text-amber-800 border-amber-700/60',
+  urgent: 'bg-red-50/40 text-red-800 border-red-700/60',
+  high: 'bg-amber-50/40 text-amber-800 border-amber-700/60',
   normal: 'bg-blue-900/40 text-blue-800 border-blue-700/60',
   low: 'bg-slate-50 text-slate-600 border-slate-300',
 };

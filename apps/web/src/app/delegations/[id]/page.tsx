@@ -8,10 +8,10 @@ import type { Delegation, DelegationStatus } from '@/lib/delegation-store';
 
 const STATUS_BADGE: Record<DelegationStatus, string> = {
   open: 'bg-blue-900/40 text-blue-800 border-blue-700/60',
-  acknowledged: 'bg-cyan-900/40 text-cyan-200 border-cyan-700/60',
-  'in-progress': 'bg-amber-900/40 text-amber-800 border-amber-700/60',
-  blocked: 'bg-red-900/40 text-red-800 border-red-700/60',
-  completed: 'bg-green-900/40 text-green-800 border-green-700/60',
+  acknowledged: 'bg-cyan-50/40 text-cyan-800 border-cyan-700/60',
+  'in-progress': 'bg-amber-50/40 text-amber-800 border-amber-700/60',
+  blocked: 'bg-red-50/40 text-red-800 border-red-700/60',
+  completed: 'bg-green-50/40 text-green-800 border-green-700/60',
   declined: 'bg-slate-50 text-slate-600 border-slate-300',
   cancelled: 'bg-slate-50 text-slate-500 border-slate-200',
 };
@@ -287,7 +287,7 @@ export default function DelegationDetailPage() {
             <li key={idx} className="pl-4 relative">
               <span
                 aria-hidden="true"
-                className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-slate-900"
+                className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-slate-200"
               />
               <div className="text-xs text-slate-500 font-mono">
                 {new Date(entry.at).toLocaleString('pt-BR')}

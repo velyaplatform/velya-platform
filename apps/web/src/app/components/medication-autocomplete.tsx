@@ -187,7 +187,7 @@ export function MedicationAutocomplete({
       <label htmlFor={id} className="text-sm font-medium text-slate-700">
         {label}
         {required && (
-          <span aria-hidden="true" className="text-red-400 ml-0.5">
+          <span aria-hidden="true" className="text-red-700 ml-0.5">
             *
           </span>
         )}
@@ -247,7 +247,7 @@ export function MedicationAutocomplete({
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-slate-900 font-semibold">{opt.name}</span>
                   {opt.source === 'stock' && (
-                    <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-green-900/40 text-green-800 border border-green-700/60">
+                    <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-green-50/40 text-green-800 border border-green-700/60">
                       em estoque
                     </span>
                   )}

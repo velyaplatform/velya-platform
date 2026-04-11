@@ -49,7 +49,7 @@ export function FormField({ id, label, help, error, required, children }: FormFi
       <label htmlFor={id} className="text-sm font-medium text-slate-700">
         {label}
         {required && (
-          <span aria-hidden="true" className="text-red-400 ml-0.5">
+          <span aria-hidden="true" className="text-red-700 ml-0.5">
             *
           </span>
         )}

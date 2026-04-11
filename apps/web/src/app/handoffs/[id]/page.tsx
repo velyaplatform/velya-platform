@@ -13,8 +13,8 @@ import type {
 const STATUS_BADGE: Record<HandoffStatus, string> = {
   draft: 'bg-slate-50 text-slate-600 border-slate-300',
   sent: 'bg-blue-900/40 text-blue-800 border-blue-700/60',
-  'awaiting-readback': 'bg-amber-900/40 text-amber-800 border-amber-700/60',
-  completed: 'bg-green-900/40 text-green-800 border-green-700/60',
+  'awaiting-readback': 'bg-amber-50/40 text-amber-800 border-amber-700/60',
+  completed: 'bg-green-50/40 text-green-800 border-green-700/60',
   cancelled: 'bg-slate-50 text-slate-500 border-slate-200',
 };
 const STATUS_LABEL: Record<HandoffStatus, string> = {
@@ -25,9 +25,9 @@ const STATUS_LABEL: Record<HandoffStatus, string> = {
   cancelled: 'Cancelado',
 };
 const SEVERITY_BADGE: Record<IllnessSeverity, string> = {
-  stable: 'bg-green-900/40 text-green-800 border-green-700/60',
-  watcher: 'bg-amber-900/40 text-amber-800 border-amber-700/60',
-  unstable: 'bg-red-900/40 text-red-800 border-red-700/60',
+  stable: 'bg-green-50/40 text-green-800 border-green-700/60',
+  watcher: 'bg-amber-50/40 text-amber-800 border-amber-700/60',
+  unstable: 'bg-red-50/40 text-red-800 border-red-700/60',
 };
 const SEVERITY_LABEL: Record<IllnessSeverity, string> = {
   stable: 'Estável',
@@ -241,7 +241,7 @@ export default function HandoffDetailPage() {
           <h2 id="unit-notes-heading" className="text-xs uppercase tracking-wider font-bold text-amber-800 mb-2">
             Avisos da unidade
           </h2>
-          <p className="text-sm text-amber-100 whitespace-pre-wrap">{handoff.unitNotes}</p>
+          <p className="text-sm text-amber-800 whitespace-pre-wrap">{handoff.unitNotes}</p>
         </section>
       )}
 
@@ -376,7 +376,7 @@ export default function HandoffDetailPage() {
           <h2 className="text-sm font-bold text-green-800 mb-2">
             ✓ Read-back recebido — handoff fechado
           </h2>
-          <p className="text-sm text-green-100 whitespace-pre-wrap mb-2">{handoff.receiverReadback}</p>
+          <p className="text-sm text-green-800 whitespace-pre-wrap mb-2">{handoff.receiverReadback}</p>
           <p className="text-xs text-green-700">
             Por {handoff.toUserName} em{' '}
             {handoff.completedAt && new Date(handoff.completedAt).toLocaleString('pt-BR')}
@@ -397,7 +397,7 @@ export default function HandoffDetailPage() {
             <li key={idx} className="pl-4 relative">
               <span
                 aria-hidden="true"
-                className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-slate-900"
+                className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-slate-200"
               />
               <div className="text-xs text-slate-500 font-mono">
                 {new Date(entry.at).toLocaleString('pt-BR')}

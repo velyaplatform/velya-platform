@@ -11,9 +11,9 @@ import {
 } from '../../../lib/fixtures/suppliers';
 
 const STATUS_BADGE: Record<SupplierStatus, string> = {
-  ativo: 'bg-green-900/40 text-green-800 border-green-700/60',
-  'em-revisao': 'bg-amber-900/40 text-amber-800 border-amber-700/60',
-  suspenso: 'bg-red-900/40 text-red-800 border-red-700/60',
+  ativo: 'bg-green-50/40 text-green-800 border-green-700/60',
+  'em-revisao': 'bg-amber-50/40 text-amber-800 border-amber-700/60',
+  suspenso: 'bg-red-50/40 text-red-800 border-red-700/60',
   descredenciado: 'bg-slate-50 text-slate-600 border-slate-300',
 };
 
@@ -151,7 +151,7 @@ export default function SupplierDetailPage() {
             >
               Observações internas
             </h2>
-            <p className="text-amber-100 text-sm">{supplier.notes}</p>
+            <p className="text-amber-800 text-sm">{supplier.notes}</p>
           </section>
         )}
       </div>

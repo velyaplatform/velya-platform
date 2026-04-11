@@ -223,7 +223,7 @@ export default function PatientsPage() {
                 <th className="px-3 py-3">Ala / Leito</th>
                 <th className="px-3 py-3">Diagnóstico</th>
                 <th className="px-3 py-3">Internado</th>
-                <th className="px-3 py-3">TMI</th>
+                <th className="px-3 py-3">Tempo de Internação</th>
                 <th className="px-3 py-3">Status de Alta</th>
                 <th className="px-3 py-3">Bloqueios</th>
                 <th className="px-3 py-3">Médico</th>

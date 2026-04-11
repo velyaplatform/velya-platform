@@ -115,10 +115,10 @@ function VerifyForm() {
         {currentDevCode && (
           <div
             role="status"
-            className="bg-yellow-500/20 border border-yellow-400/50 rounded-lg px-4 py-3 text-yellow-200 text-sm text-center mb-4"
+            className="bg-yellow-500/20 border border-yellow-400/50 rounded-lg px-4 py-3 text-yellow-800 text-sm text-center mb-4"
           >
             <strong>Modo desenvolvimento</strong> — código:{' '}
-            <span className="font-mono text-lg font-bold tracking-[0.15em] text-yellow-100">
+            <span className="font-mono text-lg font-bold tracking-[0.15em] text-yellow-800">
               {currentDevCode}
             </span>
           </div>

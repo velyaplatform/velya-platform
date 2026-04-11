@@ -132,7 +132,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
               }}
               className="group flex h-10 w-full items-center gap-2.5 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-left text-sm text-neutral-500 transition-colors hover:border-neutral-300 hover:bg-white"
             >
-              <Search className="h-4 w-4 shrink-0 text-neutral-400 group-hover:text-neutral-600" />
+              <Search className="h-4 w-4 shrink-0 text-neutral-600 group-hover:text-neutral-600" />
               <span className="flex-1 truncate">Buscar pacientes, tarefas, MRN…</span>
               <kbd className="hidden rounded border border-neutral-200 bg-white px-1.5 font-mono text-[10px] text-neutral-500 sm:inline-block">
                 ⌘K
@@ -176,8 +176,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
               </Avatar>
               <div className="hidden flex-col leading-tight text-left md:flex">
                 <span className="text-xs font-semibold text-neutral-900">
-                  {sessionData.userName.split(' ')[0]}{' '}
-                  {sessionData.userName.split(' ').slice(-1)[0]?.[0]}.
+                  {sessionData.userName}
                 </span>
                 {councilBadge && (
                   <span className="text-[10px] text-neutral-500">{councilBadge}</span>

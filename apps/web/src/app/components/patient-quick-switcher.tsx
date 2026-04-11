@@ -106,7 +106,7 @@ export function PatientQuickSwitcher() {
                     clearRecentPatients();
                     setIsOpen(false);
                   }}
-                  className="w-full min-h-[40px] text-xs text-slate-600 hover:text-red-800 hover:bg-red-900/30 rounded-md py-2 focus:outline-none focus:ring-2 focus:ring-red-300"
+                  className="w-full min-h-[40px] text-xs text-slate-600 hover:text-red-800 hover:bg-red-50/30 rounded-md py-2 focus:outline-none focus:ring-2 focus:ring-red-300"
                 >
                   Limpar lista
                 </button>

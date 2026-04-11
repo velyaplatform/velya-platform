@@ -31,7 +31,7 @@ const STATUS_CONFIG: Record<
   'in-progress': {
     label: 'Em Andamento',
     icon: '🟡',
-    bar: 'bg-amber-800 border-amber-600',
+    bar: 'bg-amber-50 border-amber-600',
     badge: 'bg-amber-400/20 text-amber-800 border border-amber-400/40',
   },
   completed: {
@@ -52,7 +52,7 @@ const ASA_COLORS: Record<AsaRisk, string> = {
   I: 'bg-emerald-500/20 text-emerald-800',
   II: 'bg-blue-500/20 text-blue-800',
   III: 'bg-amber-400/20 text-amber-800',
-  IV: 'bg-orange-500/25 text-orange-200',
+  IV: 'bg-orange-500/25 text-orange-800',
   V: 'bg-red-500/30 text-red-800',
 };
 
@@ -144,10 +144,10 @@ export default function SurgeryPage() {
           <div className="text-xs text-white/75 mt-1">Encerradas hoje</div>
         </div>
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-orange-300/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-orange-700/80 font-semibold">
             Atrasos
           </div>
-          <div className="text-3xl font-bold text-orange-300 mt-1">{kpis.delayed}</div>
+          <div className="text-3xl font-bold text-orange-700 mt-1">{kpis.delayed}</div>
           <div className="text-xs text-white/75 mt-1">Fora do cronograma</div>
         </div>
         <div className="rounded-lg border border-blue-500/30 bg-blue-500/[0.06] p-4">

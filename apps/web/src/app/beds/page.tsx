@@ -38,8 +38,8 @@ const STATUS_CONFIG: Record<
     icon: '🟠',
     border: 'border-orange-500/60',
     bg: 'bg-orange-500/10',
-    text: 'text-orange-300',
-    badge: 'bg-orange-500/20 text-orange-300 border border-orange-500/40',
+    text: 'text-orange-700',
+    badge: 'bg-orange-500/20 text-orange-700 border border-orange-500/40',
   },
   reserved: {
     label: 'Reservado',
@@ -52,17 +52,17 @@ const STATUS_CONFIG: Record<
   blocked: {
     label: 'Bloqueado',
     icon: '⚫',
-    border: 'border-slate-500/60',
+    border: 'border-slate-300/60',
     bg: 'bg-slate-100/30',
     text: 'text-slate-600',
-    badge: 'bg-slate-100/40 text-slate-600 border border-slate-500/40',
+    badge: 'bg-slate-100/40 text-slate-600 border border-slate-300/40',
   },
 };
 
 const RISK_CONFIG: Record<RiskLevel, { label: string; classes: string; pulse: boolean }> = {
   low: { label: 'Baixo', classes: 'bg-emerald-500/20 text-emerald-800', pulse: false },
   medium: { label: 'Médio', classes: 'bg-amber-400/20 text-amber-800', pulse: false },
-  high: { label: 'Alto', classes: 'bg-orange-500/25 text-orange-200', pulse: false },
+  high: { label: 'Alto', classes: 'bg-orange-500/25 text-orange-800', pulse: false },
   critical: { label: 'Crítico', classes: 'bg-red-500/30 text-red-800', pulse: true },
 };
 
@@ -159,7 +159,7 @@ export default function BedsPage() {
           <div className="text-3xl font-bold text-blue-700 mt-1">{kpis.awaitingDischarge}</div>
           <div className="text-xs text-white/75 mt-1">Liberação iminente</div>
         </div>
-        <div className="rounded-lg border border-slate-500/30 bg-slate-100/20 p-4">
+        <div className="rounded-lg border border-slate-300/30 bg-slate-100/20 p-4">
           <div className="text-[11px] uppercase tracking-wider text-slate-600/80 font-semibold">
             Bloqueados
           </div>
@@ -270,7 +270,7 @@ export default function BedsPage() {
                       </div>
                     )}
                     {bed.status === 'maintenance' && (
-                      <div className="border-t border-white/10 pt-2 mt-2 text-xs text-orange-200/80">
+                      <div className="border-t border-white/10 pt-2 mt-2 text-xs text-orange-800/80">
                         {bed.maintenanceReason}
                       </div>
                     )}
@@ -308,7 +308,7 @@ export default function BedsPage() {
                           <button className="text-[10px] px-2 py-1 rounded bg-emerald-500/20 text-emerald-800 border border-emerald-500/30 hover:bg-emerald-500/30">
                             Atribuir paciente
                           </button>
-                          <button className="text-[10px] px-2 py-1 rounded bg-slate-100/40 text-slate-600 border border-slate-500/30 hover:bg-slate-100/60">
+                          <button className="text-[10px] px-2 py-1 rounded bg-slate-100/40 text-slate-600 border border-slate-300/30 hover:bg-slate-100/60">
                             Bloquear
                           </button>
                         </>
@@ -324,7 +324,7 @@ export default function BedsPage() {
                         </button>
                       )}
                       {bed.status === 'reserved' && (
-                        <button className="text-[10px] px-2 py-1 rounded bg-slate-100/40 text-slate-600 border border-slate-500/30 hover:bg-slate-100/60">
+                        <button className="text-[10px] px-2 py-1 rounded bg-slate-100/40 text-slate-600 border border-slate-300/30 hover:bg-slate-100/60">
                           Cancelar reserva
                         </button>
                       )}

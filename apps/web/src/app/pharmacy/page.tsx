@@ -22,19 +22,19 @@ const STATUS_CONFIG: Record<
   'em-validacao': {
     label: 'Em validação',
     icon: '👁️',
-    badge: 'bg-purple-500/20 text-purple-200 border border-purple-500/40',
+    badge: 'bg-purple-500/20 text-purple-800 border border-purple-500/40',
     row: 'border-l-4 border-l-purple-400/60',
   },
   validada: {
     label: 'Validada',
     icon: '✅',
-    badge: 'bg-teal-500/20 text-teal-200 border border-teal-500/40',
+    badge: 'bg-teal-500/20 text-teal-800 border border-teal-500/40',
     row: 'border-l-4 border-l-teal-400/60',
   },
   'em-dispensacao': {
     label: 'Em dispensação',
     icon: '📦',
-    badge: 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40',
+    badge: 'bg-cyan-500/20 text-cyan-800 border border-cyan-500/40',
     row: 'border-l-4 border-l-cyan-400/60',
   },
   'em-preparo': {
@@ -46,7 +46,7 @@ const STATUS_CONFIG: Record<
   'em-transporte': {
     label: 'Em transporte',
     icon: '🚚',
-    badge: 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40',
+    badge: 'bg-indigo-500/20 text-indigo-800 border border-indigo-500/40',
     row: 'border-l-4 border-l-indigo-400/60',
   },
   'aguardando-admin': {
@@ -157,10 +157,10 @@ export default function PharmacyPage() {
           <div className="text-xs text-white/75 mt-1">prescrições</div>
         </div>
         <div className="rounded-lg border border-purple-500/30 bg-purple-500/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-purple-300/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-purple-700/80 font-semibold">
             Em validação
           </div>
-          <div className="text-3xl font-bold text-purple-200 mt-1">{kpis.inValidation}</div>
+          <div className="text-3xl font-bold text-purple-800 mt-1">{kpis.inValidation}</div>
           <div className="text-xs text-white/75 mt-1">Farmacêutico</div>
         </div>
         <div className="rounded-lg border border-red-500/40 bg-red-500/[0.08] p-4">
@@ -171,10 +171,10 @@ export default function PharmacyPage() {
           <div className="text-xs text-white/75 mt-1">Escalar agora</div>
         </div>
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-orange-300/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-orange-700/80 font-semibold">
             Críticas pend.
           </div>
-          <div className="text-3xl font-bold text-orange-300 mt-1">{kpis.criticalPending}</div>
+          <div className="text-3xl font-bold text-orange-700 mt-1">{kpis.criticalPending}</div>
           <div className="text-xs text-white/75 mt-1">Prioridade alta</div>
         </div>
         <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-4">
@@ -359,7 +359,7 @@ export default function PharmacyPage() {
                 <div className="text-[10px] uppercase tracking-wider text-amber-800 mb-1">
                   Alertas clínicos
                 </div>
-                <ul className="text-xs text-amber-100/90 space-y-0.5">
+                <ul className="text-xs text-amber-800/90 space-y-0.5">
                   {selected.alerts.map((a) => (
                     <li key={a}>⚠ {a}</li>
                   ))}
@@ -373,7 +373,7 @@ export default function PharmacyPage() {
                 <div className="text-[10px] uppercase tracking-wider text-red-800 mb-1">
                   Motivo — não administrada
                 </div>
-                <div className="text-xs text-red-100/90">{selected.reason}</div>
+                <div className="text-xs text-red-800/90">{selected.reason}</div>
               </div>
             )}
 

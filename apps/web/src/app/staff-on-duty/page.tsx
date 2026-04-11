@@ -15,8 +15,8 @@ import {
 import { getPatientByMrn } from '../../lib/fixtures/patients';
 
 const PRESENCE_BADGE: Record<PresenceStatus, string> = {
-  'on-duty': 'bg-green-900/40 text-green-800 border-green-700/60',
-  'on-break': 'bg-amber-900/40 text-amber-800 border-amber-700/60',
+  'on-duty': 'bg-green-50/40 text-green-800 border-green-700/60',
+  'on-break': 'bg-amber-50/40 text-amber-800 border-amber-700/60',
   'off-duty': 'bg-slate-50 text-slate-700 border-slate-300',
   'off-shift': 'bg-slate-50 text-slate-600 border-slate-200',
 };

@@ -38,9 +38,9 @@ const TREND_ICONS: Record<KPITrend, string> = {
 
 const ICON_BG: Record<KPITone, string> = {
   neutral: 'text-slate-700',
-  critical: 'text-red-100',
-  warning: 'text-amber-100',
-  success: 'text-emerald-100',
+  critical: 'text-red-800',
+  warning: 'text-amber-800',
+  success: 'text-emerald-800',
   info: 'text-blue-900',
   accent: 'text-blue-900',
 };

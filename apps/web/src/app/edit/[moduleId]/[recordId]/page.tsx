@@ -218,12 +218,12 @@ export default function GenericEditPage() {
             <p className="page-subtitle">
               Registro <span className="font-mono text-blue-700">{recordId}</span>
               {record.hasOverride && (
-                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-800 border border-amber-700/60">
+                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-amber-50/40 text-amber-800 border border-amber-700/60">
                   Editado
                 </span>
               )}
               {record.isNew && (
-                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-green-900/40 text-green-800 border border-green-700/60">
+                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-green-50/40 text-green-800 border border-green-700/60">
                   Novo
                 </span>
               )}
@@ -346,7 +346,7 @@ export default function GenericEditPage() {
                   type="button"
                   onClick={handleDelete}
                   disabled={saving}
-                  className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-red-700 text-red-800 hover:bg-red-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-60"
+                  className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-red-700 text-red-800 hover:bg-red-50/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-60"
                 >
                   Remover registro
                 </button>
@@ -386,7 +386,7 @@ export default function GenericEditPage() {
                 <li key={idx} className="pl-4 relative">
                   <span
                     aria-hidden="true"
-                    className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-slate-900"
+                    className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-slate-200"
                   />
                   <div className="text-xs text-slate-500 font-mono">
                     {new Date(entry.at).toLocaleString('pt-BR')}
@@ -462,7 +462,7 @@ function FieldRow({
       <label className="text-sm font-medium text-slate-700">
         {label}
         {required && (
-          <span aria-hidden="true" className="text-red-400 ml-0.5">
+          <span aria-hidden="true" className="text-red-700 ml-0.5">
             *
           </span>
         )}
