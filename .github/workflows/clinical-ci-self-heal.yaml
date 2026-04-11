@@ -1,0 +1,239 @@
+name: Clinical CI Self-Heal
+
+# ════════════════════════════════════════════════════════════════════════════
+# Auto-remediates *safe*, deterministic CI failures on agent-authored PRs.
+# Triggered by check_run failures and by manual dispatch.
+#
+# Safe-fix categories, in order:
+#   1. Lockfile drift       → `npm install --package-lock-only` + commit
+#   2. ESLint autofix       → `npm run lint -- --fix` + commit
+#   3. Prettier / format    → `npm run format` + commit
+#   4. Typecheck hints      → no change; escalate (we never auto-fix types)
+#
+# Hard limits:
+#   - Max 3 self-heal attempts per PR (attempt count lives in a branch file).
+#   - Only runs on branches matching `clinical/*`, `autopilot/*`,
+#     `healer/*`, `agent/*` — not on human PRs.
+#   - Never touches files under `.claude/`, `infra/`, `schemas/`, `docs/risk/`,
+#     or `apps/web/src/app/(clinical)/**` — those are always human-reviewed.
+# ════════════════════════════════════════════════════════════════════════════
+
+on:
+  check_run:
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to attempt self-heal on'
+        required: true
+      branch:
+        description: 'Branch name (must match an open agent PR)'
+        required: true
+      dry_run:
+        description: 'Only diagnose, do not commit fixes'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['true', 'false']
+
+permissions:
+  contents: write
+  pull-requests: read
+  checks: read
+
+concurrency:
+  group: clinical-ci-self-heal-${{ github.event.check_run.pull_requests[0].number || github.event.inputs.pr_number || github.run_id }}
+  cancel-in-progress: false
+
+env:
+  MAX_HEAL_ATTEMPTS: 3
+  AGENT_BRANCH_PATTERN: '^(clinical|autopilot|healer|agent)/'
+  PROTECTED_PATHS: '^(\.claude/|infra/|schemas/|docs/risk/|apps/web/src/app/\(clinical\)/)'
+
+jobs:
+  gate:
+    name: Eligibility gate
+    runs-on: ubuntu-latest
+    outputs:
+      eligible: ${{ steps.eval.outputs.eligible }}
+      pr_number: ${{ steps.eval.outputs.pr_number }}
+      branch: ${{ steps.eval.outputs.branch }}
+      attempt: ${{ steps.eval.outputs.attempt }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Evaluate eligibility
+        id: eval
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PR_NUMBER="${{ github.event.inputs.pr_number }}"
+            BRANCH="${{ github.event.inputs.branch }}"
+          else
+            CONCLUSION="${{ github.event.check_run.conclusion }}"
+            if [ "$CONCLUSION" != "failure" ] && [ "$CONCLUSION" != "timed_out" ]; then
+              echo "eligible=false" >> "$GITHUB_OUTPUT"
+              echo "non-failure conclusion ($CONCLUSION)"
+              exit 0
+            fi
+            PR_NUMBER=$(echo '${{ toJson(github.event.check_run.pull_requests) }}' | jq -r '.[0].number // ""')
+            BRANCH=$(echo '${{ toJson(github.event.check_run.pull_requests) }}' | jq -r '.[0].head.ref // ""')
+          fi
+
+          if [ -z "$PR_NUMBER" ] || [ -z "$BRANCH" ]; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "missing PR number or branch"
+            exit 0
+          fi
+
+          if ! echo "$BRANCH" | grep -qE "$AGENT_BRANCH_PATTERN"; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "branch $BRANCH is not an agent branch — skipping"
+            exit 0
+          fi
+
+          PR_STATE=$(gh pr view "$PR_NUMBER" --json state,isDraft,mergeable --jq '{state, isDraft, mergeable}' 2>/dev/null)
+          if [ -z "$PR_STATE" ]; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          STATE=$(echo "$PR_STATE" | jq -r '.state')
+          IS_DRAFT=$(echo "$PR_STATE" | jq -r '.isDraft')
+          if [ "$STATE" != "OPEN" ] || [ "$IS_DRAFT" = "true" ]; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Attempt counter (stored in ops/state/self-heal/pr-<N>.count)
+          COUNT_FILE="ops/state/self-heal/pr-$PR_NUMBER.count"
+          ATTEMPT=0
+          if [ -f "$COUNT_FILE" ]; then
+            ATTEMPT=$(cat "$COUNT_FILE")
+          fi
+          if [ "$ATTEMPT" -ge "$MAX_HEAL_ATTEMPTS" ]; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "max attempts ($MAX_HEAL_ATTEMPTS) reached for PR $PR_NUMBER"
+            exit 0
+          fi
+
+          echo "eligible=true" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "attempt=$((ATTEMPT + 1))" >> "$GITHUB_OUTPUT"
+
+  heal:
+    name: Apply safe fixes
+    runs-on: ubuntu-latest
+    needs: gate
+    if: needs.gate.outputs.eligible == 'true'
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
+      BRANCH: ${{ needs.gate.outputs.branch }}
+      ATTEMPT: ${{ needs.gate.outputs.attempt }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ needs.gate.outputs.branch }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: '22'
+
+      - name: Guard against protected paths
+        id: guard
+        shell: bash
+        run: |
+          set +e
+          CHANGED=$(git diff --name-only origin/main...HEAD)
+          if echo "$CHANGED" | grep -qE "$PROTECTED_PATHS"; then
+            echo "touched=true" >> "$GITHUB_OUTPUT"
+            echo "PR touches a protected path — self-heal will not run"
+            echo "$CHANGED" | grep -E "$PROTECTED_PATHS" || true
+          else
+            echo "touched=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install deps
+        if: steps.guard.outputs.touched == 'false'
+        run: npm ci
+
+      - name: Fix 1 — lockfile drift
+        id: fix_lockfile
+        if: steps.guard.outputs.touched == 'false'
+        shell: bash
+        run: |
+          set +e
+          npm install --package-lock-only
+          if git diff --quiet package-lock.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fix 2 — ESLint autofix
+        id: fix_lint
+        if: steps.guard.outputs.touched == 'false'
+        shell: bash
+        run: |
+          set +e
+          npm run lint -- --fix 2>/dev/null || npx eslint . --fix || true
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fix 3 — Prettier format
+        id: fix_fmt
+        if: steps.guard.outputs.touched == 'false'
+        shell: bash
+        run: |
+          set +e
+          npm run format 2>/dev/null || npx prettier --write . || true
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit self-heal
+        if: >-
+          steps.guard.outputs.touched == 'false' &&
+          (steps.fix_lockfile.outputs.changed == 'true' ||
+           steps.fix_lint.outputs.changed == 'true' ||
+           steps.fix_fmt.outputs.changed == 'true') &&
+          github.event.inputs.dry_run != 'true'
+        shell: bash
+        run: |
+          mkdir -p ops/state/self-heal
+          echo "$ATTEMPT" > "ops/state/self-heal/pr-${PR_NUMBER}.count"
+          git add -A
+          git -c user.name="clinical-self-heal-bot" \
+              -c user.email="self-heal@velya.io" \
+              commit -m "chore(self-heal): attempt ${ATTEMPT} on PR #${PR_NUMBER}"
+          git push origin HEAD:"$BRANCH"
+
+      - name: Summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Clinical CI Self-Heal"
+            echo ""
+            echo "- PR: #${PR_NUMBER}"
+            echo "- Branch: \`${BRANCH}\`"
+            echo "- Attempt: ${ATTEMPT} / ${MAX_HEAL_ATTEMPTS}"
+            echo "- Protected path touched: ${{ steps.guard.outputs.touched }}"
+            echo "- Lockfile fix: ${{ steps.fix_lockfile.outputs.changed }}"
+            echo "- ESLint fix: ${{ steps.fix_lint.outputs.changed }}"
+            echo "- Prettier fix: ${{ steps.fix_fmt.outputs.changed }}"
+          } >> "$GITHUB_STEP_SUMMARY"

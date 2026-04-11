@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://velya.io/schemas/clinical-agent-sync-state.schema.json",
+  "title": "ClinicalAgentSyncState",
+  "description": "Unified coordination snapshot produced by build-agent-sync-snapshot. Provides a single file the memory-guardian, sentinel and dashboards can read to understand who owns what right now.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["generatedAt", "agents", "locks", "handoffs"],
+  "properties": {
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "agents": {
+      "type": "array",
+      "description": "One entry per autopilot agent discovered in scripts/agents/run-*.ts.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "script", "layer", "status"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*-agent$" },
+          "script": { "type": "string" },
+          "layer": { "type": "integer", "minimum": 1, "maximum": 3 },
+          "status": {
+            "type": "string",
+            "enum": ["active", "shadow", "draft", "deprecated", "quarantined", "unknown"]
+          },
+          "lastReportAt": { "type": "string", "format": "date-time" },
+          "lastReportSeverity": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low", "none"]
+          },
+          "lifecycleStage": {
+            "type": "string",
+            "enum": ["draft", "sandbox", "shadow", "probation", "active", "deprecated", "retired"]
+          }
+        }
+      }
+    },
+    "locks": {
+      "type": "array",
+      "items": { "$ref": "./agent-session-lock.schema.json" }
+    },
+    "handoffs": {
+      "type": "array",
+      "items": { "$ref": "./clinical-handoff.schema.json" }
+    },
+    "staleAgents": {
+      "type": "array",
+      "description": "Agents whose lastReportAt is older than their expected cadence.",
+      "items": { "type": "string" }
+    }
+  }
+}

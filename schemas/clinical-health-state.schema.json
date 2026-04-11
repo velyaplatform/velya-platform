@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://velya.io/schemas/clinical-health-state.schema.json",
+  "title": "ClinicalHealthState",
+  "description": "Aggregated health snapshot written by the workflow sentinel after each probe cycle. Consumed by the dispatcher to decide whether a new clinical deploy is safe.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["generatedAt", "overall", "monitors", "workflows"],
+  "properties": {
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "overall": { "type": "string", "enum": ["healthy", "degraded", "critical", "unknown"] },
+    "monitors": {
+      "type": "array",
+      "description": "One entry per critical monitor (argocd-healer, memory-guardian, etc.).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "status", "lastRunAt"],
+        "properties": {
+          "name": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["ok", "stale", "failing", "disabled", "not-found"]
+          },
+          "lastRunAt": { "type": "string", "format": "date-time" },
+          "ageMinutes": { "type": "number", "minimum": 0 },
+          "action": {
+            "type": "string",
+            "enum": ["none", "re-dispatched", "re-enabled", "issue-opened"]
+          }
+        }
+      }
+    },
+    "workflows": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["failing", "recentFailureRate"],
+      "properties": {
+        "failing": { "type": "array", "items": { "type": "string" } },
+        "recentFailureRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Ratio of failed runs over the last 20 completed runs on main."
+        },
+        "sampleSize": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "clinicalProbes": {
+      "type": "object",
+      "description": "Optional — populated after deploy by post-merge monitor.",
+      "additionalProperties": false,
+      "properties": {
+        "fhirMetadataReachable": { "type": "boolean" },
+        "patientEndpointP95Ms": { "type": "number", "minimum": 0 },
+        "apiErrorRate5xx": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

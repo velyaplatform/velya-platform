@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://velya.io/schemas/agent-session-lock.schema.json",
+  "title": "AgentSessionLock",
+  "description": "Exclusive lock acquired by an agent before mutating a shared target (k8s namespace, ArgoCD app, memory file, PVC). Prevents race conditions between concurrent run-*-agent executions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "lockId",
+    "agent",
+    "target",
+    "acquiredAt",
+    "expiresAt",
+    "holder"
+  ],
+  "properties": {
+    "lockId": {
+      "type": "string",
+      "description": "Opaque ULID/UUID identifying this specific lock instance.",
+      "minLength": 8
+    },
+    "agent": {
+      "type": "string",
+      "description": "Canonical agent name following `{office}-{role}-agent` pattern.",
+      "pattern": "^[a-z][a-z0-9-]*-agent$"
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "k8s-namespace",
+            "k8s-workload",
+            "argocd-application",
+            "memory-file",
+            "pvc",
+            "workflow",
+            "fhir-resource"
+          ]
+        },
+        "name": { "type": "string", "minLength": 1 },
+        "namespace": { "type": "string" }
+      }
+    },
+    "acquiredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Hard TTL. After this instant any other agent may break the lock."
+    },
+    "holder": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runner", "runId"],
+      "properties": {
+        "runner": {
+          "type": "string",
+          "enum": ["github-actions", "kubernetes-cronjob", "local-cli"]
+        },
+        "runId": { "type": "string" },
+        "workflow": { "type": "string" },
+        "jobUrl": { "type": "string", "format": "uri" },
+        "host": { "type": "string" }
+      }
+    },
+    "reason": {
+      "type": "string",
+      "description": "Short human-readable reason the lock was taken (goes to audit log)."
+    },
+    "correlationId": {
+      "type": "string",
+      "description": "OpenTelemetry trace id for cross-system correlation."
+    }
+  }
+}
