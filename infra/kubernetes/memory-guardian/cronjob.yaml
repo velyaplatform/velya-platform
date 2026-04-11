@@ -1,0 +1,100 @@
+# velya-memory-guardian — in-cluster CronJob
+#
+# Runs ops/memory-guardian/run.sh every 30 minutes inside the cluster
+# using the velya-autopilot-agents image (which now ships python3 +
+# python3-yaml + a snapshot of .github/, infra/, ops/ from build time).
+#
+# Complements the GitHub Actions memory-guardian workflow — the Actions
+# job catches drift on every PR and every 30 min against the repo tip,
+# while this CronJob validates the image snapshot available inside the
+# cluster (so drift between what the cluster is running and what memory
+# claims expect can be caught locally).
+#
+# Reuses velya-autopilot-sa (defined in ../autopilot/agents-cronjobs.yaml)
+# — no new RBAC needed because memory-guardian is purely a file-system
+# check against the image contents.
+#
+# NOTE on activation: this manifest is intentionally NOT referenced by
+# infra/kubernetes/platform/kustomization.yaml. Wire it into the relevant
+# kustomization.yaml once the image v3 is rebuilt from the updated
+# Dockerfile (python3 + python3-yaml + ops/.github/infra copies). A
+# rollout order that keeps the existing autopilot agents healthy:
+#   1. Merge the Dockerfile change.
+#   2. Rebuild & push velya-autopilot-agents (same tag v3).
+#   3. Add `- memory-guardian/cronjob.yaml` to the appropriate
+#      kustomization.yaml resources list.
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-memory-guardian
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: memory-guardian
+    velya.io/agent: memory-guardian
+spec:
+  schedule: '*/30 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        metadata:
+          labels:
+            velya.io/agent: memory-guardian
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          automountServiceAccountToken: false
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: guardian
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -o pipefail
+                  export MEMORY_GUARDIAN_REPORT=/data/velya-autopilot/memory-guardian/latest.json
+                  mkdir -p "$(dirname "$MEMORY_GUARDIAN_REPORT")"
+                  cd /workspace
+                  bash ops/memory-guardian/run.sh | tee /tmp/guardian.log
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 96Mi
+                limits:
+                  memory: 192Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}

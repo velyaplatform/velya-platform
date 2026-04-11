@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       git \
       jq \
       gnupg \
+      python3 \
+      python3-yaml \
     && rm -rf /var/lib/apt/lists/*
 
 # kubectl
@@ -35,6 +37,14 @@ WORKDIR /workspace
 COPY package.json package-lock.json ./
 COPY scripts/ ./scripts/
 COPY .claude/agents/ ./.claude/agents/
+# memory-guardian needs the repo structure it validates claims against:
+# ops/memory-guardian/ (the script + claims), plus the trees referenced
+# by claims.yaml (.github/workflows, infra/kubernetes). The copies are
+# small compared to the full monorepo and keep this a single-image
+# deployment for the whole autopilot family.
+COPY ops/memory-guardian/ ./ops/memory-guardian/
+COPY .github/workflows/ ./.github/workflows/
+COPY infra/kubernetes/ ./infra/kubernetes/
 
 RUN npm install --no-audit --no-fund --omit=dev tsx typescript \
     && npm cache clean --force

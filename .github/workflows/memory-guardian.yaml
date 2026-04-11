@@ -1,0 +1,95 @@
+name: Memory Guardian
+
+# Validates that every invariant declared in ops/memory-guardian/claims.yaml
+# still holds in this repo. The claims file is the repo-side projection of
+# the operator's Claude memory (~/.claude/projects/-home-jfreire/memory/) —
+# when a new memory needs to be enforced at the repo level, add a claim to
+# ops/memory-guardian/claims.yaml and this workflow will police it on every
+# PR and every 30 minutes.
+#
+# Exit behavior: any failing `severity: critical` claim fails the job and
+# blocks merges when this workflow is added to required checks.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ops/memory-guardian/**'
+      - '.github/workflows/memory-guardian.yaml'
+      - 'infra/kubernetes/memory-guardian/**'
+  pull_request:
+    # Run on every PR — the whole point is catching drift, so we don't
+    # restrict by path.
+  schedule:
+    # Every 30 minutes — catches out-of-band deletions or renames that
+    # slip in outside a normal PR.
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: memory-guardian-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-claims:
+    name: Validate memory claims
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install pyyaml
+        run: python3 -m pip install --no-cache-dir pyyaml==6.0.2
+
+      - name: Run memory-guardian
+        id: guardian
+        run: |
+          set -o pipefail
+          bash ops/memory-guardian/run.sh | tee guardian-console.log
+
+      - name: Upload guardian report
+        if: always()
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: memory-guardian-report
+          path: |
+            memory-guardian-report.json
+            guardian-console.log
+          retention-days: 30
+
+      - name: Summarize on PR
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## Memory Guardian — failures\n\n';
+            try {
+              const report = JSON.parse(fs.readFileSync('memory-guardian-report.json', 'utf8'));
+              const fails = report.results.filter(r => !r.ok && r.severity === 'critical');
+              if (fails.length === 0) {
+                body += 'Unknown failure — see logs.';
+              } else {
+                body += `${fails.length} critical claim(s) violated:\n\n`;
+                for (const f of fails) {
+                  body += `- **${f.id}** (memory: \`${f.memory}\`) — ${f.message}\n`;
+                }
+                body += '\nThese are invariants required by the operator\'s Claude memory. ';
+                body += 'Either restore the missing artifact or update `ops/memory-guardian/claims.yaml` ';
+                body += 'if the invariant itself was intentionally changed.';
+              }
+            } catch (e) {
+              body += `Could not parse report: ${e.message}`;
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });

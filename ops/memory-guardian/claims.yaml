@@ -1,0 +1,180 @@
+# Memory Guardian — Repo Invariants
+#
+# Declarative list of invariants that memory-guardian enforces against this
+# repo (both in CI via .github/workflows/memory-guardian.yaml and in-cluster
+# via infra/kubernetes/memory-guardian/cronjob.yaml).
+#
+# This file is the repo-side projection of the user's Claude memory index
+# (~/.claude/projects/-home-jfreire/memory/). Each entry is traced back to
+# the memory that requires it.
+#
+# Claim kinds:
+#   file_exists       — the given path must exist in the repo
+#   file_contains     — the given path must exist AND match the regex
+#   dir_exists        — the given directory must exist
+#   all_match_pair    — every file matching `glob` must have a matching
+#                       file at `pair_template` (substitutes ${name})
+#
+# Exit behavior: memory-guardian fails the run (and the CI job) if any
+# `severity: critical` claim is violated. `severity: warning` claims are
+# reported but do not fail.
+
+schema_version: 1
+generated_by: manual + ~/.claude/memory-enforcement/sync.sh
+last_updated: 2026-04-11
+
+claims:
+  # --- feedback_testing_patterns -----------------------------------------
+  - id: visual-test-workflow-present
+    memory: feedback_testing_patterns
+    kind: file_exists
+    path: .github/workflows/visual-test.yaml
+    severity: critical
+
+  - id: ci-workflow-present
+    memory: feedback_testing_patterns
+    kind: file_exists
+    path: .github/workflows/ci.yaml
+    severity: critical
+
+  - id: ui-quality-workflow-present
+    memory: feedback_testing_patterns
+    kind: file_exists
+    path: .github/workflows/ui-quality.yaml
+    severity: critical
+
+  # --- feedback_velya_ui_standard ----------------------------------------
+  - id: deep-audit-engine-present
+    memory: feedback_velya_ui_standard
+    kind: file_exists
+    path: scripts/ui-audit/deep-audit.ts
+    severity: critical
+
+  - id: ui-audit-daily-workflow-present
+    memory: feedback_velya_ui_standard
+    kind: file_exists
+    path: .github/workflows/ui-audit-daily.yaml
+    severity: critical
+
+  # --- feedback_argocd_healer_esteira ------------------------------------
+  - id: argocd-healer-workflow-present
+    memory: feedback_argocd_healer_esteira
+    kind: file_exists
+    path: .github/workflows/argocd-healer.yaml
+    severity: critical
+
+  - id: autopilot-agents-ci-workflow-present
+    memory: feedback_argocd_healer_esteira
+    kind: file_exists
+    path: .github/workflows/autopilot-agents-ci.yaml
+    severity: critical
+
+  - id: agents-cronjobs-manifest-present
+    memory: feedback_argocd_healer_esteira
+    kind: file_exists
+    path: infra/kubernetes/autopilot/agents-cronjobs.yaml
+    severity: critical
+
+  - id: every-agent-script-has-doc
+    memory: feedback_argocd_healer_esteira
+    kind: all_match_pair
+    glob: scripts/agents/run-*.ts
+    pair_template: .claude/agents/${name}-agent.md
+    # Legacy docs without the -agent suffix also count (mirrors
+    # autopilot-agents-ci.yaml smoke-all-agents assertion).
+    pair_fallback_template: .claude/agents/${name}.md
+    # Transform: strip leading "run-" from script basename before substituting
+    name_transform: "strip_prefix:run-"
+    severity: critical
+
+  - id: every-agent-script-has-cronjob-entry
+    memory: feedback_argocd_healer_esteira
+    kind: file_contains_each
+    path: infra/kubernetes/autopilot/agents-cronjobs.yaml
+    each_glob: scripts/agents/run-*.ts
+    name_transform: "strip_suffix:.ts"
+    severity: critical
+
+  # --- project_velya_autopilot -------------------------------------------
+  - id: autopilot-auto-merge-workflow-present
+    memory: project_velya_autopilot
+    kind: file_exists
+    path: .github/workflows/autopilot-auto-merge.yaml
+    severity: critical
+
+  # --- project_velya_autopilot_agents ------------------------------------
+  - id: agent-script-infra-health
+    memory: project_velya_autopilot_agents
+    kind: file_exists
+    path: scripts/agents/run-infra-health.ts
+    severity: critical
+  - id: agent-script-argocd-healer
+    memory: project_velya_autopilot_agents
+    kind: file_exists
+    path: scripts/agents/run-argocd-healer.ts
+    severity: critical
+  - id: agent-script-k8s-troubleshooter
+    memory: project_velya_autopilot_agents
+    kind: file_exists
+    path: scripts/agents/run-k8s-troubleshooter.ts
+    severity: critical
+  - id: agent-script-frontend-quality
+    memory: project_velya_autopilot_agents
+    kind: file_exists
+    path: scripts/agents/run-frontend-quality.ts
+    severity: critical
+  - id: agent-script-backend-quality
+    memory: project_velya_autopilot_agents
+    kind: file_exists
+    path: scripts/agents/run-backend-quality.ts
+    severity: critical
+  - id: agent-script-agent-health-manager
+    memory: project_velya_autopilot_agents
+    kind: file_exists
+    path: scripts/agents/run-agent-health-manager.ts
+    severity: critical
+  - id: agent-script-agent-runtime-supervisor
+    memory: project_velya_autopilot_agents
+    kind: file_exists
+    path: scripts/agents/run-agent-runtime-supervisor.ts
+    severity: critical
+  - id: agent-script-meta-governance-auditor
+    memory: project_velya_autopilot_agents
+    kind: file_exists
+    path: scripts/agents/run-meta-governance-auditor.ts
+    severity: critical
+
+  # --- project_velya_platform_state --------------------------------------
+  - id: infra-kubernetes-dir-present
+    memory: project_velya_platform_state
+    kind: dir_exists
+    path: infra/kubernetes
+    severity: critical
+  - id: security-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/security.yaml
+    severity: critical
+  - id: release-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/release.yaml
+    severity: critical
+  - id: version-bump-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/version-bump.yaml
+    severity: critical
+  - id: platform-validation-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/platform-validation.yaml
+    severity: critical
+  - id: deploy-web-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/deploy-web.yaml
+    severity: critical
+
+  # --- project_velya_deep_audit ------------------------------------------
+  # (already covered by deep-audit-engine-present + ui-audit-daily above)
