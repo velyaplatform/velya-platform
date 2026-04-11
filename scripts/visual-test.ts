@@ -151,9 +151,15 @@ async function runAxeOnPage(p: Page): Promise<AxeSummary> {
 }
 
 async function runGeometryChecks(p: Page, isMobile: boolean): Promise<GeometryIssue[]> {
+  // IMPORTANT: this MUST be an anonymous arrow expression. A named function
+  // expression like `function geometryEval(...)` causes tsx/esbuild to inject
+  // `__name(geometryEval, "geometryEval")` for stack-trace preservation, and
+  // that helper does not exist inside the Playwright browser context — every
+  // call would crash with "ReferenceError: __name is not defined". The arrow
+  // form sidesteps the helper entirely.
   return p.evaluate(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function geometryEval(opts: any): GeometryIssue[] {
+    (opts: any): GeometryIssue[] => {
       const isMobile = opts.isMobile as boolean;
       const out: GeometryIssue[] = [];
       const viewport = { width: window.innerWidth, height: window.innerHeight };
