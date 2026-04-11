@@ -275,7 +275,7 @@ const SNAPSHOT_FN_SOURCE = `
         // stop color to avoid false white-on-white contrast failures.
         var bgImage = style.backgroundImage || '';
         if (bgImage && bgImage.indexOf('gradient') !== -1) {
-          var m = bgImage.match(/rgb\([^)]+\)|#[0-9a-fA-F]{3,8}/);
+          var m = bgImage.match(/rgb\\([^)]+\\)|#[0-9a-fA-F]{3,8}/);
           if (m) return m[0];
           // Use a neutral mid-tone when we can't parse the stop
           return 'rgb(96, 165, 250)';
