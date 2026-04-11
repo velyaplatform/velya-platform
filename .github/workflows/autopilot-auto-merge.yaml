@@ -1,0 +1,43 @@
+name: Autopilot Auto-Merge
+
+# Enables GitHub's native auto-merge on PRs that:
+#   1) carry the `auto-fix` label, AND
+#   2) come from a branch named `autopilot/*`.
+#
+# Both conditions must hold. The branch-prefix check is the safety net:
+# even if a human accidentally labels their own PR `auto-fix`, it will
+# NOT auto-merge unless the branch is `autopilot/*` — which only the
+# Velya Autopilot RemoteTrigger creates.
+#
+# Auto-merge respects branch protection: the PR will only be merged when
+# all required status checks defined in branch protection pass. If any
+# check fails, the PR stays open for human review.
+#
+# Prerequisites in repo settings (one-time, manual):
+#   - Settings → General → Pull Requests → Allow auto-merge ✓
+#   - Settings → Branches → Branch protection rule for `main`:
+#       - Require status checks to pass before merging
+#       - Required checks must include: lint, typecheck, test (from ci.yaml)
+#       - Require branches to be up to date before merging (recommended)
+
+on:
+  pull_request:
+    types: [labeled, opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  enable-auto-merge:
+    if: >-
+      contains(github.event.pull_request.labels.*.name, 'auto-fix') &&
+      startsWith(github.event.pull_request.head.ref, 'autopilot/') &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable auto-merge (squash)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --squash "$PR_URL"
