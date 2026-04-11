@@ -515,6 +515,22 @@ a:hover {
   }
 }
 
+/* Floating action buttons (AI assistant, etc.) anchored to the gutter
+   between the resizable sidebar and the content area. Quality.md
+   "UI Pixel Gate" forbids FABs at bottom-right because they collide
+   with table action columns. */
+.gh-fab-sidebar-anchor {
+  position: fixed;
+  bottom: var(--space-6);
+  left: 16px;
+  z-index: 80;
+}
+@media (min-width: 768px) {
+  .gh-fab-sidebar-anchor {
+    left: calc(var(--sidebar-width) + 20px);
+  }
+}
+
 /* ============================================================================
    CARDS / BOXES — Primer "Box" component
    ============================================================================ */

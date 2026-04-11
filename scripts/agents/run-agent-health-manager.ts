@@ -18,6 +18,14 @@
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import {
+  installOfflineFatalHandler,
+  kubectlAvailable,
+  offlineReason,
+  writeOfflineReport,
+} from './shared/offline-guard';
+
+const AGENT_NAME = 'agent-health-manager';
 
 interface Finding {
   severity: 'critical' | 'high' | 'medium' | 'low';
@@ -62,33 +70,9 @@ const LABEL_SELECTOR = 'velya.io/component=autopilot';
 const OUT_DIR = process.env.VELYA_AUDIT_OUT ?? '/data/velya-autopilot';
 const DRY_RUN = process.env.VELYA_DRY_RUN === 'true';
 const KUBECTL_CONTEXT = process.env.KUBECTL_CONTEXT ?? '';
-const OFFLINE_MODE = process.env.VELYA_SMOKE_OFFLINE === 'true';
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 const DEFAULT_BASELINE_MS = 10 * 60 * 1000; // 10 minutes
 const STUCK_REMEDIATE_MS = 30 * 60 * 1000; // 30 minutes
-
-/**
- * Detect whether kubectl can reach a cluster. Used by the CI smoke runner
- * (VELYA_SMOKE_OFFLINE=true) and also as a graceful fallback when the binary
- * or context is missing. Returns true only when a cluster is reachable.
- */
-function kubectlAvailable(): boolean {
-  if (OFFLINE_MODE) return false;
-  const probe = spawnSync(
-    'kubectl',
-    KUBECTL_CONTEXT
-      ? ['--context', KUBECTL_CONTEXT, '--request-timeout=3s', 'version', '--output=json']
-      : ['--request-timeout=3s', 'version', '--output=json'],
-    { encoding: 'utf-8', timeout: 5000 },
-  );
-  if (probe.status !== 0) return false;
-  try {
-    const parsed = JSON.parse(probe.stdout ?? '{}') as { serverVersion?: unknown };
-    return parsed.serverVersion !== undefined;
-  } catch {
-    return false;
-  }
-}
 
 function ensureDir(path: string): void {
   if (!existsSync(path)) mkdirSync(path, { recursive: true });
@@ -154,36 +138,23 @@ function jobsOwnedBy(jobs: JobItem[], cronJobName: string): JobItem[] {
 async function main(): Promise<void> {
   const findings: Finding[] = [];
 
-  if (!kubectlAvailable()) {
-    const reason = OFFLINE_MODE
-      ? 'VELYA_SMOKE_OFFLINE=true'
-      : 'kubectl not reachable (no cluster context)';
+  if (!kubectlAvailable(KUBECTL_CONTEXT)) {
+    const reason = offlineReason();
     console.log(
-      `[agent-health-manager] offline mode (${reason}) — skipping cluster probes, writing empty report`,
+      `[${AGENT_NAME}] offline mode (${reason}) — skipping cluster probes, writing empty report`,
     );
-    ensureDir(join(OUT_DIR, 'manager-audit'));
-    const outFile = join(OUT_DIR, 'manager-audit', `${timestamp}.offline.json`);
-    writeFileSync(
-      outFile,
-      JSON.stringify(
-        {
-          timestamp,
-          agent: 'agent-health-manager',
-          layer: 2,
-          mode: 'offline',
-          reason,
-          totalFindings: 0,
-          findings: [],
-        },
-        null,
-        2,
-      ),
-    );
-    console.log(`[agent-health-manager] offline report → ${outFile}`);
+    writeOfflineReport({
+      agent: AGENT_NAME,
+      layer: 2,
+      outRoot: OUT_DIR,
+      outSubdir: 'manager-audit',
+      timestamp,
+      reason,
+    });
     return;
   }
 
-  console.log('[agent-health-manager] Listing worker CronJobs…');
+  console.log(`[${AGENT_NAME}] Listing worker CronJobs…`);
   const cronRes = kubectl([
     'get',
     'cronjob',
@@ -362,13 +333,4 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error) => {
-  console.error('[agent-health-manager] Fatal:', error);
-  // In offline/CI-smoke mode we must not crash — CI treats crash (!=0) as
-  // a build break, while we want smoke to pass when there is no cluster.
-  if (OFFLINE_MODE) {
-    console.error('[agent-health-manager] offline mode — swallowing error, exit 0');
-    process.exit(0);
-  }
-  process.exit(2);
-});
+main().catch(installOfflineFatalHandler(AGENT_NAME));

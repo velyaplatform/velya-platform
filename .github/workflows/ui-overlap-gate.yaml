@@ -1,0 +1,154 @@
+name: UI Overlap Gate
+
+# Pixel-level regression gate for apps/web.
+#
+# The mandate (2026-04-11): no text overlap, no field-over-field, no letter
+# over letter, no half-visible description, no label cut mid-word. This
+# workflow runs scripts/ui-audit/detect-overlaps.ts against a fresh prod
+# build of apps/web on every PR that touches the frontend. Any critical
+# finding blocks merge. The matching local command is:
+#
+#   VELYA_SESSION=<cookie> npx tsx scripts/ui-audit/detect-overlaps.ts \
+#     --url=http://localhost:3003 --fail-on=critical
+#
+# See docs/validation/ui-overlap-gate.md for the full rule list.
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'scripts/ui-audit/**'
+      - '.github/workflows/ui-overlap-gate.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-overlap-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  overlap-scan:
+    name: Pixel overlap + clipping scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VELYA_USER_STORE_PATH: /tmp/velya-users
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Install Playwright chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Build apps/web
+        working-directory: apps/web
+        run: npx next build
+
+      - name: Seed verified test user
+        run: |
+          mkdir -p /tmp/velya-users
+          HASH=$(node -e "console.log(require('crypto').createHash('sha256').update('admin123velya-salt-2026').digest('hex'))")
+          cat > /tmp/velya-users/admin@velyaplatform.com.json <<EOF
+          {
+            "id": "user-ci-admin",
+            "email": "admin@velyaplatform.com",
+            "passwordHash": "$HASH",
+            "nome": "Admin CI",
+            "role": "Administrador",
+            "setor": "TI",
+            "conselhoProfissional": "ADMIN",
+            "verified": true,
+            "createdAt": "2026-04-11T22:00:00.000Z",
+            "active": true
+          }
+          EOF
+
+      - name: Start apps/web in background
+        working-directory: apps/web
+        env:
+          PORT: '3101'
+        run: |
+          nohup npx next start -p 3101 > /tmp/velya-ci-web.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:3101/login > /dev/null; then
+              echo "apps/web ready after ${i} checks"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::apps/web failed to start"
+          tail -50 /tmp/velya-ci-web.log
+          exit 1
+
+      - name: Login and capture session cookie
+        id: login
+        run: |
+          curl -sS -c /tmp/ci-cookie.txt \
+            -X POST http://localhost:3101/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"admin@velyaplatform.com","password":"admin123"}' > /tmp/login-response.json
+          cat /tmp/login-response.json
+          SESSION=$(awk '$6=="velya_session"{print $7}' /tmp/ci-cookie.txt)
+          if [ -z "$SESSION" ]; then
+            echo "::error::login succeeded but no session cookie was returned"
+            exit 1
+          fi
+          echo "session=$SESSION" >> "$GITHUB_OUTPUT"
+
+      - name: Run overlap detector (fail on critical)
+        env:
+          VELYA_SESSION: ${{ steps.login.outputs.session }}
+        run: |
+          npx tsx scripts/ui-audit/detect-overlaps.ts \
+            --url=http://localhost:3101 \
+            --out=./overlap-report \
+            --fail-on=critical
+
+      - name: Upload overlap report
+        if: always()
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
+        with:
+          name: overlap-report
+          path: overlap-report/
+          retention-days: 14
+
+      - name: Summarise findings
+        if: always()
+        run: |
+          REPORT=$(ls -1 overlap-report/overlap-report-*.json 2>/dev/null | head -n 1 || true)
+          if [ -z "$REPORT" ]; then
+            echo "No overlap report produced" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          node -e "
+            const r = JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8'));
+            const bs = r.bySeverity;
+            console.log('## UI overlap gate');
+            console.log('');
+            console.log('| Severity | Count |');
+            console.log('|---|---|');
+            console.log('| critical | ' + bs.critical + ' |');
+            console.log('| high | ' + bs.high + ' |');
+            console.log('| medium | ' + bs.medium + ' |');
+            console.log('');
+            console.log('Pages scanned: ' + r.pages);
+            console.log('');
+            if (r.findings.length > 0) {
+              console.log('### Findings');
+              for (const f of r.findings.slice(0, 30)) {
+                console.log('- [' + f.severity + '] ' + f.page + ' — ' + f.rule + ': ' + f.description);
+              }
+            }
+          " "$REPORT" >> "$GITHUB_STEP_SUMMARY"

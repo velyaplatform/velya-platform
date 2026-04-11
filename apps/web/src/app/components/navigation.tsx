@@ -172,45 +172,67 @@ export function Navigation({
   const pathname = usePathname();
   const [suggestionText, setSuggestionText] = useState('');
   const [suggestionStatus, setSuggestionStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+  // sidebarWidth is the React-visible width used at idle, on mount, and
+  // for aria-valuenow. During an active drag we bypass it entirely and
+  // write only to refs + the DOM (asideRef.style.width and the CSS var)
+  // so the entire Navigation tree (40+ nav items + the recommendation
+  // textarea) does not re-render at 120 Hz.
   const [sidebarWidth, setSidebarWidth] = useState<number>(SIDEBAR_DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
+  const widthRef = useRef<number>(SIDEBAR_DEFAULT_WIDTH);
+  const asideRef = useRef<HTMLElement | null>(null);
   const dragStartXRef = useRef<number>(0);
   const dragStartWidthRef = useRef<number>(SIDEBAR_DEFAULT_WIDTH);
 
-  // Hydrate persisted width on mount and sync --sidebar-width CSS variable
-  // so .app-content-wrapper (globals.css) stays aligned.
+  // Hydrate persisted width on mount and sync --sidebar-width CSS var.
   useEffect(() => {
     try {
       const raw = localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
-      if (raw) {
-        const parsed = parseInt(raw, 10);
-        if (!Number.isNaN(parsed) && parsed >= SIDEBAR_MIN_WIDTH && parsed <= SIDEBAR_MAX_WIDTH) {
-          setSidebarWidth(parsed);
-          document.documentElement.style.setProperty('--sidebar-width', `${parsed}px`);
-        }
+      if (!raw) return;
+      const parsed = parseInt(raw, 10);
+      if (
+        Number.isNaN(parsed) ||
+        parsed < SIDEBAR_MIN_WIDTH ||
+        parsed > SIDEBAR_MAX_WIDTH ||
+        parsed === SIDEBAR_DEFAULT_WIDTH
+      ) {
+        return;
       }
+      widthRef.current = parsed;
+      setSidebarWidth(parsed);
+      document.documentElement.style.setProperty('--sidebar-width', `${parsed}px`);
     } catch {
-      // localStorage may be disabled — fall back to default
+      // localStorage disabled — keep default
     }
   }, []);
 
-  const applyWidth = useCallback((next: number) => {
+  // applyWidth has two modes:
+  //   { commit: false } (default) → DOM-only write during drag, no React state.
+  //   { commit: true }             → also setSidebarWidth + persist to localStorage.
+  const applyWidth = useCallback((next: number, commit = false) => {
     const clamped = Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, next));
-    setSidebarWidth(clamped);
+    if (clamped === widthRef.current && !commit) return clamped;
+    widthRef.current = clamped;
     document.documentElement.style.setProperty('--sidebar-width', `${clamped}px`);
+    if (asideRef.current) asideRef.current.style.width = `${clamped}px`;
+    if (commit) {
+      setSidebarWidth(clamped);
+      try {
+        localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(clamped));
+      } catch {
+        /* localStorage disabled — DOM still updated */
+      }
+    }
     return clamped;
   }, []);
 
-  const handleResizeStart = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      dragStartXRef.current = event.clientX;
-      dragStartWidthRef.current = sidebarWidth;
-      setIsResizing(true);
-      (event.target as HTMLElement).setPointerCapture(event.pointerId);
-    },
-    [sidebarWidth],
-  );
+  const handleResizeStart = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    dragStartXRef.current = event.clientX;
+    dragStartWidthRef.current = widthRef.current;
+    setIsResizing(true);
+    (event.target as HTMLElement).setPointerCapture(event.pointerId);
+  }, []);
 
   const handleResizeMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -228,15 +250,12 @@ export function Navigation({
       try {
         (event.target as HTMLElement).releasePointerCapture(event.pointerId);
       } catch {
-        /* ignore stale pointer id */
+        /* stale pointer id */
       }
-      try {
-        localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(sidebarWidth));
-      } catch {
-        /* ignore disabled storage */
-      }
+      // Single React commit at drag end persists the live width.
+      applyWidth(widthRef.current, true);
     },
-    [isResizing, sidebarWidth],
+    [isResizing, applyWidth],
   );
 
   const handleResizeKey = useCallback(
@@ -244,28 +263,13 @@ export function Navigation({
       const STEP = event.shiftKey ? 24 : 8;
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        const next = applyWidth(sidebarWidth - STEP);
-        try {
-          localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(next));
-        } catch {
-          /* ignore */
-        }
+        applyWidth(widthRef.current - STEP, true);
       } else if (event.key === 'ArrowRight') {
         event.preventDefault();
-        const next = applyWidth(sidebarWidth + STEP);
-        try {
-          localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(next));
-        } catch {
-          /* ignore */
-        }
+        applyWidth(widthRef.current + STEP, true);
       } else if (event.key === 'Home') {
         event.preventDefault();
-        applyWidth(SIDEBAR_DEFAULT_WIDTH);
-        try {
-          localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(SIDEBAR_DEFAULT_WIDTH));
-        } catch {
-          /* ignore */
-        }
+        applyWidth(SIDEBAR_DEFAULT_WIDTH, true);
       }
     },
     [sidebarWidth, applyWidth],
@@ -312,6 +316,7 @@ export function Navigation({
 
   return (
     <aside
+      ref={asideRef}
       className={cn(
         'fixed left-0 bottom-0 z-40 flex flex-col overflow-y-auto shrink-0',
         'border-r bg-white text-neutral-800',

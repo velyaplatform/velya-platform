@@ -1,5 +1,27 @@
 # Quality Rules
 
+## UI Pixel Gate (non-negotiable)
+
+Every PR that touches `apps/web/**` must pass the pixel-level overlap gate before merge.
+
+The rules are absolute:
+
+- **Text overlap.** No letter renders on top of another letter. No FAB or floating button covers any part of a heading, label, table cell, or form field.
+- **Field over field.** No two `<input>` / `<textarea>` / `<select>` overlap by more than 30 % of pixel area.
+- **Actionable over actionable.** No two `<button>` / `<a href>` (excluding parent/child nesting) overlap by more than 50 %.
+- **Heading clipped by fixed chrome.** Any `main h1` / `main h2` / `.page-title` renders strictly to the right of any `position: fixed` sidebar (`rect.left ≥ sidebar.right - 4`).
+- **Text clipped mid-word.** `scrollWidth > clientWidth + 4` without an explicit `white-space: nowrap` + `text-overflow: ellipsis` is high severity. "Lista de Pacient" instead of "Lista de Pacientes" is unacceptable.
+- **Sidebar must be resizable.** Drag handle on right edge + keyboard `ArrowLeft` / `ArrowRight` / `Home`. Width persisted in `localStorage` under `velya:sidebar-width` (default 260, min 200, max 420). The `--sidebar-width` CSS variable is updated dynamically so `.app-content-wrapper` stays aligned.
+- **No floating chrome on top of data rows.** FABs must be anchored to the sidebar gutter via the `.gh-fab-sidebar-anchor` class (`left: calc(var(--sidebar-width) + 20px)`) or live as icon buttons inside the dark header. They may never sit at `bottom-* right-*` where they collide with table action columns.
+
+### Machine enforcement
+
+- **Local**: `VELYA_SESSION=<cookie> npx tsx scripts/ui-audit/detect-overlaps.ts --fail-on=critical`. Use a `next build` + `next start` server, not `next dev` (CSP collides with Next's eval-based dev runtime).
+- **CI**: `.github/workflows/ui-overlap-gate.yaml` runs the same detector on every PR touching `apps/web/**` or `scripts/ui-audit/**`.
+- **Feedback**: `.github/workflows/ci-failure-watcher.yaml` subscribes to `workflow_run` events for the overlap gate (and the rest of the critical workflows) and comments on the PR with a triage summary when CI goes red.
+
+The detector tolerances (4 px horizontal, 8 px vertical, 30 % field, 50 % actionable) are encoded as constants in `scripts/ui-audit/detect-overlaps.ts`. Changes must update this rule and the script together.
+
 ## Testing Requirements
 
 ### Unit Tests

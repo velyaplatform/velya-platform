@@ -100,7 +100,7 @@ function scoreCommand(command: PaletteCommand, query: string): number {
   return 10;
 }
 
-export function CommandPalette(): React.ReactElement {
+export function CommandPalette(): React.ReactElement | null {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [query, setQuery] = useState<string>('');
@@ -353,22 +353,12 @@ export function CommandPalette(): React.ReactElement {
     [closePalette],
   );
 
-  // Discoverability hint — small floating button visible when the palette
-  // is closed. Research shows most users do not know command palettes
-  // exist, so a persistent affordance is critical.
-  const triggerButton = !isOpen ? (
-    // Command-palette's visual FAB is redundant — the dark header already
-    // exposes the "Type / to search" button that opens the same overlay,
-    // and the Cmd+K / Ctrl+K keybinding still works from anywhere. Keeping
-    // it also duplicated on the bottom-right caused a field-over-field
-    // overlap with the action column of dense tables (patients, tasks).
-    // Render null so the palette is only reachable via the header and the
-    // keyboard, matching the github.com pattern.
-    null
-  ) : null;
-
+  // No visible trigger — the palette opens via the header "Type / to
+  // search" button or the Cmd+K / Ctrl+K keybinding. The previous
+  // bottom-right FAB collided with the action column of dense tables
+  // (see quality.md "UI Pixel Gate").
   if (!isOpen) {
-    return <>{triggerButton}</>;
+    return null;
   }
 
   return (

@@ -374,12 +374,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
           <main
             className="flex-1 overflow-y-auto"
             style={{
-              // Extra bottom padding so floating FABs (AI assistant, command
-              // palette) never occlude the last row of tables or forms. The
-              // AI assistant button is ~52px at bottom-24 (~6rem), plus its
-              // own height, plus a gap from the command-palette FAB at
-              // bottom-4 (~1rem + 44px). Total blocking surface ≈ 140px.
-              padding: 'var(--space-6) var(--space-6) 160px',
+              padding: 'var(--space-6)',
               background: 'var(--canvas-default)',
             }}
           >
