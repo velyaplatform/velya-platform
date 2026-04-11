@@ -67,26 +67,26 @@ const OFFICE_ICON: Record<string, string> = {
 };
 
 const STAGE_COLOR: Record<string, string> = {
-  draft: 'bg-slate-700/50 text-slate-200 border-slate-600',
+  draft: 'bg-slate-100/50 text-slate-700 border-slate-300',
   sandbox: 'bg-purple-900/40 text-purple-200 border-purple-700',
-  shadow: 'bg-amber-900/40 text-amber-200 border-amber-700',
+  shadow: 'bg-amber-900/40 text-amber-800 border-amber-700',
   probation: 'bg-orange-900/40 text-orange-200 border-orange-700',
-  active: 'bg-green-900/50 text-green-200 border-green-700',
-  deprecated: 'bg-slate-800 text-slate-300 border-slate-600',
-  retired: 'bg-slate-900 text-slate-400 border-slate-700',
+  active: 'bg-green-900/50 text-green-800 border-green-700',
+  deprecated: 'bg-slate-50 text-slate-600 border-slate-300',
+  retired: 'bg-white text-slate-500 border-slate-200',
 };
 
 const RISK_COLOR: Record<string, string> = {
-  safe: 'bg-green-900/30 text-green-200 border-green-700/50',
-  review: 'bg-amber-900/30 text-amber-200 border-amber-700/50',
-  critical: 'bg-red-900/30 text-red-200 border-red-700/50',
+  safe: 'bg-green-900/30 text-green-800 border-green-700/50',
+  review: 'bg-amber-900/30 text-amber-800 border-amber-700/50',
+  critical: 'bg-red-900/30 text-red-800 border-red-700/50',
 };
 
 function scoreColor(value: number): string {
-  if (value >= 0.9) return 'text-green-300';
-  if (value >= 0.75) return 'text-blue-300';
-  if (value >= 0.6) return 'text-amber-300';
-  return 'text-red-300';
+  if (value >= 0.9) return 'text-green-700';
+  if (value >= 0.75) return 'text-blue-700';
+  if (value >= 0.6) return 'text-amber-700';
+  return 'text-red-700';
 }
 
 function pct(n: number): string {
@@ -175,7 +175,7 @@ export default function AgentsPage() {
       {error && (
         <div
           role="alert"
-          className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3 mb-4 text-sm"
+          className="bg-red-950/40 border border-red-700 text-red-800 rounded-md px-4 py-3 mb-4 text-sm"
         >
           {error}
         </div>
@@ -217,7 +217,7 @@ export default function AgentsPage() {
         ))}
       </div>
 
-      {loading && <p className="text-slate-300">Carregando...</p>}
+      {loading && <p className="text-slate-600">Carregando...</p>}
 
       {/* Cards por escritório */}
       <div className="space-y-6">
@@ -225,14 +225,14 @@ export default function AgentsPage() {
           <section
             key={office.office}
             aria-labelledby={`office-${office.office}-h`}
-            className="bg-slate-900 border border-slate-700 rounded-xl p-5"
+            className="bg-white border border-slate-200 rounded-xl p-5"
           >
             <header className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h2 id={`office-${office.office}-h`} className="text-lg font-bold text-slate-100">
+              <h2 id={`office-${office.office}-h`} className="text-lg font-bold text-slate-900">
                 <span aria-hidden="true">{OFFICE_ICON[office.office]}</span>{' '}
                 {data?.labels.office[office.office] ?? office.office}
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 {office.agents.length} agente(s) · {office.jobCoverage} job(s)
               </p>
             </header>
@@ -277,16 +277,16 @@ function KpiCard({
   tone: 'neutral' | 'ok' | 'watch' | 'alert';
 }) {
   const toneClass: Record<typeof tone, string> = {
-    neutral: 'bg-slate-900 border-slate-700',
+    neutral: 'bg-white border-slate-200',
     ok: 'bg-green-950/30 border-green-700/60',
     watch: 'bg-amber-950/30 border-amber-700/60',
     alert: 'bg-red-950/30 border-red-700/60',
   };
   return (
     <div className={`rounded-xl border ${toneClass[tone]} px-4 py-4`}>
-      <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">{label}</p>
-      <p className="text-3xl font-extrabold text-slate-100 mt-1 leading-none">{value}</p>
-      <p className="text-xs text-slate-300 mt-2">{hint}</p>
+      <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{label}</p>
+      <p className="text-3xl font-extrabold text-slate-900 mt-1 leading-none">{value}</p>
+      <p className="text-xs text-slate-600 mt-2">{hint}</p>
     </div>
   );
 }
@@ -310,12 +310,12 @@ function FilterChip({
       className={`min-h-[40px] px-3 py-2 rounded-full text-xs font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors ${
         active
           ? 'bg-blue-700 text-white border-blue-500'
-          : 'bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700'
+          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
       }`}
     >
       {label}
       {count !== undefined && (
-        <span className={`ml-1.5 text-[10px] ${active ? 'text-blue-100' : 'text-slate-400'}`}>
+        <span className={`ml-1.5 text-[10px] ${active ? 'text-blue-900' : 'text-slate-500'}`}>
           ({count})
         </span>
       )}
@@ -350,11 +350,11 @@ function AgentCard({
   const nextStage = next[stage] ?? null;
 
   return (
-    <article className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:border-blue-700 transition-colors">
+    <article className="bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-blue-700 transition-colors">
       <header className="flex items-start justify-between gap-2 mb-2">
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-bold text-slate-100 truncate">{agent.fullName}</h3>
-          <p className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5">{agent.role}</p>
+          <h3 className="text-sm font-bold text-slate-900 truncate">{agent.fullName}</h3>
+          <p className="text-[10px] uppercase tracking-wider text-slate-500 mt-0.5">{agent.role}</p>
         </div>
         <span
           className={`text-[10px] font-bold px-2 py-1 rounded-full border ${STAGE_COLOR[stage] ?? STAGE_COLOR.draft}`}
@@ -363,7 +363,7 @@ function AgentCard({
         </span>
       </header>
 
-      <p className="text-xs text-slate-300 leading-snug mb-3 line-clamp-3">{agent.charter}</p>
+      <p className="text-xs text-slate-600 leading-snug mb-3 line-clamp-3">{agent.charter}</p>
 
       {/* Scorecard mini-bars */}
       {sc && (
@@ -392,15 +392,15 @@ function AgentCard({
 
       {agent.state?.quarantined && (
         <div className="bg-red-950/40 border border-red-700 rounded p-2 mb-3">
-          <p className="text-[11px] text-red-200 font-semibold">⚠ Em quarentena</p>
+          <p className="text-[11px] text-red-800 font-semibold">⚠ Em quarentena</p>
           {agent.state.quarantineReason && (
-            <p className="text-[10px] text-red-300 mt-0.5">{agent.state.quarantineReason}</p>
+            <p className="text-[10px] text-red-700 mt-0.5">{agent.state.quarantineReason}</p>
           )}
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-700">
+      <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200">
         {nextStage && (
           <button
             type="button"
@@ -434,7 +434,7 @@ function AgentCard({
 
       <p className="text-[10px] text-slate-500 mt-2">
         Kill-switch:{' '}
-        <code className="bg-slate-900 px-1 rounded text-slate-300">{agent.killSwitchEnv}</code>
+        <code className="bg-white px-1 rounded text-slate-600">{agent.killSwitchEnv}</code>
       </p>
     </article>
   );
@@ -443,8 +443,8 @@ function AgentCard({
 function ScoreRow({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className="text-slate-400 w-16">{label}</span>
-      <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">
+      <span className="text-slate-500 w-16">{label}</span>
+      <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
         <div
           className={`h-full ${
             value >= 0.9

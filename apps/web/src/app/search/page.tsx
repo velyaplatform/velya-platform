@@ -105,7 +105,7 @@ function SearchInner() {
         </p>
       </div>
 
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 mb-5">
+      <div className="bg-white border border-slate-200 rounded-xl p-5 mb-5">
         <label htmlFor="search-input" className="sr-only">
           Buscar
         </label>
@@ -116,56 +116,56 @@ function SearchInner() {
           onChange={(e) => setQuery(e.target.value)}
           autoFocus
           placeholder="Digite paciente, medicamento, diagnóstico, especialidade..."
-          className="w-full min-h-[56px] bg-slate-800 border-2 border-slate-600 rounded-lg px-4 py-3 text-lg text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+          className="w-full min-h-[56px] bg-slate-50 border-2 border-slate-300 rounded-lg px-4 py-3 text-lg text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
         />
-        <p className="text-xs text-slate-400 mt-2">
-          Use <kbd className="bg-slate-800 border border-slate-600 px-1.5 py-0.5 rounded text-slate-100 text-[11px] font-mono">Ctrl+K</kbd> para
+        <p className="text-xs text-slate-500 mt-2">
+          Use <kbd className="bg-slate-50 border border-slate-300 px-1.5 py-0.5 rounded text-slate-900 text-[11px] font-mono">Ctrl+K</kbd> para
           a busca de comandos · digite mesmo com erros (a busca tolera typos)
         </p>
       </div>
 
       {error && (
-        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3 mb-4">
+        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-800 rounded-md px-4 py-3 mb-4">
           {error}
         </div>
       )}
 
-      {loading && <p className="text-slate-300">Buscando...</p>}
+      {loading && <p className="text-slate-600">Buscando...</p>}
 
       {!loading && results !== null && results.length === 0 && (
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 text-center">
-          <p className="text-slate-300 text-sm">Nenhum resultado para "{query}".</p>
+        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center">
+          <p className="text-slate-600 text-sm">Nenhum resultado para "{query}".</p>
         </div>
       )}
 
       {!loading && grouped && Object.keys(grouped).length > 0 && (
         <div className="flex flex-col gap-4">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             {results?.length} resultado(s) em {Object.keys(grouped).length} módulo(s)
           </p>
           {Object.entries(grouped).map(([moduleId, group]) => (
             <section
               key={moduleId}
               aria-labelledby={`group-${moduleId}-heading`}
-              className="bg-slate-900 border border-slate-700 rounded-xl p-5"
+              className="bg-white border border-slate-200 rounded-xl p-5"
             >
               <h2
                 id={`group-${moduleId}-heading`}
-                className="text-sm font-bold text-slate-100 mb-3"
+                className="text-sm font-bold text-slate-900 mb-3"
               >
                 {group.label}{' '}
-                <span className="text-xs text-slate-400 font-normal">({group.hits.length})</span>
+                <span className="text-xs text-slate-500 font-normal">({group.hits.length})</span>
               </h2>
               <ul className="flex flex-col gap-2">
                 {group.hits.map((hit) => (
                   <li key={`${hit.moduleId}-${hit.recordId}`}>
                     <Link
                       href={hit.href}
-                      className="block px-3 py-2 bg-slate-800 border border-slate-700 rounded-md hover:bg-slate-700 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="block px-3 py-2 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
                     >
                       <div className="flex items-baseline gap-2">
-                        <span className="font-mono text-xs text-blue-300">{hit.recordId}</span>
-                        <span className="text-sm text-slate-100 font-semibold truncate">
+                        <span className="font-mono text-xs text-blue-700">{hit.recordId}</span>
+                        <span className="text-sm text-slate-900 font-semibold truncate">
                           {hit.label}
                         </span>
                         <span className="ml-auto text-[10px] text-slate-500 font-mono">

@@ -129,7 +129,7 @@ function CompareModuleInner() {
       <AppShell pageTitle="Módulo desconhecido">
         <div
           role="alert"
-          className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3"
+          className="bg-red-950/40 border border-red-700 text-red-800 rounded-md px-4 py-3"
         >
           Módulo <strong>{moduleId}</strong> não está registrado em{' '}
           <code>module-manifest.ts</code>.
@@ -162,11 +162,11 @@ function CompareModuleInner() {
         </div>
         <div
           role="status"
-          className="bg-slate-900 border border-slate-700 rounded-xl p-6 text-slate-200"
+          className="bg-white border border-slate-200 rounded-xl p-6 text-slate-700"
         >
           <p className="mb-4">
             Selecione pelo menos 2 registros para comparar. Use o parâmetro{' '}
-            <code className="font-mono text-blue-300">?ids=A,B</code> na URL
+            <code className="font-mono text-blue-700">?ids=A,B</code> na URL
             ou abra a lista do módulo e escolha quais registros analisar.
           </p>
           <Link
@@ -196,7 +196,7 @@ function CompareModuleInner() {
         <div
           role="status"
           aria-live="polite"
-          className="flex items-center gap-3 text-slate-200 bg-slate-900 border border-slate-700 rounded-xl px-4 py-6"
+          className="flex items-center gap-3 text-slate-700 bg-white border border-slate-200 rounded-xl px-4 py-6"
         >
           <span
             aria-hidden="true"
@@ -227,7 +227,7 @@ function CompareModuleInner() {
         />
         <div
           role="alert"
-          className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-4"
+          className="bg-red-950/40 border border-red-700 text-red-800 rounded-md px-4 py-4"
         >
           <p className="font-semibold mb-2">Nenhum registro encontrado</p>
           <p className="text-sm mb-3">Os seguintes ids não foram localizados:</p>
@@ -238,7 +238,7 @@ function CompareModuleInner() {
           </ul>
           <Link
             href={mod.route}
-            className="mt-4 min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="mt-4 min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
           >
             ← Voltar a {mod.title}
           </Link>
@@ -289,7 +289,7 @@ function CompareModuleInner() {
           <div className="flex items-center gap-2 flex-wrap">
             <Link
               href={mod.route}
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
             >
               ← Voltar
             </Link>
@@ -300,7 +300,7 @@ function CompareModuleInner() {
       {fetchError && (
         <div
           role="alert"
-          className="mb-4 bg-red-950/40 border border-red-700 text-red-200 text-sm rounded-md px-4 py-3"
+          className="mb-4 bg-red-950/40 border border-red-700 text-red-800 text-sm rounded-md px-4 py-3"
         >
           {fetchError}
         </div>
@@ -308,13 +308,13 @@ function CompareModuleInner() {
 
       {/* Add id form */}
       <form
-        className="mb-4 flex items-center gap-2 flex-wrap bg-slate-900 border border-slate-700 rounded-xl px-4 py-3"
+        className="mb-4 flex items-center gap-2 flex-wrap bg-white border border-slate-200 rounded-xl px-4 py-3"
         onSubmit={(e) => {
           e.preventDefault();
           handleAddId(newId);
         }}
       >
-        <label htmlFor="compare-add-id" className="text-sm text-slate-200">
+        <label htmlFor="compare-add-id" className="text-sm text-slate-700">
           Adicionar registro:
         </label>
         <input
@@ -324,7 +324,7 @@ function CompareModuleInner() {
           onChange={(e) => setNewId(e.target.value)}
           placeholder="Cole um id aqui"
           aria-label="Id do registro a adicionar"
-          className="flex-1 min-w-[180px] min-h-[44px] bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 font-mono focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="flex-1 min-w-[180px] min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 font-mono focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <button
           type="submit"
@@ -336,17 +336,17 @@ function CompareModuleInner() {
       </form>
 
       {/* Comparison table */}
-      <div className="overflow-x-auto bg-slate-900 border border-slate-700 rounded-xl">
+      <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl">
         <table className="w-full text-sm text-left">
           <caption className="sr-only">
             Comparação de {ids.length} registros de {mod.title}. Linhas com
             diferença são destacadas.
           </caption>
-          <thead className="bg-slate-950/60 border-b border-slate-700">
+          <thead className="bg-white/60 border-b border-slate-200">
             <tr>
               <th
                 scope="col"
-                className="px-4 py-3 text-xs uppercase tracking-wider font-semibold text-slate-300 w-56"
+                className="px-4 py-3 text-xs uppercase tracking-wider font-semibold text-slate-600 w-56"
               >
                 Campo
               </th>
@@ -357,20 +357,20 @@ function CompareModuleInner() {
                   <th
                     key={id}
                     scope="col"
-                    className="px-4 py-3 text-xs font-semibold text-slate-200 align-top"
+                    className="px-4 py-3 text-xs font-semibold text-slate-700 align-top"
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="font-mono text-blue-300 break-all">
+                      <span className="font-mono text-blue-700 break-all">
                         {id}
                       </span>
                       {missing ? (
-                        <span className="text-red-300 text-xs font-normal">
+                        <span className="text-red-700 text-xs font-normal">
                           não encontrado
                         </span>
                       ) : (
                         <Link
                           href={`/edit/${mod.id}/${id}`}
-                          className="text-blue-300 hover:text-blue-200 underline underline-offset-2 text-xs font-normal focus:outline-none focus:ring-2 focus:ring-blue-300 rounded w-fit"
+                          className="text-blue-700 hover:text-blue-800 underline underline-offset-2 text-xs font-normal focus:outline-none focus:ring-2 focus:ring-blue-300 rounded w-fit"
                           aria-label={`Abrir registro ${id}`}
                         >
                           Abrir
@@ -387,7 +387,7 @@ function CompareModuleInner() {
               const isDiff = diffByColumn[col.key];
               const rowBase = isDiff
                 ? 'bg-amber-900/20 border-l-4 border-amber-500'
-                : 'bg-slate-900';
+                : 'bg-white';
               return (
                 <tr
                   key={col.key}
@@ -396,7 +396,7 @@ function CompareModuleInner() {
                 >
                   <th
                     scope="row"
-                    className="px-4 py-3 align-top text-slate-200 font-medium"
+                    className="px-4 py-3 align-top text-slate-700 font-medium"
                   >
                     <div className="flex items-center gap-2">
                       <span>{col.label}</span>
@@ -419,7 +419,7 @@ function CompareModuleInner() {
                       return (
                         <td
                           key={id}
-                          className="px-4 py-3 align-top text-red-300 italic"
+                          className="px-4 py-3 align-top text-red-700 italic"
                         >
                           —
                         </td>
@@ -430,7 +430,7 @@ function CompareModuleInner() {
                     return (
                       <td
                         key={id}
-                        className="px-4 py-3 align-top text-slate-100 break-words"
+                        className="px-4 py-3 align-top text-slate-900 break-words"
                       >
                         {display}
                       </td>
@@ -447,19 +447,19 @@ function CompareModuleInner() {
       <div
         role="status"
         aria-live="polite"
-        className="mt-4 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 flex flex-wrap items-center gap-x-6 gap-y-1"
+        className="mt-4 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 flex flex-wrap items-center gap-x-6 gap-y-1"
       >
         <span>
           Total de campos:{' '}
-          <strong className="text-slate-100">{totalFields}</strong>
+          <strong className="text-slate-900">{totalFields}</strong>
         </span>
         <span>
           Campos com diferença:{' '}
-          <strong className="text-amber-200">{diffCount}</strong>
+          <strong className="text-amber-800">{diffCount}</strong>
         </span>
         <span>
           Correspondência:{' '}
-          <strong className="text-green-300">{matchPct}%</strong>
+          <strong className="text-green-700">{matchPct}%</strong>
         </span>
       </div>
     </AppShell>

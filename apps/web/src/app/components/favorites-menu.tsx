@@ -88,12 +88,12 @@ export function FavoritesMenu() {
         <div
           role="menu"
           aria-label="Favoritos"
-          className="absolute right-0 mt-2 w-96 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 p-3 max-h-[480px] overflow-y-auto"
+          className="absolute right-0 mt-2 w-96 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 p-3 max-h-[480px] overflow-y-auto"
         >
-          {loading && <p className="text-sm text-slate-400 py-3 text-center">Carregando...</p>}
+          {loading && <p className="text-sm text-slate-500 py-3 text-center">Carregando...</p>}
           {!loading && totalCount === 0 && (
-            <p className="text-sm text-slate-300 text-center py-6 px-3">
-              Nenhum favorito ainda. Clique no <span className="text-amber-300">⭐</span> em
+            <p className="text-sm text-slate-600 text-center py-6 px-3">
+              Nenhum favorito ainda. Clique no <span className="text-amber-700">⭐</span> em
               qualquer página de detalhe para adicionar.
             </p>
           )}
@@ -123,7 +123,7 @@ function ScopeGroup({
     <section aria-labelledby={`fav-${scope}-heading`}>
       <h3
         id={`fav-${scope}-heading`}
-        className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1.5"
+        className="text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-1.5"
       >
         {labelFor(scope)} ({items.length})
       </h3>
@@ -135,20 +135,20 @@ function ScopeGroup({
                 href={entry.href}
                 role="menuitem"
                 onClick={onNavigate}
-                className="block min-h-[44px] px-3 py-2 rounded-md hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="block min-h-[44px] px-3 py-2 rounded-md hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-300"
               >
                 <div className="flex items-baseline gap-2">
-                  <span className="font-mono text-xs text-blue-300">{entry.id}</span>
-                  <span className="text-sm text-slate-100 font-semibold truncate">
+                  <span className="font-mono text-xs text-blue-700">{entry.id}</span>
+                  <span className="text-sm text-slate-900 font-semibold truncate">
                     {entry.label}
                   </span>
                 </div>
                 {entry.description && (
-                  <div className="text-xs text-slate-400 truncate">{entry.description}</div>
+                  <div className="text-xs text-slate-500 truncate">{entry.description}</div>
                 )}
               </Link>
             ) : (
-              <div className="px-3 py-2 text-sm text-slate-200">{entry.label}</div>
+              <div className="px-3 py-2 text-sm text-slate-700">{entry.label}</div>
             )}
           </li>
         ))}

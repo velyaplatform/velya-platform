@@ -85,7 +85,7 @@ export default function AllergyAlert({
     >
       <h3 className="text-xl font-bold text-red-100">{'\u26A0 ALERGIA RELATADA'}</h3>
       <p className="mt-2 text-sm text-red-100">{explanation}</p>
-      <p className="mt-1 text-xs text-red-200">
+      <p className="mt-1 text-xs text-red-800">
         Prontuario: <span className="font-semibold">{patientMrn}</span>
       </p>
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">

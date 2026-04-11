@@ -37,12 +37,12 @@ const TREND_ICONS: Record<KPITrend, string> = {
 };
 
 const ICON_BG: Record<KPITone, string> = {
-  neutral: 'text-slate-200',
+  neutral: 'text-slate-700',
   critical: 'text-red-100',
   warning: 'text-amber-100',
   success: 'text-emerald-100',
-  info: 'text-blue-100',
-  accent: 'text-blue-100',
+  info: 'text-blue-900',
+  accent: 'text-blue-900',
 };
 
 export function VelyaKPI({
@@ -63,7 +63,7 @@ export function VelyaKPI({
           className={cn(
             'absolute right-4 top-4 h-12 w-12 transition-colors',
             ICON_BG[tone],
-            'group-hover:text-blue-200',
+            'group-hover:text-blue-800',
           )}
           strokeWidth={1.5}
           aria-hidden="true"

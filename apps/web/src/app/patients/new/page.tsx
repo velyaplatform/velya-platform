@@ -33,17 +33,17 @@ function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="bg-slate-900 rounded-xl border border-slate-700 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-5 py-4 bg-slate-800 border-b border-slate-700 cursor-pointer hover:bg-slate-700 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 bg-slate-50 border-b border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
       >
-        <span className="flex items-center gap-2 text-sm font-bold text-slate-100">
+        <span className="flex items-center gap-2 text-sm font-bold text-slate-900">
           <span className="text-base">{icon}</span>
           {title}
         </span>
-        <span className="text-slate-300 text-lg">{open ? '\u25B2' : '\u25BC'}</span>
+        <span className="text-slate-600 text-lg">{open ? '\u25B2' : '\u25BC'}</span>
       </button>
       {open && <div className="p-5 space-y-4">{children}</div>}
     </div>
@@ -67,20 +67,20 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-slate-200 mb-1.5">
-        {label} {required && <span className="text-red-300">*</span>}
+      <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+        {label} {required && <span className="text-red-700">*</span>}
       </label>
       {children}
-      {error && <p className="text-xs text-red-300 mt-1">{error}</p>}
+      {error && <p className="text-xs text-red-700 mt-1">{error}</p>}
     </div>
   );
 }
 
 const inputClass =
-  'w-full border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-slate-500';
+  'w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-slate-500';
 
 const selectClass =
-  'w-full border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+  'w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
 
 // ---------------------------------------------------------------------------
 // Comorbidities list
@@ -172,13 +172,13 @@ function MultiValueInput({
           {values.map((v, i) => (
             <span
               key={i}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-950/40 border border-blue-700/60 text-blue-200 text-xs font-medium rounded-full"
+              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-950/40 border border-blue-700/60 text-blue-800 text-xs font-medium rounded-full"
             >
               {v}
               <button
                 type="button"
                 onClick={() => remove(i)}
-                className="text-blue-300 hover:text-blue-100 cursor-pointer bg-transparent border-none text-xs font-bold"
+                className="text-blue-700 hover:text-blue-900 cursor-pointer bg-transparent border-none text-xs font-bold"
               >
                 x
               </button>
@@ -375,15 +375,15 @@ export default function NovoPatientPage() {
         <div className="mb-4">
           <Link
             href="/patients"
-            className="inline-flex items-center gap-1.5 text-sm text-blue-300 hover:text-blue-200 no-underline font-medium"
+            className="inline-flex items-center gap-1.5 text-sm text-blue-700 hover:text-blue-800 no-underline font-medium"
           >
             {'\u2190'} Voltar para Pacientes
           </Link>
         </div>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-100">Admissao de Paciente</h1>
-          <p className="text-sm text-slate-300 mt-1">
+          <h1 className="text-2xl font-bold text-slate-900">Admissao de Paciente</h1>
+          <p className="text-sm text-slate-600 mt-1">
             Preencha os dados para cadastro e internacao. Campos marcados com * sao obrigatorios.
           </p>
         </div>
@@ -485,8 +485,8 @@ export default function NovoPatientPage() {
             </div>
 
             {/* Endereco */}
-            <div className="mt-4 pt-4 border-t border-slate-700">
-              <p className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Endereco</p>
+            <div className="mt-4 pt-4 border-t border-slate-200">
+              <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">Endereco</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Field label="CEP">
                   <input
@@ -556,8 +556,8 @@ export default function NovoPatientPage() {
             </div>
 
             {/* Contato */}
-            <div className="mt-4 pt-4 border-t border-slate-700">
-              <p className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Contato</p>
+            <div className="mt-4 pt-4 border-t border-slate-200">
+              <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">Contato</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Field label="Telefone principal" required error={fieldErrors.telefonePrincipal}>
                   <input
@@ -693,8 +693,8 @@ export default function NovoPatientPage() {
                         border cursor-pointer transition-all select-none
                         ${
                           form.comorbidades.includes(c)
-                            ? 'bg-blue-950/40 border-blue-700/60 text-blue-200'
-                            : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-600'
+                            ? 'bg-blue-950/40 border-blue-700/60 text-blue-800'
+                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                         }
                       `}
                     >
@@ -835,7 +835,7 @@ export default function NovoPatientPage() {
 
           {/* Error */}
           {error && (
-            <div className="bg-red-950/40 border border-red-700 text-red-200 text-sm rounded-lg px-4 py-3">
+            <div className="bg-red-950/40 border border-red-700 text-red-800 text-sm rounded-lg px-4 py-3">
               {error}
             </div>
           )}
@@ -857,7 +857,7 @@ export default function NovoPatientPage() {
             </button>
             <Link
               href="/patients"
-              className="px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:text-white no-underline"
+              className="px-4 py-3 rounded-lg text-sm font-medium text-slate-600 hover:text-white no-underline"
             >
               Cancelar
             </Link>

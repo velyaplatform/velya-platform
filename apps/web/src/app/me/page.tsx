@@ -83,7 +83,7 @@ export default function MePage() {
   if (error) {
     return (
       <AppShell pageTitle="Meu Painel">
-        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3">
+        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-800 rounded-md px-4 py-3">
           {error}
         </div>
       </AppShell>
@@ -93,7 +93,7 @@ export default function MePage() {
   if (!data) {
     return (
       <AppShell pageTitle="Meu Painel">
-        <p className="text-slate-300">Carregando...</p>
+        <p className="text-slate-600">Carregando...</p>
       </AppShell>
     );
   }
@@ -123,7 +123,7 @@ export default function MePage() {
                 {data.profile.email} · {data.profile.setor || 'Sem setor definido'}
               </p>
               {data.profile.conselhoProfissional && (
-                <p className="text-xs text-slate-400 mt-1 font-mono">
+                <p className="text-xs text-slate-500 mt-1 font-mono">
                   {data.profile.conselhoProfissional}
                 </p>
               )}
@@ -142,7 +142,7 @@ export default function MePage() {
                   window.dispatchEvent(new CustomEvent('velya:start-onboarding'));
                 }
               }}
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-blue-700/60 text-blue-200 hover:bg-blue-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-blue-700/60 text-blue-800 hover:bg-blue-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
             >
               Refazer tour de boas-vindas
             </button>
@@ -150,7 +150,7 @@ export default function MePage() {
               type="button"
               onClick={handleLogout}
               disabled={loggingOut}
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-red-700/60 text-red-200 hover:bg-red-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-60"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-red-700/60 text-red-800 hover:bg-red-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-60"
             >
               {loggingOut ? 'Saindo...' : 'Sair da plataforma'}
             </button>
@@ -162,30 +162,30 @@ export default function MePage() {
         {/* Profile + session */}
         <section
           aria-labelledby="profile-heading"
-          className="bg-slate-900 border border-slate-700 rounded-xl p-5"
+          className="bg-white border border-slate-200 rounded-xl p-5"
         >
-          <h2 id="profile-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-300 mb-3">
+          <h2 id="profile-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3">
             Sessão
           </h2>
           <dl className="text-sm space-y-2">
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-400">Função</dt>
-              <dd className="text-slate-100 text-right">{data.profile.role}</dd>
+              <dt className="text-slate-500">Função</dt>
+              <dd className="text-slate-900 text-right">{data.profile.role}</dd>
             </div>
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-400">Login</dt>
-              <dd className="text-slate-100 text-right">
+              <dt className="text-slate-500">Login</dt>
+              <dd className="text-slate-900 text-right">
                 {new Date(data.profile.loginTime).toLocaleString('pt-BR')}
               </dd>
             </div>
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-400">Última atividade</dt>
-              <dd className="text-slate-100 text-right">
+              <dt className="text-slate-500">Última atividade</dt>
+              <dd className="text-slate-900 text-right">
                 {new Date(data.profile.lastActivity).toLocaleString('pt-BR')}
               </dd>
             </div>
             {data.profile.isBreakGlass && (
-              <div role="alert" className="bg-amber-950/40 border border-amber-700 text-amber-200 rounded-md px-3 py-2 mt-2">
+              <div role="alert" className="bg-amber-950/40 border border-amber-700 text-amber-800 rounded-md px-3 py-2 mt-2">
                 ⚠ Sessão em modo break-glass
               </div>
             )}
@@ -195,71 +195,71 @@ export default function MePage() {
         {/* On-duty */}
         <section
           aria-labelledby="duty-heading"
-          className="bg-slate-900 border border-slate-700 rounded-xl p-5"
+          className="bg-white border border-slate-200 rounded-xl p-5"
         >
-          <h2 id="duty-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-300 mb-3">
+          <h2 id="duty-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3">
             Plantão
           </h2>
           {data.onDuty ? (
             <dl className="text-sm space-y-2">
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-400">Setor</dt>
-                <dd className="text-slate-100 text-right">{data.onDuty.ward}</dd>
+                <dt className="text-slate-500">Setor</dt>
+                <dd className="text-slate-900 text-right">{data.onDuty.ward}</dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-400">Turno</dt>
-                <dd className="text-slate-100 text-right">
+                <dt className="text-slate-500">Turno</dt>
+                <dd className="text-slate-900 text-right">
                   {data.onDuty.shift} · {data.onDuty.shiftStart}–{data.onDuty.shiftEnd}
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-400">Presença</dt>
-                <dd className="text-slate-100 text-right">{data.onDuty.presence}</dd>
+                <dt className="text-slate-500">Presença</dt>
+                <dd className="text-slate-900 text-right">{data.onDuty.presence}</dd>
               </div>
               {data.onDuty.contactExtension && (
                 <div className="flex justify-between gap-2">
-                  <dt className="text-slate-400">Ramal</dt>
-                  <dd className="text-slate-100 text-right font-mono">
+                  <dt className="text-slate-500">Ramal</dt>
+                  <dd className="text-slate-900 text-right font-mono">
                     {data.onDuty.contactExtension}
                   </dd>
                 </div>
               )}
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-400">Pacientes atribuídos</dt>
-                <dd className="text-slate-100 text-right">
+                <dt className="text-slate-500">Pacientes atribuídos</dt>
+                <dd className="text-slate-900 text-right">
                   {data.onDuty.assignedPatientMrns.length}
                 </dd>
               </div>
             </dl>
           ) : (
-            <p className="text-sm text-slate-400">Você não está no quadro de plantão atual.</p>
+            <p className="text-sm text-slate-500">Você não está no quadro de plantão atual.</p>
           )}
         </section>
 
         {/* AI policy */}
         <section
           aria-labelledby="ai-heading"
-          className="bg-slate-900 border border-slate-700 rounded-xl p-5"
+          className="bg-white border border-slate-200 rounded-xl p-5"
         >
-          <h2 id="ai-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-300 mb-3">
+          <h2 id="ai-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3">
             Política de IA
           </h2>
           <dl className="text-sm space-y-2">
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-400">Perfil</dt>
-              <dd className="text-blue-300 text-right font-semibold">{data.aiPolicy.label}</dd>
+              <dt className="text-slate-500">Perfil</dt>
+              <dd className="text-blue-700 text-right font-semibold">{data.aiPolicy.label}</dd>
             </div>
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-400">Capacidades</dt>
-              <dd className="text-slate-100 text-right">{data.aiPolicy.capabilityCount}</dd>
+              <dt className="text-slate-500">Capacidades</dt>
+              <dd className="text-slate-900 text-right">{data.aiPolicy.capabilityCount}</dd>
             </div>
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-400">Limite/hora</dt>
-              <dd className="text-slate-100 text-right">{data.aiPolicy.maxRequestsPerHour}</dd>
+              <dt className="text-slate-500">Limite/hora</dt>
+              <dd className="text-slate-900 text-right">{data.aiPolicy.maxRequestsPerHour}</dd>
             </div>
           </dl>
-          <p className="text-xs text-slate-400 mt-3">
-            Use <kbd className="bg-slate-800 border border-slate-600 px-1.5 py-0.5 rounded text-slate-100">Ctrl+J</kbd> para abrir o assistente.
+          <p className="text-xs text-slate-500 mt-3">
+            Use <kbd className="bg-slate-50 border border-slate-300 px-1.5 py-0.5 rounded text-slate-900">Ctrl+J</kbd> para abrir o assistente.
           </p>
         </section>
       </div>
@@ -290,19 +290,19 @@ export default function MePage() {
       {data.charges.length > 0 && (
         <section
           aria-labelledby="charges-heading"
-          className="bg-slate-900 border border-slate-700 rounded-xl p-5 mb-4"
+          className="bg-white border border-slate-200 rounded-xl p-5 mb-4"
         >
-          <h2 id="charges-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-300 mb-3">
+          <h2 id="charges-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3">
             Lançamentos recentes
           </h2>
           <ul className="space-y-2">
             {data.charges.map((c) => (
               <li
                 key={c.id}
-                className="flex items-center justify-between gap-3 px-3 py-2 bg-slate-800 rounded-md border border-slate-700"
+                className="flex items-center justify-between gap-3 px-3 py-2 bg-slate-50 rounded-md border border-slate-200"
               >
-                <span className="text-sm text-slate-100 truncate">{c.description}</span>
-                <span className="text-xs text-slate-300 whitespace-nowrap">
+                <span className="text-sm text-slate-900 truncate">{c.description}</span>
+                <span className="text-xs text-slate-600 whitespace-nowrap">
                   R$ {c.totalPrice.toFixed(2)} · {c.status}
                 </span>
               </li>
@@ -314,25 +314,25 @@ export default function MePage() {
       {data.consents.length > 0 && (
         <section
           aria-labelledby="consents-heading"
-          className="bg-slate-900 border border-slate-700 rounded-xl p-5"
+          className="bg-white border border-slate-200 rounded-xl p-5"
         >
-          <h2 id="consents-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-300 mb-3">
+          <h2 id="consents-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3">
             Consentimentos recentes
           </h2>
           <ul className="space-y-2">
             {data.consents.map((c) => (
               <li
                 key={c.id}
-                className="flex items-center justify-between gap-3 px-3 py-2 bg-slate-800 rounded-md border border-slate-700"
+                className="flex items-center justify-between gap-3 px-3 py-2 bg-slate-50 rounded-md border border-slate-200"
               >
                 <Link
                   href={`/patients/${c.patientMrn}`}
-                  className="text-sm text-blue-300 hover:text-blue-200 underline font-mono"
+                  className="text-sm text-blue-700 hover:text-blue-800 underline font-mono"
                 >
                   {c.patientMrn}
                 </Link>
-                <span className="text-xs text-slate-300">{c.type}</span>
-                <span className="text-xs text-slate-400">{c.signedAt}</span>
+                <span className="text-xs text-slate-600">{c.type}</span>
+                <span className="text-xs text-slate-500">{c.signedAt}</span>
               </li>
             ))}
           </ul>
@@ -364,14 +364,14 @@ function ActivityColumn({
   return (
     <section
       aria-label={title}
-      className={`bg-slate-900 border ${accentRing} rounded-xl p-4`}
+      className={`bg-white border ${accentRing} rounded-xl p-4`}
     >
       <header className="flex items-center gap-2 mb-3">
         <span aria-hidden="true" className={`w-2.5 h-2.5 rounded-full ${accentDot}`} />
-        <h2 className="text-sm font-bold text-slate-100">{title}</h2>
-        <span className="text-xs text-slate-400 ml-auto">{items.length}</span>
+        <h2 className="text-sm font-bold text-slate-900">{title}</h2>
+        <span className="text-xs text-slate-500 ml-auto">{items.length}</span>
       </header>
-      <p className="text-[11px] text-slate-400 mb-3">{subtitle}</p>
+      <p className="text-[11px] text-slate-500 mb-3">{subtitle}</p>
       {items.length === 0 ? (
         <p className="text-sm text-slate-500 text-center py-6">Nada por aqui.</p>
       ) : (
@@ -380,22 +380,22 @@ function ActivityColumn({
             <li key={item.id}>
               <Link
                 href={`/patients/${item.mrn}`}
-                className="block px-3 py-2 bg-slate-800 rounded-md border border-slate-700 hover:bg-slate-700 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
+                className="block px-3 py-2 bg-slate-50 rounded-md border border-slate-200 hover:bg-slate-100 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
               >
-                <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">
+                <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
                   {item.type}
                 </div>
-                <div className="text-sm text-slate-100 font-medium mt-0.5">
+                <div className="text-sm text-slate-900 font-medium mt-0.5">
                   {item.description}
                 </div>
-                <div className="text-xs text-slate-300 mt-1 flex items-center gap-2 flex-wrap">
-                  <span className="font-mono text-blue-300">{item.mrn}</span>
+                <div className="text-xs text-slate-600 mt-1 flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-blue-700">{item.mrn}</span>
                   <span>·</span>
                   <span>{item.patient}</span>
                   {item.dueIn && (
                     <>
                       <span>·</span>
-                      <span className="text-amber-200">{item.dueIn}</span>
+                      <span className="text-amber-800">{item.dueIn}</span>
                     </>
                   )}
                 </div>

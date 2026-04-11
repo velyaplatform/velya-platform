@@ -14,24 +14,24 @@ const STATUS_CONFIG: Record<
     icon: '🟢',
     border: 'border-emerald-500/60',
     bg: 'bg-emerald-500/10',
-    text: 'text-emerald-300',
-    badge: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40',
+    text: 'text-emerald-700',
+    badge: 'bg-emerald-500/20 text-emerald-700 border border-emerald-500/40',
   },
   occupied: {
     label: 'Ocupado',
     icon: '🔴',
     border: 'border-red-500/60',
     bg: 'bg-red-500/10',
-    text: 'text-red-300',
-    badge: 'bg-red-500/20 text-red-300 border border-red-500/40',
+    text: 'text-red-700',
+    badge: 'bg-red-500/20 text-red-700 border border-red-500/40',
   },
   cleaning: {
     label: 'Higienização',
     icon: '🟡',
     border: 'border-amber-400/60',
     bg: 'bg-amber-400/10',
-    text: 'text-amber-200',
-    badge: 'bg-amber-400/20 text-amber-200 border border-amber-400/40',
+    text: 'text-amber-800',
+    badge: 'bg-amber-400/20 text-amber-800 border border-amber-400/40',
   },
   maintenance: {
     label: 'Manutenção',
@@ -46,24 +46,24 @@ const STATUS_CONFIG: Record<
     icon: '🔵',
     border: 'border-blue-500/60',
     bg: 'bg-blue-500/10',
-    text: 'text-blue-300',
-    badge: 'bg-blue-500/20 text-blue-300 border border-blue-500/40',
+    text: 'text-blue-700',
+    badge: 'bg-blue-500/20 text-blue-700 border border-blue-500/40',
   },
   blocked: {
     label: 'Bloqueado',
     icon: '⚫',
     border: 'border-slate-500/60',
-    bg: 'bg-slate-700/30',
-    text: 'text-slate-300',
-    badge: 'bg-slate-700/40 text-slate-300 border border-slate-500/40',
+    bg: 'bg-slate-100/30',
+    text: 'text-slate-600',
+    badge: 'bg-slate-100/40 text-slate-600 border border-slate-500/40',
   },
 };
 
 const RISK_CONFIG: Record<RiskLevel, { label: string; classes: string; pulse: boolean }> = {
-  low: { label: 'Baixo', classes: 'bg-emerald-500/20 text-emerald-200', pulse: false },
-  medium: { label: 'Médio', classes: 'bg-amber-400/20 text-amber-200', pulse: false },
+  low: { label: 'Baixo', classes: 'bg-emerald-500/20 text-emerald-800', pulse: false },
+  medium: { label: 'Médio', classes: 'bg-amber-400/20 text-amber-800', pulse: false },
   high: { label: 'Alto', classes: 'bg-orange-500/25 text-orange-200', pulse: false },
-  critical: { label: 'Crítico', classes: 'bg-red-500/30 text-red-200', pulse: true },
+  critical: { label: 'Crítico', classes: 'bg-red-500/30 text-red-800', pulse: true },
 };
 
 export default function BedsPage() {
@@ -139,38 +139,38 @@ export default function BedsPage() {
           </div>
         </div>
         <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-emerald-300/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-emerald-700/80 font-semibold">
             Disponíveis
           </div>
-          <div className="text-3xl font-bold text-emerald-300 mt-1">{kpis.available}</div>
+          <div className="text-3xl font-bold text-emerald-700 mt-1">{kpis.available}</div>
           <div className="text-xs text-white/75 mt-1">Prontos para admissão</div>
         </div>
         <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-amber-200/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-amber-800/80 font-semibold">
             Higienização
           </div>
-          <div className="text-3xl font-bold text-amber-200 mt-1">{kpis.cleaning}</div>
+          <div className="text-3xl font-bold text-amber-800 mt-1">{kpis.cleaning}</div>
           <div className="text-xs text-white/75 mt-1">Em preparo</div>
         </div>
         <div className="rounded-lg border border-blue-500/30 bg-blue-500/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-blue-300/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-blue-700/80 font-semibold">
             Aguardando Alta
           </div>
-          <div className="text-3xl font-bold text-blue-300 mt-1">{kpis.awaitingDischarge}</div>
+          <div className="text-3xl font-bold text-blue-700 mt-1">{kpis.awaitingDischarge}</div>
           <div className="text-xs text-white/75 mt-1">Liberação iminente</div>
         </div>
-        <div className="rounded-lg border border-slate-500/30 bg-slate-700/20 p-4">
-          <div className="text-[11px] uppercase tracking-wider text-slate-300/80 font-semibold">
+        <div className="rounded-lg border border-slate-500/30 bg-slate-100/20 p-4">
+          <div className="text-[11px] uppercase tracking-wider text-slate-600/80 font-semibold">
             Bloqueados
           </div>
-          <div className="text-3xl font-bold text-slate-200 mt-1">{kpis.blocked}</div>
+          <div className="text-3xl font-bold text-slate-700 mt-1">{kpis.blocked}</div>
           <div className="text-xs text-white/75 mt-1">Indisponíveis</div>
         </div>
         <div className="rounded-lg border border-red-500/30 bg-red-500/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-red-300/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-red-700/80 font-semibold">
             Ocupados
           </div>
-          <div className="text-3xl font-bold text-red-300 mt-1">{kpis.occupied}</div>
+          <div className="text-3xl font-bold text-red-700 mt-1">{kpis.occupied}</div>
           <div className="text-xs text-white/75 mt-1">Com paciente ativo</div>
         </div>
       </div>
@@ -180,7 +180,7 @@ export default function BedsPage() {
         <select
           value={wardFilter}
           onChange={(e) => setWardFilter(e.target.value)}
-          className="bg-slate-800 border border-white/15 rounded-md px-3 py-2 text-sm text-white/90 outline-none"
+          className="bg-slate-50 border border-white/15 rounded-md px-3 py-2 text-sm text-white/90 outline-none"
         >
           <option value="all">Todos os Setores</option>
           {wards.map((w) => (
@@ -192,7 +192,7 @@ export default function BedsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-slate-800 border border-white/15 rounded-md px-3 py-2 text-sm text-white/90 outline-none"
+          className="bg-slate-50 border border-white/15 rounded-md px-3 py-2 text-sm text-white/90 outline-none"
         >
           <option value="all">Todos os Status</option>
           <option value="available">Disponível</option>
@@ -265,7 +265,7 @@ export default function BedsPage() {
                     )}
 
                     {bed.status === 'cleaning' && (
-                      <div className="border-t border-white/10 pt-2 mt-2 text-xs text-amber-200/80">
+                      <div className="border-t border-white/10 pt-2 mt-2 text-xs text-amber-800/80">
                         <div>ETA liberação: {bed.cleaningEta}</div>
                       </div>
                     )}
@@ -275,12 +275,12 @@ export default function BedsPage() {
                       </div>
                     )}
                     {bed.status === 'reserved' && (
-                      <div className="border-t border-white/10 pt-2 mt-2 text-xs text-blue-200/80">
+                      <div className="border-t border-white/10 pt-2 mt-2 text-xs text-blue-800/80">
                         {bed.reservedFor}
                       </div>
                     )}
                     {bed.status === 'blocked' && (
-                      <div className="border-t border-white/10 pt-2 mt-2 text-xs text-slate-300/80">
+                      <div className="border-t border-white/10 pt-2 mt-2 text-xs text-slate-600/80">
                         {bed.blockedReason}
                       </div>
                     )}
@@ -295,41 +295,41 @@ export default function BedsPage() {
                     >
                       {bed.status === 'occupied' && (
                         <>
-                          <button className="text-[10px] px-2 py-1 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30 hover:bg-amber-500/30">
+                          <button className="text-[10px] px-2 py-1 rounded bg-amber-500/20 text-amber-800 border border-amber-500/30 hover:bg-amber-500/30">
                             Marcar higienização
                           </button>
-                          <button className="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-200 border border-blue-500/30 hover:bg-blue-500/30">
+                          <button className="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-800 border border-blue-500/30 hover:bg-blue-500/30">
                             Transferir
                           </button>
                         </>
                       )}
                       {bed.status === 'available' && (
                         <>
-                          <button className="text-[10px] px-2 py-1 rounded bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30">
+                          <button className="text-[10px] px-2 py-1 rounded bg-emerald-500/20 text-emerald-800 border border-emerald-500/30 hover:bg-emerald-500/30">
                             Atribuir paciente
                           </button>
-                          <button className="text-[10px] px-2 py-1 rounded bg-slate-700/40 text-slate-300 border border-slate-500/30 hover:bg-slate-700/60">
+                          <button className="text-[10px] px-2 py-1 rounded bg-slate-100/40 text-slate-600 border border-slate-500/30 hover:bg-slate-100/60">
                             Bloquear
                           </button>
                         </>
                       )}
                       {bed.status === 'cleaning' && (
-                        <button className="text-[10px] px-2 py-1 rounded bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30">
+                        <button className="text-[10px] px-2 py-1 rounded bg-emerald-500/20 text-emerald-800 border border-emerald-500/30 hover:bg-emerald-500/30">
                           Liberar
                         </button>
                       )}
                       {bed.status === 'maintenance' && (
-                        <button className="text-[10px] px-2 py-1 rounded bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30">
+                        <button className="text-[10px] px-2 py-1 rounded bg-emerald-500/20 text-emerald-800 border border-emerald-500/30 hover:bg-emerald-500/30">
                           Concluir manutenção
                         </button>
                       )}
                       {bed.status === 'reserved' && (
-                        <button className="text-[10px] px-2 py-1 rounded bg-slate-700/40 text-slate-300 border border-slate-500/30 hover:bg-slate-700/60">
+                        <button className="text-[10px] px-2 py-1 rounded bg-slate-100/40 text-slate-600 border border-slate-500/30 hover:bg-slate-100/60">
                           Cancelar reserva
                         </button>
                       )}
                       {bed.status === 'blocked' && (
-                        <button className="text-[10px] px-2 py-1 rounded bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30">
+                        <button className="text-[10px] px-2 py-1 rounded bg-emerald-500/20 text-emerald-800 border border-emerald-500/30 hover:bg-emerald-500/30">
                           Desbloquear
                         </button>
                       )}

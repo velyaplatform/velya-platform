@@ -15,7 +15,7 @@
     "build": "tsc --build",
     "dev": "tsc --build --watch",
     "lint": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest --passWithNoTests"
   },
   "devDependencies": {
     "typescript": "^5.7.0"

@@ -35,9 +35,9 @@ import { HOSPITAL_WARDS } from '../../lib/fixtures/hospital-wards';
  */
 
 const COUNCIL_COLOR: Record<string, string> = {
-  CRM: 'bg-blue-900/40 text-blue-200 border-blue-700/60',
-  CRN: 'bg-green-900/40 text-green-200 border-green-700/60',
-  COREN: 'bg-amber-900/40 text-amber-200 border-amber-700/60',
+  CRM: 'bg-blue-900/40 text-blue-800 border-blue-700/60',
+  CRN: 'bg-green-900/40 text-green-800 border-green-700/60',
+  COREN: 'bg-amber-900/40 text-amber-800 border-amber-700/60',
   CRF: 'bg-purple-900/40 text-purple-200 border-purple-700/60',
   CREFITO: 'bg-cyan-900/40 text-cyan-200 border-cyan-700/60',
   CRP: 'bg-pink-900/40 text-pink-200 border-pink-700/60',
@@ -197,7 +197,7 @@ export default function SpecialtiesHubPage() {
       </div>
 
       {/* Search + filter chips */}
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 mb-5">
+      <div className="bg-white border border-slate-200 rounded-xl p-4 mb-5">
         <label htmlFor="spec-search" className="sr-only">
           Buscar especialidade
         </label>
@@ -207,7 +207,7 @@ export default function SpecialtiesHubPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por nome, área de atuação, código CFM, descrição..."
-          className="w-full min-h-[48px] bg-slate-800 border-2 border-slate-600 rounded-lg px-4 py-3 text-base text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+          className="w-full min-h-[48px] bg-slate-50 border-2 border-slate-300 rounded-lg px-4 py-3 text-base text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
         />
         <div className="flex flex-wrap gap-2 mt-3">
           <Chip
@@ -236,7 +236,7 @@ export default function SpecialtiesHubPage() {
       {activeCategory === 'all' && search === '' && (
         <div
           role="note"
-          className="bg-blue-950/30 border border-blue-700/60 text-blue-100 text-sm rounded-lg px-4 py-3 mb-5"
+          className="bg-blue-950/30 border border-blue-700/60 text-blue-900 text-sm rounded-lg px-4 py-3 mb-5"
         >
           <strong>EMTN — Equipe Multiprofissional de Terapia Nutricional</strong> exige a
           participação de pelo menos médico, nutricionista, enfermeiro e farmacêutico (ANVISA RDC
@@ -246,7 +246,7 @@ export default function SpecialtiesHubPage() {
 
       {/* Grouped grid */}
       {filtered.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 text-center text-slate-300">
+        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-600">
           Nenhuma especialidade encontrada para os filtros atuais.
         </div>
       ) : (
@@ -258,13 +258,13 @@ export default function SpecialtiesHubPage() {
               <section key={cat} aria-labelledby={`cat-${cat}-heading`}>
                 <h2
                   id={`cat-${cat}-heading`}
-                  className="text-base font-bold text-slate-100 mb-3 flex items-center gap-2"
+                  className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2"
                 >
                   <span aria-hidden="true" className="text-xl">
                     {CATEGORY_ICON[cat]}
                   </span>
                   {SPECIALTY_CATEGORY_LABELS[cat]}
-                  <span className="text-xs text-slate-400 font-normal">({items.length})</span>
+                  <span className="text-xs text-slate-500 font-normal">({items.length})</span>
                 </h2>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {items.map((spec) => {
@@ -274,14 +274,14 @@ export default function SpecialtiesHubPage() {
                       <li key={spec.id}>
                         <Link
                           href={`/specialties/${spec.id}`}
-                          className={`block bg-slate-900 border rounded-xl p-4 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 ${
+                          className={`block bg-white border rounded-xl p-4 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 ${
                             muted
-                              ? 'border-slate-800 opacity-60 hover:opacity-90 hover:border-slate-700'
-                              : 'border-slate-700 hover:border-blue-700 hover:bg-slate-800/60'
+                              ? 'border-slate-800 opacity-60 hover:opacity-90 hover:border-slate-200'
+                              : 'border-slate-200 hover:border-blue-700 hover:bg-slate-50/60'
                           }`}
                         >
                           <header className="flex items-start justify-between gap-2 mb-2">
-                            <h3 className="text-sm font-bold text-slate-100">{spec.name}</h3>
+                            <h3 className="text-sm font-bold text-slate-900">{spec.name}</h3>
                             <span
                               className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                                 COUNCIL_COLOR[spec.council] ?? COUNCIL_COLOR.CRM
@@ -290,48 +290,48 @@ export default function SpecialtiesHubPage() {
                               {spec.council}
                             </span>
                           </header>
-                          <p className="text-xs text-slate-300 line-clamp-2 min-h-[2.4rem]">
+                          <p className="text-xs text-slate-600 line-clamp-2 min-h-[2.4rem]">
                             {spec.description}
                           </p>
                           <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
                             <div>
-                              <div className="text-[10px] uppercase tracking-wider text-slate-400">
+                              <div className="text-[10px] uppercase tracking-wider text-slate-500">
                                 Profissionais
                               </div>
                               <div
-                                className={`font-bold ${stat.staffCount > 0 ? 'text-slate-100' : 'text-slate-500'}`}
+                                className={`font-bold ${stat.staffCount > 0 ? 'text-slate-900' : 'text-slate-500'}`}
                               >
                                 {stat.staffCount}
                                 {stat.staffOnDuty > 0 && (
-                                  <span className="ml-1 text-[10px] text-green-300 font-normal">
+                                  <span className="ml-1 text-[10px] text-green-700 font-normal">
                                     ({stat.staffOnDuty} ativos)
                                   </span>
                                 )}
                               </div>
                             </div>
                             <div>
-                              <div className="text-[10px] uppercase tracking-wider text-slate-400">
+                              <div className="text-[10px] uppercase tracking-wider text-slate-500">
                                 Alas
                               </div>
                               <div
-                                className={`font-bold ${stat.wardCount > 0 ? 'text-slate-100' : 'text-slate-500'}`}
+                                className={`font-bold ${stat.wardCount > 0 ? 'text-slate-900' : 'text-slate-500'}`}
                               >
                                 {stat.wardCount}
                               </div>
                             </div>
                             <div>
-                              <div className="text-[10px] uppercase tracking-wider text-slate-400">
+                              <div className="text-[10px] uppercase tracking-wider text-slate-500">
                                 Áreas atuação
                               </div>
                               <div
-                                className={`font-bold ${spec.areasDeAtuacao.length > 0 ? 'text-slate-100' : 'text-slate-500'}`}
+                                className={`font-bold ${spec.areasDeAtuacao.length > 0 ? 'text-slate-900' : 'text-slate-500'}`}
                               >
                                 {spec.areasDeAtuacao.length}
                               </div>
                             </div>
                           </div>
                           {muted && (
-                            <p className="text-[10px] text-amber-300 mt-3 italic">
+                            <p className="text-[10px] text-amber-700 mt-3 italic">
                               Sem profissionais vinculados — gap de equipe
                             </p>
                           )}
@@ -349,36 +349,36 @@ export default function SpecialtiesHubPage() {
       {/* Coverage summary */}
       <section
         aria-labelledby="coverage-heading"
-        className="bg-slate-900 border border-slate-700 rounded-xl p-5 mt-6"
+        className="bg-white border border-slate-200 rounded-xl p-5 mt-6"
       >
         <h2
           id="coverage-heading"
-          className="text-xs uppercase tracking-wider font-semibold text-slate-300 mb-3"
+          className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3"
         >
           Cobertura assistencial
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
           <div>
-            <div className="text-2xl font-bold text-blue-300">{totalWardsCovered}</div>
-            <div className="text-xs text-slate-400">alas mapeadas com especialidade</div>
+            <div className="text-2xl font-bold text-blue-700">{totalWardsCovered}</div>
+            <div className="text-xs text-slate-500">alas mapeadas com especialidade</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-green-300">
+            <div className="text-2xl font-bold text-green-700">
               {Object.values(stats).filter((s) => s.staffCount > 0).length}
             </div>
-            <div className="text-xs text-slate-400">áreas com pelo menos 1 profissional</div>
+            <div className="text-xs text-slate-500">áreas com pelo menos 1 profissional</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-amber-300">
+            <div className="text-2xl font-bold text-amber-700">
               {Object.values(stats).filter((s) => s.staffCount === 0).length}
             </div>
-            <div className="text-xs text-slate-400">áreas sem cobertura (gap)</div>
+            <div className="text-xs text-slate-500">áreas sem cobertura (gap)</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-red-300">
+            <div className="text-2xl font-bold text-red-700">
               {STAFF.filter((s) => s.presence === 'on-duty').length}
             </div>
-            <div className="text-xs text-slate-400">profissionais em plantão agora</div>
+            <div className="text-xs text-slate-500">profissionais em plantão agora</div>
           </div>
         </div>
       </section>
@@ -397,15 +397,15 @@ function Kpi({
 }) {
   const accentClass =
     accent === 'blue'
-      ? 'text-blue-300'
+      ? 'text-blue-700'
       : accent === 'green'
-        ? 'text-green-300'
+        ? 'text-green-700'
         : accent === 'amber'
-          ? 'text-amber-300'
-          : 'text-slate-100';
+          ? 'text-amber-700'
+          : 'text-slate-900';
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-xl p-4">
-      <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+    <div className="bg-white border border-slate-200 rounded-xl p-4">
+      <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
         {label}
       </div>
       <div className={`text-3xl font-bold mt-1 ${accentClass}`}>{value}</div>
@@ -432,13 +432,13 @@ function Chip({
       className={`min-h-[40px] inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors ${
         active
           ? 'bg-blue-700 border-blue-500 text-white'
-          : 'bg-slate-800 border-slate-600 text-slate-200 hover:bg-slate-700'
+          : 'bg-slate-50 border-slate-300 text-slate-700 hover:bg-slate-100'
       }`}
     >
       {label}
       <span
         className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-          active ? 'bg-blue-900 text-blue-100' : 'bg-slate-900 text-slate-400'
+          active ? 'bg-blue-900 text-blue-900' : 'bg-white text-slate-500'
         }`}
       >
         {count}

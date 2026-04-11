@@ -20,40 +20,40 @@ const STATUS_CONFIG: Record<
     label: 'Planejada',
     icon: '⚪',
     bar: 'bg-slate-500/40 border-slate-400/60',
-    badge: 'bg-slate-500/20 text-slate-200 border border-slate-400/40',
+    badge: 'bg-slate-500/20 text-slate-700 border border-slate-400/40',
   },
   preop: {
     label: 'Pré-op',
     icon: '🔵',
     bar: 'bg-blue-500/50 border-blue-400/70',
-    badge: 'bg-blue-500/20 text-blue-200 border border-blue-400/40',
+    badge: 'bg-blue-500/20 text-blue-800 border border-blue-400/40',
   },
   'in-progress': {
     label: 'Em Andamento',
     icon: '🟡',
     bar: 'bg-amber-800 border-amber-600',
-    badge: 'bg-amber-400/20 text-amber-200 border border-amber-400/40',
+    badge: 'bg-amber-400/20 text-amber-800 border border-amber-400/40',
   },
   completed: {
     label: 'Concluída',
     icon: '🟢',
     bar: 'bg-emerald-500/40 border-emerald-400/60',
-    badge: 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/40',
+    badge: 'bg-emerald-500/20 text-emerald-800 border border-emerald-400/40',
   },
   cancelled: {
     label: 'Cancelada',
     icon: '🔴',
     bar: 'bg-red-500/30 border-red-400/50',
-    badge: 'bg-red-500/20 text-red-200 border border-red-400/40',
+    badge: 'bg-red-500/20 text-red-800 border border-red-400/40',
   },
 };
 
 const ASA_COLORS: Record<AsaRisk, string> = {
-  I: 'bg-emerald-500/20 text-emerald-200',
-  II: 'bg-blue-500/20 text-blue-200',
-  III: 'bg-amber-400/20 text-amber-200',
+  I: 'bg-emerald-500/20 text-emerald-800',
+  II: 'bg-blue-500/20 text-blue-800',
+  III: 'bg-amber-400/20 text-amber-800',
   IV: 'bg-orange-500/25 text-orange-200',
-  V: 'bg-red-500/30 text-red-200',
+  V: 'bg-red-500/30 text-red-800',
 };
 
 const TIMELINE_STAGES: { key: TimelineStage; label: string }[] = [
@@ -130,17 +130,17 @@ export default function SurgeryPage() {
           <div className="text-xs text-white/75 mt-1">Total programado</div>
         </div>
         <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-amber-200/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-amber-800/80 font-semibold">
             Em Andamento
           </div>
-          <div className="text-3xl font-bold text-amber-200 mt-1">{kpis.inProgress}</div>
+          <div className="text-3xl font-bold text-amber-800 mt-1">{kpis.inProgress}</div>
           <div className="text-xs text-white/75 mt-1">Neste momento</div>
         </div>
         <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-emerald-300/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-emerald-700/80 font-semibold">
             Concluídas
           </div>
-          <div className="text-3xl font-bold text-emerald-300 mt-1">{kpis.completed}</div>
+          <div className="text-3xl font-bold text-emerald-700 mt-1">{kpis.completed}</div>
           <div className="text-xs text-white/75 mt-1">Encerradas hoje</div>
         </div>
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.06] p-4">
@@ -151,10 +151,10 @@ export default function SurgeryPage() {
           <div className="text-xs text-white/75 mt-1">Fora do cronograma</div>
         </div>
         <div className="rounded-lg border border-blue-500/30 bg-blue-500/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-blue-300/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-blue-700/80 font-semibold">
             Utilização de Salas
           </div>
-          <div className="text-3xl font-bold text-blue-300 mt-1">{kpis.utilization}%</div>
+          <div className="text-3xl font-bold text-blue-700 mt-1">{kpis.utilization}%</div>
           <div className="text-xs text-white/75 mt-1">Capacidade 6h-18h</div>
         </div>
       </div>
@@ -299,7 +299,7 @@ export default function SurgeryPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-slate-900 border border-white/15 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white border border-white/15 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-start justify-between mb-4">
               <div>
@@ -383,7 +383,7 @@ export default function SurgeryPage() {
                 {selectedSurgery.equipment.map((eq) => (
                   <span
                     key={eq}
-                    className="text-[11px] px-2 py-0.5 rounded bg-blue-500/15 text-blue-200 border border-blue-500/30"
+                    className="text-[11px] px-2 py-0.5 rounded bg-blue-500/15 text-blue-800 border border-blue-500/30"
                   >
                     {eq}
                   </span>
@@ -409,9 +409,9 @@ export default function SurgeryPage() {
                         <div
                           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-bold ${
                             isDone
-                              ? 'bg-emerald-500/30 border-emerald-400 text-emerald-200'
+                              ? 'bg-emerald-500/30 border-emerald-400 text-emerald-800'
                               : isCurrent
-                                ? 'bg-amber-400/30 border-amber-300 text-amber-200 animate-pulse'
+                                ? 'bg-amber-400/30 border-amber-300 text-amber-800 animate-pulse'
                                 : 'bg-white/[0.03] border-white/20 text-white/70'
                           }`}
                         >
@@ -419,7 +419,7 @@ export default function SurgeryPage() {
                         </div>
                         <div
                           className={`text-[9px] mt-1 text-center ${
-                            isCurrent ? 'text-amber-200 font-semibold' : 'text-white/75'
+                            isCurrent ? 'text-amber-800 font-semibold' : 'text-white/75'
                           }`}
                         >
                           {stage.label}

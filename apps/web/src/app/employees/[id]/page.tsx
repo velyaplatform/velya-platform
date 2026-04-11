@@ -48,7 +48,7 @@ export default function EmployeeDetailPage() {
           <div className="flex gap-2">
             <Link
               href="/employees"
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
             >
               ← Voltar
             </Link>
@@ -65,40 +65,40 @@ export default function EmployeeDetailPage() {
       {/* Identification card */}
       <section
         aria-labelledby="identity-heading"
-        className="bg-slate-900 border border-slate-700 rounded-xl p-5 mb-5"
+        className="bg-white border border-slate-200 rounded-xl p-5 mb-5"
       >
-        <h2 id="identity-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-300 mb-4">
+        <h2 id="identity-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-4">
           Identificação
         </h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Matrícula</dt>
-            <dd className="text-slate-100 font-mono">{employee.id}</dd>
+            <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Matrícula</dt>
+            <dd className="text-slate-900 font-mono">{employee.id}</dd>
           </div>
           <div>
-            <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Função</dt>
-            <dd className="text-slate-100">{ROLE_LABELS[employee.role]}</dd>
+            <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Função</dt>
+            <dd className="text-slate-900">{ROLE_LABELS[employee.role]}</dd>
           </div>
           {employee.specialty && (
             <div>
-              <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Especialidade</dt>
-              <dd className="text-slate-100">{employee.specialty}</dd>
+              <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Especialidade</dt>
+              <dd className="text-slate-900">{employee.specialty}</dd>
             </div>
           )}
           {employee.council && (
             <div>
-              <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Registro Profissional</dt>
-              <dd className="text-slate-100 font-mono">{employee.council}</dd>
+              <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Registro Profissional</dt>
+              <dd className="text-slate-900 font-mono">{employee.council}</dd>
             </div>
           )}
           <div>
-            <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Setor</dt>
-            <dd className="text-slate-100">{employee.ward}</dd>
+            <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Setor</dt>
+            <dd className="text-slate-900">{employee.ward}</dd>
           </div>
           {employee.contactExtension && (
             <div>
-              <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Ramal</dt>
-              <dd className="text-slate-100 font-mono">{employee.contactExtension}</dd>
+              <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Ramal</dt>
+              <dd className="text-slate-900 font-mono">{employee.contactExtension}</dd>
             </div>
           )}
         </dl>
@@ -107,26 +107,26 @@ export default function EmployeeDetailPage() {
       {/* Shift card */}
       <section
         aria-labelledby="shift-heading"
-        className="bg-slate-900 border border-slate-700 rounded-xl p-5 mb-5"
+        className="bg-white border border-slate-200 rounded-xl p-5 mb-5"
       >
-        <h2 id="shift-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-300 mb-4">
+        <h2 id="shift-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-4">
           Escala e presença
         </h2>
         <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Turno</dt>
-            <dd className="text-slate-100">
+            <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Turno</dt>
+            <dd className="text-slate-900">
               {employee.shift} · {employee.shiftStart}–{employee.shiftEnd}
             </dd>
           </div>
           <div>
-            <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Status</dt>
-            <dd className="text-slate-100">{PRESENCE_LABELS[employee.presence]}</dd>
+            <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Status</dt>
+            <dd className="text-slate-900">{PRESENCE_LABELS[employee.presence]}</dd>
           </div>
           {employee.lastBadgeAt && (
             <div>
-              <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Último acesso (crachá)</dt>
-              <dd className="text-slate-100">{employee.lastBadgeAt}</dd>
+              <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Último acesso (crachá)</dt>
+              <dd className="text-slate-900">{employee.lastBadgeAt}</dd>
             </div>
           )}
         </dl>
@@ -135,27 +135,27 @@ export default function EmployeeDetailPage() {
       {/* Assigned patients */}
       <section
         aria-labelledby="patients-heading"
-        className="bg-slate-900 border border-slate-700 rounded-xl p-5"
+        className="bg-white border border-slate-200 rounded-xl p-5"
       >
-        <h2 id="patients-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-300 mb-4">
+        <h2 id="patients-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-4">
           Pacientes atribuídos ({assignedPatients.length})
         </h2>
         {assignedPatients.length === 0 ? (
-          <p className="text-slate-300 text-sm">Nenhum paciente sob cuidado direto no momento.</p>
+          <p className="text-slate-600 text-sm">Nenhum paciente sob cuidado direto no momento.</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {assignedPatients.map((p) => (
               <li key={p.mrn}>
                 <Link
                   href={`/patients/${p.mrn}`}
-                  className="flex items-center gap-3 px-3 py-2 rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="flex items-center gap-3 px-3 py-2 rounded-md bg-slate-50 border border-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
                 >
-                  <span className="font-mono text-xs text-blue-300">{p.mrn}</span>
-                  <span className="text-slate-100 font-medium">{p.name}</span>
-                  <span className="text-xs text-slate-300">
+                  <span className="font-mono text-xs text-blue-700">{p.mrn}</span>
+                  <span className="text-slate-900 font-medium">{p.name}</span>
+                  <span className="text-xs text-slate-600">
                     {p.age} anos · {p.ward} {p.bed && `· ${p.bed}`}
                   </span>
-                  <span className="text-xs text-slate-300 ml-auto truncate">{p.diagnosis}</span>
+                  <span className="text-xs text-slate-600 ml-auto truncate">{p.diagnosis}</span>
                 </Link>
               </li>
             ))}

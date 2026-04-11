@@ -172,14 +172,14 @@ export default function News2Calculator() {
         : 'BAIXO RISCO';
 
   const inputClass =
-    'w-full min-h-[44px] rounded-md border border-slate-600 bg-slate-800 px-3 py-2 text-slate-50 placeholder-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400';
-  const labelClass = 'mb-1 block text-sm font-semibold text-slate-100';
+    'w-full min-h-[44px] rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 placeholder-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400';
+  const labelClass = 'mb-1 block text-sm font-semibold text-slate-900';
 
   return (
-    <section className="rounded-xl border border-slate-700 bg-slate-900 p-6 text-slate-50 shadow-lg">
+    <section className="rounded-xl border border-slate-200 bg-white p-6 text-slate-900 shadow-lg">
       <header className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-50">Calculadora NEWS2</h2>
-        <p className="mt-1 text-sm text-slate-300">
+        <h2 className="text-2xl font-bold text-slate-900">Calculadora NEWS2</h2>
+        <p className="mt-1 text-sm text-slate-600">
           National Early Warning Score 2 (Royal College of Physicians, 2017). Recomendado pelas
           diretrizes SSC 2024 para triagem de sepse em adultos.
         </p>
@@ -226,9 +226,9 @@ export default function News2Calculator() {
             type="checkbox"
             checked={onSupplementalO2}
             onChange={(event) => setOnSupplementalO2(event.target.checked)}
-            className="h-5 w-5 min-h-[44px] cursor-pointer rounded border-slate-500 bg-slate-800 text-blue-400 focus:ring-2 focus:ring-blue-400"
+            className="h-5 w-5 min-h-[44px] cursor-pointer rounded border-slate-500 bg-slate-50 text-blue-400 focus:ring-2 focus:ring-blue-400"
           />
-          <label htmlFor="news2-o2" className="ml-3 text-sm font-semibold text-slate-100">
+          <label htmlFor="news2-o2" className="ml-3 text-sm font-semibold text-slate-900">
             Paciente em O2 suplementar
           </label>
         </div>
@@ -304,13 +304,13 @@ export default function News2Calculator() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-lg border border-slate-700 bg-slate-800 p-5">
+      <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-5">
         <div className="flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-300">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
               Pontuacao NEWS2
             </p>
-            <p className="text-5xl font-bold text-slate-50" aria-live="polite">
+            <p className="text-5xl font-bold text-slate-900" aria-live="polite">
               {result.total}
             </p>
           </div>
@@ -335,18 +335,18 @@ export default function News2Calculator() {
           {result.breakdown.map((item) => (
             <div
               key={item.label}
-              className="flex items-center justify-between rounded-md bg-slate-900 px-3 py-2"
+              className="flex items-center justify-between rounded-md bg-white px-3 py-2"
             >
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-300">
+                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                   {item.label}
                 </dt>
-                <dd className="text-sm text-slate-50">{item.value}</dd>
+                <dd className="text-sm text-slate-900">{item.value}</dd>
               </div>
               <span
                 className={`rounded px-2 py-1 text-sm font-bold ${
                   item.score === 0
-                    ? 'bg-slate-700 text-slate-200'
+                    ? 'bg-slate-100 text-slate-700'
                     : item.score === 1
                       ? 'bg-amber-300 text-slate-900'
                       : item.score === 2
@@ -369,7 +369,7 @@ export default function News2Calculator() {
           className="mt-6 rounded-lg border-2 border-red-500 bg-red-950 p-5"
         >
           <h3 className="text-xl font-bold text-red-100">ACIONAR SEPSIS HOUR-1 BUNDLE</h3>
-          <p className="mt-1 text-sm text-red-200">
+          <p className="mt-1 text-sm text-red-800">
             Criterio de gatilho: NEWS2 &gt;= 5 ou parametro isolado com pontuacao 3. Siga as acoes
             do bundle em ate 1 hora (Surviving Sepsis Campaign 2024).
           </p>

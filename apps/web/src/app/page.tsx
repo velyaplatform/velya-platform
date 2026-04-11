@@ -66,7 +66,7 @@ function TaskRow({ priority, type, description, patient, assignee, due }: TaskRo
         <div className="mb-1 text-sm font-semibold text-slate-900">{description}</div>
         <div className="text-xs text-slate-500">
           <span className="font-mono text-blue-700">{patient}</span>
-          <span className="mx-2 text-slate-300">·</span>
+          <span className="mx-2 text-slate-600">·</span>
           <span className="text-slate-600">Resp.: {assignee}</span>
         </div>
       </div>
@@ -111,7 +111,7 @@ function DischargeRow({ mrn, name, ward, los, targetDate, blockers, status }: Di
       <td className="py-3 pr-4 text-sm text-slate-700">{targetDate}</td>
       <td className="py-3 pr-4">
         {blockers.length === 0 ? (
-          <span className="text-xs text-slate-400">—</span>
+          <span className="text-xs text-slate-500">—</span>
         ) : (
           <div className="flex flex-wrap gap-1">
             {blockers.map((b) => (
@@ -378,7 +378,7 @@ export default function CommandCenterPage() {
                     <Badge variant={item.tone} size="sm">
                       {item.count}
                     </Badge>
-                    <ChevronRight className="h-3.5 w-3.5 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-600" />
+                    <ChevronRight className="h-3.5 w-3.5 text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-600" />
                   </Link>
                 );
               })}

@@ -60,8 +60,8 @@ export default function SupplierEditPage() {
   }
 
   const input =
-    'w-full min-h-[44px] bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400';
-  const label = 'text-sm font-medium text-slate-200';
+    'w-full min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400';
+  const label = 'text-sm font-medium text-slate-700';
 
   return (
     <AppShell pageTitle={`Editar ${original.name}`}>
@@ -74,12 +74,12 @@ export default function SupplierEditPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-slate-900 border border-slate-700 rounded-xl p-5 max-w-3xl"
+        className="bg-white border border-slate-200 rounded-xl p-5 max-w-3xl"
       >
         {message && (
           <div
             role="status"
-            className="mb-4 bg-green-950/40 border border-green-700/60 text-green-200 text-sm rounded-md px-4 py-3"
+            className="mb-4 bg-green-950/40 border border-green-700/60 text-green-800 text-sm rounded-md px-4 py-3"
           >
             {message}
           </div>
@@ -153,7 +153,7 @@ export default function SupplierEditPage() {
         <div className="flex justify-end gap-3 mt-6">
           <Link
             href={`/suppliers/${original.id}`}
-            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
           >
             Cancelar
           </Link>

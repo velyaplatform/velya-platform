@@ -25,10 +25,10 @@ export interface VelyaVitalSignProps {
 }
 
 const SEVERITY_TEXT: Record<VitalSeverity, string> = {
-  normal: 'text-emerald-300',
-  warning: 'text-amber-300',
-  critical: 'text-red-300',
-  unknown: 'text-slate-400',
+  normal: 'text-emerald-700',
+  warning: 'text-amber-700',
+  critical: 'text-red-700',
+  unknown: 'text-slate-500',
 };
 
 const SEVERITY_GLOW: Record<VitalSeverity, string> = {
@@ -56,8 +56,8 @@ export function VelyaVitalSign({
       )}
     >
       <div className="flex items-center gap-2">
-        {Icon && <Icon className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />}
-        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+        {Icon && <Icon className="h-3.5 w-3.5 text-slate-500" strokeWidth={2} aria-hidden="true" />}
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
           {label}
         </span>
       </div>

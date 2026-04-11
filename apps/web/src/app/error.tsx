@@ -36,17 +36,17 @@ export default function RootError({ error, reset }: ErrorPageProps) {
     >
       <section
         aria-labelledby="error-title"
-        className="max-w-md w-full bg-slate-900 border border-red-700/60 rounded-xl p-8 shadow-2xl"
+        className="max-w-md w-full bg-white border border-red-700/60 rounded-xl p-8 shadow-2xl"
       >
-        <h1 id="error-title" className="text-2xl font-bold text-red-200 mb-2">
+        <h1 id="error-title" className="text-2xl font-bold text-red-800 mb-2">
           Algo deu errado
         </h1>
-        <p className="text-slate-300 text-sm mb-4">
+        <p className="text-slate-600 text-sm mb-4">
           Ocorreu um erro inesperado. O time técnico já foi notificado.
         </p>
         {error.digest && (
-          <p className="text-slate-400 text-xs font-mono mb-4">
-            Código do incidente: <span className="text-slate-200">{error.digest}</span>
+          <p className="text-slate-500 text-xs font-mono mb-4">
+            Código do incidente: <span className="text-slate-700">{error.digest}</span>
           </p>
         )}
         <div className="flex gap-3 flex-wrap">
@@ -59,7 +59,7 @@ export default function RootError({ error, reset }: ErrorPageProps) {
           </button>
           <Link
             href="/"
-            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
           >
             Voltar ao Centro de Comando
           </Link>

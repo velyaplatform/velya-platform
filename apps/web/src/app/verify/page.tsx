@@ -100,13 +100,13 @@ function VerifyForm() {
         {/* Header */}
         <header className="text-center mb-6">
           <div className="text-2xl font-bold text-white tracking-tight">Velya</div>
-          <div className="text-xs text-slate-300 uppercase tracking-widest mt-1 font-medium">
+          <div className="text-xs text-slate-600 uppercase tracking-widest mt-1 font-medium">
             Plataforma Hospitalar
           </div>
           <h1 id="verify-title" className="text-xl font-semibold text-white mt-6">
             Verificar Email
           </h1>
-          <p className="text-sm text-slate-300 mt-2">
+          <p className="text-sm text-slate-600 mt-2">
             Código de verificação enviado para <strong className="text-white">{email}</strong>
           </p>
         </header>
@@ -129,7 +129,7 @@ function VerifyForm() {
           {error && (
             <div
               role="alert"
-              className="bg-red-500/20 border border-red-400/50 rounded-lg px-4 py-3 text-red-200 text-sm text-center"
+              className="bg-red-500/20 border border-red-400/50 rounded-lg px-4 py-3 text-red-800 text-sm text-center"
             >
               {error}
             </div>
@@ -137,14 +137,14 @@ function VerifyForm() {
           {success && (
             <div
               role="status"
-              className="bg-green-500/20 border border-green-400/50 rounded-lg px-4 py-3 text-green-200 text-sm text-center"
+              className="bg-green-500/20 border border-green-400/50 rounded-lg px-4 py-3 text-green-800 text-sm text-center"
             >
               {success}
             </div>
           )}
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="code" className="text-sm font-medium text-slate-200 text-center">
+            <label htmlFor="code" className="text-sm font-medium text-slate-700 text-center">
               Código de 6 dígitos
             </label>
             <input
@@ -178,7 +178,7 @@ function VerifyForm() {
               type="button"
               onClick={handleResend}
               disabled={resending}
-              className="bg-transparent border-none text-blue-300 hover:text-blue-200 text-sm font-semibold cursor-pointer underline transition disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] px-4"
+              className="bg-transparent border-none text-blue-700 hover:text-blue-800 text-sm font-semibold cursor-pointer underline transition disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] px-4"
             >
               {resending ? 'Reenviando...' : 'Reenviar código'}
             </button>
@@ -187,7 +187,7 @@ function VerifyForm() {
           <div className="text-center py-1">
             <Link
               href="/register"
-              className="text-sm text-slate-300 hover:text-white transition inline-block min-h-[44px] leading-[44px] px-4 underline-offset-2 hover:underline"
+              className="text-sm text-slate-600 hover:text-white transition inline-block min-h-[44px] leading-[44px] px-4 underline-offset-2 hover:underline"
             >
               Voltar ao cadastro
             </Link>

@@ -46,7 +46,7 @@ export default function EmployeesPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por nome, matrícula ou registro profissional..."
-          className="flex-1 min-w-[260px] min-h-[44px] bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="flex-1 min-w-[260px] min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
 
         <label htmlFor="employee-role-filter" className="sr-only">
@@ -56,7 +56,7 @@ export default function EmployeesPage() {
           id="employee-role-filter"
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as 'all' | ProfessionalRole)}
-          className="min-h-[44px] bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
           <option value="all">Todas as funções</option>
           {(Object.entries(ROLE_LABELS) as [ProfessionalRole, string][]).map(([key, label]) => (
@@ -74,9 +74,9 @@ export default function EmployeesPage() {
         </Link>
       </div>
 
-      <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-800 text-slate-200">
+          <thead className="bg-slate-50 text-slate-700">
             <tr>
               <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider">Matrícula</th>
               <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider">Nome</th>
@@ -89,22 +89,22 @@ export default function EmployeesPage() {
           </thead>
           <tbody className="divide-y divide-slate-800">
             {filtered.map((s) => (
-              <tr key={s.id} className="hover:bg-slate-800/60">
-                <td className="px-4 py-3 font-mono text-slate-100">{s.id}</td>
-                <td className="px-4 py-3 text-slate-100">
+              <tr key={s.id} className="hover:bg-slate-50/60">
+                <td className="px-4 py-3 font-mono text-slate-900">{s.id}</td>
+                <td className="px-4 py-3 text-slate-900">
                   <div className="font-semibold">{s.name}</div>
-                  {s.council && <div className="text-xs text-slate-300">{s.council}</div>}
+                  {s.council && <div className="text-xs text-slate-600">{s.council}</div>}
                 </td>
-                <td className="px-4 py-3 text-slate-200">
+                <td className="px-4 py-3 text-slate-700">
                   {ROLE_LABELS[s.role]}
-                  {s.specialty && <div className="text-xs text-slate-300">{s.specialty}</div>}
+                  {s.specialty && <div className="text-xs text-slate-600">{s.specialty}</div>}
                 </td>
-                <td className="px-4 py-3 text-slate-200">{s.ward}</td>
-                <td className="px-4 py-3 text-slate-200">
+                <td className="px-4 py-3 text-slate-700">{s.ward}</td>
+                <td className="px-4 py-3 text-slate-700">
                   {s.shiftStart}–{s.shiftEnd}
                 </td>
                 <td className="px-4 py-3">
-                  <span className="text-xs px-2 py-1 rounded-md bg-slate-800 border border-slate-600 text-slate-100">
+                  <span className="text-xs px-2 py-1 rounded-md bg-slate-50 border border-slate-300 text-slate-900">
                     {PRESENCE_LABELS[s.presence]}
                   </span>
                 </td>
@@ -112,7 +112,7 @@ export default function EmployeesPage() {
                   <div className="flex gap-2">
                     <Link
                       href={`/employees/${s.id}`}
-                      className="text-xs px-3 py-1.5 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="text-xs px-3 py-1.5 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
                     >
                       Ver
                     </Link>
@@ -128,7 +128,7 @@ export default function EmployeesPage() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="text-center py-12 text-slate-300">
+                <td colSpan={7} className="text-center py-12 text-slate-600">
                   Nenhum funcionário encontrado.
                 </td>
               </tr>

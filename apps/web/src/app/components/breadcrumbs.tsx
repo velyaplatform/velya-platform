@@ -60,7 +60,7 @@ export function Breadcrumbs({
   return (
     <nav
       aria-label="Trilha de navegação"
-      className={`flex flex-wrap items-center gap-1 text-xs text-slate-400 mb-3 ${className ?? ''}`}
+      className={`flex flex-wrap items-center gap-1 text-xs text-slate-500 mb-3 ${className ?? ''}`}
     >
       <ol className="flex flex-wrap items-center gap-1">
         {resolved.map((crumb, idx) => {
@@ -75,14 +75,14 @@ export function Breadcrumbs({
               {crumb.href && !crumb.current ? (
                 <Link
                   href={crumb.href}
-                  className="text-blue-300 hover:text-blue-200 underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-300 rounded"
+                  className="text-blue-700 hover:text-blue-800 underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-300 rounded"
                 >
                   {crumb.label}
                 </Link>
               ) : (
                 <span
                   aria-current={isLast ? 'page' : undefined}
-                  className={isLast ? 'text-slate-200 font-semibold' : 'text-slate-400'}
+                  className={isLast ? 'text-slate-700 font-semibold' : 'text-slate-500'}
                 >
                   {crumb.label}
                 </span>

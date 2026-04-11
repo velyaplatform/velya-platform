@@ -147,11 +147,11 @@ export default function InboxPage() {
             <p className="page-subtitle">
               {unread > 0 ? (
                 <>
-                  <span className="text-blue-300 font-semibold">{unread}</span>{' '}
+                  <span className="text-blue-700 font-semibold">{unread}</span>{' '}
                   notificação(ões) não lida(s)
                 </>
               ) : (
-                <span className="text-slate-300">Tudo em dia — nenhuma notificação pendente.</span>
+                <span className="text-slate-600">Tudo em dia — nenhuma notificação pendente.</span>
               )}
             </p>
           </div>
@@ -161,7 +161,7 @@ export default function InboxPage() {
               onClick={() => void markAllRead()}
               disabled={unread === 0}
               aria-label="Marcar todas as notificações como lidas"
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Marcar todas como lidas
             </button>
@@ -172,7 +172,7 @@ export default function InboxPage() {
       <div
         role="tablist"
         aria-label="Filtros da caixa de entrada"
-        className="flex items-center gap-2 mb-4 border-b border-slate-700"
+        className="flex items-center gap-2 mb-4 border-b border-slate-200"
       >
         {TABS.map((t) => {
           const selected = tab === t.id;
@@ -188,8 +188,8 @@ export default function InboxPage() {
               onClick={() => setTab(t.id)}
               className={`min-h-[44px] px-4 py-2 text-sm font-semibold border-b-2 -mb-px focus:outline-none focus:ring-2 focus:ring-blue-300 rounded-t-md ${
                 selected
-                  ? 'border-blue-400 text-blue-200'
-                  : 'border-transparent text-slate-300 hover:text-slate-100'
+                  ? 'border-blue-400 text-blue-800'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
               }`}
             >
               {t.label}
@@ -199,7 +199,7 @@ export default function InboxPage() {
                 </span>
               )}
               {t.id === 'following' && subscriptions.length > 0 && (
-                <span className="ml-2 bg-slate-700 text-slate-100 text-xs font-bold px-2 py-0.5 rounded-full">
+                <span className="ml-2 bg-slate-100 text-slate-900 text-xs font-bold px-2 py-0.5 rounded-full">
                   {subscriptions.length}
                 </span>
               )}
@@ -209,7 +209,7 @@ export default function InboxPage() {
       </div>
 
       {loading ? (
-        <p className="text-slate-300">Carregando...</p>
+        <p className="text-slate-600">Carregando...</p>
       ) : tab === 'following' ? (
         <div
           role="tabpanel"
@@ -217,10 +217,10 @@ export default function InboxPage() {
           aria-labelledby="inbox-tab-following"
         >
           {subscriptions.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 text-sm text-slate-300">
+            <div className="bg-white border border-slate-200 rounded-xl p-6 text-sm text-slate-600">
               Você ainda não está acompanhando nenhum registro. Abra qualquer
               paciente, prescrição ou ativo e toque em{' '}
-              <span className="text-blue-300 font-semibold">Acompanhar</span>{' '}
+              <span className="text-blue-700 font-semibold">Acompanhar</span>{' '}
               para receber notificações quando houver mudanças.
             </div>
           ) : (
@@ -228,16 +228,16 @@ export default function InboxPage() {
               {subscriptions.map((s) => (
                 <li
                   key={`${s.scope}:${s.id}`}
-                  className="bg-slate-900 border border-slate-700 rounded-xl p-4 flex items-start justify-between gap-3 flex-wrap"
+                  className="bg-white border border-slate-200 rounded-xl p-4 flex items-start justify-between gap-3 flex-wrap"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-mono text-blue-300">
+                    <div className="text-xs font-mono text-blue-700">
                       {s.scope}/{s.id}
                     </div>
-                    <div className="text-sm text-slate-100 font-semibold mt-0.5 truncate">
+                    <div className="text-sm text-slate-900 font-semibold mt-0.5 truncate">
                       {s.label}
                     </div>
-                    <div className="text-xs text-slate-400 mt-1">
+                    <div className="text-xs text-slate-500 mt-1">
                       Desde {new Date(s.subscribedAt).toLocaleString('pt-BR')}
                     </div>
                   </div>
@@ -245,7 +245,7 @@ export default function InboxPage() {
                     {s.href && (
                       <Link
                         href={s.href}
-                        className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
                       >
                         Abrir
                       </Link>
@@ -254,7 +254,7 @@ export default function InboxPage() {
                       type="button"
                       onClick={() => void unfollow(s.scope, s.id)}
                       aria-label={`Deixar de acompanhar ${s.label}`}
-                      className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-slate-800 border border-red-700 text-red-200 hover:bg-red-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300"
+                      className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-slate-50 border border-red-700 text-red-800 hover:bg-red-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300"
                     >
                       Deixar de acompanhar
                     </button>
@@ -271,7 +271,7 @@ export default function InboxPage() {
           aria-labelledby={`inbox-tab-${tab}`}
         >
           {visibleNotifications.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 text-sm text-slate-300">
+            <div className="bg-white border border-slate-200 rounded-xl p-6 text-sm text-slate-600">
               {tab === 'unread'
                 ? 'Nenhuma notificação não lida.'
                 : 'Você ainda não recebeu notificações.'}
@@ -283,7 +283,7 @@ export default function InboxPage() {
                   key={n.id}
                   className={`border rounded-xl p-4 flex items-start gap-3 ${
                     n.read
-                      ? 'bg-slate-900 border-slate-700'
+                      ? 'bg-white border-slate-200'
                       : 'bg-blue-950/30 border-blue-700'
                   }`}
                 >
@@ -299,16 +299,16 @@ export default function InboxPage() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm text-slate-100">
-                      <span className="font-mono text-blue-300">
+                    <div className="text-sm text-slate-900">
+                      <span className="font-mono text-blue-700">
                         {n.scope}/{n.entityId}
                       </span>{' '}
                       <span className="font-semibold">{n.entityLabel}</span>
                     </div>
                     {n.summary && (
-                      <div className="text-sm text-slate-200 mt-1">{n.summary}</div>
+                      <div className="text-sm text-slate-700 mt-1">{n.summary}</div>
                     )}
-                    <div className="text-xs text-slate-400 mt-1">
+                    <div className="text-xs text-slate-500 mt-1">
                       <span className="uppercase tracking-wider">{n.action}</span>
                       {' · '}
                       {new Date(n.at).toLocaleString('pt-BR')}
@@ -332,7 +332,7 @@ export default function InboxPage() {
                         type="button"
                         onClick={() => void markOneRead(n.id)}
                         aria-label={`Marcar ${n.entityLabel} como lida`}
-                        className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
                       >
                         Marcar como lida
                       </button>

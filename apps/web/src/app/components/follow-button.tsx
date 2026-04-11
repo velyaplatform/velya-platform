@@ -99,8 +99,8 @@ export function FollowButton({ scope, entry, className }: FollowButtonProps) {
       disabled={busy}
       className={`min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-70 ${
         following
-          ? 'bg-blue-900/40 border-blue-500 text-blue-100 hover:bg-blue-900/60'
-          : 'bg-slate-800 border-slate-600 text-slate-100 hover:bg-slate-700'
+          ? 'bg-blue-900/40 border-blue-500 text-blue-900 hover:bg-blue-900/60'
+          : 'bg-slate-50 border-slate-300 text-slate-900 hover:bg-slate-100'
       } ${className ?? ''}`}
     >
       <span aria-hidden="true">{'\uD83D\uDD14'}</span>

@@ -14,7 +14,7 @@ const STATUS_CONFIG: Record<
 > = {
   despachada: {
     label: 'Despachada',
-    badge: 'bg-blue-500/15 text-blue-200 border border-blue-500/40',
+    badge: 'bg-blue-500/15 text-blue-800 border border-blue-500/40',
     dot: 'bg-blue-400',
     ring: 'ring-blue-400/40',
   },
@@ -26,25 +26,25 @@ const STATUS_CONFIG: Record<
   },
   'chegando-hospital': {
     label: 'Chegando',
-    badge: 'bg-amber-400/15 text-amber-200 border border-amber-400/50',
+    badge: 'bg-amber-400/15 text-amber-800 border border-amber-400/50',
     dot: 'bg-amber-400 animate-pulse',
     ring: 'ring-amber-300/60',
   },
   'no-hospital': {
     label: 'No hospital',
-    badge: 'bg-emerald-500/15 text-emerald-200 border border-emerald-500/40',
+    badge: 'bg-emerald-500/15 text-emerald-800 border border-emerald-500/40',
     dot: 'bg-emerald-400',
     ring: 'ring-emerald-400/40',
   },
   retornando: {
     label: 'Retornando',
-    badge: 'bg-slate-500/15 text-slate-200 border border-slate-400/40',
+    badge: 'bg-slate-500/15 text-slate-700 border border-slate-400/40',
     dot: 'bg-slate-300',
     ring: 'ring-slate-400/30',
   },
   disponivel: {
     label: 'Disponível',
-    badge: 'bg-green-500/15 text-green-200 border border-green-500/40',
+    badge: 'bg-green-500/15 text-green-800 border border-green-500/40',
     dot: 'bg-green-400',
     ring: 'ring-green-400/40',
   },
@@ -112,10 +112,10 @@ export default function EmsPage() {
           <div className="text-xs text-white/75 mt-1">de {AMBULANCES.length} unidades</div>
         </div>
         <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-amber-200/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-amber-800/80 font-semibold">
             Para nós
           </div>
-          <div className="text-3xl font-bold text-amber-200 mt-1">{kpis.inboundUs}</div>
+          <div className="text-3xl font-bold text-amber-800 mt-1">{kpis.inboundUs}</div>
           <div className="text-xs text-white/75 mt-1">Em rota Velya HQ</div>
         </div>
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.06] p-4">
@@ -126,10 +126,10 @@ export default function EmsPage() {
           <div className="text-xs text-white/75 mt-1">Chegando</div>
         </div>
         <div className="rounded-lg border border-red-500/40 bg-red-500/[0.08] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-red-300/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-red-700/80 font-semibold">
             Críticos a caminho
           </div>
-          <div className="text-3xl font-bold text-red-300 mt-1">{kpis.criticalEnRoute}</div>
+          <div className="text-3xl font-bold text-red-700 mt-1">{kpis.criticalEnRoute}</div>
           <div className="text-xs text-white/75 mt-1">Prioridade vermelha</div>
         </div>
       </div>
@@ -171,7 +171,7 @@ export default function EmsPage() {
                 <div className="relative w-10 h-10 rounded-md bg-emerald-500/90 border-2 border-emerald-200 flex items-center justify-center text-lg">
                   {'\uD83C\uDFE5'}
                 </div>
-                <div className="absolute top-11 left-1/2 -translate-x-1/2 text-[10px] font-semibold text-emerald-200 whitespace-nowrap">
+                <div className="absolute top-11 left-1/2 -translate-x-1/2 text-[10px] font-semibold text-emerald-800 whitespace-nowrap">
                   Velya HQ
                 </div>
               </div>
@@ -214,7 +214,7 @@ export default function EmsPage() {
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/[0.04] p-4">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <div className="text-sm font-semibold text-amber-200">Pré-notificações ePCR</div>
+            <div className="text-sm font-semibold text-amber-800">Pré-notificações ePCR</div>
           </div>
           {preNotifications.length === 0 && (
             <div className="text-xs text-white/75">Nenhuma pré-notificação ativa.</div>
@@ -227,7 +227,7 @@ export default function EmsPage() {
               >
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-bold text-amber-100">{a.unit}</div>
-                  <div className="text-[10px] text-amber-200/80">ETA {a.etaMin} min</div>
+                  <div className="text-[10px] text-amber-800/80">ETA {a.etaMin} min</div>
                 </div>
                 {a.patient && (
                   <>
@@ -287,7 +287,7 @@ export default function EmsPage() {
                         </span>
                       )}
                       {a.preNotificationSent && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-200 border border-amber-400/40">
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-800 border border-amber-400/40">
                           pré-notif ✓
                         </span>
                       )}
@@ -365,7 +365,7 @@ export default function EmsPage() {
                           </>
                         )}
                         {a.ePcrNotes && (
-                          <div className="mt-3 p-2 rounded bg-blue-500/[0.06] border border-blue-500/20 text-[10px] text-blue-100/90 italic">
+                          <div className="mt-3 p-2 rounded bg-blue-500/[0.06] border border-blue-500/20 text-[10px] text-blue-900/90 italic">
                             ePCR: {a.ePcrNotes}
                           </div>
                         )}
@@ -398,8 +398,8 @@ export default function EmsPage() {
                               onClick={() => togglePreparo(a.unit)}
                               className={`text-xs font-semibold rounded-md px-3 py-2 border transition ${
                                 reanimado
-                                  ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-200'
-                                  : 'bg-red-500/15 border-red-500/40 text-red-200 hover:bg-red-500/25'
+                                  ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-800'
+                                  : 'bg-red-500/15 border-red-500/40 text-red-800 hover:bg-red-500/25'
                               }`}
                             >
                               {reanimado
@@ -410,8 +410,8 @@ export default function EmsPage() {
                               onClick={() => toggleTbr(a.unit)}
                               className={`text-xs font-semibold rounded-md px-3 py-2 border transition ${
                                 tbr
-                                  ? 'bg-blue-500/20 border-blue-500/60 text-blue-200'
-                                  : 'bg-blue-500/10 border-blue-500/30 text-blue-200 hover:bg-blue-500/20'
+                                  ? 'bg-blue-500/20 border-blue-500/60 text-blue-800'
+                                  : 'bg-blue-500/10 border-blue-500/30 text-blue-800 hover:bg-blue-500/20'
                               }`}
                             >
                               {tbr ? '✓ Equipe TBR Acionada' : '👥 Acionar Equipe TBR'}

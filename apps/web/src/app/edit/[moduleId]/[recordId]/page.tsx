@@ -96,7 +96,7 @@ export default function GenericEditPage() {
   if (!module) {
     return (
       <AppShell pageTitle="Módulo desconhecido">
-        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3">
+        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-800 rounded-md px-4 py-3">
           Módulo <strong>{moduleId}</strong> não está registrado em <code>module-manifest.ts</code>.
         </div>
       </AppShell>
@@ -109,7 +109,7 @@ export default function GenericEditPage() {
   if (loading) {
     return (
       <AppShell pageTitle={`Editar ${mod.title}`}>
-        <p className="text-slate-300">Carregando...</p>
+        <p className="text-slate-600">Carregando...</p>
       </AppShell>
     );
   }
@@ -117,7 +117,7 @@ export default function GenericEditPage() {
   if (error) {
     return (
       <AppShell pageTitle={`Editar ${mod.title}`}>
-        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3 mb-4">
+        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-800 rounded-md px-4 py-3 mb-4">
           {error}
         </div>
         <Link
@@ -216,14 +216,14 @@ export default function GenericEditPage() {
               <span aria-hidden="true">{mod.icon}</span> Editar {mod.title}
             </h1>
             <p className="page-subtitle">
-              Registro <span className="font-mono text-blue-300">{recordId}</span>
+              Registro <span className="font-mono text-blue-700">{recordId}</span>
               {record.hasOverride && (
-                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-200 border border-amber-700/60">
+                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-800 border border-amber-700/60">
                   Editado
                 </span>
               )}
               {record.isNew && (
-                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-green-900/40 text-green-200 border border-green-700/60">
+                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-green-900/40 text-green-800 border border-green-700/60">
                   Novo
                 </span>
               )}
@@ -254,14 +254,14 @@ export default function GenericEditPage() {
             />
             <Link
               href={`/compare/${mod.id}?ids=${recordId}`}
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
               aria-label="Comparar este registro com outro"
             >
               Comparar com outro
             </Link>
             <Link
               href={mod.route}
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
             >
               ← Voltar à lista
             </Link>
@@ -272,7 +272,7 @@ export default function GenericEditPage() {
       {!canEdit && (
         <div
           role="alert"
-          className="bg-amber-950/40 border border-amber-700 text-amber-200 text-sm rounded-md px-4 py-3 mb-4"
+          className="bg-amber-950/40 border border-amber-700 text-amber-800 text-sm rounded-md px-4 py-3 mb-4"
         >
           ⚠ Sua função tem permissão apenas de leitura para este módulo. Os campos abaixo são
           mostrados em modo somente-leitura.
@@ -283,15 +283,15 @@ export default function GenericEditPage() {
         {/* Form */}
         <form
           onSubmit={handleSave}
-          className="lg:col-span-2 bg-slate-900 border border-slate-700 rounded-xl p-5"
+          className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5"
         >
           {error && (
-            <div role="alert" className="mb-4 bg-red-950/40 border border-red-700 text-red-200 text-sm rounded-md px-4 py-3">
+            <div role="alert" className="mb-4 bg-red-950/40 border border-red-700 text-red-800 text-sm rounded-md px-4 py-3">
               {error}
             </div>
           )}
           {success && (
-            <div role="status" className="mb-4 bg-green-950/40 border border-green-700 text-green-200 text-sm rounded-md px-4 py-3">
+            <div role="status" className="mb-4 bg-green-950/40 border border-green-700 text-green-800 text-sm rounded-md px-4 py-3">
               {success}
             </div>
           )}
@@ -305,7 +305,7 @@ export default function GenericEditPage() {
                       type="text"
                       value={String(record.data.id ?? recordId)}
                       readOnly
-                      className="w-full min-h-[44px] bg-slate-800/60 border border-slate-700 rounded-md px-3 py-2 text-sm text-slate-300 cursor-not-allowed font-mono"
+                      className="w-full min-h-[44px] bg-slate-50/60 border border-slate-200 rounded-md px-3 py-2 text-sm text-slate-600 cursor-not-allowed font-mono"
                     />
                   </FieldRow>
                 );
@@ -319,7 +319,7 @@ export default function GenericEditPage() {
                     onChange={(value) => setDraft((d) => ({ ...d, [col.key]: value }))}
                     disabled={!canEdit || col.editable === false}
                   />
-                  {col.help && <p className="text-xs text-slate-400 mt-1">{col.help}</p>}
+                  {col.help && <p className="text-xs text-slate-500 mt-1">{col.help}</p>}
                 </FieldRow>
               );
             })}
@@ -328,7 +328,7 @@ export default function GenericEditPage() {
           {canEdit && (
             <>
               <div className="mt-6 flex flex-col gap-1.5">
-                <label htmlFor="change-note" className="text-sm font-medium text-slate-200">
+                <label htmlFor="change-note" className="text-sm font-medium text-slate-700">
                   Comentário da alteração (opcional)
                 </label>
                 <input
@@ -337,7 +337,7 @@ export default function GenericEditPage() {
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Ex: Atualizado conforme orientação do médico assistente"
-                  className="w-full min-h-[44px] bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
 
@@ -346,14 +346,14 @@ export default function GenericEditPage() {
                   type="button"
                   onClick={handleDelete}
                   disabled={saving}
-                  className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-red-700 text-red-200 hover:bg-red-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-60"
+                  className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-red-700 text-red-800 hover:bg-red-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-60"
                 >
                   Remover registro
                 </button>
                 <div className="flex gap-3 ml-auto">
                   <Link
                     href={mod.route}
-                    className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
                   >
                     Cancelar
                   </Link>
@@ -373,39 +373,39 @@ export default function GenericEditPage() {
         {/* History timeline */}
         <aside
           aria-labelledby="history-heading"
-          className="bg-slate-900 border border-slate-700 rounded-xl p-5"
+          className="bg-white border border-slate-200 rounded-xl p-5"
         >
-          <h2 id="history-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-300 mb-4">
+          <h2 id="history-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-4">
             Histórico auditado
           </h2>
           {history.length === 0 ? (
-            <p className="text-sm text-slate-400">Nenhuma alteração registrada ainda.</p>
+            <p className="text-sm text-slate-500">Nenhuma alteração registrada ainda.</p>
           ) : (
-            <ol className="border-l border-slate-700 ml-2 space-y-4">
+            <ol className="border-l border-slate-200 ml-2 space-y-4">
               {[...history].reverse().map((entry, idx) => (
                 <li key={idx} className="pl-4 relative">
                   <span
                     aria-hidden="true"
                     className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-slate-900"
                   />
-                  <div className="text-xs text-slate-400 font-mono">
+                  <div className="text-xs text-slate-500 font-mono">
                     {new Date(entry.at).toLocaleString('pt-BR')}
                   </div>
-                  <div className="text-sm text-slate-100 font-semibold mt-0.5">
+                  <div className="text-sm text-slate-900 font-semibold mt-0.5">
                     {entry.actor}
                   </div>
                   {entry.note && (
-                    <div className="text-xs text-slate-300 italic mt-1">"{entry.note}"</div>
+                    <div className="text-xs text-slate-600 italic mt-1">"{entry.note}"</div>
                   )}
                   {entry.fieldChanges.length > 0 && (
                     <ul className="mt-2 space-y-1">
                       {entry.fieldChanges.map((change, i) => (
-                        <li key={i} className="text-xs text-slate-300">
-                          <span className="text-slate-400 font-mono">{change.field}:</span>{' '}
-                          <span className="text-red-300 line-through">
+                        <li key={i} className="text-xs text-slate-600">
+                          <span className="text-slate-500 font-mono">{change.field}:</span>{' '}
+                          <span className="text-red-700 line-through">
                             {formatValue(change.from)}
                           </span>{' '}
-                          → <span className="text-green-300">{formatValue(change.to)}</span>
+                          → <span className="text-green-700">{formatValue(change.to)}</span>
                         </li>
                       ))}
                     </ul>
@@ -459,7 +459,7 @@ function FieldRow({
 }) {
   return (
     <div className={`flex flex-col gap-1.5 ${fullWidth ? 'sm:col-span-2' : ''}`}>
-      <label className="text-sm font-medium text-slate-200">
+      <label className="text-sm font-medium text-slate-700">
         {label}
         {required && (
           <span aria-hidden="true" className="text-red-400 ml-0.5">
@@ -485,7 +485,7 @@ function FieldInput({
 }) {
   const inputType: FieldInputType = column.inputType ?? inferInputType(value);
   const baseClass =
-    'w-full min-h-[44px] bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60 disabled:cursor-not-allowed';
+    'w-full min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60 disabled:cursor-not-allowed';
 
   switch (inputType) {
     case 'textarea':
@@ -554,7 +554,7 @@ function FieldInput({
             disabled={disabled}
             className="w-5 h-5 cursor-pointer"
           />
-          <span className="text-sm text-slate-200">{value ? 'Sim' : 'Não'}</span>
+          <span className="text-sm text-slate-700">{value ? 'Sim' : 'Não'}</span>
         </label>
       );
     case 'tags':

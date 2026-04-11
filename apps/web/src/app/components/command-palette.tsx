@@ -361,9 +361,9 @@ export function CommandPalette(): React.ReactElement {
       type="button"
       onClick={openPalette}
       aria-label="Abrir paleta de comandos (Ctrl ou Cmd + K)"
-      className="fixed bottom-4 right-4 z-40 inline-flex min-h-[44px] min-w-[44px] items-center gap-2 rounded-full border border-slate-700 bg-slate-900/95 px-4 py-2 text-sm font-medium text-slate-100 shadow-lg shadow-black/40 backdrop-blur transition hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+      className="fixed bottom-4 right-4 z-40 inline-flex min-h-[44px] min-w-[44px] items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-4 py-2 text-sm font-medium text-slate-900 shadow-lg shadow-black/40 backdrop-blur transition hover:bg-slate-50 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
     >
-      <span aria-hidden="true" className="font-mono text-slate-200">
+      <span aria-hidden="true" className="font-mono text-slate-700">
         ⌘K
       </span>
       <span>Buscar</span>
@@ -377,7 +377,7 @@ export function CommandPalette(): React.ReactElement {
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/70 px-4 pt-[10vh] backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-start justify-center bg-white/70 px-4 pt-[10vh] backdrop-blur-sm"
         onMouseDown={handleBackdropMouseDown}
       >
         <div
@@ -385,7 +385,7 @@ export function CommandPalette(): React.ReactElement {
           aria-modal="true"
           aria-labelledby={dialogTitleId}
           aria-describedby={dialogDescriptionId}
-          className="w-full max-w-2xl overflow-hidden rounded-xl border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl shadow-black/60"
+          className="w-full max-w-2xl overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-900 shadow-2xl shadow-black/60"
         >
           <h2 id={dialogTitleId} className="sr-only">
             Paleta de comandos Velya
@@ -395,12 +395,12 @@ export function CommandPalette(): React.ReactElement {
             navegar, Enter para abrir e Escape para fechar.
           </p>
 
-          <div className="border-b border-slate-700 px-4 py-3">
+          <div className="border-b border-slate-200 px-4 py-3">
             <label id={inputLabelId} htmlFor="velya-command-palette-input" className="sr-only">
               Pesquisar módulos e ações
             </label>
             <div className="flex items-center gap-3">
-              <span aria-hidden="true" className="text-slate-300">
+              <span aria-hidden="true" className="text-slate-600">
                 {/* Search glyph — unicode keeps us dependency-free */}
                 {'\uD83D\uDD0D'}
               </span>
@@ -423,9 +423,9 @@ export function CommandPalette(): React.ReactElement {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={handleInputKeyDown}
-                className="min-h-[44px] w-full bg-transparent text-base text-slate-100 placeholder:text-slate-400 focus:outline-none"
+                className="min-h-[44px] w-full bg-transparent text-base text-slate-900 placeholder:text-slate-500 focus:outline-none"
               />
-              <kbd className="hidden shrink-0 rounded border border-slate-600 bg-slate-800 px-2 py-1 font-mono text-xs text-slate-200 sm:inline-block">
+              <kbd className="hidden shrink-0 rounded border border-slate-300 bg-slate-50 px-2 py-1 font-mono text-xs text-slate-700 sm:inline-block">
                 esc
               </kbd>
             </div>
@@ -443,7 +443,7 @@ export function CommandPalette(): React.ReactElement {
                 role="option"
                 aria-selected="false"
                 aria-disabled="true"
-                className="px-4 py-6 text-center text-sm text-slate-300"
+                className="px-4 py-6 text-center text-sm text-slate-600"
               >
                 Nenhum resultado para "{query}"
               </li>
@@ -460,7 +460,7 @@ export function CommandPalette(): React.ReactElement {
                     className={`mx-2 flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left transition ${
                       isSelected
                         ? 'bg-blue-700/40 text-white'
-                        : 'text-slate-100 hover:bg-slate-800'
+                        : 'text-slate-900 hover:bg-slate-50'
                     }`}
                     onMouseEnter={() => setSelectedIndex(index)}
                     onMouseDown={(event) => {
@@ -471,19 +471,19 @@ export function CommandPalette(): React.ReactElement {
                   >
                     <span
                       aria-hidden="true"
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-800 text-base"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-50 text-base"
                     >
                       {command.icon}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-slate-100">
+                      <span className="block truncate text-sm font-medium text-slate-900">
                         {command.title}
                       </span>
-                      <span className="block truncate text-xs text-slate-300">
+                      <span className="block truncate text-xs text-slate-600">
                         {command.subtitle}
                       </span>
                     </span>
-                    <span className="shrink-0 text-xs font-medium text-blue-300">
+                    <span className="shrink-0 text-xs font-medium text-blue-700">
                       {command.category}
                     </span>
                   </li>
@@ -492,7 +492,7 @@ export function CommandPalette(): React.ReactElement {
             )}
           </ul>
 
-          <div className="flex items-center justify-between border-t border-slate-700 bg-slate-900 px-4 py-2 text-xs text-slate-300">
+          <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-2 text-xs text-slate-600">
             <span>
               {filteredCommands.length}{' '}
               {filteredCommands.length === 1 ? 'resultado' : 'resultados'}

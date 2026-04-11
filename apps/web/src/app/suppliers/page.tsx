@@ -12,10 +12,10 @@ import {
 } from '../../lib/fixtures/suppliers';
 
 const STATUS_BADGE: Record<SupplierStatus, string> = {
-  ativo: 'bg-green-900/40 text-green-200 border-green-700/60',
-  'em-revisao': 'bg-amber-900/40 text-amber-200 border-amber-700/60',
-  suspenso: 'bg-red-900/40 text-red-200 border-red-700/60',
-  descredenciado: 'bg-slate-800 text-slate-300 border-slate-600',
+  ativo: 'bg-green-900/40 text-green-800 border-green-700/60',
+  'em-revisao': 'bg-amber-900/40 text-amber-800 border-amber-700/60',
+  suspenso: 'bg-red-900/40 text-red-800 border-red-700/60',
+  descredenciado: 'bg-slate-50 text-slate-600 border-slate-300',
 };
 
 export default function SuppliersPage() {
@@ -56,7 +56,7 @@ export default function SuppliersPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por nome, CNPJ ou contato..."
-          className="flex-1 min-w-[260px] min-h-[44px] bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="flex-1 min-w-[260px] min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <label htmlFor="supplier-category-filter" className="sr-only">
           Filtrar por categoria
@@ -65,7 +65,7 @@ export default function SuppliersPage() {
           id="supplier-category-filter"
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value as 'all' | SupplierCategory)}
-          className="min-h-[44px] bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
           <option value="all">Todas as categorias</option>
           {(Object.entries(CATEGORY_LABELS) as [SupplierCategory, string][]).map(([k, v]) => (
@@ -81,7 +81,7 @@ export default function SuppliersPage() {
           id="supplier-status-filter"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as 'all' | SupplierStatus)}
-          className="min-h-[44px] bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
           <option value="all">Todos os status</option>
           {(Object.entries(STATUS_LABELS) as [SupplierStatus, string][]).map(([k, v]) => (
@@ -102,13 +102,13 @@ export default function SuppliersPage() {
         {filtered.map((s) => (
           <article
             key={s.id}
-            className="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col gap-3"
+            className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3"
           >
             <header className="flex justify-between items-start gap-3">
               <div>
-                <h2 className="text-base font-bold text-slate-100">{s.name}</h2>
-                <div className="text-xs text-slate-300">{s.cnpj}</div>
-                <div className="text-xs text-slate-300 mt-0.5">
+                <h2 className="text-base font-bold text-slate-900">{s.name}</h2>
+                <div className="text-xs text-slate-600">{s.cnpj}</div>
+                <div className="text-xs text-slate-600 mt-0.5">
                   {CATEGORY_LABELS[s.category]}
                 </div>
               </div>
@@ -119,25 +119,25 @@ export default function SuppliersPage() {
               </span>
             </header>
 
-            <div className="border-t border-slate-700 pt-3 grid grid-cols-2 gap-2 text-xs">
+            <div className="border-t border-slate-200 pt-3 grid grid-cols-2 gap-2 text-xs">
               <div>
-                <div className="text-slate-400 uppercase tracking-wider text-[10px]">Contato</div>
-                <div className="text-slate-100 font-medium">{s.contactName}</div>
-                <div className="text-slate-300">{s.contactEmail}</div>
-                <div className="text-slate-300">{s.contactPhone}</div>
+                <div className="text-slate-500 uppercase tracking-wider text-[10px]">Contato</div>
+                <div className="text-slate-900 font-medium">{s.contactName}</div>
+                <div className="text-slate-600">{s.contactEmail}</div>
+                <div className="text-slate-600">{s.contactPhone}</div>
               </div>
               <div>
-                <div className="text-slate-400 uppercase tracking-wider text-[10px]">SLA</div>
-                <div className="text-slate-100 font-medium">{s.slaResponseHours}h resposta</div>
-                <div className="text-slate-300">Avaliação: {s.rating.toFixed(1)}/5</div>
-                <div className="text-slate-300">
+                <div className="text-slate-500 uppercase tracking-wider text-[10px]">SLA</div>
+                <div className="text-slate-900 font-medium">{s.slaResponseHours}h resposta</div>
+                <div className="text-slate-600">Avaliação: {s.rating.toFixed(1)}/5</div>
+                <div className="text-slate-600">
                   Contrato: {s.contractStart} → {s.contractEnd}
                 </div>
               </div>
             </div>
 
             {s.notes && (
-              <div className="text-xs text-amber-200 bg-amber-950/30 border border-amber-700/60 rounded-md px-3 py-2">
+              <div className="text-xs text-amber-800 bg-amber-950/30 border border-amber-700/60 rounded-md px-3 py-2">
                 ⚠ {s.notes}
               </div>
             )}
@@ -145,7 +145,7 @@ export default function SuppliersPage() {
             <div className="flex gap-2 mt-1">
               <Link
                 href={`/suppliers/${s.id}`}
-                className="flex-1 min-h-[40px] inline-flex items-center justify-center text-xs px-3 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="flex-1 min-h-[40px] inline-flex items-center justify-center text-xs px-3 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
               >
                 Ver detalhes
               </Link>
@@ -159,7 +159,7 @@ export default function SuppliersPage() {
           </article>
         ))}
         {filtered.length === 0 && (
-          <div className="md:col-span-2 text-center py-12 text-slate-300 bg-slate-900 rounded-xl border border-slate-700">
+          <div className="md:col-span-2 text-center py-12 text-slate-600 bg-white rounded-xl border border-slate-200">
             Nenhum fornecedor encontrado.
           </div>
         )}

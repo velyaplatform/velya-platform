@@ -21,7 +21,7 @@ export interface VelyaNEWS2GaugeProps {
 function getRiskLevel(score: number): { color: string; label: string; hex: string } {
   if (score >= 7) return { color: 'text-red-400', label: 'Alto', hex: '#ef4444' };
   if (score >= 5) return { color: 'text-amber-400', label: 'Médio', hex: '#f59e0b' };
-  if (score >= 1) return { color: 'text-teal-400', label: 'Baixo', hex: '#14b8a6' };
+  if (score >= 1) return { color: 'text-teal-700', label: 'Baixo', hex: '#14b8a6' };
   return { color: 'text-emerald-400', label: 'Normal', hex: '#22c55e' };
 }
 
@@ -75,7 +75,7 @@ export function VelyaNEWS2Gauge({
         <span className={cn('font-mono text-2xl font-bold tabular-nums', risk.color)}>
           {score}
         </span>
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">
           {label}
         </span>
       </div>

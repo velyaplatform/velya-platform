@@ -11,10 +11,10 @@ import {
 } from '../../../lib/fixtures/suppliers';
 
 const STATUS_BADGE: Record<SupplierStatus, string> = {
-  ativo: 'bg-green-900/40 text-green-200 border-green-700/60',
-  'em-revisao': 'bg-amber-900/40 text-amber-200 border-amber-700/60',
-  suspenso: 'bg-red-900/40 text-red-200 border-red-700/60',
-  descredenciado: 'bg-slate-800 text-slate-300 border-slate-600',
+  ativo: 'bg-green-900/40 text-green-800 border-green-700/60',
+  'em-revisao': 'bg-amber-900/40 text-amber-800 border-amber-700/60',
+  suspenso: 'bg-red-900/40 text-red-800 border-red-700/60',
+  descredenciado: 'bg-slate-50 text-slate-600 border-slate-300',
 };
 
 export default function SupplierDetailPage() {
@@ -58,7 +58,7 @@ export default function SupplierDetailPage() {
             </span>
             <Link
               href="/suppliers"
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
             >
               ← Voltar
             </Link>
@@ -75,66 +75,66 @@ export default function SupplierDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <section
           aria-labelledby="contact-heading"
-          className="bg-slate-900 border border-slate-700 rounded-xl p-5"
+          className="bg-white border border-slate-200 rounded-xl p-5"
         >
           <h2
             id="contact-heading"
-            className="text-xs uppercase tracking-wider font-semibold text-slate-300 mb-4"
+            className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-4"
           >
             Contato comercial
           </h2>
           <dl className="flex flex-col gap-3">
             <div>
-              <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Responsável</dt>
-              <dd className="text-slate-100 font-medium">{supplier.contactName}</dd>
+              <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Responsável</dt>
+              <dd className="text-slate-900 font-medium">{supplier.contactName}</dd>
             </div>
             <div>
-              <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">E-mail</dt>
-              <dd className="text-slate-100 break-all">
+              <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">E-mail</dt>
+              <dd className="text-slate-900 break-all">
                 <a
                   href={`mailto:${supplier.contactEmail}`}
-                  className="text-blue-300 hover:text-blue-200 underline"
+                  className="text-blue-700 hover:text-blue-800 underline"
                 >
                   {supplier.contactEmail}
                 </a>
               </dd>
             </div>
             <div>
-              <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Telefone</dt>
-              <dd className="text-slate-100 font-mono">{supplier.contactPhone}</dd>
+              <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Telefone</dt>
+              <dd className="text-slate-900 font-mono">{supplier.contactPhone}</dd>
             </div>
           </dl>
         </section>
 
         <section
           aria-labelledby="contract-heading"
-          className="bg-slate-900 border border-slate-700 rounded-xl p-5"
+          className="bg-white border border-slate-200 rounded-xl p-5"
         >
           <h2
             id="contract-heading"
-            className="text-xs uppercase tracking-wider font-semibold text-slate-300 mb-4"
+            className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-4"
           >
             Contrato e SLA
           </h2>
           <dl className="flex flex-col gap-3">
             <div>
-              <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Vigência</dt>
-              <dd className="text-slate-100">
+              <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Vigência</dt>
+              <dd className="text-slate-900">
                 {supplier.contractStart} → {supplier.contractEnd}
               </dd>
             </div>
             <div>
-              <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">SLA de resposta</dt>
-              <dd className="text-slate-100">{supplier.slaResponseHours} horas</dd>
+              <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">SLA de resposta</dt>
+              <dd className="text-slate-900">{supplier.slaResponseHours} horas</dd>
             </div>
             <div>
-              <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Avaliação de desempenho</dt>
-              <dd className="text-slate-100">{supplier.rating.toFixed(1)} / 5.0</dd>
+              <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Avaliação de desempenho</dt>
+              <dd className="text-slate-900">{supplier.rating.toFixed(1)} / 5.0</dd>
             </div>
             {supplier.lastDelivery && (
               <div>
-                <dt className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Última entrega</dt>
-                <dd className="text-slate-100">{supplier.lastDelivery}</dd>
+                <dt className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Última entrega</dt>
+                <dd className="text-slate-900">{supplier.lastDelivery}</dd>
               </div>
             )}
           </dl>
@@ -147,7 +147,7 @@ export default function SupplierDetailPage() {
           >
             <h2
               id="notes-heading"
-              className="text-xs uppercase tracking-wider font-semibold text-amber-200 mb-2"
+              className="text-xs uppercase tracking-wider font-semibold text-amber-800 mb-2"
             >
               Observações internas
             </h2>

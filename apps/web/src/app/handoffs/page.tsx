@@ -6,11 +6,11 @@ import { AppShell } from '../components/app-shell';
 import type { ShiftHandoff, HandoffStatus } from '@/lib/handoff-store';
 
 const STATUS_BADGE: Record<HandoffStatus, string> = {
-  draft: 'bg-slate-800 text-slate-300 border-slate-600',
-  sent: 'bg-blue-900/40 text-blue-200 border-blue-700/60',
-  'awaiting-readback': 'bg-amber-900/40 text-amber-200 border-amber-700/60',
-  completed: 'bg-green-900/40 text-green-200 border-green-700/60',
-  cancelled: 'bg-slate-800 text-slate-400 border-slate-700',
+  draft: 'bg-slate-50 text-slate-600 border-slate-300',
+  sent: 'bg-blue-900/40 text-blue-800 border-blue-700/60',
+  'awaiting-readback': 'bg-amber-900/40 text-amber-800 border-amber-700/60',
+  completed: 'bg-green-900/40 text-green-800 border-green-700/60',
+  cancelled: 'bg-slate-50 text-slate-500 border-slate-200',
 };
 
 const STATUS_LABEL: Record<HandoffStatus, string> = {
@@ -68,7 +68,7 @@ export default function HandoffsPage() {
         </div>
       </div>
 
-      <div role="tablist" aria-label="Filtro de passagens" className="flex gap-2 mb-5 border-b border-slate-700">
+      <div role="tablist" aria-label="Filtro de passagens" className="flex gap-2 mb-5 border-b border-slate-200">
         <button
           type="button"
           role="tab"
@@ -76,8 +76,8 @@ export default function HandoffsPage() {
           onClick={() => setTab('inbox')}
           className={`min-h-[44px] px-4 py-2 text-sm font-semibold border-b-2 -mb-px focus:outline-none focus:ring-2 focus:ring-blue-300 ${
             tab === 'inbox'
-              ? 'border-blue-400 text-blue-200'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-blue-400 text-blue-800'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
           Recebidas
@@ -89,8 +89,8 @@ export default function HandoffsPage() {
           onClick={() => setTab('sent')}
           className={`min-h-[44px] px-4 py-2 text-sm font-semibold border-b-2 -mb-px focus:outline-none focus:ring-2 focus:ring-blue-300 ${
             tab === 'sent'
-              ? 'border-blue-400 text-blue-200'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-blue-400 text-blue-800'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
           Enviadas
@@ -98,16 +98,16 @@ export default function HandoffsPage() {
       </div>
 
       {error && (
-        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3 mb-4">
+        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-800 rounded-md px-4 py-3 mb-4">
           {error}
         </div>
       )}
 
       {loading ? (
-        <p className="text-slate-300">Carregando...</p>
+        <p className="text-slate-600">Carregando...</p>
       ) : items.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 text-center">
-          <p className="text-slate-300 text-sm">
+        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center">
+          <p className="text-slate-600 text-sm">
             {tab === 'inbox'
               ? 'Você não tem passagens recebidas no momento.'
               : 'Você ainda não criou nenhuma passagem.'}
@@ -119,7 +119,7 @@ export default function HandoffsPage() {
             <li key={h.id}>
               <Link
                 href={`/handoffs/${h.id}`}
-                className="block bg-slate-900 border border-slate-700 rounded-xl p-4 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="block bg-white border border-slate-200 rounded-xl p-4 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
               >
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex-1 min-w-0">
@@ -129,20 +129,20 @@ export default function HandoffsPage() {
                       >
                         {STATUS_LABEL[h.status]}
                       </span>
-                      <span className="text-xs text-slate-400 font-mono">{h.id}</span>
-                      <span className="text-xs text-blue-300">{h.shiftLabel}</span>
+                      <span className="text-xs text-slate-500 font-mono">{h.id}</span>
+                      <span className="text-xs text-blue-700">{h.shiftLabel}</span>
                     </div>
-                    <h2 className="text-base font-bold text-slate-100">
+                    <h2 className="text-base font-bold text-slate-900">
                       {h.ward} — {h.patients.length} paciente(s)
                     </h2>
-                    <div className="text-sm text-slate-300 mt-1 flex flex-wrap items-center gap-3">
+                    <div className="text-sm text-slate-600 mt-1 flex flex-wrap items-center gap-3">
                       <span>
-                        De <strong className="text-slate-100">{h.fromUserName}</strong>
+                        De <strong className="text-slate-900">{h.fromUserName}</strong>
                       </span>
                       <span>
-                        Para <strong className="text-slate-100">{h.toUserName}</strong>
+                        Para <strong className="text-slate-900">{h.toUserName}</strong>
                       </span>
-                      <span className="text-amber-200">
+                      <span className="text-amber-800">
                         {new Date(h.shiftBoundaryAt).toLocaleString('pt-BR')}
                       </span>
                     </div>

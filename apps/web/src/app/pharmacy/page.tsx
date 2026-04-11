@@ -16,7 +16,7 @@ const STATUS_CONFIG: Record<
   prescrita: {
     label: 'Prescrita',
     icon: '📝',
-    badge: 'bg-slate-500/20 text-slate-200 border border-slate-400/40',
+    badge: 'bg-slate-500/20 text-slate-700 border border-slate-400/40',
     row: 'border-l-4 border-l-slate-400/60',
   },
   'em-validacao': {
@@ -40,7 +40,7 @@ const STATUS_CONFIG: Record<
   'em-preparo': {
     label: 'Em preparo',
     icon: '🔄',
-    badge: 'bg-blue-500/20 text-blue-200 border border-blue-500/40',
+    badge: 'bg-blue-500/20 text-blue-800 border border-blue-500/40',
     row: 'border-l-4 border-l-blue-400/60',
   },
   'em-transporte': {
@@ -52,25 +52,25 @@ const STATUS_CONFIG: Record<
   'aguardando-admin': {
     label: 'Aguardando admin.',
     icon: '💉',
-    badge: 'bg-amber-400/20 text-amber-200 border border-amber-400/50',
+    badge: 'bg-amber-400/20 text-amber-800 border border-amber-400/50',
     row: 'border-l-4 border-l-amber-400/70',
   },
   administrada: {
     label: 'Administrada',
     icon: '✔️',
-    badge: 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40',
+    badge: 'bg-emerald-500/20 text-emerald-800 border border-emerald-500/40',
     row: 'border-l-4 border-l-emerald-400/60',
   },
   atrasada: {
     label: 'Atrasada',
     icon: '⚠️',
-    badge: 'bg-red-600/25 text-red-200 border border-red-500/60',
+    badge: 'bg-red-600/25 text-red-800 border border-red-500/60',
     row: 'border-l-4 border-l-red-500/80',
   },
   'nao-administrada': {
     label: 'Não administrada',
     icon: '❌',
-    badge: 'bg-red-500/15 text-red-300 border border-red-500/50',
+    badge: 'bg-red-500/15 text-red-700 border border-red-500/50',
     row: 'border-l-4 border-l-red-500/60',
   },
 };
@@ -164,10 +164,10 @@ export default function PharmacyPage() {
           <div className="text-xs text-white/75 mt-1">Farmacêutico</div>
         </div>
         <div className="rounded-lg border border-red-500/40 bg-red-500/[0.08] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-red-300/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-red-700/80 font-semibold">
             Atrasadas
           </div>
-          <div className="text-3xl font-bold text-red-300 mt-1">{kpis.delayed}</div>
+          <div className="text-3xl font-bold text-red-700 mt-1">{kpis.delayed}</div>
           <div className="text-xs text-white/75 mt-1">Escalar agora</div>
         </div>
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.06] p-4">
@@ -178,10 +178,10 @@ export default function PharmacyPage() {
           <div className="text-xs text-white/75 mt-1">Prioridade alta</div>
         </div>
         <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-4">
-          <div className="text-[11px] uppercase tracking-wider text-emerald-300/80 font-semibold">
+          <div className="text-[11px] uppercase tracking-wider text-emerald-700/80 font-semibold">
             Checagem dupla
           </div>
-          <div className="text-3xl font-bold text-emerald-300 mt-1">{kpis.doubleCheckRate}%</div>
+          <div className="text-3xl font-bold text-emerald-700 mt-1">{kpis.doubleCheckRate}%</div>
           <div className="text-xs text-white/75 mt-1">Taxa hoje</div>
         </div>
       </div>
@@ -199,7 +199,7 @@ export default function PharmacyPage() {
                 onClick={() => setStatusFilter(s)}
                 className={`text-[10px] px-2 py-1 rounded border ${
                   statusFilter === s
-                    ? 'bg-blue-500/25 border-blue-400/70 text-blue-100'
+                    ? 'bg-blue-500/25 border-blue-400/70 text-blue-900'
                     : 'bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/[0.06]'
                 }`}
               >
@@ -217,7 +217,7 @@ export default function PharmacyPage() {
                 onClick={() => setPriorityFilter(p)}
                 className={`text-[10px] px-2 py-1 rounded border ${
                   priorityFilter === p
-                    ? 'bg-blue-500/25 border-blue-400/70 text-blue-100'
+                    ? 'bg-blue-500/25 border-blue-400/70 text-blue-900'
                     : 'bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/[0.06]'
                 }`}
               >
@@ -233,7 +233,7 @@ export default function PharmacyPage() {
                 onClick={() => setWardFilter(w)}
                 className={`text-[10px] px-2 py-1 rounded border ${
                   wardFilter === w
-                    ? 'bg-blue-500/25 border-blue-400/70 text-blue-100'
+                    ? 'bg-blue-500/25 border-blue-400/70 text-blue-900'
                     : 'bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/[0.06]'
                 }`}
               >
@@ -283,7 +283,7 @@ export default function PharmacyPage() {
                       {p.nurse && ` · Enf. ${p.nurse}`}
                     </div>
                     {p.alerts.length > 0 && (
-                      <div className="text-[10px] text-amber-200/90 mt-1">
+                      <div className="text-[10px] text-amber-800/90 mt-1">
                         ⚠ {p.alerts.join(' · ')}
                       </div>
                     )}
@@ -292,7 +292,7 @@ export default function PharmacyPage() {
                     <div className="text-[10px] text-white/75 uppercase">Próximo</div>
                     <div className="text-xs font-mono text-white/90">{p.nextDose}</div>
                     {NEXT_ACTION[p.status] && (
-                      <div className="text-[10px] text-blue-300 mt-1.5 font-semibold">
+                      <div className="text-[10px] text-blue-700 mt-1.5 font-semibold">
                         → {NEXT_ACTION[p.status]}
                       </div>
                     )}
@@ -312,7 +312,7 @@ export default function PharmacyPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-slate-900 border border-white/15 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white border border-white/15 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-start justify-between mb-4">
               <div>
@@ -356,7 +356,7 @@ export default function PharmacyPage() {
             {/* Alerts */}
             {selected.alerts.length > 0 && (
               <div className="mb-4 rounded border border-amber-500/40 bg-amber-500/[0.06] p-3">
-                <div className="text-[10px] uppercase tracking-wider text-amber-200 mb-1">
+                <div className="text-[10px] uppercase tracking-wider text-amber-800 mb-1">
                   Alertas clínicos
                 </div>
                 <ul className="text-xs text-amber-100/90 space-y-0.5">
@@ -370,7 +370,7 @@ export default function PharmacyPage() {
             {/* Reason if not administered */}
             {selected.reason && (
               <div className="mb-4 rounded border border-red-500/40 bg-red-500/[0.06] p-3">
-                <div className="text-[10px] uppercase tracking-wider text-red-200 mb-1">
+                <div className="text-[10px] uppercase tracking-wider text-red-800 mb-1">
                   Motivo — não administrada
                 </div>
                 <div className="text-xs text-red-100/90">{selected.reason}</div>
@@ -403,7 +403,7 @@ export default function PharmacyPage() {
             {/* Next action */}
             {NEXT_ACTION[selected.status] && (
               <button
-                className="w-full rounded-md bg-blue-500/20 border border-blue-400/60 text-blue-100 text-sm font-semibold py-2.5 hover:bg-blue-500/30 transition"
+                className="w-full rounded-md bg-blue-500/20 border border-blue-400/60 text-blue-900 text-sm font-semibold py-2.5 hover:bg-blue-500/30 transition"
                 onClick={() => setSelected(null)}
               >
                 → {NEXT_ACTION[selected.status]}

@@ -391,20 +391,20 @@ export function AiAssistantPanel() {
             onClick={() => setIsOpen(false)}
             className="absolute inset-0 bg-black/60 cursor-default"
           />
-          <aside className="relative w-full max-w-lg h-full bg-slate-900 border-l border-slate-700 flex flex-col shadow-2xl">
-            <header className="flex items-start justify-between p-4 border-b border-slate-700 bg-slate-800">
+          <aside className="relative w-full max-w-lg h-full bg-white border-l border-slate-200 flex flex-col shadow-2xl">
+            <header className="flex items-start justify-between p-4 border-b border-slate-200 bg-slate-50">
               <div>
-                <h2 id="ai-panel-title" className="text-lg font-bold text-slate-100">
+                <h2 id="ai-panel-title" className="text-lg font-bold text-slate-900">
                   <span aria-hidden="true">{'\u2728'}</span> Assistente Velya
                 </h2>
                 {policy && (
-                  <p className="text-xs text-slate-300 mt-1">
-                    Política: <strong className="text-blue-300">{policy.policy.label}</strong> ·{' '}
+                  <p className="text-xs text-slate-600 mt-1">
+                    Política: <strong className="text-blue-700">{policy.policy.label}</strong> ·{' '}
                     {policy.policy.capabilities.length} capacidades
                   </p>
                 )}
                 {policyError && (
-                  <p role="alert" className="text-xs text-red-300 mt-1 font-medium">
+                  <p role="alert" className="text-xs text-red-700 mt-1 font-medium">
                     {policyError}
                   </p>
                 )}
@@ -413,14 +413,14 @@ export function AiAssistantPanel() {
                 type="button"
                 onClick={() => setIsOpen(false)}
                 aria-label="Fechar"
-                className="min-h-[40px] min-w-[40px] inline-flex items-center justify-center rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="min-h-[40px] min-w-[40px] inline-flex items-center justify-center rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
               >
                 <span aria-hidden="true">×</span>
               </button>
             </header>
 
             {policy && policy.policy.capabilities.length > 0 && (
-              <div className="px-4 py-3 border-b border-slate-700 flex flex-wrap gap-2">
+              <div className="px-4 py-3 border-b border-slate-200 flex flex-wrap gap-2">
                 {/* Agent pseudo-capability — always first when ai.search-knowledge-base is granted */}
                 {policy.policy.capabilities.includes('ai.search-knowledge-base') && (
                   <button
@@ -435,7 +435,7 @@ export function AiAssistantPanel() {
                     className={`min-h-[40px] px-3 py-2 rounded-md text-xs font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-300 ${
                       activeCapability === AGENT_PSEUDO_CAPABILITY
                         ? 'bg-blue-700 text-white border-blue-500'
-                        : 'bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700'
+                        : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
                     }`}
                   >
                     {CAPABILITY_QUICK_LABELS[AGENT_PSEUDO_CAPABILITY]?.label}
@@ -458,7 +458,7 @@ export function AiAssistantPanel() {
                         className={`min-h-[40px] px-3 py-2 rounded-md text-xs font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-300 ${
                           isActive
                             ? 'bg-blue-700 text-white border-blue-500'
-                            : 'bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700'
+                            : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
                         }`}
                       >
                         {CAPABILITY_QUICK_LABELS[c]?.label}
@@ -475,11 +475,11 @@ export function AiAssistantPanel() {
               aria-label="Histórico de conversa"
             >
               {messages.length === 0 && !isLoading && (
-                <div className="text-center text-slate-400 text-sm py-8">
+                <div className="text-center text-slate-500 text-sm py-8">
                   <p>Pronto para ajudar.</p>
                   <p className="text-xs mt-2">
                     Selecione uma capacidade acima e descreva o que precisa. Use{' '}
-                    <kbd className="bg-slate-800 border border-slate-600 px-1.5 py-0.5 rounded text-slate-100">
+                    <kbd className="bg-slate-50 border border-slate-300 px-1.5 py-0.5 rounded text-slate-900">
                       Ctrl+Enter
                     </kbd>{' '}
                     para enviar.
@@ -504,29 +504,29 @@ export function AiAssistantPanel() {
                     className={`rounded-lg px-3 py-2 max-w-[90%] ${
                       m.role === 'user'
                         ? 'ml-auto bg-blue-700 text-white'
-                        : 'mr-auto bg-slate-800 text-slate-100 border border-slate-700'
+                        : 'mr-auto bg-slate-50 text-slate-900 border border-slate-200'
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{m.content}</p>
                     {m.role === 'assistant' && m.confidence && (
-                      <div className="mt-2 text-[11px] text-slate-300">
-                        Confiança: <strong className="text-blue-300">{m.confidence}</strong>
+                      <div className="mt-2 text-[11px] text-slate-600">
+                        Confiança: <strong className="text-blue-700">{m.confidence}</strong>
                         {m.rateLimitRemaining !== undefined && (
                           <>
                             {' · '}Restantes na hora:{' '}
-                            <strong className="text-slate-100">{m.rateLimitRemaining}</strong>
+                            <strong className="text-slate-900">{m.rateLimitRemaining}</strong>
                           </>
                         )}
                       </div>
                     )}
                     {m.citations && m.citations.length > 0 && (
-                      <ul className="mt-2 text-[11px] text-slate-300 space-y-1 border-t border-slate-700 pt-2">
+                      <ul className="mt-2 text-[11px] text-slate-600 space-y-1 border-t border-slate-200 pt-2">
                         {m.citations.map((c, i) => (
                           <li key={i}>
                             ↳{' '}
                             <a
                               href={c.href}
-                              className="text-blue-300 hover:text-blue-200 underline"
+                              className="text-blue-700 hover:text-blue-800 underline"
                             >
                               {c.title}
                             </a>
@@ -535,8 +535,8 @@ export function AiAssistantPanel() {
                       </ul>
                     )}
                     {m.evidence && m.evidence.length > 0 && (
-                      <details className="mt-2 text-[11px] text-slate-400">
-                        <summary className="cursor-pointer hover:text-slate-200">
+                      <details className="mt-2 text-[11px] text-slate-500">
+                        <summary className="cursor-pointer hover:text-slate-700">
                           Evidências usadas ({m.evidence.length})
                         </summary>
                         <ul className="mt-1 list-disc list-inside space-y-0.5">
@@ -547,13 +547,13 @@ export function AiAssistantPanel() {
                       </details>
                     )}
                     {m.role === 'assistant' && m.agentSources && m.agentSources.length > 0 && (
-                      <ul className="mt-2 text-[11px] text-slate-300 space-y-1 border-t border-slate-700 pt-2">
+                      <ul className="mt-2 text-[11px] text-slate-600 space-y-1 border-t border-slate-200 pt-2">
                         {m.agentSources.map((s, i) => (
                           <li key={i}>
                             ↳{' '}
                             <a
                               href={s.href}
-                              className="text-blue-300 hover:text-blue-200 underline"
+                              className="text-blue-700 hover:text-blue-800 underline"
                             >
                               {s.label}
                             </a>
@@ -562,7 +562,7 @@ export function AiAssistantPanel() {
                       </ul>
                     )}
                     {m.role === 'assistant' && m.agentPendingAction && (
-                      <div className="mt-3 border-t border-slate-700 pt-2">
+                      <div className="mt-3 border-t border-slate-200 pt-2">
                         <button
                           type="button"
                           onClick={() => void confirmAction(m.agentPendingAction!)}
@@ -571,19 +571,19 @@ export function AiAssistantPanel() {
                         >
                           ✓ {m.agentPendingAction.label}
                         </button>
-                        <p className="text-[10px] text-amber-200 mt-1">
+                        <p className="text-[10px] text-amber-800 mt-1">
                           Esta ação grava dados — confirmação humana obrigatória.
                         </p>
                       </div>
                     )}
                     {m.role === 'assistant' && m.agentSuggestions && m.agentSuggestions.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1.5 border-t border-slate-700 pt-2">
+                      <div className="mt-2 flex flex-wrap gap-1.5 border-t border-slate-200 pt-2">
                         {m.agentSuggestions.map((s, i) => (
                           <button
                             key={i}
                             type="button"
                             onClick={() => setInput(s)}
-                            className="text-[11px] px-2 py-1 rounded bg-slate-700 border border-slate-600 text-slate-100 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            className="text-[11px] px-2 py-1 rounded bg-slate-100 border border-slate-300 text-slate-900 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
                           >
                             {s}
                           </button>
@@ -594,14 +594,14 @@ export function AiAssistantPanel() {
                 );
               })}
               {isLoading && (
-                <div className="mr-auto bg-slate-800 text-slate-300 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+                <div className="mr-auto bg-slate-50 text-slate-600 border border-slate-200 rounded-lg px-3 py-2 text-sm">
                   <span aria-hidden="true">{'\u23F3'}</span> Pensando...
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
-            <footer className="p-4 border-t border-slate-700 bg-slate-800">
+            <footer className="p-4 border-t border-slate-200 bg-slate-50">
               <label htmlFor="ai-panel-input" className="sr-only">
                 Mensagem para a IA
               </label>
@@ -618,10 +618,10 @@ export function AiAssistantPanel() {
                 }
                 disabled={!activeCapability || isLoading || !!policyError}
                 rows={3}
-                className="w-full bg-slate-900 border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60 resize-none"
+                className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60 resize-none"
               />
               <div className="flex items-center justify-between mt-2">
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   IA é advisória — decisões clínicas exigem profissional habilitado
                 </p>
                 <button

@@ -17,7 +17,7 @@ const SEVERITY_CONFIG: Record<
 > = {
   critico: {
     label: 'Crítico',
-    className: 'bg-red-600/20 text-red-200 border-red-500/60',
+    className: 'bg-red-600/20 text-red-800 border-red-500/60',
     dot: 'bg-red-500',
     border: 'border-red-500/60 bg-red-500/[0.06]',
   },
@@ -29,19 +29,19 @@ const SEVERITY_CONFIG: Record<
   },
   estavel: {
     label: 'Estável',
-    className: 'bg-blue-500/20 text-blue-200 border-blue-500/50',
+    className: 'bg-blue-500/20 text-blue-800 border-blue-500/50',
     dot: 'bg-blue-400',
     border: 'border-blue-500/40 bg-blue-500/[0.03]',
   },
   melhorando: {
     label: 'Melhorando',
-    className: 'bg-emerald-500/20 text-emerald-200 border-emerald-500/50',
+    className: 'bg-emerald-500/20 text-emerald-800 border-emerald-500/50',
     dot: 'bg-emerald-400',
     border: 'border-emerald-500/40 bg-emerald-500/[0.03]',
   },
   vazio: {
     label: 'Livre',
-    className: 'bg-slate-600/10 text-slate-400 border-slate-500/30',
+    className: 'bg-slate-600/10 text-slate-500 border-slate-500/30',
     dot: 'bg-slate-500',
     border: 'border-white/10 bg-white/[0.02]',
   },
@@ -54,9 +54,9 @@ const TREND_ICON: Record<News2Trend, string> = {
 };
 
 const TREND_COLOR: Record<News2Trend, string> = {
-  subindo: 'text-red-300',
-  estavel: 'text-amber-200',
-  caindo: 'text-emerald-300',
+  subindo: 'text-red-700',
+  estavel: 'text-amber-800',
+  caindo: 'text-emerald-700',
 };
 
 const GOALS_LABEL: Record<GoalsStatus, string> = {
@@ -72,10 +72,10 @@ const FAMILY_LABEL: Record<FamilyMeetingStatus, string> = {
 };
 
 function news2Badge(score: number): string {
-  if (score >= 7) return 'bg-red-600/30 text-red-200 border border-red-500/60';
+  if (score >= 7) return 'bg-red-600/30 text-red-800 border border-red-500/60';
   if (score >= 5) return 'bg-orange-500/25 text-orange-200 border border-orange-500/50';
-  if (score >= 3) return 'bg-amber-400/20 text-amber-200 border border-amber-400/50';
-  return 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/50';
+  if (score >= 3) return 'bg-amber-400/20 text-amber-800 border border-amber-400/50';
+  return 'bg-emerald-500/20 text-emerald-800 border border-emerald-500/50';
 }
 
 export default function IcuPage() {
@@ -143,10 +143,10 @@ export default function IcuPage() {
           </div>
         </div>
         <div className="rounded-lg border border-blue-500/30 bg-blue-500/[0.05] p-3">
-          <div className="text-[10px] uppercase tracking-wider text-blue-300/80 font-semibold">
+          <div className="text-[10px] uppercase tracking-wider text-blue-700/80 font-semibold">
             Em ventilação
           </div>
-          <div className="text-2xl font-bold text-blue-200 mt-1">{kpis.onVent}</div>
+          <div className="text-2xl font-bold text-blue-800 mt-1">{kpis.onVent}</div>
           <div className="text-[10px] text-white/75 mt-0.5">VM invasiva</div>
         </div>
         <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/[0.05] p-3">
@@ -157,10 +157,10 @@ export default function IcuPage() {
           <div className="text-[10px] text-white/75 mt-0.5">RASS ≤ -2</div>
         </div>
         <div className="rounded-lg border border-red-500/40 bg-red-500/[0.06] p-3">
-          <div className="text-[10px] uppercase tracking-wider text-red-300/80 font-semibold">
+          <div className="text-[10px] uppercase tracking-wider text-red-700/80 font-semibold">
             Alertas críticos
           </div>
-          <div className="text-2xl font-bold text-red-300 mt-1">{kpis.criticalAlerts}</div>
+          <div className="text-2xl font-bold text-red-700 mt-1">{kpis.criticalAlerts}</div>
           <div className="text-[10px] text-white/75 mt-0.5">Severidade alta</div>
         </div>
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/[0.05] p-3">
@@ -171,10 +171,10 @@ export default function IcuPage() {
           <div className="text-[10px] text-white/75 mt-0.5">APACHE II médio</div>
         </div>
         <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.05] p-3">
-          <div className="text-[10px] uppercase tracking-wider text-amber-200/80 font-semibold">
+          <div className="text-[10px] uppercase tracking-wider text-amber-800/80 font-semibold">
             Pendências
           </div>
-          <div className="text-2xl font-bold text-amber-200 mt-1">{kpis.pending}</div>
+          <div className="text-2xl font-bold text-amber-800 mt-1">{kpis.pending}</div>
           <div className="text-[10px] text-white/75 mt-0.5">Ações abertas</div>
         </div>
       </div>
@@ -190,7 +190,7 @@ export default function IcuPage() {
                 onClick={() => setFilterSeverity(s)}
                 className={`text-[11px] px-2 py-1 rounded border ${
                   filterSeverity === s
-                    ? 'bg-blue-500/25 border-blue-400/70 text-blue-100'
+                    ? 'bg-blue-500/25 border-blue-400/70 text-blue-900'
                     : 'bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/[0.06]'
                 }`}
               >
@@ -298,12 +298,12 @@ export default function IcuPage() {
               {/* Devices row */}
               <div className="flex flex-wrap gap-1 mt-2">
                 {bed.ventilation && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-200 border border-blue-500/40">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-800 border border-blue-500/40">
                     VM {bed.ventilation.mode} · FiO₂ {bed.ventilation.fio2}%
                   </span>
                 )}
                 {bed.vasopressors && bed.vasopressors.length > 0 && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-200 border border-red-500/40">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-800 border border-red-500/40">
                     DVA ×{bed.vasopressors.length}
                   </span>
                 )}
@@ -316,7 +316,7 @@ export default function IcuPage() {
 
               {/* Alerts */}
               {bed.alerts && bed.alerts.length > 0 && (
-                <div className="mt-2 text-[9px] text-amber-200/90 truncate">
+                <div className="mt-2 text-[9px] text-amber-800/90 truncate">
                   ⚠ {bed.alerts[0]}
                   {bed.alerts.length > 1 && ` +${bed.alerts.length - 1}`}
                 </div>
@@ -329,10 +329,10 @@ export default function IcuPage() {
                   <span
                     className={`font-semibold ${
                       bed.goalsOfCare === 'definidos'
-                        ? 'text-emerald-300'
+                        ? 'text-emerald-700'
                         : bed.goalsOfCare === 'em-conversa'
-                          ? 'text-amber-200'
-                          : 'text-red-300'
+                          ? 'text-amber-800'
+                          : 'text-red-700'
                     }`}
                   >
                     {GOALS_LABEL[bed.goalsOfCare]}
@@ -352,7 +352,7 @@ export default function IcuPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-slate-900 border border-white/15 rounded-xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white border border-white/15 rounded-xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-start justify-between mb-4">
               <div>
@@ -463,7 +463,7 @@ export default function IcuPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               {selected.ventilation && (
                 <div className="rounded border border-blue-500/30 bg-blue-500/[0.05] p-3">
-                  <div className="text-[10px] uppercase text-blue-200/80 mb-1">Ventilação</div>
+                  <div className="text-[10px] uppercase text-blue-800/80 mb-1">Ventilação</div>
                   <div className="text-xs text-white/90">
                     Modo: <span className="font-mono">{selected.ventilation.mode}</span>
                   </div>
@@ -474,7 +474,7 @@ export default function IcuPage() {
               )}
               {selected.vasopressors && selected.vasopressors.length > 0 && (
                 <div className="rounded border border-red-500/30 bg-red-500/[0.05] p-3">
-                  <div className="text-[10px] uppercase text-red-200/80 mb-1">
+                  <div className="text-[10px] uppercase text-red-800/80 mb-1">
                     Drogas Vasoativas
                   </div>
                   {selected.vasopressors.map((v) => (
@@ -507,7 +507,7 @@ export default function IcuPage() {
             {/* Alerts */}
             {selected.alerts && selected.alerts.length > 0 && (
               <div className="mb-4 rounded border border-amber-500/40 bg-amber-500/[0.06] p-3">
-                <div className="text-[10px] uppercase tracking-wider text-amber-200 mb-1.5">
+                <div className="text-[10px] uppercase tracking-wider text-amber-800 mb-1.5">
                   Alertas Ativos
                 </div>
                 <ul className="text-xs text-amber-100/90 space-y-0.5">

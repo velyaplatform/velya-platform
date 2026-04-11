@@ -67,28 +67,28 @@ const VARIANT_STYLES: Record<
 > = {
   success: {
     container: 'bg-green-900/60 border-green-600 text-green-100',
-    icon: 'text-green-300',
+    icon: 'text-green-700',
     iconChar: '\u2713',
     role: 'status',
     ariaLive: 'polite',
   },
   error: {
     container: 'bg-red-900/60 border-red-600 text-red-100',
-    icon: 'text-red-300',
+    icon: 'text-red-700',
     iconChar: '\u26A0\uFE0F',
     role: 'alert',
     ariaLive: 'assertive',
   },
   info: {
-    container: 'bg-blue-900/60 border-blue-600 text-blue-100',
-    icon: 'text-blue-300',
+    container: 'bg-blue-900/60 border-blue-600 text-blue-900',
+    icon: 'text-blue-700',
     iconChar: '\u24D8',
     role: 'status',
     ariaLive: 'polite',
   },
   warning: {
     container: 'bg-amber-900/60 border-amber-600 text-amber-100',
-    icon: 'text-amber-300',
+    icon: 'text-amber-700',
     iconChar: '\u26A1',
     role: 'status',
     ariaLive: 'polite',

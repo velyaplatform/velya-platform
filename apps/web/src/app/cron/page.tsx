@@ -53,20 +53,20 @@ interface CronFinding {
 }
 
 const SEVERITY_BADGE: Record<string, string> = {
-  info: 'bg-slate-800 text-slate-200 border-slate-600',
-  low: 'bg-blue-900/40 text-blue-200 border-blue-700/60',
-  medium: 'bg-amber-900/40 text-amber-200 border-amber-700/60',
+  info: 'bg-slate-50 text-slate-700 border-slate-300',
+  low: 'bg-blue-900/40 text-blue-800 border-blue-700/60',
+  medium: 'bg-amber-900/40 text-amber-800 border-amber-700/60',
   high: 'bg-orange-900/40 text-orange-200 border-orange-700/60',
-  critical: 'bg-red-900/40 text-red-200 border-red-700/60',
+  critical: 'bg-red-900/40 text-red-800 border-red-700/60',
 };
 
 const STATUS_BADGE: Record<string, string> = {
-  new: 'bg-blue-900/40 text-blue-200 border-blue-700/60',
+  new: 'bg-blue-900/40 text-blue-800 border-blue-700/60',
   'shadow-recommendation-ready': 'bg-purple-900/40 text-purple-200 border-purple-700/60',
-  'in-review': 'bg-amber-900/40 text-amber-200 border-amber-700/60',
-  'resolved-auto': 'bg-green-900/40 text-green-200 border-green-700/60',
-  'resolved-manual': 'bg-green-900/40 text-green-200 border-green-700/60',
-  dismissed: 'bg-slate-800 text-slate-400 border-slate-700',
+  'in-review': 'bg-amber-900/40 text-amber-800 border-amber-700/60',
+  'resolved-auto': 'bg-green-900/40 text-green-800 border-green-700/60',
+  'resolved-manual': 'bg-green-900/40 text-green-800 border-green-700/60',
+  dismissed: 'bg-slate-50 text-slate-500 border-slate-200',
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -79,10 +79,10 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const RUN_STATUS_COLOR: Record<string, string> = {
-  running: 'text-blue-300',
-  success: 'text-green-300',
-  partial: 'text-amber-300',
-  failed: 'text-red-300',
+  running: 'text-blue-700',
+  success: 'text-green-700',
+  partial: 'text-amber-700',
+  failed: 'text-red-700',
 };
 
 export default function CronDashboardPage() {
@@ -203,7 +203,7 @@ export default function CronDashboardPage() {
       {error && (
         <div
           role="alert"
-          className="bg-red-950/40 border border-red-700 text-red-200 rounded-md px-4 py-3 mb-4 text-sm"
+          className="bg-red-950/40 border border-red-700 text-red-800 rounded-md px-4 py-3 mb-4 text-sm"
         >
           {error}
         </div>
@@ -274,19 +274,19 @@ export default function CronDashboardPage() {
         />
       </div>
 
-      {loading && <p className="text-slate-300">Carregando...</p>}
+      {loading && <p className="text-slate-600">Carregando...</p>}
 
       {!loading && tab === 'jobs' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {jobs.map((job) => (
             <article
               key={job.id}
-              className="bg-slate-900 border border-slate-700 rounded-lg p-4 hover:border-blue-700 transition-colors"
+              className="bg-white border border-slate-200 rounded-lg p-4 hover:border-blue-700 transition-colors"
             >
               <header className="flex items-start justify-between gap-2 mb-2">
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-bold text-slate-100 truncate">{job.label}</h3>
-                  <p className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5 font-mono">
+                  <h3 className="text-sm font-bold text-slate-900 truncate">{job.label}</h3>
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 mt-0.5 font-mono">
                     {job.id}
                   </p>
                 </div>
@@ -297,23 +297,23 @@ export default function CronDashboardPage() {
                 </span>
               </header>
 
-              <p className="text-xs text-slate-300 leading-snug mb-3 line-clamp-3">
+              <p className="text-xs text-slate-600 leading-snug mb-3 line-clamp-3">
                 {job.description}
               </p>
 
-              <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3 text-[10px] text-slate-400">
+              <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3 text-[10px] text-slate-500">
                 <span>
-                  cron <code className="text-slate-200">{job.cron}</code>
+                  cron <code className="text-slate-700">{job.cron}</code>
                 </span>
                 <span>
-                  surface <code className="text-slate-200">{job.surface}</code>
+                  surface <code className="text-slate-700">{job.surface}</code>
                 </span>
               </div>
 
               {job.lastRun && (
-                <div className="text-[10px] text-slate-400 mb-3 pb-3 border-b border-slate-700/60">
+                <div className="text-[10px] text-slate-500 mb-3 pb-3 border-b border-slate-200/60">
                   <span
-                    className={`font-bold ${RUN_STATUS_COLOR[job.lastRun.status] ?? 'text-slate-200'}`}
+                    className={`font-bold ${RUN_STATUS_COLOR[job.lastRun.status] ?? 'text-slate-700'}`}
                   >
                     {job.lastRun.status}
                   </span>
@@ -355,7 +355,7 @@ export default function CronDashboardPage() {
           </div>
 
           {findings.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 text-center text-sm text-slate-300">
+            <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-sm text-slate-600">
               Nenhum finding {findingsFilter === 'open' ? 'aberto ' : ''}no momento.
             </div>
           ) : (
@@ -363,7 +363,7 @@ export default function CronDashboardPage() {
               {findings.map((f) => (
                 <article
                   key={f.id}
-                  className="bg-slate-900 border border-slate-700 rounded-lg p-4 hover:border-blue-700 transition-colors"
+                  className="bg-white border border-slate-200 rounded-lg p-4 hover:border-blue-700 transition-colors"
                 >
                   <header className="flex items-center gap-2 mb-2 flex-wrap">
                     <span
@@ -381,12 +381,12 @@ export default function CronDashboardPage() {
                     </span>
                   </header>
 
-                  <p className="text-sm text-slate-100 leading-snug line-clamp-3 mb-2">
+                  <p className="text-sm text-slate-900 leading-snug line-clamp-3 mb-2">
                     {f.message}
                   </p>
 
                   <p
-                    className="text-[10px] text-slate-400 font-mono truncate mb-3"
+                    className="text-[10px] text-slate-500 font-mono truncate mb-3"
                     title={f.target}
                   >
                     {f.surface} · {f.target}
@@ -394,17 +394,17 @@ export default function CronDashboardPage() {
 
                   {f.suggestion && (
                     <details className="mb-3">
-                      <summary className="text-[11px] text-blue-300 cursor-pointer hover:text-blue-200 font-semibold">
+                      <summary className="text-[11px] text-blue-700 cursor-pointer hover:text-blue-800 font-semibold">
                         Recomendação (shadow)
                       </summary>
-                      <p className="text-[11px] text-slate-200 mt-2 bg-blue-950/30 border border-blue-700/40 rounded-md p-2 whitespace-pre-wrap">
+                      <p className="text-[11px] text-slate-700 mt-2 bg-blue-950/30 border border-blue-700/40 rounded-md p-2 whitespace-pre-wrap">
                         {f.suggestion}
                       </p>
                     </details>
                   )}
 
                   {(f.status === 'new' || f.status === 'shadow-recommendation-ready') && (
-                    <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-700">
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200">
                       <button
                         type="button"
                         onClick={() => patchFinding(f.id, 'resolve-manual')}
@@ -422,7 +422,7 @@ export default function CronDashboardPage() {
                       <button
                         type="button"
                         onClick={() => patchFinding(f.id, 'dismiss')}
-                        className="text-[11px] font-bold px-3 py-1.5 rounded bg-slate-800 border border-slate-600 text-slate-200 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="text-[11px] font-bold px-3 py-1.5 rounded bg-slate-50 border border-slate-300 text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
                       >
                         Descartar
                       </button>
@@ -454,16 +454,16 @@ function KpiCard({
   tone: 'neutral' | 'ok' | 'watch' | 'alert';
 }) {
   const toneClass: Record<typeof tone, string> = {
-    neutral: 'bg-slate-900 border-slate-700',
+    neutral: 'bg-white border-slate-200',
     ok: 'bg-green-950/30 border-green-700/60',
     watch: 'bg-amber-950/30 border-amber-700/60',
     alert: 'bg-red-950/30 border-red-700/60',
   };
   return (
     <div className={`rounded-xl border ${toneClass[tone]} px-4 py-4`}>
-      <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">{label}</p>
-      <p className="text-3xl font-extrabold text-slate-100 mt-1 leading-none">{value}</p>
-      <p className="text-xs text-slate-300 mt-2">{hint}</p>
+      <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{label}</p>
+      <p className="text-3xl font-extrabold text-slate-900 mt-1 leading-none">{value}</p>
+      <p className="text-xs text-slate-600 mt-2">{hint}</p>
     </div>
   );
 }
@@ -491,12 +491,12 @@ function FilterChip({
       className={`min-h-[40px] px-3 py-2 rounded-full text-xs font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors ${
         active
           ? 'bg-blue-700 text-white border-blue-500'
-          : 'bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700'
+          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
       }`}
     >
       {label}
       {count !== undefined && (
-        <span className={`ml-1.5 text-[10px] ${active ? 'text-blue-100' : 'text-slate-400'}`}>
+        <span className={`ml-1.5 text-[10px] ${active ? 'text-blue-900' : 'text-slate-500'}`}>
           ({count})
         </span>
       )}

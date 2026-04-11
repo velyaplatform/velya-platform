@@ -97,7 +97,7 @@ export default function RegisterPage() {
   }
 
   const inputClass =
-    'w-full min-h-[44px] bg-white/10 border border-white/30 rounded-lg px-3.5 py-2.5 text-white text-base placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition';
+    'w-full min-h-[44px] bg-white/10 border border-white/30 rounded-lg px-3.5 py-2.5 text-white text-base placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition';
 
   return (
     <main className="min-h-screen bg-velya-bg flex items-center justify-center px-4 py-8">
@@ -108,7 +108,7 @@ export default function RegisterPage() {
         {/* Header */}
         <header className="text-center mb-8">
           <div className="text-2xl font-bold text-white tracking-tight">Velya</div>
-          <div className="text-xs text-slate-300 uppercase tracking-widest mt-1 font-medium">
+          <div className="text-xs text-slate-600 uppercase tracking-widest mt-1 font-medium">
             Plataforma Hospitalar
           </div>
           <h1 id="register-title" className="text-xl font-semibold text-white mt-6">
@@ -121,7 +121,7 @@ export default function RegisterPage() {
           {error && (
             <div
               role="alert"
-              className="bg-red-500/20 border border-red-400/50 rounded-lg px-4 py-3 text-red-200 text-sm"
+              className="bg-red-500/20 border border-red-400/50 rounded-lg px-4 py-3 text-red-800 text-sm"
             >
               {error}
             </div>
@@ -129,7 +129,7 @@ export default function RegisterPage() {
 
           {/* Nome Completo */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="nome" className="text-sm font-medium text-slate-200">
+            <label htmlFor="nome" className="text-sm font-medium text-slate-700">
               Nome Completo *
             </label>
             <input
@@ -146,7 +146,7 @@ export default function RegisterPage() {
 
           {/* Email */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-sm font-medium text-slate-200">
+            <label htmlFor="email" className="text-sm font-medium text-slate-700">
               Email *
             </label>
             <input
@@ -164,7 +164,7 @@ export default function RegisterPage() {
           {/* Senha row - stacks on mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-slate-200">
+              <label htmlFor="password" className="text-sm font-medium text-slate-700">
                 Senha *
               </label>
               <input
@@ -179,7 +179,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-200">
+              <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">
                 Confirmar Senha *
               </label>
               <input
@@ -197,7 +197,7 @@ export default function RegisterPage() {
 
           {/* Profissao */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="role" className="text-sm font-medium text-slate-200">
+            <label htmlFor="role" className="text-sm font-medium text-slate-700">
               Profissão / Função *
             </label>
             <select
@@ -206,7 +206,7 @@ export default function RegisterPage() {
               aria-label="Profissão ou função no hospital"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full min-h-[44px] bg-slate-800 border border-white/30 rounded-lg px-3.5 py-2.5 text-white text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition cursor-pointer"
+              className="w-full min-h-[44px] bg-slate-50 border border-white/30 rounded-lg px-3.5 py-2.5 text-white text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition cursor-pointer"
               required
             >
               <option value="">Selecione sua função</option>
@@ -220,7 +220,7 @@ export default function RegisterPage() {
 
           {/* Setor */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="setor" className="text-sm font-medium text-slate-200">
+            <label htmlFor="setor" className="text-sm font-medium text-slate-700">
               Setor / Unidade *
             </label>
             <input
@@ -237,7 +237,7 @@ export default function RegisterPage() {
           {/* Registro Profissional (conditional) */}
           {showCouncil && (
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="conselho" className="text-sm font-medium text-slate-200">
+              <label htmlFor="conselho" className="text-sm font-medium text-slate-700">
                 Registro Profissional
               </label>
               <input
@@ -260,10 +260,10 @@ export default function RegisterPage() {
           </button>
 
           <div className="text-center mt-2 py-2">
-            <span className="text-sm text-slate-300">Já tem conta? </span>
+            <span className="text-sm text-slate-600">Já tem conta? </span>
             <Link
               href="/login"
-              className="text-sm font-semibold text-blue-300 hover:text-blue-200 underline-offset-2 hover:underline transition inline-block min-h-[44px] leading-[44px]"
+              className="text-sm font-semibold text-blue-700 hover:text-blue-800 underline-offset-2 hover:underline transition inline-block min-h-[44px] leading-[44px]"
             >
               Entrar
             </Link>

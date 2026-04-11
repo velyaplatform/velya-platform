@@ -77,8 +77,8 @@ export default function NewDelegationPage() {
   }
 
   const input =
-    'w-full min-h-[44px] bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400';
-  const label = 'text-sm font-medium text-slate-200';
+    'w-full min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400';
+  const label = 'text-sm font-medium text-slate-700';
 
   return (
     <AppShell pageTitle="Nova delegação">
@@ -89,9 +89,9 @@ export default function NewDelegationPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-slate-900 border border-slate-700 rounded-xl p-5 max-w-3xl">
+      <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-5 max-w-3xl">
         {error && (
-          <div role="alert" className="mb-4 bg-red-950/40 border border-red-700 text-red-200 text-sm rounded-md px-4 py-3">
+          <div role="alert" className="mb-4 bg-red-950/40 border border-red-700 text-red-800 text-sm rounded-md px-4 py-3">
             {error}
           </div>
         )}
@@ -177,7 +177,7 @@ export default function NewDelegationPage() {
               ))}
             </select>
             {assignee && (
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 Ramal: {assignee.contactExtension ?? '—'} · Turno: {assignee.shiftStart}–
                 {assignee.shiftEnd}
               </p>
@@ -249,7 +249,7 @@ export default function NewDelegationPage() {
               <button
                 type="button"
                 onClick={addDeliverable}
-                className="min-h-[44px] px-4 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="min-h-[44px] px-4 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
               >
                 Adicionar
               </button>
@@ -259,14 +259,14 @@ export default function NewDelegationPage() {
                 {deliverables.map((item, idx) => (
                   <li
                     key={idx}
-                    className="flex items-center justify-between gap-2 text-sm bg-slate-800 border border-slate-700 rounded-md px-3 py-2"
+                    className="flex items-center justify-between gap-2 text-sm bg-slate-50 border border-slate-200 rounded-md px-3 py-2"
                   >
-                    <span className="text-slate-100">{item}</span>
+                    <span className="text-slate-900">{item}</span>
                     <button
                       type="button"
                       onClick={() => setDeliverables((prev) => prev.filter((_, i) => i !== idx))}
                       aria-label={`Remover ${item}`}
-                      className="text-red-300 hover:text-red-200 text-xs font-bold"
+                      className="text-red-700 hover:text-red-800 text-xs font-bold"
                     >
                       Remover
                     </button>
@@ -280,7 +280,7 @@ export default function NewDelegationPage() {
         <div className="flex justify-end gap-3 mt-6">
           <Link
             href="/delegations"
-            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-800 border border-slate-600 text-slate-100 hover:bg-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
           >
             Cancelar
           </Link>

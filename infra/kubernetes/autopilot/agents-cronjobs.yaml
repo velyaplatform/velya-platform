@@ -1,0 +1,337 @@
+# velya-autopilot-agents — Kubernetes CronJobs
+#
+# Agents autônomos que rodam dentro do cluster velya-dev (kind / EKS) e
+# fazem melhoria contínua do frontend, backend e infra.
+#
+# Complementa os GitHub Actions workflows (ui-audit-daily.yaml,
+# frontend-quality-daily.yaml etc) com execução IN-cluster que tem:
+#   - kubectl nativo via ServiceAccount
+#   - acesso ao velya-audit PVC para evidence logs
+#   - acesso aos serviços internos (Prometheus, ArgoCD API)
+#   - resposta em tempo real a eventos do cluster
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: velya-autopilot-sa
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+
+---
+# RBAC: mínimo necessário para detecção + remediação segura
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: velya-autopilot-reader
+  labels:
+    velya.io/owner: platform-ops
+rules:
+  # Leitura geral de state da cluster
+  - apiGroups: ['']
+    resources: ['pods', 'events', 'services', 'endpoints', 'configmaps', 'namespaces', 'nodes']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['apps']
+    resources: ['deployments', 'statefulsets', 'daemonsets', 'replicasets']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['batch']
+    resources: ['jobs', 'cronjobs']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['autoscaling']
+    resources: ['horizontalpodautoscalers']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['keda.sh']
+    resources: ['scaledobjects', 'scaledjobs', 'triggerauthentications']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['scheduling.k8s.io']
+    resources: ['priorityclasses']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['argoproj.io']
+    resources: ['applications', 'appprojects']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['networking.k8s.io']
+    resources: ['networkpolicies', 'ingresses']
+    verbs: ['get', 'list', 'watch']
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: velya-autopilot-remediator
+  labels:
+    velya.io/owner: platform-ops
+rules:
+  # Criar PriorityClass missing (allowlist enforced by controller)
+  - apiGroups: ['scheduling.k8s.io']
+    resources: ['priorityclasses']
+    verbs: ['create']
+  # Dedupe duplicate HPAs
+  - apiGroups: ['autoscaling']
+    resources: ['horizontalpodautoscalers']
+    verbs: ['delete']
+  # Prune completed Jobs
+  - apiGroups: ['batch']
+    resources: ['jobs']
+    verbs: ['delete']
+
+---
+# Namespace-scoped: criar ServiceAccounts faltantes dentro dos namespaces velya-dev-*
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: velya-autopilot-namespace-remediator
+  namespace: velya-dev-core
+rules:
+  - apiGroups: ['']
+    resources: ['serviceaccounts']
+    verbs: ['create', 'patch']
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: velya-autopilot-namespace-remediator
+  namespace: velya-dev-platform
+rules:
+  - apiGroups: ['']
+    resources: ['serviceaccounts']
+    verbs: ['create', 'patch']
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: velya-autopilot-namespace-remediator
+  namespace: velya-dev-agents
+rules:
+  - apiGroups: ['']
+    resources: ['serviceaccounts']
+    verbs: ['create', 'patch']
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: velya-autopilot-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: velya-autopilot-reader
+subjects:
+  - kind: ServiceAccount
+    name: velya-autopilot-sa
+    namespace: velya-dev-platform
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: velya-autopilot-remediator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: velya-autopilot-remediator
+subjects:
+  - kind: ServiceAccount
+    name: velya-autopilot-sa
+    namespace: velya-dev-platform
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: velya-autopilot-namespace-remediator
+  namespace: velya-dev-core
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: velya-autopilot-namespace-remediator
+subjects:
+  - kind: ServiceAccount
+    name: velya-autopilot-sa
+    namespace: velya-dev-platform
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: velya-autopilot-namespace-remediator
+  namespace: velya-dev-platform
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: velya-autopilot-namespace-remediator
+subjects:
+  - kind: ServiceAccount
+    name: velya-autopilot-sa
+    namespace: velya-dev-platform
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: velya-autopilot-namespace-remediator
+  namespace: velya-dev-agents
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: velya-autopilot-namespace-remediator
+subjects:
+  - kind: ServiceAccount
+    name: velya-autopilot-sa
+    namespace: velya-dev-platform
+
+---
+# PVC para evidence logs dos agents
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: velya-autopilot-data
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+spec:
+  accessModes: ['ReadWriteOnce']
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+# Infra health agent — roda a cada 15 minutos
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-infra-health-agent
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: infra-health
+spec:
+  schedule: '*/15 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            velya.io/agent: infra-health
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:latest
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-infra-health.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_DRY_RUN
+                  value: 'false'
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
+
+---
+# Frontend quality agent — roda a cada 4 horas
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-frontend-quality-agent
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: frontend-quality
+spec:
+  schedule: '0 */4 * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            velya.io/agent: frontend-quality
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:latest
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-frontend-quality.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_REPO_ROOT
+                  value: /workspace
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+                limits:
+                  memory: 2Gi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: false # next build precisa escrever .next
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
