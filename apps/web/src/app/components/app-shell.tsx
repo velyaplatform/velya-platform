@@ -307,7 +307,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
           onMobileClose={() => setSidebarOpen(false)}
         />
 
-        <div className="flex min-h-full flex-1 flex-col md:ml-[260px]">
+        <div className="app-content-wrapper flex min-h-full flex-1 flex-col">
           {/* Sub-header — repo-style com título da página + ações */}
           <div
             className="flex items-center justify-between gap-3 px-6"

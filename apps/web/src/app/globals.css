@@ -503,6 +503,18 @@ a:hover {
   margin: 0 auto;
 }
 
+/* Content wrapper — shifted right on desktop to clear the fixed sidebar.
+   In plain CSS because Tailwind v4 JIT isn't always picking up
+   md:ml-[260px] as a lone arbitrary-value utility. */
+.app-content-wrapper {
+  margin-left: 0;
+}
+@media (min-width: 768px) {
+  .app-content-wrapper {
+    margin-left: var(--sidebar-width);
+  }
+}
+
 /* ============================================================================
    CARDS / BOXES — Primer "Box" component
    ============================================================================ */
