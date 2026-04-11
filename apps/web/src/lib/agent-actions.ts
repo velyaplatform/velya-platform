@@ -23,7 +23,13 @@
  */
 
 import { audit } from './audit-logger';
-import { createFinding, updateFinding } from './cron-store';
+import {
+  createFinding,
+  recordLearning,
+  updateFinding,
+  type Severity,
+  type Surface,
+} from './cron-store';
 import {
   getAgent,
   canExecuteAutonomously,
@@ -35,6 +41,7 @@ import {
   quarantineAgent as quarantineAgentState,
   recordAgentRun,
 } from './agent-state';
+import { pageOnCall as raiseOnCallPage } from './oncall-store';
 import { invalidateSearchIndex } from './semantic-search';
 
 export interface ActionRequest {
@@ -81,9 +88,22 @@ const HANDLERS: Record<string, Handler> = {
     invalidateSearchIndex();
     return { ok: true, message: 'Cache de busca invalidado', rollbackHash: 'cache:noop' };
   },
-  'rebalance-priorities': async () => {
-    // Pure ranking change; no persistent side effect beyond a finding update.
-    return { ok: true, message: 'Prioridades recalculadas', rollbackHash: 'priorities:noop' };
+  'rebalance-priorities': async (agent) => {
+    // Records a learning entry so the rebalance is queryable in /cron and
+    // can be correlated with subsequent finding-resolution velocity.
+    // The actual ranking is computed at read-time by listFindings, so the
+    // "rebalance" itself is a metadata bookmark, not a destructive write.
+    const learning = recordLearning({
+      patternId: `priorities-rebalanced:${agent.id}`,
+      observation: `Manager ${agent.id} recalculou prioridades das findings abertas`,
+      recommendation:
+        'Próxima revisão deve focar nas findings críticas mais antigas. Métrica de sucesso: redução do tempo médio de resolução das críticas em 20%.',
+    });
+    return {
+      ok: true,
+      message: `Prioridades rebalanceadas (learning ${learning.id}, ${learning.occurrences} ciclos)`,
+      rollbackHash: `priorities:${learning.id}`,
+    };
   },
   'mark-finding-resolved': async (agent, payload) => {
     const findingId = String(payload.findingId ?? '');
@@ -99,39 +119,83 @@ const HANDLERS: Record<string, Handler> = {
       rollbackHash: `finding:${findingId}:resolved-auto`,
     };
   },
-  'flag-flaky-endpoint': async (_agent, payload) => {
+  'flag-flaky-endpoint': async (agent, payload) => {
     const endpoint = String(payload.endpoint ?? '');
     if (!endpoint) return { ok: false, message: 'endpoint obrigatório' };
+    // Two-store write: a low-severity finding so /cron shows it, and a
+    // learning so repeat flakiness against the same endpoint accumulates
+    // (occurrences counter, used by the curator to propose escalation).
+    const finding = createFinding({
+      jobId: agent.ownedJobIds[0] ?? `agent:${agent.id}`,
+      runId: `flag-flaky:${Date.now()}`,
+      severity: 'low',
+      surface: 'backend.api',
+      target: endpoint,
+      message: `Endpoint flaky detectado: ${endpoint}`,
+      details: { detectedBy: agent.id, payload },
+    });
+    const learning = recordLearning({
+      patternId: `flaky-endpoint:${endpoint}`,
+      observation: `Endpoint ${endpoint} apresentou comportamento intermitente`,
+      recommendation:
+        'Verificar latência P95, restarts do pod servidor e logs do upstream. Se >5 ocorrências em 24h, escalar como crítico.',
+    });
     return {
       ok: true,
-      message: `Endpoint ${endpoint} marcado como flaky`,
-      rollbackHash: `flaky:${endpoint}`,
+      message: `Endpoint ${endpoint} flagged (finding ${finding.id}, learning ${learning.occurrences}x)`,
+      rollbackHash: `flaky:${finding.id}`,
     };
   },
 
   // ---- UX office ----
-  'suggest-link-to': async (_agent, payload) => {
-    // This handler ONLY records a suggestion as a finding — it does not
-    // edit the manifest. Editing source code is always a critical action.
+  'suggest-link-to': async (agent, payload) => {
+    // This handler RECORDS the suggestion as both a finding (so /cron shows
+    // it) and a learning (so repeat suggestions for the same field bump
+    // confidence). It NEVER edits the manifest — that's a critical action.
     const moduleId = String(payload.moduleId ?? '');
     const columnKey = String(payload.columnKey ?? '');
     if (!moduleId || !columnKey)
       return { ok: false, message: 'moduleId e columnKey são obrigatórios' };
+    const target = `${moduleId}.${columnKey}`;
+    const finding = createFinding({
+      jobId: agent.ownedJobIds[0] ?? `agent:${agent.id}`,
+      runId: `suggest-link:${Date.now()}`,
+      severity: 'low',
+      surface: 'compliance.field-link',
+      target,
+      message: `Sugestão de linkTo para ${target}`,
+      details: { moduleId, columnKey, suggestedBy: agent.id, payload },
+    });
+    const learning = recordLearning({
+      patternId: `link-policy:${target}`,
+      observation: `Coluna ${target} sem linkTo no module-manifest`,
+      recommendation: `Adicionar linkTo ao manifest para tornar ${columnKey} clicável e direcionar ao módulo correspondente.`,
+    });
     return {
       ok: true,
-      message: `Sugestão de linkTo registrada para ${moduleId}.${columnKey}`,
-      rollbackHash: 'suggestion:noop',
+      message: `Sugestão de linkTo para ${target} (finding ${finding.id}, ${learning.occurrences}x visto)`,
+      rollbackHash: `suggestion:${finding.id}`,
     };
   },
 
   // ---- Learning office ----
-  'increment-pattern-confidence': async (_agent, payload) => {
+  'increment-pattern-confidence': async (agent, payload) => {
     const patternId = String(payload.patternId ?? '');
     if (!patternId) return { ok: false, message: 'patternId obrigatório' };
+    // recordLearning has built-in dedup: same patternId increments occurrences
+    // and updates lastSeenAt. Confidence is derived at read-time as
+    // occurrences / (1 + recentResolved) by the curator.
+    const observation = String(
+      payload.observation ?? `Padrão ${patternId} observado por ${agent.id}`,
+    );
+    const recommendation = String(
+      payload.recommendation ?? `Acompanhar evolução do padrão ${patternId}.`,
+    );
+    const learning = recordLearning({ patternId, observation, recommendation });
     return {
       ok: true,
-      message: `Confidence do padrão ${patternId} incrementada`,
-      rollbackHash: `pattern:${patternId}`,
+      message: `Padrão ${patternId} agora com ${learning.occurrences} ocorrência(s)`,
+      rollbackHash: `pattern:${learning.id}`,
     };
   },
 
@@ -154,11 +218,26 @@ const HANDLERS: Record<string, Handler> = {
       rollbackHash: `quarantine:${targetId}`,
     };
   },
-  'page-on-call': async (_agent, payload) => {
+  'page-on-call': async (agent, payload) => {
     const message = String(payload.message ?? 'finding crítico');
-    // Sends a structured alert via the audit channel — actual paging hook
-    // is wired by the K8s alertmanager bridge, not by this code.
-    return { ok: true, message: `On-call paged: ${message}`, rollbackHash: 'page:noop' };
+    // Persists the page in the dedicated oncall-store (immutable evidence,
+    // queryable by the /agents dashboard) AND emits an audit entry. The
+    // actual K8s alertmanager bridge consumes the audit log downstream.
+    const severityRaw = String(payload.severity ?? 'warning');
+    const severity = (
+      ['info', 'warning', 'critical'].includes(severityRaw) ? severityRaw : 'warning'
+    ) as 'info' | 'warning' | 'critical';
+    const page = raiseOnCallPage({
+      triggeredBy: agent.id,
+      message,
+      severity,
+      context: payload as Record<string, unknown>,
+    });
+    return {
+      ok: true,
+      message: `On-call paged (${severity}): ${page.id}`,
+      rollbackHash: `page:${page.id}`,
+    };
   },
   'reject-action-no-evidence': async () => {
     return {
@@ -170,19 +249,50 @@ const HANDLERS: Record<string, Handler> = {
   'block-unsafe-action': async () => {
     return { ok: true, message: 'Ação bloqueada por security-auditor', rollbackHash: 'block:noop' };
   },
-  'log-security-finding': async (_agent, payload) => {
+  'log-security-finding': async (agent, payload) => {
+    const detail = String(payload.detail ?? '');
+    if (!detail) return { ok: false, message: 'detail obrigatório' };
+    // Severity from payload (default high — security findings are not low).
+    const severityRaw = String(payload.severity ?? 'high');
+    const severity = (
+      ['info', 'low', 'medium', 'high', 'critical'].includes(severityRaw) ? severityRaw : 'high'
+    ) as Severity;
+    const surfaceRaw = String(payload.surface ?? 'security.headers');
+    const surface = surfaceRaw as Surface;
+    const finding = createFinding({
+      jobId: agent.ownedJobIds[0] ?? `agent:${agent.id}`,
+      runId: `sec-finding:${Date.now()}`,
+      severity,
+      surface,
+      target: String(payload.target ?? agent.id),
+      message: detail,
+      details: { loggedBy: agent.id, payload },
+    });
     return {
       ok: true,
-      message: `Finding de segurança logado: ${String(payload.detail ?? '')}`,
-      rollbackHash: 'sec-log:noop',
+      message: `Finding de segurança ${finding.id} (${severity}) registrado`,
+      rollbackHash: `sec-log:${finding.id}`,
     };
   },
-  'flag-orphaned-record': async (_agent, payload) => {
+  'flag-orphaned-record': async (agent, payload) => {
     const recordId = String(payload.recordId ?? '');
+    if (!recordId) return { ok: false, message: 'recordId obrigatório' };
+    const moduleId = String(payload.moduleId ?? 'unknown');
+    // Medium severity because referential drift is more than cosmetic but
+    // less than critical (no PHI corruption — just an orphaned reference).
+    const finding = createFinding({
+      jobId: agent.ownedJobIds[0] ?? `agent:${agent.id}`,
+      runId: `flag-orphan:${Date.now()}`,
+      severity: 'medium',
+      surface: 'data.referential',
+      target: `${moduleId}:${recordId}`,
+      message: `Registro órfão detectado em ${moduleId}: ${recordId}`,
+      details: { moduleId, recordId, detectedBy: agent.id, payload },
+    });
     return {
       ok: true,
-      message: `Registro órfão ${recordId} marcado para revisão`,
-      rollbackHash: `orphan:${recordId}`,
+      message: `Registro órfão ${recordId} flagged (finding ${finding.id})`,
+      rollbackHash: `orphan:${finding.id}`,
     };
   },
 };
