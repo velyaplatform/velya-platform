@@ -350,6 +350,7 @@ export function Navigation({
 
             <textarea
               id="sidebar-suggestion"
+              aria-label="Enviar recomendação ou sugestão de melhoria"
               value={suggestionText}
               onChange={(e) => setSuggestionText(e.target.value)}
               onKeyDown={(e) => {

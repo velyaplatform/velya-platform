@@ -36,14 +36,18 @@ export const AvatarImage = React.forwardRef<
 export const AvatarFallback = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Fallback>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
->(function AvatarFallback({ className, ...props }, ref) {
+>(function AvatarFallback({ className, style, ...props }, ref) {
   return (
     <AvatarPrimitive.Fallback
       ref={ref}
       className={cn(
-        'flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-xs font-bold text-white',
+        'flex h-full w-full items-center justify-center rounded-full text-xs font-bold text-white',
         className,
       )}
+      // Solid color instead of gradient so computed backgroundColor is
+      // detectable by contrast-audit tools (gradients are background-image,
+      // not background-color, and fool naive contrast walkers).
+      style={{ backgroundColor: '#1d4ed8', ...style }}
       {...props}
     />
   );

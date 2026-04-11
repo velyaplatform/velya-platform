@@ -1,0 +1,127 @@
+name: UI audit (daily)
+
+# Roda todo dia às 09:00 UTC (06:00 BRT) e permite disparo manual.
+# Captura screenshots das páginas-chave do velya-web em produção,
+# analisa heurísticas visuais e abre PRs de melhoria quando detectar
+# regressões ou issues novas.
+
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'URL base (padrão: https://velyahospitalar.com)'
+        required: false
+        default: 'https://velyahospitalar.com'
+      create_pr:
+        description: 'Abrir PR com issues encontradas'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: ui-audit-daily
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Screenshot + detect issues
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: '22'
+
+      - name: Install workspace deps
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run screenshot capture
+        id: screenshot
+        env:
+          VELYA_TEST_EMAIL: ${{ secrets.VELYA_TEST_EMAIL }}
+          VELYA_TEST_PASSWORD: ${{ secrets.VELYA_TEST_PASSWORD }}
+        run: |
+          npx tsx scripts/ui-audit/screenshot-key-pages.ts \
+            --url="${{ inputs.base_url || 'https://velyahospitalar.com' }}" \
+            --out="./ui-audit-output"
+
+      - name: Run issue detection
+        id: detect
+        run: |
+          MANIFEST=$(find ./ui-audit-output -name "manifest.json" | head -1)
+          if [ -z "$MANIFEST" ]; then
+            echo "::error::Manifest não encontrado"
+            exit 1
+          fi
+          npx tsx scripts/ui-audit/detect-issues.ts --manifest="$MANIFEST" || true
+          echo "manifest=$MANIFEST" >> "$GITHUB_OUTPUT"
+
+      - name: Upload audit artifacts
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: ui-audit-${{ github.run_id }}
+          path: ui-audit-output/
+          retention-days: 30
+
+      - name: Create issue if critical findings
+        if: ${{ inputs.create_pr != false }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MANIFEST: ${{ steps.detect.outputs.manifest }}
+        run: |
+          REPORT_JSON=$(dirname "$MANIFEST")/issues.json
+          if [ ! -f "$REPORT_JSON" ]; then
+            echo "Nenhum report gerado — pulando."
+            exit 0
+          fi
+          CRITICAL=$(jq '.bySeverity.critical // 0' "$REPORT_JSON")
+          HIGH=$(jq '.bySeverity.high // 0' "$REPORT_JSON")
+          TOTAL=$(jq '.totalIssues // 0' "$REPORT_JSON")
+          if [ "$CRITICAL" -eq "0" ] && [ "$HIGH" -eq "0" ]; then
+            echo "Nenhuma issue crítica ou alta — pulando issue."
+            exit 0
+          fi
+          TITLE="UI Audit $(date -u +%Y-%m-%d): $TOTAL issues ($CRITICAL crit, $HIGH high)"
+          BODY_FILE=$(mktemp)
+          cat > "$BODY_FILE" <<EOF
+          ## Audit automático da UI
+
+          Workflow: ${{ github.workflow }}
+          Run: ${{ github.run_id }}
+          Artefato: ui-audit-${{ github.run_id }}
+
+          ### Resumo
+
+          - Critical: $CRITICAL
+          - High: $HIGH
+          - Total: $TOTAL
+
+          ### Issues
+
+          \`\`\`json
+          $(jq '.issues' "$REPORT_JSON")
+          \`\`\`
+
+          ---
+          Gerado pelo \`ui-audit-agent\` (shadow mode). Screenshots no artifact.
+          EOF
+          gh issue create \
+            --title "$TITLE" \
+            --label "autopilot/ui-audit" \
+            --body-file "$BODY_FILE"
