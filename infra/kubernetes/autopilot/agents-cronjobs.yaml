@@ -841,3 +841,87 @@ spec:
                 claimName: velya-autopilot-data
             - name: tmp
               emptyDir: {}
+
+---
+# Pin rot agent — roda diário às 04:00 UTC (depois do supply-chain scan 03:00)
+# Detecta SHAs/digests pinados que sumiram do upstream — classe #1 de "esteira
+# vermelha" no Velya, e que Dependabot NÃO cobre.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-pin-rot-agent
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: pin-rot
+    velya.io/layer: "1"
+spec:
+  schedule: '0 4 * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            velya.io/agent: pin-rot
+            velya.io/component: autopilot
+            velya.io/layer: "1"
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-pin-rot.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_REPO_ROOT
+                  value: /workspace
+                # GH_TOKEN is optional — without it the agent uses anonymous
+                # GitHub API rate limit (60/hr), still enough to scan a few
+                # dozen pins. With it, the daily scan is comfortable at 5000/hr.
+                - name: GH_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-autopilot-secrets
+                      key: gh-token
+                      optional: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
