@@ -23,11 +23,9 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
-  statSync,
   writeFileSync,
 } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 interface AgentEntry {
   name: string;
@@ -48,9 +46,22 @@ interface Snapshot {
   staleAgents: string[];
 }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const REPO_ROOT = resolve(__dirname, '..', '..');
+// Resolve repo root by walking up from cwd until we see `package.json`.
+// This avoids import.meta so the script typechecks under CommonJS
+// module resolution used by scripts/agents smoke CI.
+function findRepoRoot(): string {
+  let cur = process.cwd();
+  for (let depth = 0; depth < 6; depth++) {
+    if (existsSync(join(cur, 'package.json')) && existsSync(join(cur, 'scripts', 'agents'))) {
+      return cur;
+    }
+    const parent = resolve(cur, '..');
+    if (parent === cur) break;
+    cur = parent;
+  }
+  return process.cwd();
+}
+const REPO_ROOT = findRepoRoot();
 
 const AUDIT_OUT = process.env.VELYA_AUDIT_OUT ?? '/data/velya-autopilot';
 
