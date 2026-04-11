@@ -5,6 +5,7 @@ import { checkAiRateLimit } from '@/lib/ai-rate-limiter';
 import { audit } from '@/lib/audit-logger';
 import { runAgent } from '@/lib/ai-agent-orchestrator';
 import { getTool } from '@/lib/ai-tools';
+import { withErrorBoundary } from '@/lib/api-error-boundary';
 
 /**
  * POST /api/ai/agent
@@ -43,7 +44,7 @@ function isAdminEmail(email: string | undefined): boolean {
   return list.includes(email.toLowerCase());
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorBoundary(async (request: NextRequest) => {
   const session = await getSessionFromRequest();
   if (!session) {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
@@ -181,4 +182,4 @@ export async function POST(request: NextRequest) {
     ...response,
     rateLimit,
   });
-}
+});

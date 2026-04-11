@@ -632,6 +632,121 @@ const permissionMatrix: Runner = async (ctx) => {
 };
 
 /**
+ * backend.rate-limit-sanity — fires 70 quick GET requests against /api/health
+ * and verifies that ≥ 1 returns 429. The platform's gate is configured at
+ * 60 req/min — if no 429 shows up, the rate limiter is bypassed/misconfigured
+ * and we surface a HIGH finding.
+ *
+ * Why this is safe to run autonomously: pure read traffic against a health
+ * endpoint, no writes, no PHI access, bounded by AbortSignal.timeout(2000).
+ */
+const rateLimitSanity: Runner = async (ctx) => {
+  let count = 0;
+  let saw429 = 0;
+  const url = `${FRONTEND_BASE}/api/health`;
+  // 70 calls in tight loop — well under the 60/min budget * 2 min window
+  const promises: Promise<number>[] = [];
+  for (let i = 0; i < 70; i++) {
+    promises.push(
+      fetch(url, { signal: AbortSignal.timeout(2000) })
+        .then((res) => res.status)
+        .catch(() => 0),
+    );
+  }
+  const statuses = await Promise.all(promises);
+  for (const s of statuses) if (s === 429) saw429++;
+
+  if (saw429 === 0) {
+    createFinding({
+      jobId: ctx.jobId,
+      runId: ctx.runId,
+      severity: 'high',
+      surface: 'security.rate-limit',
+      target: '/api/health',
+      message: `Rate limiter inativo: 70 requisições e nenhuma 429. Gate de 60 req/min está bypassado.`,
+      details: { totalCalls: 70, statuses: statuses.slice(0, 10) },
+    });
+    count++;
+  }
+  return count;
+};
+
+/**
+ * frontend.component-imports — escaneia src/app/components/ e reporta
+ * componentes (named exports) que não são importados em nenhum outro
+ * arquivo do app. Não deleta nada — apenas finding de severidade baixa
+ * para limpeza posterior.
+ *
+ * Por que é safe: leitura pura do filesystem, zero side effects, zero PHI.
+ */
+const componentImports: Runner = async (ctx) => {
+  let count = 0;
+  const componentsDir = process.env.VELYA_COMPONENTS_PATH || 'apps/web/src/app/components';
+  if (!existsSync(componentsDir)) return 0;
+
+  // Coleta exports nomeados de cada arquivo de componente
+  const exports: Array<{ file: string; name: string }> = [];
+  try {
+    const files = readdirSync(componentsDir).filter((f) => f.endsWith('.tsx') || f.endsWith('.ts'));
+    for (const f of files) {
+      const content = readFileSync(join(componentsDir, f), 'utf8');
+      const matches = content.matchAll(/export\s+(?:const|function|class)\s+([A-Z][A-Za-z0-9_]+)/g);
+      for (const m of matches) {
+        exports.push({ file: f, name: m[1] });
+      }
+    }
+  } catch {
+    return 0;
+  }
+
+  // Para cada export, conta usos no resto do app (exclui o arquivo de origem)
+  // Usa scan superficial — não montamos AST por motivo de custo.
+  const appDir = process.env.VELYA_APP_PATH || 'apps/web/src/app';
+  const allFiles: string[] = [];
+  const walk = (dir: string): void => {
+    try {
+      for (const entry of readdirSync(dir)) {
+        if (entry.startsWith('.') || entry === 'node_modules') continue;
+        const full = join(dir, entry);
+        const st = statSync(full);
+        if (st.isDirectory()) walk(full);
+        else if (entry.endsWith('.tsx') || entry.endsWith('.ts')) allFiles.push(full);
+      }
+    } catch {
+      // ignore unreadable
+    }
+  };
+  walk(appDir);
+
+  for (const exp of exports) {
+    let usages = 0;
+    for (const f of allFiles) {
+      if (f.endsWith(`/${exp.file}`)) continue;
+      try {
+        const content = readFileSync(f, 'utf8');
+        if (content.includes(exp.name)) usages++;
+      } catch {
+        // ignore
+      }
+      if (usages > 0) break;
+    }
+    if (usages === 0) {
+      createFinding({
+        jobId: ctx.jobId,
+        runId: ctx.runId,
+        severity: 'low',
+        surface: 'frontend.component',
+        target: `${exp.file}:${exp.name}`,
+        message: `Componente ${exp.name} (${exp.file}) sem usos detectados — candidato a remoção`,
+        details: { file: exp.file, exportName: exp.name },
+      });
+      count++;
+    }
+  }
+  return count;
+};
+
+/**
  * Default fallback for jobs without a specific runner — record an info
  * finding so the user knows the job ran but did nothing.
  */
@@ -641,12 +756,12 @@ const noopRunner: Runner = async () => {
 
 export const RUNNERS: Record<string, Runner> = {
   'frontend.route-health': routeHealth,
-  'frontend.component-imports': noopRunner,
+  'frontend.component-imports': componentImports,
   'frontend.field-link-policy': fieldLinkPolicy,
   'backend.api-contract': apiContract,
   'backend.audit-chain': auditChain,
   'backend.session-store': sessionStore,
-  'backend.rate-limit-sanity': noopRunner,
+  'backend.rate-limit-sanity': rateLimitSanity,
   'data.referential-integrity': referentialIntegrity,
   'data.duplication-scan': duplicationScan,
   'data.fixture-completeness': fixtureCompleteness,

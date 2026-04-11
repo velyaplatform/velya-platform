@@ -46,6 +46,8 @@ jobs:
             "apps/web/src/lib/learning-curator.ts" \
             "apps/web/src/lib/ai-tools.ts" \
             "apps/web/src/lib/ai-agent-orchestrator.ts" \
+            "apps/web/src/lib/result.ts" \
+            "apps/web/src/lib/api-error-boundary.ts" \
             "apps/web/src/app/agents/**/*.tsx" \
             "apps/web/src/app/cron/**/*.tsx" \
             "apps/web/src/app/api/agents/**/*.ts" \

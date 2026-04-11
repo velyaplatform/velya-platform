@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/auth-session';
 import { isAiAdminEmail } from '@/lib/ai-permissions';
 import { executeJobOnce } from '@/lib/cron-scheduler';
+import { withErrorBoundary } from '../../../../../lib/api-error-boundary';
 
 interface RouteContext {
   params: Promise<{ jobId: string }>;
@@ -15,7 +16,8 @@ interface RouteContext {
  * YAMLs in infra/kubernetes/bootstrap/velya-agent-cronjobs.yaml ALSO call
  * this endpoint with a service token (HEADER X-Velya-Cron-Token) on schedule.
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export const POST = withErrorBoundary(async (request: NextRequest, ctx?: unknown) => {
+  const context = ctx as RouteContext;
   const { jobId } = await context.params;
 
   // Allow service token bypass (for K8s CronJobs hitting the endpoint)
@@ -35,4 +37,4 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   const result = await executeJobOnce(jobId);
   return NextResponse.json({ jobId, actor, ...result });
-}
+});

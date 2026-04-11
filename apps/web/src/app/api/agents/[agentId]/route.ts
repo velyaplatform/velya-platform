@@ -3,6 +3,7 @@ import { getSessionFromRequest } from '@/lib/auth-session';
 import { isAiAdminEmail } from '@/lib/ai-permissions';
 import { getAgent, type LifecycleStage } from '@/lib/agent-runtime';
 import { promoteAgent, quarantineAgent, releaseAgent, getAgentState } from '@/lib/agent-state';
+import { withErrorBoundary } from '@/lib/api-error-boundary';
 
 interface RouteCtx {
   params: Promise<{ agentId: string }>;
@@ -18,15 +19,16 @@ const STAGES: LifecycleStage[] = [
   'retired',
 ];
 
-export async function GET(_request: NextRequest, ctx: RouteCtx) {
+export const GET = withErrorBoundary(async (_request: NextRequest, ctx?: unknown) => {
+  const routeCtx = ctx as RouteCtx;
   const session = await getSessionFromRequest();
   if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-  const { agentId } = await ctx.params;
+  const { agentId } = await routeCtx.params;
   const agent = getAgent(agentId);
   if (!agent) return NextResponse.json({ error: 'Agente não existe' }, { status: 404 });
   const state = getAgentState(agentId);
   return NextResponse.json({ agent, state });
-}
+});
 
 /**
  * PATCH /api/agents/:agentId
@@ -35,13 +37,14 @@ export async function GET(_request: NextRequest, ctx: RouteCtx) {
  * All operations are admin-gated. Even though promotions are pivotal, we
  * never let an agent promote itself — promoteAgent() blocks that internally.
  */
-export async function PATCH(request: NextRequest, ctx: RouteCtx) {
+export const PATCH = withErrorBoundary(async (request: NextRequest, ctx?: unknown) => {
+  const routeCtx = ctx as RouteCtx;
   const session = await getSessionFromRequest();
   if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
   if (!isAiAdminEmail(session.email) && session.professionalRole !== 'admin_system') {
     return NextResponse.json({ error: 'Apenas admin pode operar agentes' }, { status: 403 });
   }
-  const { agentId } = await ctx.params;
+  const { agentId } = await routeCtx.params;
   if (!getAgent(agentId)) {
     return NextResponse.json({ error: 'Agente não existe' }, { status: 404 });
   }
@@ -77,4 +80,4 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
   }
 
   return NextResponse.json({ error: 'action desconhecida' }, { status: 400 });
-}
+});
