@@ -104,4 +104,70 @@ describe('cooperative-locking contract for migration', () => {
     expect(instance1).not.toBeNull();
     expect(instance2).toBeNull();
   });
+
+  // ADR-0016 follow-up #4: cross-agent namespace serialization.
+  // The healer takes TWO locks in order — application then destination
+  // namespace. This is the contract that prevents healer-vs-troubleshooter
+  // races on the same cluster resource.
+  it('troubleshooter cannot enter a namespace the healer is syncing into', () => {
+    const destNs = 'velya-prod-clinical';
+
+    // Healer enters — takes app lock + ns lock.
+    const healerApp = acquireLock({
+      agent: 'argocd-healer-agent',
+      target: { kind: 'argocd-application', name: 'velya-api' },
+      ttlMs: 10_000,
+      lockDir,
+    });
+    const healerNs = acquireLock({
+      agent: 'argocd-healer-agent',
+      target: { kind: 'k8s-namespace', name: destNs },
+      ttlMs: 10_000,
+      lockDir,
+    });
+    expect(healerApp).not.toBeNull();
+    expect(healerNs).not.toBeNull();
+
+    // Troubleshooter tries to restart a deployment in the same ns — denied.
+    const troubleshooterNs = acquireLock({
+      agent: 'k8s-troubleshooter-agent',
+      target: { kind: 'k8s-namespace', name: destNs },
+      ttlMs: 10_000,
+      lockDir,
+    });
+    expect(troubleshooterNs).toBeNull();
+
+    // A troubleshooter mutation on a DIFFERENT namespace is still fine.
+    const troubleshooterOther = acquireLock({
+      agent: 'k8s-troubleshooter-agent',
+      target: { kind: 'k8s-namespace', name: 'velya-prod-billing' },
+      ttlMs: 10_000,
+      lockDir,
+    });
+    expect(troubleshooterOther).not.toBeNull();
+  });
+
+  it('healer falls back to app-only locking when destination namespace is missing', () => {
+    // When the ArgoCD Application has no `spec.destination.namespace`
+    // (project-default or multi-ns render), only the application lock
+    // is taken. The healer's behaviour in that path is exercised by
+    // the production code — here we only verify the lock helper lets
+    // a troubleshooter touch any namespace because the healer never
+    // took a namespace lock.
+    const app = acquireLock({
+      agent: 'argocd-healer-agent',
+      target: { kind: 'argocd-application', name: 'multi-ns-app' },
+      ttlMs: 10_000,
+      lockDir,
+    });
+    expect(app).not.toBeNull();
+
+    const trouble = acquireLock({
+      agent: 'k8s-troubleshooter-agent',
+      target: { kind: 'k8s-namespace', name: 'velya-dev-core' },
+      ttlMs: 10_000,
+      lockDir,
+    });
+    expect(trouble).not.toBeNull();
+  });
 });
