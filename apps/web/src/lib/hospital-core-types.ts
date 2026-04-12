@@ -854,3 +854,133 @@ export interface CareTeam {
   status: CareTeamStatus;
   participantes: CareTeamParticipante[];
 }
+
+// ============================================================================
+// CLINICAL RECORDS — Evolucoes, Prescricoes, Exames, Sinais Vitais
+// ============================================================================
+
+/**
+ * EvolucaoClinica — daily clinical note by any care team role.
+ * Referenced by: Internacao (one-to-many via queries).
+ */
+export type EvolucaoTipo =
+  | 'admissao'
+  | 'evolucao_diaria'
+  | 'parecer'
+  | 'interconsulta'
+  | 'alta'
+  | 'procedimento'
+  | 'intercorrencia'
+  | 'rounds_multidisciplinar';
+
+export interface EvolucaoClinica {
+  id: string;
+  internacaoId: string;
+  pacienteId: string;
+  tipo: EvolucaoTipo;
+  em: string; // ISO
+  autorRoleId: string; // PractitionerRole.id
+  autorCategoria: CategoriaProfissional;
+  especialidadeId?: string;
+  /** SOAP-structured or free-form body */
+  subjetivo?: string;
+  objetivo?: string;
+  avaliacao?: string;
+  plano?: string;
+  texto?: string; // free-form if not SOAP
+  /** Optional structured findings */
+  cidsAtualizados?: string[];
+  condutaChange?: 'manter' | 'ajustar' | 'escalar' | 'desescalar';
+  assinadoEm?: string;
+  revisaoRoleId?: string; // preceptor signature when author is resident
+  versao: number;
+}
+
+/**
+ * Prescricao — medication prescription by a physician.
+ * One prescription can contain multiple items (Prescricao.itens).
+ */
+export type PrescricaoStatus = 'rascunho' | 'ativa' | 'suspensa' | 'encerrada' | 'reconciliada';
+export type ViaAdministracao = 'oral' | 'intravenosa' | 'intramuscular' | 'subcutanea' | 'topica' | 'inalatoria' | 'retal' | 'sublingual' | 'oftalmica' | 'otologica' | 'nasal' | 'enteral' | 'parenteral';
+
+export interface PrescricaoItem {
+  id: string;
+  medicamento: string;
+  dosagem: string; // "500mg"
+  via: ViaAdministracao;
+  frequencia: string; // "6/6h", "12/12h", "SOS"
+  duracao?: string; // "7 dias"
+  horarios?: string[]; // ["06:00", "12:00", "18:00", "00:00"]
+  observacoes?: string;
+  status: 'ativo' | 'suspenso' | 'administrado_parcial' | 'completo';
+  ehSos: boolean;
+  ehAltaCusto?: boolean;
+  ehControlado?: boolean; // portaria 344
+}
+
+export interface Prescricao {
+  id: string;
+  codigo: string; // "RX-2026-00123"
+  internacaoId: string;
+  pacienteId: string;
+  prescritorRoleId: string;
+  em: string;
+  validaAte: string;
+  status: PrescricaoStatus;
+  itens: PrescricaoItem[];
+  reconciliadaEm?: string;
+  reconciliadoPorRoleId?: string;
+  farmaceuticoValidouEm?: string;
+  farmaceuticoRoleId?: string;
+  observacoes?: string;
+}
+
+/**
+ * SolicitacaoExame — diagnostic or procedure request.
+ */
+export type ExameCategoria = 'laboratorio' | 'imagem' | 'cardiologico' | 'endoscopia' | 'anatomopatologico' | 'funcional' | 'outros';
+export type ExameUrgencia = 'rotina' | 'urgente' | 'emergente';
+export type ExameStatus = 'solicitado' | 'coletado' | 'em_analise' | 'laudado' | 'entregue' | 'cancelado';
+
+export interface SolicitacaoExame {
+  id: string;
+  codigo: string; // "EX-2026-04567"
+  internacaoId: string;
+  pacienteId: string;
+  categoria: ExameCategoria;
+  nome: string; // "Hemograma completo", "TC abdome com contraste"
+  codigoTuss?: string;
+  urgencia: ExameUrgencia;
+  status: ExameStatus;
+  solicitanteRoleId: string;
+  solicitadoEm: string;
+  justificativa: string;
+  hipotese?: string;
+  coletadoEm?: string;
+  laudadoEm?: string;
+  laudadorRoleId?: string;
+  resultado?: string; // text summary
+  anexoUrl?: string;
+  valoresCriticos?: { nome: string; valor: string; referencia: string; flag: 'baixo' | 'alto' | 'critico' }[];
+}
+
+/**
+ * RegistroSinaisVitais — vital signs captured by nursing at each shift or event.
+ */
+export interface RegistroSinaisVitais {
+  id: string;
+  internacaoId: string;
+  pacienteId: string;
+  em: string;
+  registradoPorRoleId: string;
+  pressaoSistolica?: number; // mmHg
+  pressaoDiastolica?: number;
+  frequenciaCardiaca?: number; // bpm
+  frequenciaRespiratoria?: number; // irpm
+  temperatura?: number; // °C
+  saturacaoO2?: number; // %
+  glicemiaCapilar?: number; // mg/dL
+  dor?: number; // EVA 0-10
+  nivelConsciencia?: 'alerta' | 'verbal' | 'dor' | 'irresponsivo';
+  observacoes?: string;
+}

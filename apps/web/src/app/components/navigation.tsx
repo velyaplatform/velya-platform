@@ -11,6 +11,7 @@ import {
   BarChart3,
   Plus,
   UserCheck,
+  Users,
   LineChart,
   GitBranch,
   type LucideIcon,
@@ -51,6 +52,7 @@ interface NavItemDef {
 const NAV_ITEMS: NavItemDef[] = [
   // --- Assistencial ---
   { href: '/', icon: LayoutDashboard, label: 'Visao Geral', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/pacientes/MRN-00001', icon: Users, label: 'Pacientes', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/tasks', icon: ListChecks, label: 'Tarefas', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/tasks/new', icon: Plus, label: 'Nova Tarefa', section: NAV_SECTIONS.ASSISTENCIAL },
 

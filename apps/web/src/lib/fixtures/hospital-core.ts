@@ -22,6 +22,7 @@
 import type {
   CareTeam,
   Especialidade,
+  EvolucaoClinica,
   HealthcareService,
   Hospital,
   Internacao,
@@ -30,7 +31,11 @@ import type {
   Paciente,
   PractitionerRole,
   PresencaFisica,
+  Prescricao,
+  PrescricaoItem,
   ProfissionalSaude,
+  RegistroSinaisVitais,
+  SolicitacaoExame,
   TransferenciaInterna,
   Turno,
   UnidadeAssistencial,
@@ -1324,4 +1329,536 @@ export function getTurnosAtivosPorUnidade(unidadeId: string): Turno[] {
 
 export function getCareTeamPorInternacao(internacaoId: string): CareTeam | undefined {
   return CARE_TEAMS.find((c) => c.internacaoId === internacaoId);
+}
+
+// ---------------------------------------------------------------------------
+// Clinical record fixtures: evolucoes, prescricoes, exames, sinais vitais
+// ---------------------------------------------------------------------------
+//
+// Covers 10 representative internacoes across UTI adulto, UCO, UCI, ala 2A,
+// cirurgia 3B, pediatria, maternidade, UTI neo and PS, mirroring the mix that
+// the hospital-core spec requires for EHR-style clinical record views.
+// All timestamps anchored to NOW (2026-04-12T10:30:00-03:00); nothing older
+// than 5 days. IDs follow spec patterns: EV-YYYYMMDD-XXXX, RX-2026-XXXXX,
+// EX-2026-XXXXX, SV-YYYYMMDD-XXXX.
+
+function isoMinus(hoursAgo: number): string {
+  const base = new Date('2026-04-12T10:30:00-03:00').getTime();
+  return new Date(base - hoursAgo * 3_600_000).toISOString();
+}
+
+function pad4(n: number): string {
+  return String(n).padStart(4, '0');
+}
+
+function pad5(n: number): string {
+  return String(n).padStart(5, '0');
+}
+
+function ymd(iso: string): string {
+  return iso.slice(0, 10).replace(/-/g, '');
+}
+
+/** Indexes inside INTERNACOES to materialize rich records for. */
+const CLINICAL_TARGETS = [
+  // UTI adulto (idx 0..9 in file order)
+  { idx: 0, kind: 'uti', preceptorRoleId: 'role-silva-rt-uti' }, // Ana Beatriz (sepse pulmonar, VM)
+  { idx: 1, kind: 'uti', preceptorRoleId: 'role-silva-rt-uti' }, // Carlos Augusto (IAM pos ICP)
+  { idx: 3, kind: 'uti', preceptorRoleId: 'role-silva-rt-uti' }, // Roberto Nunes (choque septico abdominal)
+  { idx: 4, kind: 'uti', preceptorRoleId: 'role-silva-rt-uti' }, // Mariana Souza (pos-craniotomia)
+  // UCO (idx 10..15)
+  { idx: 10, kind: 'uco', preceptorRoleId: 'role-rocha-uco-coord' }, // Fernanda Moura (angina instavel)
+  // UCI (idx 16..23)
+  { idx: 16, kind: 'uci', preceptorRoleId: undefined }, // Vera Lucia (desmame VM)
+  { idx: 18, kind: 'uci', preceptorRoleId: undefined }, // Maria Clara (pos-colecisto)
+  // Ala 2A (idx 24..46)
+  { idx: 24, kind: 'enfermaria', preceptorRoleId: 'role-cardoso-coord-ala2a' }, // Helena Ferraz (PAC)
+  // Pediatria (idx 66..79 roughly; first ped at mrnStart 67 => idx 66)
+  { idx: 66, kind: 'pediatria', preceptorRoleId: 'role-almeida-coord-ped' }, // Flavia (CAD pediatrica) -- if not CAD, adapt
+  // Maternidade (idx 80..)
+  { idx: 80, kind: 'maternidade', preceptorRoleId: undefined },
+] as const;
+
+type ClinicalTarget = (typeof CLINICAL_TARGETS)[number];
+
+function targetInternacao(target: ClinicalTarget): Internacao | undefined {
+  return INTERNACOES[target.idx];
+}
+
+// Nursing role IDs keyed by unidadeId — for sinais vitais registrations.
+const ENF_BY_UNIDADE: Record<string, string> = {
+  'un-uti-adulto': 'role-silva-uti-assistente', // fallback to medico; enf role is template-driven
+  'un-uco': 'role-rocha-uco-assistente',
+  'un-uci-adulto': 'role-tavares-uci-assistente',
+  'un-ala-2a': 'role-cardoso-clinica-ala2a',
+  'un-ala-3b': 'role-martins-cir-ala3b',
+  'un-pediatria': 'role-almeida-ped',
+  'un-maternidade': 'role-almeida-ped',
+  'un-uti-neo': 'role-pereira-uti-neo',
+  'un-ps': 'role-nogueira-ps',
+  'un-cc': 'role-martins-cir-ala3b',
+};
+
+// Realistic vital ranges by SCP category.
+function vitalsForScp(scp: Internacao['scpAtual']): Partial<RegistroSinaisVitais> {
+  switch (scp) {
+    case 'intensivo':
+      return {
+        pressaoSistolica: 95 + Math.floor(Math.random() * 20),
+        pressaoDiastolica: 55 + Math.floor(Math.random() * 15),
+        frequenciaCardiaca: 92 + Math.floor(Math.random() * 20),
+        frequenciaRespiratoria: 22 + Math.floor(Math.random() * 6),
+        temperatura: 37.4 + Math.random() * 1.2,
+        saturacaoO2: 90 + Math.floor(Math.random() * 6),
+        dor: 2,
+        nivelConsciencia: 'verbal',
+      };
+    case 'alta_dependencia':
+      return {
+        pressaoSistolica: 110 + Math.floor(Math.random() * 15),
+        pressaoDiastolica: 65 + Math.floor(Math.random() * 10),
+        frequenciaCardiaca: 82 + Math.floor(Math.random() * 16),
+        frequenciaRespiratoria: 18 + Math.floor(Math.random() * 4),
+        temperatura: 37.0 + Math.random() * 0.9,
+        saturacaoO2: 94 + Math.floor(Math.random() * 4),
+        dor: 3,
+        nivelConsciencia: 'alerta',
+      };
+    case 'intermediarios':
+      return {
+        pressaoSistolica: 118 + Math.floor(Math.random() * 14),
+        pressaoDiastolica: 72 + Math.floor(Math.random() * 10),
+        frequenciaCardiaca: 74 + Math.floor(Math.random() * 14),
+        frequenciaRespiratoria: 16 + Math.floor(Math.random() * 4),
+        temperatura: 36.6 + Math.random() * 0.7,
+        saturacaoO2: 95 + Math.floor(Math.random() * 4),
+        dor: 2,
+        nivelConsciencia: 'alerta',
+      };
+    default:
+      return {
+        pressaoSistolica: 122 + Math.floor(Math.random() * 10),
+        pressaoDiastolica: 76 + Math.floor(Math.random() * 8),
+        frequenciaCardiaca: 72 + Math.floor(Math.random() * 12),
+        frequenciaRespiratoria: 16,
+        temperatura: 36.6 + Math.random() * 0.5,
+        saturacaoO2: 97 + Math.floor(Math.random() * 2),
+        dor: 1,
+        nivelConsciencia: 'alerta',
+      };
+  }
+}
+
+// Deterministic pseudo-random for stable fixtures across reloads.
+let __seed = 1;
+function seededRandom(): number {
+  __seed = (__seed * 9301 + 49297) % 233280;
+  return __seed / 233280;
+}
+// Override Math.random inside this block so vitals are stable.
+const _origRandom = Math.random;
+Math.random = seededRandom;
+
+const _EVOLUCOES: EvolucaoClinica[] = [];
+const _PRESCRICOES: Prescricao[] = [];
+const _EXAMES: SolicitacaoExame[] = [];
+const _SINAIS: RegistroSinaisVitais[] = [];
+
+let _evSeq = 1;
+let _rxSeq = 1;
+let _exSeq = 1;
+let _svSeq = 1;
+
+function nextEvId(iso: string): string {
+  const id = `EV-${ymd(iso)}-${pad4(_evSeq++)}`;
+  return id;
+}
+function nextRxCode(): string {
+  return `RX-2026-${pad5(_rxSeq++)}`;
+}
+function nextExCode(): string {
+  return `EX-2026-${pad5(_exSeq++)}`;
+}
+function nextSvId(iso: string): string {
+  return `SV-${ymd(iso)}-${pad4(_svSeq++)}`;
+}
+
+interface PrescriptionTemplate {
+  medicamento: string;
+  dosagem: string;
+  via: PrescricaoItem['via'];
+  frequencia: string;
+  duracao?: string;
+  horarios?: string[];
+  observacoes?: string;
+  ehSos?: boolean;
+  ehAltaCusto?: boolean;
+  ehControlado?: boolean;
+}
+
+// Medication sets by clinical scenario — keyed off primary CID / diagnosis.
+function prescriptionItemsForDiagnosis(cid: string, diagnostico: string): PrescriptionTemplate[] {
+  const d = diagnostico.toLowerCase();
+  if (cid.startsWith('A41') || d.includes('sepse')) {
+    return [
+      { medicamento: 'Piperacilina-tazobactam', dosagem: '4,5 g', via: 'intravenosa', frequencia: '6/6h', duracao: '7 dias', horarios: ['06:00', '12:00', '18:00', '00:00'], ehAltaCusto: true },
+      { medicamento: 'Vancomicina', dosagem: '1 g', via: 'intravenosa', frequencia: '12/12h', duracao: '7 dias', horarios: ['08:00', '20:00'], observacoes: 'Ajustar por nivel serico' },
+      { medicamento: 'Noradrenalina', dosagem: '0,1 mcg/kg/min', via: 'intravenosa', frequencia: 'continuo', observacoes: 'Titular para PAM >= 65 mmHg' },
+      { medicamento: 'Enoxaparina', dosagem: '40 mg', via: 'subcutanea', frequencia: '1x/dia', horarios: ['18:00'] },
+      { medicamento: 'Omeprazol', dosagem: '40 mg', via: 'intravenosa', frequencia: '1x/dia', horarios: ['08:00'] },
+      { medicamento: 'Dipirona', dosagem: '1 g', via: 'intravenosa', frequencia: '6/6h SOS', ehSos: true, observacoes: 'Se T >= 37,8 C ou dor EVA >= 4' },
+    ];
+  }
+  if (cid.startsWith('I21') || d.includes('iam')) {
+    return [
+      { medicamento: 'AAS', dosagem: '100 mg', via: 'oral', frequencia: '1x/dia', horarios: ['08:00'] },
+      { medicamento: 'Clopidogrel', dosagem: '75 mg', via: 'oral', frequencia: '1x/dia', horarios: ['08:00'] },
+      { medicamento: 'Atorvastatina', dosagem: '80 mg', via: 'oral', frequencia: '1x/dia', horarios: ['20:00'] },
+      { medicamento: 'Metoprolol', dosagem: '25 mg', via: 'oral', frequencia: '12/12h', horarios: ['08:00', '20:00'] },
+      { medicamento: 'Enoxaparina', dosagem: '1 mg/kg', via: 'subcutanea', frequencia: '12/12h', horarios: ['08:00', '20:00'] },
+    ];
+  }
+  if (cid.startsWith('R65') || d.includes('choque')) {
+    return [
+      { medicamento: 'Meropenem', dosagem: '1 g', via: 'intravenosa', frequencia: '8/8h', duracao: '10 dias', horarios: ['06:00', '14:00', '22:00'], ehAltaCusto: true },
+      { medicamento: 'Noradrenalina', dosagem: '0,3 mcg/kg/min', via: 'intravenosa', frequencia: 'continuo', observacoes: 'Titular conforme PAM' },
+      { medicamento: 'Hidrocortisona', dosagem: '50 mg', via: 'intravenosa', frequencia: '6/6h', horarios: ['06:00', '12:00', '18:00', '00:00'] },
+      { medicamento: 'Albumina 20%', dosagem: '100 mL', via: 'intravenosa', frequencia: '12/12h', duracao: '3 dias' },
+      { medicamento: 'Propofol', dosagem: '2 mg/kg/h', via: 'intravenosa', frequencia: 'continuo', ehControlado: true, observacoes: 'Sedacao para VM' },
+      { medicamento: 'Fentanil', dosagem: '50 mcg/h', via: 'intravenosa', frequencia: 'continuo', ehControlado: true },
+    ];
+  }
+  if (cid.startsWith('I60') || d.includes('craniotomia')) {
+    return [
+      { medicamento: 'Nimodipino', dosagem: '60 mg', via: 'oral', frequencia: '4/4h', horarios: ['04:00', '08:00', '12:00', '16:00', '20:00', '00:00'] },
+      { medicamento: 'Fenitoina', dosagem: '100 mg', via: 'intravenosa', frequencia: '8/8h', horarios: ['06:00', '14:00', '22:00'] },
+      { medicamento: 'Dexametasona', dosagem: '4 mg', via: 'intravenosa', frequencia: '6/6h', horarios: ['06:00', '12:00', '18:00', '00:00'] },
+      { medicamento: 'Morfina', dosagem: '2 mg', via: 'intravenosa', frequencia: '4/4h SOS', ehSos: true, ehControlado: true, observacoes: 'EVA >= 5' },
+      { medicamento: 'Omeprazol', dosagem: '40 mg', via: 'intravenosa', frequencia: '1x/dia', horarios: ['08:00'] },
+    ];
+  }
+  if (cid.startsWith('I20') || d.includes('angina')) {
+    return [
+      { medicamento: 'AAS', dosagem: '100 mg', via: 'oral', frequencia: '1x/dia', horarios: ['08:00'] },
+      { medicamento: 'Enoxaparina', dosagem: '1 mg/kg', via: 'subcutanea', frequencia: '12/12h', horarios: ['08:00', '20:00'] },
+      { medicamento: 'Atorvastatina', dosagem: '40 mg', via: 'oral', frequencia: '1x/dia', horarios: ['20:00'] },
+      { medicamento: 'Isossorbida', dosagem: '5 mg', via: 'sublingual', frequencia: 'SOS', ehSos: true, observacoes: 'Se dor precordial' },
+    ];
+  }
+  if (cid.startsWith('J96') || d.includes('desmame')) {
+    return [
+      { medicamento: 'Salbutamol', dosagem: '2,5 mg', via: 'inalatoria', frequencia: '6/6h', horarios: ['06:00', '12:00', '18:00', '00:00'] },
+      { medicamento: 'Ipratropio', dosagem: '0,5 mg', via: 'inalatoria', frequencia: '6/6h', horarios: ['06:00', '12:00', '18:00', '00:00'] },
+      { medicamento: 'Enoxaparina', dosagem: '40 mg', via: 'subcutanea', frequencia: '1x/dia', horarios: ['18:00'] },
+      { medicamento: 'Omeprazol', dosagem: '40 mg', via: 'oral', frequencia: '1x/dia', horarios: ['08:00'] },
+    ];
+  }
+  if (cid.startsWith('K81') || d.includes('colecist')) {
+    return [
+      { medicamento: 'Cefazolina', dosagem: '1 g', via: 'intravenosa', frequencia: '8/8h', duracao: '3 dias', horarios: ['06:00', '14:00', '22:00'] },
+      { medicamento: 'Dipirona', dosagem: '1 g', via: 'intravenosa', frequencia: '6/6h', horarios: ['06:00', '12:00', '18:00', '00:00'] },
+      { medicamento: 'Tramadol', dosagem: '100 mg', via: 'intravenosa', frequencia: '8/8h SOS', ehSos: true, ehControlado: true, observacoes: 'EVA >= 5' },
+      { medicamento: 'Enoxaparina', dosagem: '40 mg', via: 'subcutanea', frequencia: '1x/dia', horarios: ['18:00'] },
+    ];
+  }
+  if (cid.startsWith('J18') || d.includes('pneumonia')) {
+    return [
+      { medicamento: 'Ceftriaxona', dosagem: '2 g', via: 'intravenosa', frequencia: '1x/dia', duracao: '7 dias', horarios: ['10:00'] },
+      { medicamento: 'Azitromicina', dosagem: '500 mg', via: 'oral', frequencia: '1x/dia', duracao: '5 dias', horarios: ['10:00'] },
+      { medicamento: 'Dipirona', dosagem: '1 g', via: 'oral', frequencia: '6/6h SOS', ehSos: true, observacoes: 'Se T >= 37,8 C' },
+      { medicamento: 'Enoxaparina', dosagem: '40 mg', via: 'subcutanea', frequencia: '1x/dia', horarios: ['18:00'] },
+    ];
+  }
+  if (cid.startsWith('E10') || d.includes('cetoacid')) {
+    return [
+      { medicamento: 'Insulina regular', dosagem: '0,1 UI/kg/h', via: 'intravenosa', frequencia: 'continuo', observacoes: 'Titular por glicemia capilar 1/1h' },
+      { medicamento: 'Soro fisiologico 0,9%', dosagem: '1000 mL', via: 'intravenosa', frequencia: '4/4h', horarios: ['04:00', '08:00', '12:00', '16:00', '20:00', '00:00'] },
+      { medicamento: 'Cloreto de potassio 19,1%', dosagem: '10 mL', via: 'intravenosa', frequencia: '12/12h', horarios: ['08:00', '20:00'], observacoes: 'Diluir em SF 500 mL' },
+    ];
+  }
+  // Maternity default (labor/puerperio).
+  return [
+    { medicamento: 'Ocitocina', dosagem: '10 UI', via: 'intramuscular', frequencia: 'dose unica', observacoes: 'Puerperio imediato' },
+    { medicamento: 'Dipirona', dosagem: '1 g', via: 'oral', frequencia: '6/6h', horarios: ['06:00', '12:00', '18:00', '00:00'] },
+    { medicamento: 'Sulfato ferroso', dosagem: '40 mg', via: 'oral', frequencia: '1x/dia', horarios: ['08:00'] },
+  ];
+}
+
+function examSetForDiagnosis(cid: string): { nome: string; categoria: SolicitacaoExame['categoria']; urgencia: SolicitacaoExame['urgencia']; status: SolicitacaoExame['status']; resultado?: string; valoresCriticos?: SolicitacaoExame['valoresCriticos'] }[] {
+  if (cid.startsWith('A41') || cid.startsWith('R65')) {
+    return [
+      { nome: 'Hemograma completo', categoria: 'laboratorio', urgencia: 'urgente', status: 'laudado', resultado: 'Leucocitose 18.400/mm3 com desvio a esquerda; Hb 9,8; plaquetas 95.000', valoresCriticos: [{ nome: 'Plaquetas', valor: '95.000/mm3', referencia: '150.000-450.000', flag: 'baixo' }] },
+      { nome: 'Lactato arterial', categoria: 'laboratorio', urgencia: 'urgente', status: 'laudado', resultado: 'Lactato 3,8 mmol/L', valoresCriticos: [{ nome: 'Lactato', valor: '3,8', referencia: '< 2,0 mmol/L', flag: 'alto' }] },
+      { nome: 'Hemocultura 2 amostras', categoria: 'laboratorio', urgencia: 'urgente', status: 'em_analise' },
+      { nome: 'PCR e procalcitonina', categoria: 'laboratorio', urgencia: 'urgente', status: 'laudado', resultado: 'PCR 242 mg/L; procalcitonina 18,3 ng/mL' },
+      { nome: 'TC torax com contraste', categoria: 'imagem', urgencia: 'urgente', status: 'laudado', resultado: 'Consolidacao em LID com broncograma aereo e derrame pleural laminar' },
+      { nome: 'Ecocardiograma transtoracico', categoria: 'cardiologico', urgencia: 'rotina', status: 'solicitado' },
+    ];
+  }
+  if (cid.startsWith('I21') || cid.startsWith('I20')) {
+    return [
+      { nome: 'Troponina I', categoria: 'laboratorio', urgencia: 'emergente', status: 'laudado', resultado: 'Troponina I 8,4 ng/mL', valoresCriticos: [{ nome: 'Troponina I', valor: '8,4 ng/mL', referencia: '< 0,04', flag: 'critico' }] },
+      { nome: 'ECG 12 derivacoes', categoria: 'cardiologico', urgencia: 'emergente', status: 'laudado', resultado: 'Supra de ST em parede anterior' },
+      { nome: 'Ecocardiograma transtoracico', categoria: 'cardiologico', urgencia: 'urgente', status: 'laudado', resultado: 'FEVE 38%, hipocinesia anterior' },
+      { nome: 'Cineangiocoronariografia', categoria: 'cardiologico', urgencia: 'emergente', status: 'entregue', resultado: 'Lesao 95% DA proximal - ICP com stent farmacologico' },
+      { nome: 'Perfil lipidico', categoria: 'laboratorio', urgencia: 'rotina', status: 'laudado', resultado: 'LDL 168; HDL 32; TG 212' },
+    ];
+  }
+  if (cid.startsWith('I60')) {
+    return [
+      { nome: 'TC cranio sem contraste', categoria: 'imagem', urgencia: 'emergente', status: 'laudado', resultado: 'Pos-craniotomia frontal direita, sem sangramento agudo' },
+      { nome: 'Angio-TC cerebral', categoria: 'imagem', urgencia: 'urgente', status: 'laudado', resultado: 'Aneurisma de ACM D clipado, sem vasoespasmo' },
+      { nome: 'Nivel de fenitoina', categoria: 'laboratorio', urgencia: 'rotina', status: 'laudado', resultado: 'Fenitoina 14 mcg/mL (terapeutico)' },
+      { nome: 'Hemograma completo', categoria: 'laboratorio', urgencia: 'rotina', status: 'laudado', resultado: 'Hb 11,2; leuco 9.800; plaq 220.000' },
+    ];
+  }
+  if (cid.startsWith('J96')) {
+    return [
+      { nome: 'Gasometria arterial', categoria: 'laboratorio', urgencia: 'urgente', status: 'laudado', resultado: 'pH 7,38; pCO2 42; pO2 78; HCO3 24' },
+      { nome: 'Radiografia de torax', categoria: 'imagem', urgencia: 'rotina', status: 'laudado', resultado: 'Opacidade residual em LID em regressao' },
+      { nome: 'Teste de respiracao espontanea', categoria: 'funcional', urgencia: 'rotina', status: 'entregue', resultado: 'Tolerou TRE 30 min; FR 22; SatO2 95%' },
+    ];
+  }
+  if (cid.startsWith('K81') || cid.startsWith('K80')) {
+    return [
+      { nome: 'Hemograma completo', categoria: 'laboratorio', urgencia: 'rotina', status: 'laudado', resultado: 'Hb 11,0; leuco 11.200; plaq 260.000' },
+      { nome: 'USG abdome total', categoria: 'imagem', urgencia: 'urgente', status: 'laudado', resultado: 'Colecistectomia recente; pequena colecao perihepatica em regressao' },
+      { nome: 'Amilase e lipase', categoria: 'laboratorio', urgencia: 'rotina', status: 'laudado', resultado: 'Amilase 180; lipase 220' },
+    ];
+  }
+  if (cid.startsWith('J18')) {
+    return [
+      { nome: 'Radiografia de torax PA + perfil', categoria: 'imagem', urgencia: 'urgente', status: 'laudado', resultado: 'Consolidacao em lobo inferior direito' },
+      { nome: 'Hemograma completo', categoria: 'laboratorio', urgencia: 'rotina', status: 'laudado', resultado: 'Leuco 14.600 com 82% de neutrofilos' },
+      { nome: 'Antigeno urinario Legionella', categoria: 'laboratorio', urgencia: 'rotina', status: 'laudado', resultado: 'Negativo' },
+      { nome: 'Escarro cultura + BAAR', categoria: 'laboratorio', urgencia: 'rotina', status: 'em_analise' },
+    ];
+  }
+  if (cid.startsWith('E10')) {
+    return [
+      { nome: 'Gasometria venosa', categoria: 'laboratorio', urgencia: 'emergente', status: 'laudado', resultado: 'pH 7,18; HCO3 12; BE -14', valoresCriticos: [{ nome: 'pH', valor: '7,18', referencia: '7,35-7,45', flag: 'critico' }] },
+      { nome: 'Glicemia capilar seriada', categoria: 'laboratorio', urgencia: 'urgente', status: 'entregue', resultado: '1h: 412; 2h: 310; 3h: 240 mg/dL' },
+      { nome: 'Cetonemia', categoria: 'laboratorio', urgencia: 'urgente', status: 'laudado', resultado: 'Beta-hidroxibutirato 5,2 mmol/L' },
+      { nome: 'Eletrolitos completos', categoria: 'laboratorio', urgencia: 'urgente', status: 'laudado', resultado: 'K+ 3,2; Na+ 138; Cl- 104' },
+    ];
+  }
+  // Default maternity / generic.
+  return [
+    { nome: 'Hemograma completo', categoria: 'laboratorio', urgencia: 'rotina', status: 'laudado', resultado: 'Dentro de parametros normais' },
+    { nome: 'Tipagem sanguinea e Coombs', categoria: 'laboratorio', urgencia: 'rotina', status: 'laudado', resultado: 'O+ ; Coombs negativo' },
+    { nome: 'USG obstetrico', categoria: 'imagem', urgencia: 'rotina', status: 'entregue', resultado: 'Feto unico em apresentacao cefalica, ILA normal' },
+  ];
+}
+
+function buildForTarget(target: ClinicalTarget): void {
+  const internacao = targetInternacao(target);
+  if (!internacao) return;
+  const { id: internacaoId, pacienteId, medicoAssistenteRoleId, consultores, unidadeAtualId } = internacao;
+  const cidPrincipal: string = internacao.cidPrincipal ?? 'Z99.9';
+  const hipoteseDiagnostica: string = internacao.hipoteseDiagnostica ?? 'Quadro em investigacao';
+  const scpAtual: NonNullable<Internacao['scpAtual']> = internacao.scpAtual ?? 'intermediarios';
+
+  const admissaoEm = internacao.admissao.em;
+  const admissaoHoursAgo = Math.max(
+    2,
+    Math.floor((new Date('2026-04-12T10:30:00-03:00').getTime() - new Date(admissaoEm).getTime()) / 3_600_000),
+  );
+  // Cap at 5 days for evolucao/sinais history per spec.
+  const historyHoursAgo = Math.min(admissaoHoursAgo, 5 * 24);
+
+  // 1. Admission evolucao (SOAP)
+  const admIso = isoMinus(Math.min(historyHoursAgo, 120));
+  _EVOLUCOES.push({
+    id: nextEvId(admIso),
+    internacaoId,
+    pacienteId,
+    tipo: 'admissao',
+    em: admIso,
+    autorRoleId: medicoAssistenteRoleId,
+    autorCategoria: 'medico',
+    subjetivo: `Paciente admitido com quadro compativel com ${hipoteseDiagnostica.toLowerCase()}. Acompanhante refere piora progressiva nas ultimas 48h.`,
+    objetivo: `Exame fisico inicial: paciente ${scpAtual === 'intensivo' ? 'sedado, sob VMI' : 'lucido, orientado'}. Ausculta e exame segmentar compativeis com hipotese diagnostica. Sinais vitais registrados em prontuario.`,
+    avaliacao: `Hipotese: ${hipoteseDiagnostica}. CID ${cidPrincipal}. Gravidade compativel com ${scpAtual.replace('_', ' ')}.`,
+    plano: `Iniciar protocolo institucional para ${hipoteseDiagnostica.toLowerCase()}. Monitorizacao continua. Prescricao registrada. Exames complementares solicitados. Reavaliacao em 6h.`,
+    cidsAtualizados: [cidPrincipal, ...(internacao.cidsSecundarios ?? [])],
+    condutaChange: 'manter',
+    assinadoEm: admIso,
+    versao: 1,
+  });
+
+  // 2. Daily evolucoes (3-5)
+  const daysSinceAdmission = Math.max(1, Math.floor(historyHoursAgo / 24));
+  const dailyCount = Math.min(5, Math.max(3, daysSinceAdmission));
+  for (let d = dailyCount; d >= 1; d--) {
+    const iso = isoMinus(d * 24 - 2); // around 8h each morning
+    const isResidentNote = d % 2 === 0 && target.preceptorRoleId !== undefined;
+    _EVOLUCOES.push({
+      id: nextEvId(iso),
+      internacaoId,
+      pacienteId,
+      tipo: 'evolucao_diaria',
+      em: iso,
+      autorRoleId: medicoAssistenteRoleId,
+      autorCategoria: 'medico',
+      subjetivo: d === 1 ? 'Paciente refere melhora do quadro dor; aceita dieta oral parcialmente.' : 'Sem queixas novas. Familia presente e orientada.',
+      objetivo: `BEG ${scpAtual === 'intensivo' ? 'sob sedacao leve' : 'corado, hidratado'}. Ausculta ${d === 1 ? 'sem ruidos adventicios' : 'com roncos esparsos'}. Abdome flacido, indolor. MMII sem edema.`,
+      avaliacao: `${hipoteseDiagnostica} em ${d === 1 ? 'melhora clinica' : 'evolucao estavel'}. Mantem suporte atual.`,
+      plano: d === 1 ? 'Progredir dieta. Suspender antibiotico IV em 24h se apiretico. Discutir alta com equipe multi.' : 'Manter antibioticoterapia. Ajustar analgesia. Solicitar controle laboratorial amanha.',
+      condutaChange: d === 1 ? 'desescalar' : 'manter',
+      assinadoEm: iso,
+      ...(isResidentNote && target.preceptorRoleId ? { revisaoRoleId: target.preceptorRoleId } : {}),
+      versao: 1,
+    });
+  }
+
+  // 3. Interconsulta (only if consultores present)
+  if (consultores.length > 0) {
+    const count = Math.min(2, consultores.length);
+    for (let c = 0; c < count; c++) {
+      const consultor = consultores[c];
+      const iso = isoMinus((c + 1) * 36);
+      _EVOLUCOES.push({
+        id: nextEvId(iso),
+        internacaoId,
+        pacienteId,
+        tipo: 'interconsulta',
+        em: iso,
+        autorRoleId: consultor.roleId,
+        autorCategoria: 'medico',
+        texto: `Parecer de especialista solicitado para ${hipoteseDiagnostica.toLowerCase()}. Revisado prontuario e exame fisico. Concordo com conduta atual. Sugestoes: otimizar terapia conforme protocolo da especialidade; reavaliar resposta em 48h; manter comunicacao com equipe assistente.`,
+        condutaChange: 'ajustar',
+        assinadoEm: iso,
+        versao: 1,
+      });
+    }
+  }
+
+  // 4. Rounds multidisciplinares
+  const roundsIso = isoMinus(22);
+  _EVOLUCOES.push({
+    id: nextEvId(roundsIso),
+    internacaoId,
+    pacienteId,
+    tipo: 'rounds_multidisciplinar',
+    em: roundsIso,
+    autorRoleId: medicoAssistenteRoleId,
+    autorCategoria: 'medico',
+    texto: `Rounds multidisciplinares. Presentes: medico assistente, enfermagem, farmaceutica clinica, fisioterapia e nutricao. Discussao do caso: ${hipoteseDiagnostica}. Metas do dia: mobilizacao precoce, otimizacao nutricional (dieta via oral quando possivel), reconciliacao medicamentosa realizada, plano de alta discutido. Sem eventos adversos nas ultimas 24h.`,
+    assinadoEm: roundsIso,
+    versao: 1,
+  });
+
+  // 5. Prescricoes (2-4, most recent active)
+  const rxCount = scpAtual === 'intensivo' || scpAtual === 'alta_dependencia' ? 3 : 2;
+  const rxItemsTemplate = prescriptionItemsForDiagnosis(cidPrincipal, hipoteseDiagnostica);
+  for (let r = 0; r < rxCount; r++) {
+    const iso = isoMinus((rxCount - r - 1) * 24 + 1);
+    const valida = isoMinus((rxCount - r - 1) * 24 - 23);
+    const itens: PrescricaoItem[] = rxItemsTemplate.map((t, k) => ({
+      id: `${nextRxCode()}-item-${k + 1}`,
+      medicamento: t.medicamento,
+      dosagem: t.dosagem,
+      via: t.via,
+      frequencia: t.frequencia,
+      duracao: t.duracao,
+      horarios: t.horarios,
+      observacoes: t.observacoes,
+      status: r === rxCount - 1 ? 'ativo' : 'completo',
+      ehSos: t.ehSos ?? false,
+      ehAltaCusto: t.ehAltaCusto,
+      ehControlado: t.ehControlado,
+    }));
+    _PRESCRICOES.push({
+      id: nextRxCode(),
+      codigo: nextRxCode(),
+      internacaoId,
+      pacienteId,
+      prescritorRoleId: medicoAssistenteRoleId,
+      em: iso,
+      validaAte: valida,
+      status: r === rxCount - 1 ? 'ativa' : 'encerrada',
+      itens,
+      farmaceuticoValidouEm: isoMinus((rxCount - r - 1) * 24 + 0.5),
+      farmaceuticoRoleId: medicoAssistenteRoleId, // approximation; no farm role id in fixture context
+      observacoes: r === rxCount - 1 ? 'Prescricao ativa revisada em rounds.' : 'Prescricao encerrada por substituicao.',
+    });
+  }
+
+  // 6. Exames (3-6)
+  const exames = examSetForDiagnosis(cidPrincipal);
+  exames.forEach((ex, i) => {
+    const solicitadoEm = isoMinus(Math.min(historyHoursAgo, 96) - i * 8);
+    const laudadoEm = ex.status === 'laudado' || ex.status === 'entregue' ? isoMinus(Math.min(historyHoursAgo, 96) - i * 8 - 2) : undefined;
+    const coletadoEm = ex.status !== 'solicitado' ? isoMinus(Math.min(historyHoursAgo, 96) - i * 8 - 0.5) : undefined;
+    _EXAMES.push({
+      id: nextExCode(),
+      codigo: nextExCode(),
+      internacaoId,
+      pacienteId,
+      categoria: ex.categoria,
+      nome: ex.nome,
+      urgencia: ex.urgencia,
+      status: ex.status,
+      solicitanteRoleId: medicoAssistenteRoleId,
+      solicitadoEm,
+      justificativa: `Investigacao de ${hipoteseDiagnostica.toLowerCase()}.`,
+      hipotese: hipoteseDiagnostica,
+      coletadoEm,
+      laudadoEm,
+      laudadorRoleId: laudadoEm ? medicoAssistenteRoleId : undefined,
+      resultado: ex.resultado,
+      valoresCriticos: ex.valoresCriticos,
+    });
+  });
+
+  // 7. Sinais vitais: every 6h for last 3 days (12 records); for low-acuity, 6 records.
+  const svTotal = scpAtual === 'intensivo' || scpAtual === 'alta_dependencia' ? 12 : 8;
+  const enfRoleId = ENF_BY_UNIDADE[unidadeAtualId] ?? medicoAssistenteRoleId;
+  for (let s = 0; s < svTotal; s++) {
+    const iso = isoMinus(s * 6 + 1);
+    const vitals = vitalsForScp(scpAtual);
+    _SINAIS.push({
+      id: nextSvId(iso),
+      internacaoId,
+      pacienteId,
+      em: iso,
+      registradoPorRoleId: enfRoleId,
+      pressaoSistolica: vitals.pressaoSistolica,
+      pressaoDiastolica: vitals.pressaoDiastolica,
+      frequenciaCardiaca: vitals.frequenciaCardiaca,
+      frequenciaRespiratoria: vitals.frequenciaRespiratoria,
+      temperatura: vitals.temperatura ? Math.round(vitals.temperatura * 10) / 10 : undefined,
+      saturacaoO2: vitals.saturacaoO2,
+      glicemiaCapilar: s % 3 === 0 ? 110 + Math.floor(Math.random() * 40) : undefined,
+      dor: vitals.dor,
+      nivelConsciencia: vitals.nivelConsciencia,
+      observacoes: s === 0 ? 'Sinais coletados a beira do leito pela equipe de enfermagem.' : undefined,
+    });
+  }
+}
+
+CLINICAL_TARGETS.forEach(buildForTarget);
+
+// Restore original Math.random now that fixtures are materialized.
+Math.random = _origRandom;
+
+export const EVOLUCOES_CLINICAS: EvolucaoClinica[] = _EVOLUCOES;
+export const PRESCRICOES: Prescricao[] = _PRESCRICOES;
+export const SOLICITACOES_EXAME: SolicitacaoExame[] = _EXAMES;
+export const SINAIS_VITAIS: RegistroSinaisVitais[] = _SINAIS;
+
+export function getEvolucoesPorInternacao(internacaoId: string): EvolucaoClinica[] {
+  return EVOLUCOES_CLINICAS.filter((e) => e.internacaoId === internacaoId).sort((a, b) => b.em.localeCompare(a.em));
+}
+
+export function getPrescricoesPorInternacao(internacaoId: string): Prescricao[] {
+  return PRESCRICOES.filter((p) => p.internacaoId === internacaoId).sort((a, b) => b.em.localeCompare(a.em));
+}
+
+export function getExamesPorInternacao(internacaoId: string): SolicitacaoExame[] {
+  return SOLICITACOES_EXAME.filter((e) => e.internacaoId === internacaoId).sort((a, b) => b.solicitadoEm.localeCompare(a.solicitadoEm));
+}
+
+export function getSinaisVitaisPorInternacao(internacaoId: string): RegistroSinaisVitais[] {
+  return SINAIS_VITAIS.filter((s) => s.internacaoId === internacaoId).sort((a, b) => b.em.localeCompare(a.em));
 }
