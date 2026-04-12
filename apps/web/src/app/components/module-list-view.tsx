@@ -10,6 +10,7 @@ import {
   type ColumnDef,
   type ModuleDef,
 } from '../../lib/module-manifest';
+import { translate, formatDateTimeBR, formatDateBR } from '../../lib/module-i18n';
 
 interface ModuleListViewProps {
   moduleId: string;
@@ -428,7 +429,7 @@ function ModuleListInnerWithUrl({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-slate-200">
               {sorted.length === 0 && (
                 <tr>
                   <td
@@ -537,12 +538,48 @@ function ModuleListInnerWithUrl({
   );
 }
 
+// Matches `2026-04-10T07:00:00-03:00`, `2026-04-10T07:00`, `2026-04-10 07:00:00` etc.
+const ISO_DATETIME_RE = /^\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}/;
+// Matches `2026-04-10` exactly (pure date, no time component).
+const ISO_DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 function renderCell(col: ColumnDef, row: Record<string, unknown>) {
   const raw = row[col.key];
-  const text = col.format ? col.format(raw, row) : raw == null ? '—' : String(raw);
+
+  // Resolution order:
+  //   1. Column-defined formatter (wins — fixtures can do domain-specific work)
+  //   2. Badge columns → pt-BR translation of the enum value
+  //   3. Raw ISO date/datetime → pt-BR formatted string
+  //   4. Fallback: String(raw) with "—" for null/undefined
+  //
+  // Previously this collapsed to String(raw), which leaked FHIR enum
+  // values (`in-progress`, `stat`, `on-hold`) and raw ISO timestamps
+  // (`2026-04-10T07:00:00-03:00`) into clinical views. Centralising the
+  // format logic here means every module in the manifest benefits
+  // without having to spell out format fns per column.
+  let text: string;
+  if (col.format) {
+    text = col.format(raw, row);
+  } else if (col.badge) {
+    text = translate(raw);
+  } else if (typeof raw === 'string') {
+    if (ISO_DATETIME_RE.test(raw)) {
+      text = formatDateTimeBR(raw);
+    } else if (ISO_DATE_ONLY_RE.test(raw)) {
+      text = formatDateBR(raw);
+    } else {
+      text = raw;
+    }
+  } else {
+    text = raw == null ? '—' : String(raw);
+  }
 
   if (col.badge) {
-    return <span className={`${badgeClass(text)}`}>{text}</span>;
+    // badgeClass still matches against the raw (untranslated) value so
+    // the colour mapping stays in sync with the upstream FHIR enum.
+    return (
+      <span className={`${badgeClass(String(raw ?? text))}`}>{text}</span>
+    );
   }
 
   if (col.linkTo) {
