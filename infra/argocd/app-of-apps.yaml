@@ -110,6 +110,10 @@ metadata:
   labels:
     app.kubernetes.io/part-of: velya-platform
     velya.io/tier: bootstrap
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: velya-alertas
+    notifications.argoproj.io/subscribe.on-health-degraded.slack: velya-alertas
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.slack: velya-alertas
 spec:
   project: default
   source:

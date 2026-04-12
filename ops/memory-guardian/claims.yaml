@@ -335,3 +335,44 @@ claims:
     path: .github/workflows/argocd-healer.yaml
     regex: 'run-bootstrap-drift-scanner'
     severity: critical
+
+  # --- Autoscaling ownership guard (PreSync + SyncFail hooks) -------------
+  - id: autoscaling-policy-configmap-present
+    memory: feedback_argocd_healer_esteira
+    kind: file_exists
+    path: infra/kubernetes/bootstrap/autoscaling-policy.yaml
+    severity: critical
+  - id: autoscaling-guard-manifests-present
+    memory: feedback_argocd_healer_esteira
+    kind: file_exists
+    path: infra/kubernetes/bootstrap/autoscaling-guard.yaml
+    severity: critical
+  - id: autoscaling-guard-has-presync-hook
+    memory: feedback_argocd_healer_esteira
+    kind: file_contains
+    path: infra/kubernetes/bootstrap/autoscaling-guard.yaml
+    regex: 'argocd.argoproj.io/hook: PreSync'
+    severity: critical
+  - id: autoscaling-guard-has-syncfail-hook
+    memory: feedback_argocd_healer_esteira
+    kind: file_contains
+    path: infra/kubernetes/bootstrap/autoscaling-guard.yaml
+    regex: 'argocd.argoproj.io/hook: SyncFail'
+    severity: critical
+  - id: autoscaling-guard-tests-present
+    memory: feedback_testing_patterns
+    kind: file_exists
+    path: tests/integration/autoscaling-guard/test-autoscaling-guard.sh
+    severity: critical
+  - id: argocd-healer-detects-webhook-conflicts
+    memory: feedback_argocd_healer_esteira
+    kind: file_contains
+    path: scripts/agents/run-argocd-healer.ts
+    regex: 'detectWebhookConflicts'
+    severity: critical
+  - id: velya-bootstrap-has-slack-notifications
+    memory: feedback_argocd_healer_esteira
+    kind: file_contains
+    path: infra/argocd/app-of-apps.yaml
+    regex: 'notifications.argoproj.io/subscribe.on-sync-failed.slack.*velya-alertas'
+    severity: critical

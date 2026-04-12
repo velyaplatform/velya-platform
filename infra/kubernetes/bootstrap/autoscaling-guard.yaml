@@ -1,0 +1,475 @@
+---
+# ============================================================
+# Autoscaling Ownership Guard — ArgoCD PreSync + SyncFail Hooks
+# ============================================================
+# Detecta conflitos HPA/KEDA ANTES do sync principal e coleta
+# evidências quando o sync falha. Impede que o webhook do KEDA
+# (vscaledobject.kb.io) rejeite ScaledObjects por ownership
+# duplicada.
+#
+# Sync wave -5: roda antes de qualquer recurso do bootstrap.
+# Se falhar, o sync inteiro é abortado com diagnóstico claro.
+#
+# Referência: docs/scaling/hpa-keda-vpa-strategy.md
+# ============================================================
+
+# --- ServiceAccount ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: autoscaling-guard
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/component: autoscaling-guard
+  annotations:
+    argocd.argoproj.io/hook: PreSync,SyncFail
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+automountServiceAccountToken: true
+---
+# --- ClusterRole ---
+# Read-only across namespaces: HPAs, ScaledObjects, Deployments
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: autoscaling-guard
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/component: autoscaling-guard
+  annotations:
+    argocd.argoproj.io/hook: PreSync,SyncFail
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+rules:
+  - apiGroups: ['autoscaling']
+    resources: ['horizontalpodautoscalers']
+    verbs: ['get', 'list']
+  - apiGroups: ['keda.sh']
+    resources: ['scaledobjects']
+    verbs: ['get', 'list']
+  - apiGroups: ['apps']
+    resources: ['deployments']
+    verbs: ['get', 'list']
+---
+# --- ClusterRoleBinding ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: autoscaling-guard
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/component: autoscaling-guard
+  annotations:
+    argocd.argoproj.io/hook: PreSync,SyncFail
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: autoscaling-guard
+subjects:
+  - kind: ServiceAccount
+    name: autoscaling-guard
+    namespace: velya-dev-observability
+---
+# --- ConfigMap: Validation Scripts ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: autoscaling-guard-scripts
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/component: autoscaling-guard
+  annotations:
+    argocd.argoproj.io/hook: PreSync,SyncFail
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+data:
+  presync-validate.sh: |
+    #!/usr/bin/env bash
+    # ─────────────────────────────────────────────────────────
+    # Autoscaling Ownership PreSync Validator
+    # Detecta conflitos HPA/KEDA antes do sync principal.
+    # Exit 0 = sem conflitos, Exit 1 = conflitos encontrados.
+    # ─────────────────────────────────────────────────────────
+    set -euo pipefail
+
+    POLICY_FILE="${POLICY_FILE:-/etc/autoscaling-policy/policy.conf}"
+    ERRORS=0
+    WARNINGS=0
+    CHECKED=0
+
+    ts() { date -u +%FT%TZ; }
+    log()  { echo "[autoscaling-guard] $(ts) INFO  $*"; }
+    pass() { echo "[autoscaling-guard] $(ts) PASS  $*"; }
+    warn() { echo "[autoscaling-guard] $(ts) WARN  $*"; ((WARNINGS++)) || true; }
+    fail() { echo "[autoscaling-guard] $(ts) FAIL  $*"; ((ERRORS++)) || true; }
+
+    # ── Helpers ──────────────────────────────────────────────
+
+    # List HPAs targeting a specific deployment in a namespace.
+    # Output: one HPA name per line.
+    get_hpas_for_target() {
+      local ns="$1" target="$2"
+      kubectl get hpa -n "$ns" --no-headers \
+        -o custom-columns='NAME:.metadata.name,TARGET:.spec.scaleTargetRef.name' 2>/dev/null | \
+        awk -v t="$target" '$2 == t { print $1 }' || true
+    }
+
+    # List ScaledObjects targeting a specific deployment in a namespace.
+    # Output: one ScaledObject name per line.
+    get_sos_for_target() {
+      local ns="$1" target="$2"
+      kubectl get scaledobjects.keda.sh -n "$ns" --no-headers \
+        -o custom-columns='NAME:.metadata.name,TARGET:.spec.scaleTargetRef.name' 2>/dev/null | \
+        awk -v t="$target" '$2 == t { print $1 }' || true
+    }
+
+    # Check if an HPA is managed by KEDA (via label or ownerReference).
+    is_keda_managed_hpa() {
+      local ns="$1" hpa_name="$2"
+      local managed_by owner_kind
+      managed_by=$(kubectl get hpa "$hpa_name" -n "$ns" \
+        -o jsonpath='{.metadata.labels.app\.kubernetes\.io/managed-by}' 2>/dev/null || echo "")
+      owner_kind=$(kubectl get hpa "$hpa_name" -n "$ns" \
+        -o jsonpath='{.metadata.ownerReferences[0].kind}' 2>/dev/null || echo "")
+      [[ "$managed_by" == "keda-operator" || "$owner_kind" == "ScaledObject" ]]
+    }
+
+    # Get ScaledObject annotation value.
+    get_so_annotation() {
+      local ns="$1" so_name="$2" key="$3"
+      kubectl get scaledobject "$so_name" -n "$ns" \
+        -o jsonpath="{.metadata.annotations['${key}']}" 2>/dev/null || echo ""
+    }
+
+    # Get ScaledObject HPA config name.
+    get_so_hpa_config_name() {
+      local ns="$1" so_name="$2"
+      kubectl get scaledobject "$so_name" -n "$ns" \
+        -o jsonpath='{.spec.advanced.horizontalPodAutoscalerConfig.name}' 2>/dev/null || echo ""
+    }
+
+    # ── Main ─────────────────────────────────────────────────
+
+    log "Starting autoscaling ownership validation"
+    log "Policy file: $POLICY_FILE"
+
+    if [[ ! -f "$POLICY_FILE" ]]; then
+      fail "Policy file not found: $POLICY_FILE"
+      exit 1
+    fi
+
+    while IFS='|' read -r name namespace mode hpa_name so_name; do
+      # Skip comments and blank lines
+      name="${name## }"; name="${name%% }"
+      [[ -z "$name" || "$name" == \#* ]] && continue
+      namespace="${namespace## }"; namespace="${namespace%% }"
+      mode="${mode## }"; mode="${mode%% }"
+      hpa_name="${hpa_name## }"; hpa_name="${hpa_name%% }"
+      so_name="${so_name## }"; so_name="${so_name%% }"
+
+      ((CHECKED++)) || true
+      log "─── workload=$name  ns=$namespace  mode=$mode ───"
+
+      case "$mode" in
+
+        hpa)
+          # MODE: HPA only — no ScaledObject may target this workload
+          local_sos=$(get_sos_for_target "$namespace" "$name")
+          if [[ -n "$local_sos" ]]; then
+            fail "workload=$name ns=$namespace mode=hpa: ScaledObject(s) found targeting same Deployment: $(echo "$local_sos" | tr '\n' ', ')"
+            fail "  → Remove the ScaledObject(s) or change policy to mode=keda"
+          else
+            pass "workload=$name ns=$namespace mode=hpa: no ScaledObject conflict"
+          fi
+          ;;
+
+        keda)
+          # MODE: KEDA only — no legacy (non-KEDA-managed) HPA may exist
+          local_hpas=$(get_hpas_for_target "$namespace" "$name")
+          has_legacy=false
+          if [[ -n "$local_hpas" ]]; then
+            while IFS= read -r hpa; do
+              [[ -z "$hpa" ]] && continue
+              if is_keda_managed_hpa "$namespace" "$hpa"; then
+                pass "workload=$name ns=$namespace: HPA '$hpa' is KEDA-managed (ok)"
+              else
+                fail "workload=$name ns=$namespace mode=keda: legacy HPA '$hpa' targets same Deployment"
+                fail "  → Delete HPA '$hpa' from manifests or switch to mode=migrate-hpa-to-keda"
+                has_legacy=true
+              fi
+            done <<< "$local_hpas"
+          fi
+          if [[ "$has_legacy" == "false" ]]; then
+            pass "workload=$name ns=$namespace mode=keda: no legacy HPA conflict"
+          fi
+          ;;
+
+        migrate-hpa-to-keda)
+          # MODE: Formal takeover — ScaledObject must declare ownership transfer
+          if [[ -z "$hpa_name" ]]; then
+            fail "workload=$name ns=$namespace mode=migrate-hpa-to-keda: hpaName not set in policy"
+            fail "  → Specify the HPA name to be taken over in autoscaling-policy.yaml"
+            continue
+          fi
+          if [[ -z "$so_name" ]]; then
+            fail "workload=$name ns=$namespace mode=migrate-hpa-to-keda: scaledObjectName not set in policy"
+            fail "  → Specify the ScaledObject name in autoscaling-policy.yaml"
+            continue
+          fi
+
+          # Verify HPA exists (if it doesn't, migration may already be complete)
+          if ! kubectl get hpa "$hpa_name" -n "$namespace" &>/dev/null; then
+            warn "workload=$name ns=$namespace: HPA '$hpa_name' not found in cluster (migration may already be complete)"
+          else
+            log "workload=$name ns=$namespace: HPA '$hpa_name' exists, validating takeover config"
+          fi
+
+          # Verify ScaledObject exists in cluster and has correct takeover config
+          if kubectl get scaledobject "$so_name" -n "$namespace" &>/dev/null; then
+            # ScaledObject exists — validate transfer annotation
+            transfer=$(get_so_annotation "$namespace" "$so_name" "scaledobject.keda.sh/transfer-hpa-ownership")
+            if [[ "$transfer" != "true" ]]; then
+              fail "workload=$name ns=$namespace: ScaledObject '$so_name' missing annotation scaledobject.keda.sh/transfer-hpa-ownership: \"true\""
+              fail "  → Add the annotation to enable formal HPA takeover"
+            fi
+
+            # Validate HPA config name matches
+            hpa_cfg=$(get_so_hpa_config_name "$namespace" "$so_name")
+            if [[ "$hpa_cfg" != "$hpa_name" ]]; then
+              fail "workload=$name ns=$namespace: ScaledObject '$so_name' has horizontalPodAutoscalerConfig.name='$hpa_cfg', expected='$hpa_name'"
+              fail "  → Set spec.advanced.horizontalPodAutoscalerConfig.name to '$hpa_name'"
+            fi
+
+            if [[ "$transfer" == "true" && "$hpa_cfg" == "$hpa_name" ]]; then
+              pass "workload=$name ns=$namespace mode=migrate: takeover config valid (transfer=true, hpa=$hpa_name)"
+            fi
+          else
+            # ScaledObject not yet in cluster — it will be applied in main sync.
+            # We can only validate the Git manifests at this point.
+            warn "workload=$name ns=$namespace: ScaledObject '$so_name' not in cluster yet (will be applied in main sync)"
+            warn "  → Ensure the ScaledObject manifest has transfer-hpa-ownership annotation and correct hpaConfig.name"
+          fi
+          ;;
+
+        *)
+          fail "workload=$name ns=$namespace: unknown mode '$mode' — valid modes: hpa, keda, migrate-hpa-to-keda"
+          ;;
+      esac
+
+    done < "$POLICY_FILE"
+
+    # ── Summary ──────────────────────────────────────────────
+
+    echo ""
+    log "════════════════════════════════════════════════════"
+    log "  Workloads checked:  $CHECKED"
+    log "  Errors:             $ERRORS"
+    log "  Warnings:           $WARNINGS"
+    log "════════════════════════════════════════════════════"
+
+    if [[ "$ERRORS" -gt 0 ]]; then
+      log ""
+      log "PreSync FAILED — $ERRORS autoscaling ownership conflict(s) detected."
+      log "The main sync will NOT proceed until these conflicts are resolved."
+      log ""
+      log "Common fixes:"
+      log "  1. Remove legacy HPAs from infra/kubernetes/bootstrap/hpa-velya-services.yaml"
+      log "  2. Or switch workload mode to migrate-hpa-to-keda in autoscaling-policy.yaml"
+      log "  3. Or delete orphan HPAs from the cluster: kubectl delete hpa <name> -n <namespace>"
+      exit 1
+    fi
+
+    log ""
+    log "PreSync PASSED — no autoscaling ownership conflicts detected."
+    exit 0
+
+  syncfail-collect.sh: |
+    #!/usr/bin/env bash
+    # ─────────────────────────────────────────────────────────
+    # Autoscaling SyncFail Evidence Collector
+    # Coleta o estado completo de HPAs e ScaledObjects quando
+    # o sync do ArgoCD falha, para diagnóstico rápido.
+    # ─────────────────────────────────────────────────────────
+    set -euo pipefail
+
+    POLICY_FILE="${POLICY_FILE:-/etc/autoscaling-policy/policy.conf}"
+
+    ts() { date -u +%FT%TZ; }
+    log() { echo "[syncfail-collector] $(ts) $*"; }
+
+    log "╔══════════════════════════════════════════════════╗"
+    log "║  SYNC FAILED — Collecting autoscaling evidence  ║"
+    log "╚══════════════════════════════════════════════════╝"
+
+    # Collect namespaces from policy
+    NAMESPACES=()
+    while IFS='|' read -r name namespace _rest; do
+      name="${name## }"; name="${name%% }"
+      [[ -z "$name" || "$name" == \#* ]] && continue
+      namespace="${namespace## }"; namespace="${namespace%% }"
+      # Deduplicate
+      local found=false
+      for existing in "${NAMESPACES[@]+"${NAMESPACES[@]}"}"; do
+        [[ "$existing" == "$namespace" ]] && found=true && break
+      done
+      [[ "$found" == "false" ]] && NAMESPACES+=("$namespace")
+    done < "$POLICY_FILE"
+
+    for ns in "${NAMESPACES[@]}"; do
+      log ""
+      log "━━━ Namespace: $ns ━━━"
+
+      log ""
+      log "HPAs:"
+      kubectl get hpa -n "$ns" -o wide 2>/dev/null || log "  (none or API unavailable)"
+
+      log ""
+      log "HPA details (ownership):"
+      kubectl get hpa -n "$ns" -o custom-columns=\
+    'NAME:.metadata.name,TARGET:.spec.scaleTargetRef.name,MANAGED-BY:.metadata.labels.app\.kubernetes\.io/managed-by,OWNER-KIND:.metadata.ownerReferences[0].kind,OWNER-NAME:.metadata.ownerReferences[0].name' \
+        --no-headers 2>/dev/null || log "  (none)"
+
+      log ""
+      log "ScaledObjects:"
+      kubectl get scaledobjects.keda.sh -n "$ns" -o wide 2>/dev/null || log "  (none or CRD not installed)"
+
+      log ""
+      log "ScaledObject transfer annotations:"
+      kubectl get scaledobjects.keda.sh -n "$ns" -o custom-columns=\
+    'NAME:.metadata.name,TARGET:.spec.scaleTargetRef.name,TRANSFER:.metadata.annotations.scaledobject\.keda\.sh/transfer-hpa-ownership,HPA-CONFIG:.spec.advanced.horizontalPodAutoscalerConfig.name' \
+        --no-headers 2>/dev/null || log "  (none)"
+    done
+
+    log ""
+    log "━━━ KEDA Operator Status ━━━"
+    kubectl get pods -n keda --no-headers 2>/dev/null || log "  (keda namespace not found)"
+
+    log ""
+    log "━━━ Recent Events (autoscaling-related) ━━━"
+    for ns in "${NAMESPACES[@]}"; do
+      kubectl get events -n "$ns" --sort-by='.lastTimestamp' --field-selector='reason!=Pulled,reason!=Scheduled,reason!=Created,reason!=Started' 2>/dev/null | \
+        grep -iE 'hpa|scale|keda|webhook|admission' | tail -10 || true
+    done
+
+    log ""
+    log "Evidence collection complete. Review the output above to diagnose the sync failure."
+---
+# --- PreSync Job ---
+# Runs BEFORE the main sync. If it exits non-zero, ArgoCD
+# aborts the sync and reports the failure.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: autoscaling-presync-guard
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/component: autoscaling-guard
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-5"
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: velya-platform
+        velya.io/component: autoscaling-guard
+        velya.io/hook: presync
+    spec:
+      serviceAccountName: autoscaling-guard
+      restartPolicy: Never
+      # Pin kubectl image — mirror to private ECR for production:
+      # <account>.dkr.ecr.<region>.amazonaws.com/bitnami/kubectl:1.31.4
+      containers:
+        - name: validator
+          image: docker.io/bitnami/kubectl:1.31.4
+          command: ['bash', '/scripts/presync-validate.sh']
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ['ALL']
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: policy
+              mountPath: /etc/autoscaling-policy
+              readOnly: true
+      volumes:
+        - name: scripts
+          configMap:
+            name: autoscaling-guard-scripts
+            defaultMode: 0555
+        - name: policy
+          configMap:
+            name: autoscaling-policy
+---
+# --- SyncFail Job ---
+# Runs ONLY when sync fails. Collects evidence for diagnosis.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: autoscaling-syncfail-collector
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/component: autoscaling-guard
+  annotations:
+    argocd.argoproj.io/hook: SyncFail
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: velya-platform
+        velya.io/component: autoscaling-guard
+        velya.io/hook: syncfail
+    spec:
+      serviceAccountName: autoscaling-guard
+      restartPolicy: Never
+      containers:
+        - name: collector
+          image: docker.io/bitnami/kubectl:1.31.4
+          command: ['bash', '/scripts/syncfail-collect.sh']
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ['ALL']
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: policy
+              mountPath: /etc/autoscaling-policy
+              readOnly: true
+      volumes:
+        - name: scripts
+          configMap:
+            name: autoscaling-guard-scripts
+            defaultMode: 0555
+        - name: policy
+          configMap:
+            name: autoscaling-policy
