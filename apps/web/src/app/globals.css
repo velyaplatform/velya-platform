@@ -149,8 +149,8 @@
   --color-accent-glow: var(--accent-fg);
   --color-accent-soft: var(--accent-subtle);
   --color-accent-softer: #f6f8fa;
-  --color-accent-border: #b6e3ff;
-  --color-accent-dark: #0550ae;
+  --color-accent-border: #d4d4d4;
+  --color-accent-dark: #171717;
 
   --color-accent-teal: var(--accent-fg);
   --color-accent-teal-soft: var(--accent-subtle);
@@ -159,29 +159,29 @@
   --color-critical-solid: var(--danger-emphasis);
   --color-critical-fg: var(--danger-fg);
   --color-critical-bg: var(--danger-subtle);
-  --color-critical-border: #ffcecb;
+  --color-critical-border: #d4d4d4;
 
   --color-warning: var(--attention-fg);
   --color-warning-solid: var(--attention-emphasis);
   --color-warning-fg: var(--attention-fg);
   --color-warning-bg: var(--attention-subtle);
-  --color-warning-border: #eac54f;
+  --color-warning-border: #d4d4d4;
 
   --color-success: var(--success-fg);
   --color-success-solid: var(--success-emphasis);
   --color-success-fg: var(--success-fg);
   --color-success-bg: var(--success-subtle);
-  --color-success-border: #aceebb;
+  --color-success-border: #d4d4d4;
 
   --color-info: var(--accent-fg);
   --color-info-solid: var(--accent-emphasis);
   --color-info-fg: var(--accent-fg);
   --color-info-bg: var(--accent-subtle);
-  --color-info-border: #b6e3ff;
+  --color-info-border: #d4d4d4;
 
   --color-purple: var(--done-fg);
   --color-purple-bg: var(--done-subtle);
-  --color-purple-border: #e2c5ff;
+  --color-purple-border: #d4d4d4;
 
   --color-neutral: #6e7781;
   --color-neutral-bg: var(--neutral-subtle);
@@ -655,22 +655,22 @@ kbd {
 .badge-critical {
   background: var(--danger-subtle);
   color: var(--danger-fg);
-  border-color: #ffcecb;
+  border-color: var(--border-default);
 }
 .badge-warning {
   background: var(--attention-subtle);
   color: var(--attention-fg);
-  border-color: #eac54f;
+  border-color: var(--border-default);
 }
 .badge-success {
   background: var(--success-subtle);
   color: var(--success-fg);
-  border-color: #aceebb;
+  border-color: var(--border-default);
 }
 .badge-info {
   background: var(--accent-subtle);
   color: var(--accent-fg);
-  border-color: #b6e3ff;
+  border-color: var(--border-default);
 }
 .badge-neutral {
   background: var(--canvas-subtle);
@@ -680,12 +680,12 @@ kbd {
 .badge-urgent {
   background: var(--danger-subtle);
   color: var(--danger-fg);
-  border-color: #ffaba8;
+  border-color: var(--border-default);
 }
 .badge-done {
   background: var(--done-subtle);
   color: var(--done-fg);
-  border-color: #e2c5ff;
+  border-color: var(--border-default);
 }
 
 /* ============================================================================
@@ -757,7 +757,7 @@ kbd {
 /* ============================================================================
    BUTTONS — Primer Button component
    ----------------------------------------------------------------------------
-   Primary = verde success (#1f883d)
+   Primary = verde success (#171717)
    Default = branco com borda (#d1d9e0)
    Danger  = vermelho
    Invisible = sem borda, hover cinza
@@ -825,7 +825,7 @@ kbd {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #1a7f37;
+  background: #171717;
   border-color: rgba(31, 35, 40, 0.15);
 }
 
@@ -885,11 +885,11 @@ kbd {
 .btn-warning {
   background: var(--attention-subtle);
   color: var(--attention-fg);
-  border-color: #eac54f;
+  border-color: var(--border-default);
 }
 
 .btn-warning:hover:not(:disabled) {
-  background: #fff1b8;
+  background: #f5f5f5;
 }
 
 /* ============================================================================
@@ -913,20 +913,20 @@ kbd {
 .alert-banner-critical,
 .gh-flash-danger {
   background: var(--danger-subtle);
-  border-color: #ffcecb;
+  border-color: var(--border-default);
   color: var(--fg-default);
 }
 
 .alert-banner-warning,
 .gh-flash-warning {
   background: var(--attention-subtle);
-  border-color: #eac54f;
+  border-color: var(--border-default);
   color: var(--fg-default);
 }
 
 .gh-flash-success {
   background: var(--success-subtle);
-  border-color: #aceebb;
+  border-color: var(--border-default);
   color: var(--fg-default);
 }
 
@@ -965,7 +965,7 @@ kbd {
 .gh-tabnav-item.is-selected,
 .gh-tabnav-item[aria-current='page'] {
   font-weight: var(--font-semibold);
-  border-bottom-color: #fd8c73;
+  border-bottom-color: var(--border-default);
 }
 
 /* ============================================================================
@@ -1030,9 +1030,9 @@ kbd {
 }
 
 .row-critical td { background: var(--danger-subtle); }
-.row-critical:hover td { background: #ffd7d4; }
+.row-critical:hover td { background: #f5f5f5; }
 .row-warning td { background: var(--attention-subtle); }
-.row-warning:hover td { background: #fff1b8; }
+.row-warning:hover td { background: #f5f5f5; }
 
 /* ============================================================================
    FORM CONTROLS — Primer input
@@ -1221,7 +1221,7 @@ textarea.input::placeholder,
   padding: 3px 12px;
   border-radius: var(--radius-md);
   background: var(--danger-subtle);
-  border: 1px solid #ffcecb;
+  border: 1px solid var(--border-default);
   color: var(--danger-fg);
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
@@ -1232,7 +1232,7 @@ textarea.input::placeholder,
 }
 
 .topbar-alerts:hover {
-  background: #ffd7d4;
+  background: #f5f5f5;
 }
 
 .topbar-time {
@@ -1278,7 +1278,7 @@ textarea.input::placeholder,
   border-radius: 2em;
   background: var(--danger-subtle);
   color: var(--danger-fg);
-  border: 1px solid #ffcecb;
+  border: 1px solid var(--border-default);
   margin: 2px;
 }
 
