@@ -57,6 +57,13 @@ const PLATFORM_ROUTES = [
 
 const FRONTEND_BASE = process.env.VELYA_FRONTEND_BASE || 'http://localhost:3000';
 
+/** Probe volume for the rate-limit sanity runner. Must exceed the gate (RATE_LIMIT_GATE_PER_MIN) to guarantee a 429. */
+const RATE_PROBE_REQUESTS = 70;
+/** Configured req/min gate on /api/health — used to document why RATE_PROBE_REQUESTS is set above this value. */
+const RATE_LIMIT_GATE_PER_MIN = 60;
+/** Per-request abort timeout (ms) for rate-limit probe fetches. */
+const RATE_PROBE_TIMEOUT_MS = 2_000;
+
 interface RunnerContext {
   jobId: string;
   runId: string;
@@ -632,23 +639,23 @@ const permissionMatrix: Runner = async (ctx) => {
 };
 
 /**
- * backend.rate-limit-sanity — fires 70 quick GET requests against /api/health
- * and verifies that ≥ 1 returns 429. The platform's gate is configured at
- * 60 req/min — if no 429 shows up, the rate limiter is bypassed/misconfigured
- * and we surface a HIGH finding.
+ * backend.rate-limit-sanity — fires RATE_PROBE_REQUESTS quick GET requests
+ * against /api/health and verifies that ≥ 1 returns 429. The platform's gate
+ * is configured at RATE_LIMIT_GATE_PER_MIN req/min — if no 429 shows up, the
+ * rate limiter is bypassed/misconfigured and we surface a HIGH finding.
  *
  * Why this is safe to run autonomously: pure read traffic against a health
- * endpoint, no writes, no PHI access, bounded by AbortSignal.timeout(2000).
+ * endpoint, no writes, no PHI access, bounded by AbortSignal.timeout(RATE_PROBE_TIMEOUT_MS).
  */
 const rateLimitSanity: Runner = async (ctx) => {
   let count = 0;
   let saw429 = 0;
   const url = `${FRONTEND_BASE}/api/health`;
-  // 70 calls in tight loop — well under the 60/min budget * 2 min window
+  // fires above the req/min gate — guaranteed to trigger a 429 if the limiter is active
   const promises: Promise<number>[] = [];
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < RATE_PROBE_REQUESTS; i++) {
     promises.push(
-      fetch(url, { signal: AbortSignal.timeout(2000) })
+      fetch(url, { signal: AbortSignal.timeout(RATE_PROBE_TIMEOUT_MS) })
         .then((res) => res.status)
         .catch(() => 0),
     );
@@ -663,8 +670,8 @@ const rateLimitSanity: Runner = async (ctx) => {
       severity: 'high',
       surface: 'security.rate-limit',
       target: '/api/health',
-      message: `Rate limiter inativo: 70 requisições e nenhuma 429. Gate de 60 req/min está bypassado.`,
-      details: { totalCalls: 70, statuses: statuses.slice(0, 10) },
+      message: `Rate limiter inativo: ${RATE_PROBE_REQUESTS} requisições e nenhuma 429. Gate de ${RATE_LIMIT_GATE_PER_MIN} req/min está bypassado.`,
+      details: { totalCalls: RATE_PROBE_REQUESTS, statuses: statuses.slice(0, 10) },
     });
     count++;
   }
