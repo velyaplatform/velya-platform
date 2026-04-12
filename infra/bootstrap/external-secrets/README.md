@@ -69,7 +69,7 @@ The status should show `Valid`.
 Create an `ExternalSecret` resource in any namespace to sync a secret:
 
 ```yaml
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: my-api-keys

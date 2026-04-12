@@ -226,6 +226,33 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: velya-dev-observability
 
+---
+# Allow kube-apiserver → external-secrets-webhook. Without this rule,
+# default-deny-all blocks the ValidatingWebhookConfiguration callback,
+# which in turn blocks the creation of every ExternalSecret /
+# ClusterSecretStore in velya-dev-platform with
+# "context deadline exceeded". The API server comes from host network,
+# so we allow from anywhere on the webhook's containerPort (10250).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-secrets-webhook
+  namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: platform
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: external-secrets-webhook
+  policyTypes:
+    - Ingress
+  ingress:
+    - from: []
+      ports:
+        - protocol: TCP
+          port: 10250
+
 
 # ============================================================
 # velya-dev-agents — Default Deny + Allows
