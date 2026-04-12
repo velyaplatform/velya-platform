@@ -300,3 +300,10 @@ claims:
     kind: file_exists
     path: .github/workflows/config-audit.yaml
     severity: critical
+
+  # --- ADR-0016 follow-up #3: agent-sync commit to orphan branch --------
+  - id: agent-sync-commit-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/agent-sync-commit.yaml
+    severity: critical
