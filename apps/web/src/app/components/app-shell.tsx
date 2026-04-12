@@ -180,10 +180,10 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
             }}
             style={{ cursor: 'text', textAlign: 'left' }}
           >
-            <Search className="h-4 w-4 mr-2 shrink-0" style={{ color: '#7d8590' }} />
+            <Search className="h-4 w-4 mr-2 shrink-0" style={{ color: '#9198a1' }} />
             <span
               style={{
-                color: '#7d8590',
+                color: '#9198a1',
                 fontSize: 14,
                 flex: 1,
                 overflow: 'hidden',
@@ -197,7 +197,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
                 fontSize: 11,
                 background: 'transparent',
                 border: '1px solid #32383f',
-                color: '#7d8590',
+                color: '#9198a1',
                 borderRadius: 4,
               }}>/</kbd>{' '}to search
             </span>

@@ -49,14 +49,43 @@ async function main(): Promise<void> {
     viewport: { width: 1440, height: 900 },
   });
 
-  if (sessionCookie) {
-    await context.addCookies([{
-      name: 'velya-session',
-      value: sessionCookie,
-      domain: new URL(baseUrl).hostname,
-      path: '/',
-    }]);
+  // Authenticate: register + verify + login via API in browser context
+  {
+    const authPage = await context.newPage();
+    await authPage.goto(`${baseUrl}/login`, { waitUntil: 'networkidle', timeout: 15_000 });
+    await authPage.waitForTimeout(1000);
+    const email = `contrast-${Date.now()}@velya.local`;
+    const password = 'Validate2026!';
+    const loggedIn = await authPage.evaluate(async (creds: { email: string; password: string }) => {
+      const reg = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: creds.email, password: creds.password, nome: 'Contrast Validator', role: 'Administrador', setor: 'TI' }),
+      }).then(r => r.json());
+      if (reg.devCode) {
+        await fetch('/api/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: creds.email, code: reg.devCode }),
+        });
+      }
+      const login = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: creds.email, password: creds.password }),
+      }).then(r => r.json());
+      return login.success === true;
+    }, { email, password });
+    console.log(`[validate-contrast] Auth: ${loggedIn ? 'OK' : 'FAILED'}`);
+    await authPage.close();
   }
+
+  // Shim __name helper that tsx/esbuild injects — doesn't exist in browser context
+  await context.addInitScript(() => {
+    if (typeof (globalThis as Record<string, unknown>).__name === 'undefined') {
+      (globalThis as Record<string, unknown>).__name = (fn: unknown) => fn;
+    }
+  });
 
   const allViolations: ContrastViolation[] = [];
   let pagesChecked = 0;
@@ -64,8 +93,10 @@ async function main(): Promise<void> {
   for (const route of ROUTES) {
     const page = await context.newPage();
     try {
-      await page.goto(`${baseUrl}${route}`, { waitUntil: 'networkidle', timeout: 20_000 });
-      await page.waitForTimeout(500);
+      await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+      // Wait for app-shell to render (client-side auth fetch completes)
+      await page.waitForSelector('.gh-header', { timeout: 15_000 });
+      await page.waitForTimeout(1000);
       pagesChecked++;
 
       const violations = await page.evaluate(() => {
@@ -81,6 +112,21 @@ async function main(): Promise<void> {
               b: parseInt(rgbaMatch[3], 10),
               a: rgbaMatch[4] !== undefined ? parseFloat(rgbaMatch[4]) : 1,
             };
+          }
+          // Handle oklch(), hsl(), lab(), color() — use canvas to convert any CSS color to RGB
+          if (colorStr && colorStr !== 'transparent' && colorStr !== 'rgba(0, 0, 0, 0)') {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = 1;
+              canvas.height = 1;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.fillStyle = colorStr;
+                ctx.fillRect(0, 0, 1, 1);
+                const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+                return { r, g, b, a: a / 255 };
+              }
+            } catch { /* fallback to null */ }
           }
           return null;
         }
@@ -201,8 +247,8 @@ async function main(): Promise<void> {
       } else {
         console.log(`  [PASS]   ${route}`);
       }
-    } catch {
-      console.log(`  [SKIP]   ${route} (failed to load)`);
+    } catch (err) {
+      console.log(`  [SKIP]   ${route} (${(err as Error).message?.slice(0, 80)})`);
     } finally {
       await page.close();
     }

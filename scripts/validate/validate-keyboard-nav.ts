@@ -49,10 +49,13 @@ async function main(): Promise<void> {
 
   if (sessionCookie) {
     await context.addCookies([{
-      name: 'velya-session',
+      name: 'velya_session',
       value: sessionCookie,
       domain: new URL(baseUrl).hostname,
       path: '/',
+      httpOnly: true,
+      secure: false,
+      sameSite: 'Lax' as const,
     }]);
   }
 

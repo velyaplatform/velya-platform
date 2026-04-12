@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-04-12T14:32:32.064Z",
+  "url": "http://localhost:3003",
+  "viewports": 3,
+  "pages": 28,
+  "combinations": 84,
+  "totalFindings": 0,
+  "bySeverity": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0
+  },
+  "findings": []
+}

@@ -67,39 +67,39 @@
   --border-muted: hsl(210 18% 87% / 1);
   --border-subtle: rgba(31, 35, 40, 0.15);
 
-  /* --- Accent (azul GitHub) --- */
-  --accent-fg: #0969da;
-  --accent-emphasis: #0969da;
-  --accent-muted: rgba(84, 174, 255, 0.4);
-  --accent-subtle: #ddf4ff;
+  /* --- Accent (monochrome) --- */
+  --accent-fg: #171717;
+  --accent-emphasis: #171717;
+  --accent-muted: rgba(23, 23, 23, 0.2);
+  --accent-subtle: #f5f5f5;
 
-  /* --- Success (verde Primer) --- */
-  --success-fg: #1a7f37;
-  --success-emphasis: #1f883d;       /* botão primário verde */
-  --success-muted: rgba(74, 194, 107, 0.4);
-  --success-subtle: #dafbe1;
+  /* --- Success (monochrome) --- */
+  --success-fg: #525252;
+  --success-emphasis: #525252;
+  --success-muted: rgba(82, 82, 82, 0.2);
+  --success-subtle: #f5f5f5;
 
-  /* --- Attention (amarelo Primer) --- */
-  --attention-fg: #9a6700;
-  --attention-emphasis: #bf8700;
-  --attention-muted: rgba(212, 167, 44, 0.4);
-  --attention-subtle: #fff8c5;
+  /* --- Attention (monochrome) --- */
+  --attention-fg: #404040;
+  --attention-emphasis: #404040;
+  --attention-muted: rgba(64, 64, 64, 0.2);
+  --attention-subtle: #f5f5f5;
 
-  /* --- Severe (laranja) --- */
-  --severe-fg: #bc4c00;
-  --severe-emphasis: #bc4c00;
-  --severe-subtle: #fff1e5;
+  /* --- Severe (monochrome) --- */
+  --severe-fg: #404040;
+  --severe-emphasis: #404040;
+  --severe-subtle: #f5f5f5;
 
-  /* --- Danger (vermelho Primer) --- */
-  --danger-fg: #d1242f;
-  --danger-emphasis: #cf222e;
-  --danger-muted: rgba(255, 129, 130, 0.4);
-  --danger-subtle: #ffebe9;
+  /* --- Danger (monochrome) --- */
+  --danger-fg: #171717;
+  --danger-emphasis: #171717;
+  --danger-muted: rgba(23, 23, 23, 0.2);
+  --danger-subtle: #f5f5f5;
 
-  /* --- Done (roxo Primer — PRs merged) --- */
-  --done-fg: #8250df;
-  --done-emphasis: #8250df;
-  --done-subtle: #fbefff;
+  /* --- Done (monochrome) --- */
+  --done-fg: #525252;
+  --done-emphasis: #525252;
+  --done-subtle: #f5f5f5;
 
   /* --- Neutral --- */
   --neutral-emphasis-plus: #1f2328;
@@ -353,12 +353,14 @@ kbd {
 /* ============================================================================
    LINKS — Primer
    ============================================================================ */
-a {
-  color: var(--accent-fg);
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
+@layer base {
+  a {
+    color: var(--accent-fg);
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
 }
 
 /* ============================================================================

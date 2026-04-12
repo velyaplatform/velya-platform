@@ -70,7 +70,7 @@ export function FavoritesMenu() {
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label={`Favoritos${totalCount > 0 ? ` (${totalCount})` : ''}`}
-        className="min-h-[44px] inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--color-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-neutral-200"
+        className="min-h-[44px] inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-[var(--header-fg)] hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-neutral-200"
       >
         Favoritos
         {totalCount > 0 && (
