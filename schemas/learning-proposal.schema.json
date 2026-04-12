@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://velya/schemas/learning-proposal.json",
+  "title": "LearningProposal",
+  "description": "A proposal emitted by the learning-curator agent when a recurring pattern of findings is detected. See ADR-0017 §Self-improvement and governance loops.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["proposalId", "patternId", "stage", "createdAt", "evidence", "mitigation"],
+  "properties": {
+    "proposalId": {
+      "type": "string",
+      "pattern": "^lp-[0-9a-f]{12}$",
+      "description": "Stable id derived from patternId + createdAt."
+    },
+    "patternId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable id of the cluster — same input findings always yield the same patternId."
+    },
+    "stage": {
+      "type": "string",
+      "enum": ["draft", "shadow", "active", "retired"],
+      "description": "Lifecycle stage. Promotion is gated by lifecycle-promotion-agent + two-eyes."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "occurrences",
+        "confidence",
+        "firstSeen",
+        "lastSeen",
+        "severities",
+        "agentsInvolved",
+        "sampleFindingIds"
+      ],
+      "properties": {
+        "occurrences": { "type": "integer", "minimum": 5 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "firstSeen": { "type": "string", "format": "date-time" },
+        "lastSeen": { "type": "string", "format": "date-time" },
+        "severities": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["critical", "high", "medium", "low", "info"] },
+          "minItems": 1
+        },
+        "agentsInvolved": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "sampleFindingIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 3,
+          "maxItems": 10
+        }
+      }
+    },
+    "mitigation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "rationale"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "new-lint-rule",
+            "new-ui-audit-selector",
+            "new-workflow-gate",
+            "new-agent-runner",
+            "manual-review"
+          ],
+          "description": "Mitigation type. Hardcoded whitelist — anything else is rejected at validation time."
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 40,
+          "description": "Why this mitigation. Must NOT contain disable/skip/lower-threshold/bypass/ignore (deny-list enforced in code)."
+        },
+        "targetFile": {
+          "type": "string",
+          "description": "Optional target path. Forbidden: .claude/rules/red-team.md, ai-safety.md, agent-governance.md, security.md, docs/risk/**, ops/memory-guardian/claims.yaml schema, infra/kubernetes/**/*security*, *rbac*, *network-policy*."
+        }
+      }
+    },
+    "redTeam": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verdict"],
+      "properties": {
+        "reviewedBy": { "type": "string" },
+        "reviewedAt": { "type": "string", "format": "date-time" },
+        "verdict": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected", "needs-more-shadow"]
+        },
+        "rationale": { "type": "string" }
+      }
+    },
+    "promotionHistory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "at", "by"],
+        "properties": {
+          "from": { "type": "string", "enum": ["draft", "shadow", "active", "retired"] },
+          "to": { "type": "string", "enum": ["draft", "shadow", "active", "retired"] },
+          "at": { "type": "string", "format": "date-time" },
+          "by": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    }
+  }
+}
