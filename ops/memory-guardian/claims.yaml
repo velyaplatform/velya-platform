@@ -288,3 +288,15 @@ claims:
     kind: file_exists
     path: scripts/agents/shared/cooperative-locking.integration.test.ts
     severity: critical
+
+  # --- External config inventory + audit (brecha #4..7 from validation audit)
+  - id: external-config-inventory-doc-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: docs/operations/external-config-inventory.md
+    severity: critical
+  - id: config-audit-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/config-audit.yaml
+    severity: critical

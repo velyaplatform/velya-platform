@@ -1,0 +1,120 @@
+name: Config Audit
+
+# ════════════════════════════════════════════════════════════════════════════
+# Read-only audit of every repository variable and secret the autopilot
+# esteira consults. Produces a markdown table in the step summary listing
+# which are set, which are missing, and which degradation mode each
+# missing value triggers.
+#
+# This workflow **never fails**. It is informational only — the user runs
+# it manually to decide which gaps to close next. The full inventory with
+# rationale lives in `docs/operations/external-config-inventory.md`.
+# ════════════════════════════════════════════════════════════════════════════
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # Weekly audit — Monday 08:00 UTC. Gives the team a reminder of
+    # config gaps without being noisy.
+    - cron: '0 8 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: config-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Inventory vars + secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      # Variables (referenced by name only to detect presence — value
+      # may be in the env as a literal or empty string depending on
+      # whether it's defined in repo settings).
+      VAR_VELYA_FHIR_BASE_URL: ${{ vars.VELYA_FHIR_BASE_URL }}
+      VAR_VELYA_GRAFANA_URL: ${{ vars.VELYA_GRAFANA_URL }}
+      VAR_VELYA_P95_BUDGET_MS: ${{ vars.VELYA_P95_BUDGET_MS }}
+      VAR_VELYA_ERR_RATE_BUDGET: ${{ vars.VELYA_ERR_RATE_BUDGET }}
+      VAR_VELYA_AWS_ROLE_ARN: ${{ vars.VELYA_AWS_ROLE_ARN }}
+      VAR_VELYA_AWS_REGION: ${{ vars.VELYA_AWS_REGION }}
+      VAR_VELYA_EKS_CLUSTER: ${{ vars.VELYA_EKS_CLUSTER }}
+      VAR_VELYA_CLUSTER_NAME: ${{ vars.VELYA_CLUSTER_NAME }}
+      VAR_VELYA_COOPERATIVE_LOCKING: ${{ vars.VELYA_COOPERATIVE_LOCKING }}
+      VAR_VELYA_DEPENDENCY_GRAPH_ENABLED: ${{ vars.VELYA_DEPENDENCY_GRAPH_ENABLED }}
+      VAR_ARGOCD_INSECURE: ${{ vars.ARGOCD_INSECURE }}
+      VAR_VELYA_NATS_NAMESPACE: ${{ vars.VELYA_NATS_NAMESPACE }}
+      VAR_VELYA_TEMPORAL_NAMESPACE: ${{ vars.VELYA_TEMPORAL_NAMESPACE }}
+      VAR_VELYA_POSTGRES_NAMESPACE: ${{ vars.VELYA_POSTGRES_NAMESPACE }}
+      # Secrets — we only test whether they exist via a literal
+      # substitution. If the secret is unset, the expansion is empty
+      # and the probe reports MISSING. We never print the value.
+      SEC_VELYA_FHIR_PROBE_TOKEN: ${{ secrets.VELYA_FHIR_PROBE_TOKEN != '' && 'set' || 'missing' }}
+      SEC_GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN != '' && 'set' || 'missing' }}
+      SEC_ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER != '' && 'set' || 'missing' }}
+      SEC_ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN != '' && 'set' || 'missing' }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Audit and report
+        shell: bash
+        run: |
+          set +e
+          report=/tmp/config-audit.md
+
+          # Build the table
+          {
+            echo "## Config audit — $(date -u +%Y-%m-%dT%H:%MZ)"
+            echo ""
+            echo "See \`docs/operations/external-config-inventory.md\` for the rationale behind each row and the degradation mode when a value is missing."
+            echo ""
+            echo "| Key | Kind | State | Degradation if missing |"
+            echo "|---|---|---|---|"
+
+            # Variables
+            row() {
+              local name="$1" kind="$2" value="$3" degradation="$4"
+              if [ -n "$value" ]; then
+                echo "| \`$name\` | $kind | ✅ set | $degradation |"
+              else
+                echo "| \`$name\` | $kind | ❌ missing | $degradation |"
+              fi
+            }
+
+            row VELYA_FHIR_BASE_URL var "$VAR_VELYA_FHIR_BASE_URL" "post-merge probes report unknown"
+            row VELYA_GRAFANA_URL var "$VAR_VELYA_GRAFANA_URL" "healer skips Grafana alert correlation"
+            row VELYA_P95_BUDGET_MS var "$VAR_VELYA_P95_BUDGET_MS" "defaults to 1500ms"
+            row VELYA_ERR_RATE_BUDGET var "$VAR_VELYA_ERR_RATE_BUDGET" "defaults to 0.02"
+            row VELYA_AWS_ROLE_ARN var "$VAR_VELYA_AWS_ROLE_ARN" "healer workflow cannot assume an AWS role"
+            row VELYA_AWS_REGION var "$VAR_VELYA_AWS_REGION" "defaults to us-east-1"
+            row VELYA_EKS_CLUSTER var "$VAR_VELYA_EKS_CLUSTER" "kubectl not wired in healer workflow"
+            row VELYA_CLUSTER_NAME var "$VAR_VELYA_CLUSTER_NAME" "workflow title shows velya-dev"
+            row VELYA_COOPERATIVE_LOCKING var "$VAR_VELYA_COOPERATIVE_LOCKING" "defaults to true"
+            row VELYA_DEPENDENCY_GRAPH_ENABLED var "$VAR_VELYA_DEPENDENCY_GRAPH_ENABLED" "Dependency Review job stays skipped"
+            row ARGOCD_INSECURE var "$VAR_ARGOCD_INSECURE" "defaults to false"
+            row VELYA_NATS_NAMESPACE var "$VAR_VELYA_NATS_NAMESPACE" "probe defaults to velya-dev-core"
+            row VELYA_TEMPORAL_NAMESPACE var "$VAR_VELYA_TEMPORAL_NAMESPACE" "probe defaults to velya-dev-platform"
+            row VELYA_POSTGRES_NAMESPACE var "$VAR_VELYA_POSTGRES_NAMESPACE" "probe defaults to velya-dev-core"
+
+            # Secrets
+            secret_row() {
+              local name="$1" state="$2" degradation="$3"
+              if [ "$state" = "set" ]; then
+                echo "| \`$name\` | secret | ✅ set | $degradation |"
+              else
+                echo "| \`$name\` | secret | ❌ missing | $degradation |"
+              fi
+            }
+            secret_row VELYA_FHIR_PROBE_TOKEN "$SEC_VELYA_FHIR_PROBE_TOKEN" "p95 /Patient probe reports unknown"
+            secret_row GRAFANA_TOKEN "$SEC_GRAFANA_TOKEN" "Grafana alert correlation skipped"
+            secret_row ARGOCD_SERVER "$SEC_ARGOCD_SERVER" "healer falls back to kubectl (fine in-cluster)"
+            secret_row ARGOCD_AUTH_TOKEN "$SEC_ARGOCD_AUTH_TOKEN" "healer falls back to kubectl (fine in-cluster)"
+
+            echo ""
+            echo "**This workflow never fails.** It is a reminder of configuration gaps, not a gate."
+          } > "$report"
+
+          cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          cat "$report"
