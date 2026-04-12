@@ -518,14 +518,29 @@ a:hover {
 /* Floating action buttons (AI assistant, etc.) anchored to the gutter
    between the resizable sidebar and the content area. Quality.md
    "UI Pixel Gate" forbids FABs at bottom-right because they collide
-   with table action columns. */
+   with table action columns.
+
+   Visibility:
+   - mobile (< 768 px): bottom-left, no sidebar to clear.
+   - tablet (768–1199 px): hidden — at these widths the sidebar is
+     visible AND the gutter between sidebar and content is too thin to
+     fit a FAB without overlapping the content area. Users still reach
+     the assistant via the Ctrl+J keybinding.
+   - desktop (≥ 1200 px): anchored in the gutter immediately right of
+     the sidebar, calc(--sidebar-width + 20px) from the left edge.
+*/
 .gh-fab-sidebar-anchor {
   position: fixed;
   bottom: var(--space-6);
   left: 16px;
   z-index: 80;
 }
-@media (min-width: 768px) {
+@media (min-width: 768px) and (max-width: 1199px) {
+  .gh-fab-sidebar-anchor {
+    display: none;
+  }
+}
+@media (min-width: 1200px) {
   .gh-fab-sidebar-anchor {
     left: calc(var(--sidebar-width) + 20px);
   }

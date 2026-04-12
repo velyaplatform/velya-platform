@@ -75,6 +75,7 @@ const PAGES: PageSpec[] = [
 
 interface Finding {
   page: string;
+  viewport: string;
   severity: 'critical' | 'high' | 'medium';
   rule: string;
   description: string;
@@ -83,6 +84,23 @@ interface Finding {
   conflictSelector?: string;
   conflictRect?: { x: number; y: number; width: number; height: number };
 }
+
+interface ViewportSpec {
+  name: string;
+  width: number;
+  height: number;
+}
+
+// The mandate (2026-04-12, after the user found clipping bugs in the
+// live narrow viewport that the 1440-only gate missed): every UI PR is
+// scanned across desktop AND laptop AND tablet so responsive bugs in
+// the awkward sub-1024 zone (where the sidebar still mounts but content
+// can't fit) are caught before they reach prod.
+const VIEWPORTS: ViewportSpec[] = [
+  { name: 'desktop', width: 1440, height: 900 },
+  { name: 'laptop', width: 1024, height: 768 },
+  { name: 'tablet', width: 820, height: 1180 },
+];
 
 interface DetectorThresholds {
   textClipH: number;
@@ -101,8 +119,8 @@ interface DetectorThresholds {
 function collectFindingsInPage(
   pageName: string,
   T: DetectorThresholds,
-): Omit<Finding, 'page'>[] {
-  const out: Omit<Finding, 'page'>[] = [];
+): Omit<Finding, 'page' | 'viewport'>[] {
+  const out: Omit<Finding, 'page' | 'viewport'>[] = [];
 
   const describe = (el: Element): string => {
     const id = (el as HTMLElement).id ? `#${(el as HTMLElement).id}` : '';
@@ -131,12 +149,20 @@ function collectFindingsInPage(
       const cs = getComputedStyle(el);
       const hasTextOverflow =
         cs.overflow === 'hidden' || cs.overflowX === 'hidden' || cs.textOverflow === 'ellipsis';
+      // -webkit-line-clamp is the canonical way to truncate after N lines
+      // ("show 3 lines, ellipsis the rest"). Treating it as a clip would
+      // false-positive on every collapsible card description in the app.
+      const isLineClamped =
+        (cs as CSSStyleDeclaration & { webkitLineClamp?: string }).webkitLineClamp != null &&
+        (cs as CSSStyleDeclaration & { webkitLineClamp?: string }).webkitLineClamp !== '' &&
+        (cs as CSSStyleDeclaration & { webkitLineClamp?: string }).webkitLineClamp !== 'none';
 
       const clippedHoriz =
         el.scrollWidth - el.clientWidth > T.textClipH &&
         cs.overflowX !== 'auto' &&
         cs.overflowX !== 'scroll';
       const clippedVert =
+        !isLineClamped &&
         el.scrollHeight - el.clientHeight > T.textClipV &&
         cs.overflowY !== 'auto' &&
         cs.overflowY !== 'scroll' &&
@@ -260,7 +286,11 @@ const THRESHOLDS: DetectorThresholds = {
   minRectSize: MIN_RECT_SIZE_PX,
 };
 
-async function collect(page: Page, spec: PageSpec): Promise<Finding[]> {
+async function collect(
+  page: Page,
+  spec: PageSpec,
+  viewport: ViewportSpec,
+): Promise<Finding[]> {
   await page.waitForSelector('.gh-header', { timeout: 30000 }).catch(() => null);
   await page.waitForTimeout(800);
   await page.keyboard.press('Escape').catch(() => null);
@@ -274,23 +304,22 @@ async function collect(page: Page, spec: PageSpec): Promise<Finding[]> {
     `(function() { if (typeof __name === 'undefined') { window.__name = function(fn) { return fn; }; } return (${fnSource})(${JSON.stringify(spec.name)}, ${JSON.stringify(THRESHOLDS)}); })()`,
   );
   if (!Array.isArray(result)) return [];
-  return (result as Omit<Finding, 'page'>[]).map((f) => ({ page: spec.name, ...f }));
+  return (result as Omit<Finding, 'page' | 'viewport'>[]).map((f) => ({
+    page: spec.name,
+    viewport: viewport.name,
+    ...f,
+  }));
 }
 
-async function main(): Promise<void> {
-  const args = parseArgs();
-  if (!args.sessionCookie) {
-    console.error('[detect-overlaps] VELYA_SESSION cookie is required');
-    process.exit(2);
-  }
-
-  await mkdir(args.out, { recursive: true });
-  console.log(`[detect-overlaps] URL: ${args.url}`);
-  console.log(`[detect-overlaps] Out: ${args.out}`);
-
-  const browser = await chromium.launch({ headless: true });
+async function scanViewport(
+  browser: import('playwright').Browser,
+  args: CliArgs,
+  viewport: ViewportSpec,
+): Promise<Finding[]> {
+  // Each viewport is its own context — Playwright bakes the viewport
+  // into the BrowserContext, so we need a fresh one per width.
   const ctx = await browser.newContext({
-    viewport: { width: 1440, height: 900 },
+    viewport: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: 1,
   });
   await ctx.addCookies([
@@ -313,29 +342,57 @@ async function main(): Promise<void> {
     }
   });
 
-  // Walk pages in parallel — independent pages on a shared authenticated
-  // context. Reduces the gate from ~20 s (sequential 8×2.5 s) to ~3-5 s
-  // on a warm prod build.
+  console.log(
+    `[detect-overlaps] viewport ${viewport.name} (${viewport.width}×${viewport.height})`,
+  );
   const pageResults = await Promise.all(
     PAGES.map(async (spec) => {
       const p = await ctx.newPage();
       try {
-        await p.goto(`${args.url}${spec.path}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
-        const findings = await collect(p, spec);
-        console.log(`  ${spec.name}: ${findings.length} findings`);
+        await p.goto(`${args.url}${spec.path}`, {
+          waitUntil: 'domcontentloaded',
+          timeout: 45000,
+        });
+        const findings = await collect(p, spec, viewport);
+        console.log(`  ${viewport.name}/${spec.name}: ${findings.length} findings`);
         return findings;
       } catch (e) {
-        console.log(`  ${spec.name}: error ${(e as Error).message.slice(0, 120)}`);
+        console.log(
+          `  ${viewport.name}/${spec.name}: error ${(e as Error).message.slice(0, 120)}`,
+        );
         return [];
       } finally {
         await p.close();
       }
     }),
   );
+  await ctx.close();
+  return pageResults.flat();
+}
+
+async function main(): Promise<void> {
+  const args = parseArgs();
+  if (!args.sessionCookie) {
+    console.error('[detect-overlaps] VELYA_SESSION cookie is required');
+    process.exit(2);
+  }
+
+  await mkdir(args.out, { recursive: true });
+  console.log(`[detect-overlaps] URL: ${args.url}`);
+  console.log(`[detect-overlaps] Out: ${args.out}`);
+
+  const browser = await chromium.launch({ headless: true });
+
+  // Run viewports sequentially (one context at a time) to keep the
+  // browser memory bounded. Pages within a viewport still run parallel.
+  const allFindings: Finding[] = [];
+  for (const viewport of VIEWPORTS) {
+    const findings = await scanViewport(browser, args, viewport);
+    allFindings.push(...findings);
+  }
 
   await browser.close();
 
-  const allFindings = pageResults.flat();
   const bySeverity = {
     critical: allFindings.filter((f) => f.severity === 'critical').length,
     high: allFindings.filter((f) => f.severity === 'high').length,
@@ -345,6 +402,7 @@ async function main(): Promise<void> {
   const report = {
     timestamp: new Date().toISOString(),
     url: args.url,
+    viewports: VIEWPORTS.map((v) => `${v.name}(${v.width}x${v.height})`),
     pages: PAGES.length,
     totalFindings: allFindings.length,
     bySeverity,
@@ -358,8 +416,10 @@ async function main(): Promise<void> {
     `[detect-overlaps] crit=${bySeverity.critical} high=${bySeverity.high} med=${bySeverity.medium}`,
   );
 
-  for (const f of allFindings.slice(0, 20)) {
-    console.log(`  [${f.severity}] ${f.page} ${f.rule}: ${f.description}`);
+  for (const f of allFindings.slice(0, 30)) {
+    console.log(
+      `  [${f.severity}] ${f.viewport}/${f.page} ${f.rule}: ${f.description}`,
+    );
   }
 
   const shouldFail =
