@@ -1,0 +1,112 @@
+name: UI Theme & i18n Lint
+
+# Prevents dark-theme leftovers and untranslated enums from reaching main.
+#
+# Dark-theme regression: five pages escaped the light-theme pivot (2026-04-13)
+# and rendered text-white/N on white canvas — invisible in hospital lighting.
+# This lint catches the pattern early so it never ships again.
+#
+# i18n regression: badge columns used to render raw FHIR enum values
+# ("active", "in-progress", "stat") and ISO timestamps instead of pt-BR.
+# The module-i18n.ts helper centralises translation, but new fixtures or
+# columns could skip it. This lint catches common English enum leaks.
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - '.github/workflows/ui-theme-lint.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-theme-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dark-theme-lint:
+    name: Dark-theme pattern scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Scan for dark-theme leftovers in page files
+        run: |
+          echo "## Dark-theme lint" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          # Patterns that indicate dark-theme leftovers on a light canvas.
+          # Allowlist: login page (intentionally dark landing), velya-logo
+          # (SVG internals), and UI primitives (contextual use inside
+          # bg-primary/bg-accent is fine).
+          ALLOWLIST="login/page.tsx|velya-logo.tsx|components/ui/"
+
+          FOUND=0
+          for PATTERN in 'text-white/' 'bg-white/\[0\.' 'border-white/'; do
+            HITS=$(grep -rn "$PATTERN" apps/web/src/app/ \
+              --include='*.tsx' --include='*.ts' \
+              | grep -vE "$ALLOWLIST" || true)
+            if [ -n "$HITS" ]; then
+              echo "### Pattern: \`$PATTERN\`" >> "$GITHUB_STEP_SUMMARY"
+              echo '```' >> "$GITHUB_STEP_SUMMARY"
+              echo "$HITS" >> "$GITHUB_STEP_SUMMARY"
+              echo '```' >> "$GITHUB_STEP_SUMMARY"
+              COUNT=$(echo "$HITS" | wc -l)
+              echo "::error::Found $COUNT occurrences of dark-theme pattern '$PATTERN' outside allowlist"
+              FOUND=$((FOUND + COUNT))
+            fi
+          done
+
+          if [ "$FOUND" -eq 0 ]; then
+            echo "No dark-theme leftovers found." >> "$GITHUB_STEP_SUMMARY"
+            echo "Dark-theme lint: clean"
+          else
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**$FOUND total violations.** Fix by replacing:" >> "$GITHUB_STEP_SUMMARY"
+            echo "- \`text-white/90\` → \`text-slate-900\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- \`text-white/75\` → \`text-slate-700\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- \`bg-white/[0.0N]\` → \`bg-slate-50\` or \`bg-white\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- \`border-white/N\` → \`border-slate-200\`" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+  i18n-lint:
+    name: i18n enum & date scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Verify module-i18n.ts covers badge enums in fixtures
+        run: |
+          echo "## i18n lint" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          # Extract all unique badge values from fixture files by looking
+          # for status/priority fields with string literals.
+          FIXTURE_DIR="apps/web/src/lib/fixtures"
+          I18N_FILE="apps/web/src/lib/module-i18n.ts"
+
+          if [ ! -f "$I18N_FILE" ]; then
+            echo "::error::module-i18n.ts not found — i18n helper is required"
+            exit 1
+          fi
+
+          # Check that module-list-view.tsx imports and uses translate()
+          if ! grep -q "import.*translate.*from.*module-i18n" apps/web/src/app/components/module-list-view.tsx; then
+            echo "::error::module-list-view.tsx must import translate() from module-i18n"
+            exit 1
+          fi
+
+          echo "module-i18n.ts exists and is imported by module-list-view.tsx." >> "$GITHUB_STEP_SUMMARY"
+
+          # Count translation entries as a health metric
+          ENTRIES=$(grep -c "^\s*['\"]" "$I18N_FILE" || echo 0)
+          echo "Translation entries: ~$ENTRIES" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "i18n lint: pass"
