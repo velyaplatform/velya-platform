@@ -166,10 +166,14 @@ esteira. The new layer is intentionally conservative:
    the CronJob into an `autopilot-state` orphan branch (so memory-guardian
    CI can read it without mounting the PVC). Deferred — requires either
    a git-inside-pod pattern or a read-only HTTP exposure of the PVC.
-4. **Open:** Cross-agent namespace serialization. Today the healer locks
+4. ~~Cross-agent namespace serialization. Today the healer locks
    at `argocd-application` scope and the troubleshooter at `k8s-namespace`
    scope. Two agents mutating the same cluster state still can't race on
-   the *same* lock. Proposed fix: when the healer touches an app whose
-   destination namespace is known, additionally take a `k8s-namespace`
-   lock on that namespace for the duration of the sync. Needs a survey
-   of ArgoCD `spec.destination` shapes first.
+   the *same* lock.~~ **Done.** The healer now takes **two** locks in
+   strict order `application → destination-namespace` whenever
+   `spec.destination.namespace` is present. The ordering is enforced by
+   convention — healer and troubleshooter are the only agents that take
+   these locks, and both respect the same order. When the destination
+   namespace is missing (project-default or multi-namespace render),
+   the healer falls back to application-only locking. Contract is
+   covered by 2 new cases in `cooperative-locking.integration.test.ts`.

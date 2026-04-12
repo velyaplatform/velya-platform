@@ -56,7 +56,16 @@ interface Finding {
 
 interface ArgoApp {
   metadata: { name: string; namespace: string };
-  spec: { project?: string };
+  spec: {
+    project?: string;
+    // `destination.namespace` is the cluster namespace where the
+    // Application's resources land. `destination.server` is the cluster
+    // endpoint (or `in-cluster` alias). Both are optional in ArgoCD's
+    // schema — an Application with only `name` relies on project
+    // defaults. We treat missing destination as "unknown namespace" and
+    // fall back to application-level locking only.
+    destination?: { namespace?: string; server?: string; name?: string };
+  };
   status: {
     sync?: { status?: string; revision?: string };
     health?: { status?: string; message?: string };
@@ -333,6 +342,24 @@ async function main(): Promise<void> {
     console.log(`  ✗ ${name} [${sync}/${health}] ${opPhase ? `op=${opPhase}` : ''}`);
 
     if (COOPERATIVE_LOCKING) {
+      // Cross-agent serialization (ADR-0016 follow-up #4):
+      // Take TWO locks in strict order — application first, then the
+      // destination namespace. The outer lock protects healer-vs-healer
+      // races on the same ArgoCD application; the inner lock protects
+      // healer-vs-troubleshooter races on the same cluster namespace.
+      //
+      // Lock ordering is important: always application → namespace.
+      // Any other agent that takes namespace → application would risk
+      // deadlock. We own both sides of this order (healer and
+      // troubleshooter are the only agents that take these locks today)
+      // so we can enforce the order by convention.
+      //
+      // When `spec.destination.namespace` is missing, we skip the
+      // namespace lock and fall back to application-only locking —
+      // same behaviour as before. This matches Applications that rely
+      // on project defaults or multi-namespace renders.
+      const destNs = app.spec.destination?.namespace;
+
       const result = await withLock(
         {
           agent: 'argocd-healer-agent',
@@ -344,18 +371,38 @@ async function main(): Promise<void> {
           ttlMs: LOCK_TTL_MS,
           reason: `refresh+sync for ${sync}/${health}`,
         },
-        async (_lock: AgentSessionLock) => {
-          remediateApp(finding);
+        async (_appLock: AgentSessionLock) => {
+          if (!destNs) {
+            remediateApp(finding);
+            return 'ok' as const;
+          }
+          const nsResult = await withLock(
+            {
+              agent: 'argocd-healer-agent',
+              target: { kind: 'k8s-namespace', name: destNs },
+              ttlMs: LOCK_TTL_MS,
+              reason: `serialize with troubleshooter on ns ${destNs} while syncing ${name}`,
+            },
+            async (_nsLock: AgentSessionLock) => {
+              remediateApp(finding);
+              return 'ok' as const;
+            },
+          );
+          if (nsResult === null) {
+            finding.remediation = 'escalated';
+            finding.remediationDetail =
+              `skipped: k8s-troubleshooter holds the namespace lock for ${destNs}`;
+            console.log(`    ↳ namespace ${destNs} locked by peer, deferring remediation`);
+          }
           return 'ok' as const;
         },
       );
       if (result === null) {
-        // Another agent holds the lock — skip and escalate so it surfaces
-        // in the report without causing a conflict.
+        // Another healer instance holds the application lock — skip.
         finding.remediation = 'escalated';
         finding.remediationDetail =
-          'skipped: another agent holds the session lock for this application';
-        console.log(`    ↳ lock-held by peer, skipping remediation`);
+          'skipped: another healer instance holds the application lock';
+        console.log(`    ↳ app lock-held by peer, skipping remediation`);
       }
     } else {
       remediateApp(finding);
