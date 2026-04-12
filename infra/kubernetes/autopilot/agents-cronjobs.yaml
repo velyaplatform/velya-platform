@@ -1023,3 +1023,178 @@ spec:
                 claimName: velya-autopilot-data
             - name: tmp
               emptyDir: {}
+---
+# ============================================================================
+# velya-ci-failure-triage-agent — Layer 1 (Operator office)
+# ----------------------------------------------------------------------------
+# Reads PRs labelled `ci-red` (added by ci-failure-watcher.yaml), classifies
+# the failing run by known pattern, and emits a fix proposal report. Runs
+# every 15 min — fast enough to react before a human notices.
+# ============================================================================
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-ci-failure-triage-agent
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: ci-failure-triage
+    velya.io/layer: "1"
+spec:
+  schedule: '*/15 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        metadata:
+          labels:
+            velya.io/agent: ci-failure-triage
+            velya.io/component: autopilot
+            velya.io/layer: "1"
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-ci-failure-triage.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_REPO_ROOT
+                  value: /workspace
+                - name: VELYA_REPO_OWNER
+                  value: velyaplatform
+                - name: VELYA_REPO_NAME
+                  value: velya-platform
+                - name: GH_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-autopilot-secrets
+                      key: gh-token
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
+---
+# ============================================================================
+# velya-repo-settings-auditor-agent — Layer 1 (Platform-ops office)
+# ----------------------------------------------------------------------------
+# Audits the GitHub repo settings of velyaplatform/velya-platform against
+# an expected baseline (secret scanning, branch protection, repo vars).
+# Born from the 2026-04-11 dependency-graph incident. Runs every 6 hours
+# — repo settings drift slowly.
+# ============================================================================
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-repo-settings-auditor-agent
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: repo-settings-auditor
+    velya.io/layer: "1"
+spec:
+  schedule: '0 */6 * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        metadata:
+          labels:
+            velya.io/agent: repo-settings-auditor
+            velya.io/component: autopilot
+            velya.io/layer: "1"
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-repo-settings-auditor.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_REPO_ROOT
+                  value: /workspace
+                - name: VELYA_REPO_OWNER
+                  value: velyaplatform
+                - name: VELYA_REPO_NAME
+                  value: velya-platform
+                - name: GH_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: velya-autopilot-secrets
+                      key: gh-token
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
