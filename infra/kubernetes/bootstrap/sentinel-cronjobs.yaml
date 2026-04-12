@@ -25,7 +25,7 @@ spec:
   startingDeadlineSeconds: 60
   jobTemplate:
     spec:
-      activeDeadlineSeconds: 240
+      activeDeadlineSeconds: 480
       backoffLimit: 0
       template:
         metadata:
@@ -173,7 +173,7 @@ spec:
   startingDeadlineSeconds: 60
   jobTemplate:
     spec:
-      activeDeadlineSeconds: 240
+      activeDeadlineSeconds: 480
       backoffLimit: 0
       template:
         metadata:
