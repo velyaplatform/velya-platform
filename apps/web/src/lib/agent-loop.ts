@@ -224,7 +224,9 @@ async function processFinding(finding: CronFinding): Promise<void> {
  */
 export async function runAgentLoopForRun(runId: string): Promise<{ processed: number }> {
   if (KILL_SWITCH) return { processed: 0 };
-  const findings = listFindings({ status: 'new', limit: MAX_FINDINGS_PER_RUN }).filter((f) => f.runId === runId);
+  const findings = listFindings({ status: 'new', limit: MAX_FINDINGS_PER_RUN }).filter(
+    (f) => f.runId === runId,
+  );
   for (const f of findings) {
     await processFinding(f);
   }
