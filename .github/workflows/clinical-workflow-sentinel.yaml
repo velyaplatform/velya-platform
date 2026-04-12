@@ -1,0 +1,250 @@
+name: Clinical Workflow Sentinel
+
+# ════════════════════════════════════════════════════════════════════════════
+# Meta-monitor for the velya autopilot esteira. Watches the watchers.
+#
+# If any of the critical automation workflows (argocd-healer, memory-guardian,
+# visual-test, ui-audit-daily, security-supply-chain, platform-validation)
+# has gone stale or failed on the last run against main, the sentinel will:
+#   1. Re-dispatch the workflow (one attempt, non-destructive)
+#   2. Write a ClinicalHealthState snapshot to ops/state/clinical-health-state.json
+#   3. Open a P1 issue if the re-dispatch did not recover the monitor
+#
+# This is the LAST LINE OF DEFENSE for the clinical control plane. It must
+# fail gracefully: never block a deploy, never mutate clinical data, never
+# touch an application repo outside its own scope.
+# ════════════════════════════════════════════════════════════════════════════
+
+on:
+  schedule:
+    # Every 4 hours — matches autopilot's workflow-sentinel cadence.
+    - cron: '15 */4 * * *'
+  workflow_dispatch:
+    inputs:
+      force_repair:
+        description: 'Force re-dispatch even if everything is healthy'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['true', 'false']
+      open_issue_on_failure:
+        description: 'Open a P1 issue when sentinel cannot self-heal'
+        required: false
+        default: 'true'
+        type: choice
+        options: ['true', 'false']
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+
+concurrency:
+  group: clinical-workflow-sentinel
+  cancel-in-progress: true
+
+jobs:
+  sentinel:
+    name: Observe, decide, act
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CRITICAL_MONITORS: |
+        ArgoCD + K8s healer (scheduled esteira)
+        memory-guardian
+        visual-test
+        ui-audit-daily
+        security-supply-chain
+        platform-validation
+        ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Probe critical monitors
+        id: probe
+        shell: bash
+        run: |
+          set +e
+          mkdir -p ops/state
+
+          REPORT_TABLE="| Monitor | Status | Last run | Action |"
+          SEP="|---|---|---|---|"
+          echo "$REPORT_TABLE" > /tmp/sentinel-report.md
+          echo "$SEP" >> /tmp/sentinel-report.md
+
+          FAILING=()
+          STALE=()
+          RECOVERED=()
+          UNRECOVERED=()
+          MONITORS_JSON='[]'
+
+          while IFS= read -r MONITOR; do
+            [ -z "$MONITOR" ] && continue
+            MONITOR_TRIM=$(echo "$MONITOR" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            [ -z "$MONITOR_TRIM" ] && continue
+
+            echo "::group::$MONITOR_TRIM"
+
+            # Look up the workflow file for this name
+            WF_INFO=$(gh api "repos/${{ github.repository }}/actions/workflows?per_page=100" \
+              --jq ".workflows[] | select(.name == \"$MONITOR_TRIM\") | {id: .id, state: .state, path: .path}" 2>/dev/null)
+            WF_ID=$(echo "$WF_INFO" | jq -r '.id // ""')
+            WF_STATE=$(echo "$WF_INFO" | jq -r '.state // "not_found"')
+            WF_PATH=$(echo "$WF_INFO" | jq -r '.path // ""')
+
+            if [ -z "$WF_ID" ] || [ "$WF_ID" = "null" ]; then
+              echo "$MONITOR_TRIM — not found"
+              echo "| $MONITOR_TRIM | not-found | — | skip |" >> /tmp/sentinel-report.md
+              MONITORS_JSON=$(echo "$MONITORS_JSON" | jq --arg n "$MONITOR_TRIM" \
+                '. + [{"name":$n,"status":"not-found","lastRunAt":"1970-01-01T00:00:00Z","action":"none"}]')
+              echo "::endgroup::"
+              continue
+            fi
+
+            # Grab last run on main
+            LAST_RUN=$(gh api "repos/${{ github.repository }}/actions/workflows/${WF_ID}/runs?branch=main&per_page=1" \
+              --jq '.workflow_runs[0] | {status, conclusion, created_at, html_url, id}' 2>/dev/null || echo "{}")
+            STATUS=$(echo "$LAST_RUN" | jq -r '.status // "unknown"')
+            CONCLUSION=$(echo "$LAST_RUN" | jq -r '.conclusion // "none"')
+            CREATED_AT=$(echo "$LAST_RUN" | jq -r '.created_at // ""')
+
+            AGE_MIN="0"
+            if [ -n "$CREATED_AT" ]; then
+              NOW_EPOCH=$(date -u +%s)
+              RUN_EPOCH=$(date -u -d "$CREATED_AT" +%s 2>/dev/null || echo "$NOW_EPOCH")
+              AGE_MIN=$(( (NOW_EPOCH - RUN_EPOCH) / 60 ))
+            fi
+
+            # Decide status for this monitor
+            MONITOR_STATUS="ok"
+            ACTION="none"
+
+            if [ "$WF_STATE" = "disabled_manually" ] || [ "$WF_STATE" = "disabled_inactivity" ]; then
+              MONITOR_STATUS="disabled"
+              ACTION="alert"
+              UNRECOVERED+=("$MONITOR_TRIM (disabled)")
+            elif [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "timed_out" ] || [ "$CONCLUSION" = "cancelled" ]; then
+              MONITOR_STATUS="failing"
+              FAILING+=("$MONITOR_TRIM")
+            elif [ "$AGE_MIN" -gt 720 ]; then
+              # > 12h since last run → stale
+              MONITOR_STATUS="stale"
+              STALE+=("$MONITOR_TRIM")
+            fi
+
+            # Attempt one re-dispatch for failing/stale monitors that support it
+            if [ "$MONITOR_STATUS" = "failing" ] || [ "$MONITOR_STATUS" = "stale" ] || [ "${{ github.event.inputs.force_repair }}" = "true" ]; then
+              if [ -n "$WF_PATH" ]; then
+                BASENAME=$(basename "$WF_PATH")
+                if gh workflow run "$BASENAME" --ref main >/dev/null 2>&1; then
+                  ACTION="re-dispatched"
+                  RECOVERED+=("$MONITOR_TRIM")
+                else
+                  ACTION="re-dispatch-failed"
+                  UNRECOVERED+=("$MONITOR_TRIM")
+                fi
+              fi
+            fi
+
+            echo "$MONITOR_TRIM — status=$MONITOR_STATUS age=${AGE_MIN}min action=$ACTION"
+            echo "| $MONITOR_TRIM | $MONITOR_STATUS | ${AGE_MIN}m ago | $ACTION |" >> /tmp/sentinel-report.md
+
+            MONITORS_JSON=$(echo "$MONITORS_JSON" | jq \
+              --arg n "$MONITOR_TRIM" \
+              --arg s "$MONITOR_STATUS" \
+              --arg t "${CREATED_AT:-1970-01-01T00:00:00Z}" \
+              --arg a "$ACTION" \
+              --argjson ag "$AGE_MIN" \
+              '. + [{"name":$n,"status":$s,"lastRunAt":$t,"ageMinutes":$ag,"action":$a}]')
+
+            echo "::endgroup::"
+          done <<< "$CRITICAL_MONITORS"
+
+          # Overall
+          if [ ${#FAILING[@]} -gt 0 ] || [ ${#STALE[@]} -gt 0 ] || [ ${#UNRECOVERED[@]} -gt 0 ]; then
+            OVERALL="degraded"
+          else
+            OVERALL="healthy"
+          fi
+
+          # Compute recent failure rate from last 20 completed runs on main
+          RECENT=$(gh api "repos/${{ github.repository }}/actions/runs?branch=main&per_page=20&status=completed" \
+            --jq '[.workflow_runs[] | .conclusion]' 2>/dev/null || echo '[]')
+          TOTAL=$(echo "$RECENT" | jq 'length')
+          FAILED=$(echo "$RECENT" | jq '[.[] | select(. == "failure" or . == "timed_out")] | length')
+          if [ "$TOTAL" -gt 0 ]; then
+            RATE=$(echo "scale=3; $FAILED / $TOTAL" | bc)
+          else
+            RATE="0"
+          fi
+
+          FAILING_JSON=$(printf '%s\n' "${FAILING[@]}" | jq -R . | jq -s .)
+
+          jq -n \
+            --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg overall "$OVERALL" \
+            --argjson monitors "$MONITORS_JSON" \
+            --argjson failing "$FAILING_JSON" \
+            --argjson rate "$RATE" \
+            --argjson sample "$TOTAL" \
+            '{
+              generatedAt: $now,
+              overall: $overall,
+              monitors: $monitors,
+              workflows: {
+                failing: $failing,
+                recentFailureRate: $rate,
+                sampleSize: $sample
+              }
+            }' > ops/state/clinical-health-state.json
+
+          echo "overall=$OVERALL" >> "$GITHUB_OUTPUT"
+          echo "unrecovered=${#UNRECOVERED[@]}" >> "$GITHUB_OUTPUT"
+          {
+            printf 'unrecovered_list<<EOF\n%s\nEOF\n' "$(printf '%s\n' "${UNRECOVERED[@]}")"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Clinical Workflow Sentinel"
+            echo ""
+            cat /tmp/sentinel-report.md
+            echo ""
+            echo "**Overall:** $OVERALL — recent failure rate: $RATE over $TOTAL runs"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload health state
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: clinical-health-state-${{ github.run_id }}
+          path: ops/state/clinical-health-state.json
+          retention-days: 30
+
+      - name: Open P1 issue if sentinel could not self-heal
+        if: >-
+          steps.probe.outputs.unrecovered != '0' &&
+          (github.event.inputs.open_issue_on_failure != 'false')
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const unrecovered = `${{ steps.probe.outputs.unrecovered_list }}`;
+            const body = [
+              '### Clinical Workflow Sentinel — unrecovered monitors',
+              '',
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              '',
+              'The sentinel attempted a non-destructive re-dispatch and at least one',
+              'critical monitor did not recover. Manual triage required.',
+              '',
+              '```',
+              unrecovered,
+              '```',
+            ].join('\n');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[sentinel] Unrecovered monitors — ${new Date().toISOString().slice(0, 19)}`,
+              body,
+              labels: ['autopilot', 'sentinel', 'p1', 'needs-triage'],
+            });

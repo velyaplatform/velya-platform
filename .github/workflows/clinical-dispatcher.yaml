@@ -1,0 +1,169 @@
+name: Clinical Dispatcher
+
+# ════════════════════════════════════════════════════════════════════════════
+# Single entry point for human + agent operations, driven by Portuguese or
+# English intent strings. Routes to the correct workflow without the caller
+# having to remember exact file names.
+#
+# Examples:
+#   intent: "corrigir CI"        → clinical-ci-self-heal.yaml
+#   intent: "curar cluster"      → argocd-healer.yaml (full esteira)
+#   intent: "auditar memoria"    → memory-guardian.yaml
+#   intent: "auditar governanca" → autopilot-agents-ci.yaml (governance job)
+#   intent: "visual test"        → visual-test.yaml
+#   intent: "ui audit"           → ui-audit-daily.yaml
+#   intent: "promover release"   → release.yaml
+#   intent: "validar plataforma" → platform-validation.yaml
+#   intent: "escanear supply"    → security-supply-chain.yaml
+#   intent: "compliance lgpd"    → clinical-compliance-gate.yaml (manual)
+#   intent: "health check"       → clinical-workflow-sentinel.yaml
+#
+# Intents are matched case-insensitively against keyword patterns. The match
+# table lives below in the `route` step and is the source of truth.
+# ════════════════════════════════════════════════════════════════════════════
+
+on:
+  workflow_dispatch:
+    inputs:
+      intent:
+        description: 'What you want done (PT-BR or EN)'
+        required: true
+      payload:
+        description: 'Optional JSON payload forwarded to the target workflow'
+        required: false
+        default: '{}'
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+
+concurrency:
+  group: clinical-dispatcher-${{ github.actor }}
+  cancel-in-progress: false
+
+jobs:
+  route:
+    name: Route intent
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Match intent to workflow
+        id: match
+        shell: bash
+        run: |
+          INTENT=$(printf '%s' "${{ github.event.inputs.intent }}" | tr '[:upper:]' '[:lower:]')
+          TARGET=""
+          LABEL=""
+
+          # ---- CI / self-heal
+          if echo "$INTENT" | grep -qE '(corrigir ci|fix ci|self-?heal|ci falhou)'; then
+            TARGET="clinical-ci-self-heal.yaml"; LABEL="ci-self-heal"
+
+          # ---- ArgoCD / k8s healer esteira
+          elif echo "$INTENT" | grep -qE '(curar cluster|healer|argocd|reconciliar)'; then
+            TARGET="argocd-healer.yaml"; LABEL="argocd-healer"
+
+          # ---- Memory guardian
+          elif echo "$INTENT" | grep -qE '(auditar memoria|memory|memoria)'; then
+            TARGET="memory-guardian.yaml"; LABEL="memory-guardian"
+
+          # ---- Sentinel / health check
+          elif echo "$INTENT" | grep -qE '(sentinel|health check|verificar saude|meta ?monitor)'; then
+            TARGET="clinical-workflow-sentinel.yaml"; LABEL="sentinel"
+
+          # ---- Visual test
+          elif echo "$INTENT" | grep -qE '(visual test|pixel|snapshot visual)'; then
+            TARGET="visual-test.yaml"; LABEL="visual-test"
+
+          # ---- UI audit
+          elif echo "$INTENT" | grep -qE '(ui audit|deep audit|auditar ui|auditar front)'; then
+            TARGET="ui-audit-daily.yaml"; LABEL="ui-audit"
+
+          # ---- UI quality (lint/typecheck/test for front)
+          elif echo "$INTENT" | grep -qE '(ui quality|lint front|tsc front)'; then
+            TARGET="ui-quality.yaml"; LABEL="ui-quality"
+
+          # ---- Platform validation
+          elif echo "$INTENT" | grep -qE '(validar plataforma|platform valid)'; then
+            TARGET="platform-validation.yaml"; LABEL="platform-validation"
+
+          # ---- Supply chain / SBOM
+          elif echo "$INTENT" | grep -qE '(supply chain|sbom|assinatura imagem|cosign)'; then
+            TARGET="security-supply-chain.yaml"; LABEL="supply-chain"
+
+          # ---- Security scanner
+          elif echo "$INTENT" | grep -qE '(scan security|vulnerabilidade|cve)'; then
+            TARGET="security.yaml"; LABEL="security"
+
+          # ---- Compliance LGPD/PHI
+          elif echo "$INTENT" | grep -qE '(compliance|lgpd|phi|privacidade)'; then
+            TARGET="clinical-compliance-gate.yaml"; LABEL="compliance"
+
+          # ---- Release
+          elif echo "$INTENT" | grep -qE '(promover release|deploy prod|release|publicar)'; then
+            TARGET="release.yaml"; LABEL="release"
+
+          # ---- Version bump
+          elif echo "$INTENT" | grep -qE '(version bump|bump ver|subir versao)'; then
+            TARGET="version-bump.yaml"; LABEL="version-bump"
+
+          # ---- Fallback
+          else
+            TARGET=""; LABEL="fallback"
+          fi
+
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "label=$LABEL" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Clinical Dispatcher"
+            echo ""
+            echo "- **Intent:** \`${{ github.event.inputs.intent }}\`"
+            echo "- **Matched:** \`$LABEL\`"
+            echo "- **Target workflow:** \`${TARGET:-<none>}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Dispatch target workflow
+        if: steps.match.outputs.target != ''
+        shell: bash
+        run: |
+          set -e
+          # Forward any known inputs that make sense. For now we dispatch
+          # without payload; the called workflow reads its own defaults.
+          gh workflow run "${{ steps.match.outputs.target }}" --ref "${{ github.ref_name }}"
+          echo "dispatched: ${{ steps.match.outputs.target }}"
+
+      - name: Fallback — open triage issue
+        if: steps.match.outputs.target == ''
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const intent = `${{ github.event.inputs.intent }}`;
+            const body = [
+              '### Clinical Dispatcher — unmatched intent',
+              '',
+              `Requested by @${context.actor}:`,
+              '',
+              '```',
+              intent,
+              '```',
+              '',
+              'The dispatcher does not know a workflow that matches this intent.',
+              'Either:',
+              '1. Add a new rule to `.github/workflows/clinical-dispatcher.yaml`',
+              '2. Call the target workflow directly via `gh workflow run`',
+              '',
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            ].join('\n');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[dispatcher] Unmatched intent — "${intent.slice(0, 60)}"`,
+              body,
+              labels: ['autopilot', 'dispatcher', 'needs-triage'],
+            });

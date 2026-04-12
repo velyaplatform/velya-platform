@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://velya.io/schemas/clinical-handoff.schema.json",
+  "title": "ClinicalHandoff",
+  "description": "Record emitted when an autonomous agent cannot resolve a finding on its own and needs human or higher-tier-agent review. Consumed by the clinical workflow sentinel and surfaced as a GitHub issue.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "handoffId",
+    "createdAt",
+    "fromAgent",
+    "severity",
+    "reason",
+    "context"
+  ],
+  "properties": {
+    "handoffId": { "type": "string", "minLength": 8 },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "fromAgent": { "type": "string", "pattern": "^[a-z][a-z0-9-]*-agent$" },
+    "toAgent": {
+      "type": "string",
+      "description": "Optional target agent (e.g. meta-governance-auditor-agent). Empty means `human-triage`.",
+      "pattern": "^[a-z][a-z0-9-]*-agent$"
+    },
+    "severity": { "type": "string", "enum": ["critical", "high", "medium", "low"] },
+    "clinicalImpact": {
+      "type": "string",
+      "enum": ["none", "advisory", "non-clinical-ops", "clinical-workflow", "patient-safety"],
+      "description": "How close this finding sits to a clinical decision — gates escalation path."
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 5,
+      "description": "Why the source agent cannot resolve this automatically."
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target"],
+      "properties": {
+        "target": {
+          "type": "object",
+          "required": ["kind", "name"],
+          "properties": {
+            "kind": { "type": "string" },
+            "name": { "type": "string" },
+            "namespace": { "type": "string" }
+          }
+        },
+        "findings": { "type": "array", "items": { "type": "object" } },
+        "attemptedRemediations": { "type": "array", "items": { "type": "string" } },
+        "runUrl": { "type": "string", "format": "uri" },
+        "correlationId": { "type": "string" }
+      }
+    },
+    "suggestedNextSteps": { "type": "array", "items": { "type": "string" } }
+  }
+}

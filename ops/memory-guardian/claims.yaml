@@ -178,3 +178,88 @@ claims:
 
   # --- project_velya_deep_audit ------------------------------------------
   # (already covered by deep-audit-engine-present + ui-audit-daily above)
+
+  # --- ADR-0016 clinical control plane -----------------------------------
+  # Components added by docs/adr/0016-clinical-control-plane-adoption.md.
+  # These are enforced as critical because the sentinel itself is the
+  # meta-monitor — if it disappears, nothing watches the watchers.
+  - id: clinical-sentinel-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/clinical-workflow-sentinel.yaml
+    severity: critical
+  - id: clinical-ci-self-heal-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/clinical-ci-self-heal.yaml
+    severity: critical
+  - id: clinical-dispatcher-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/clinical-dispatcher.yaml
+    severity: critical
+  - id: clinical-post-merge-monitor-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/clinical-post-merge-monitor.yaml
+    severity: critical
+  - id: clinical-compliance-gate-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/clinical-compliance-gate.yaml
+    severity: critical
+  - id: clinical-schemas-dir-present
+    memory: project_velya_platform_state
+    kind: dir_exists
+    path: schemas
+    severity: critical
+  - id: agent-session-lock-schema-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: schemas/agent-session-lock.schema.json
+    severity: critical
+  - id: clinical-handoff-schema-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: schemas/clinical-handoff.schema.json
+    severity: critical
+  - id: clinical-health-state-schema-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: schemas/clinical-health-state.schema.json
+    severity: critical
+  - id: agent-sync-state-schema-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: schemas/clinical-agent-sync-state.schema.json
+    severity: critical
+  - id: shared-session-lock-helper-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: scripts/agents/shared/session-lock.ts
+    severity: critical
+  - id: shared-handoff-helper-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: scripts/agents/shared/handoff.ts
+    severity: critical
+  - id: agent-sync-snapshot-builder-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: scripts/agents/build-agent-sync-snapshot.ts
+    severity: critical
+  - id: phi-leakage-scanner-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: scripts/compliance/scan-phi-leakage.ts
+    severity: critical
+  - id: clinical-control-plane-adr-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: docs/adr/0016-clinical-control-plane-adoption.md
+    severity: critical
+  - id: clinical-control-plane-runbook-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: docs/operations/clinical-control-plane.md
+    severity: critical

@@ -41,3 +41,7 @@ npm-debug.log*
 .turbo/
 .ministack/
 .kind/
+
+# Clinical control plane runtime state (see ADR-0016)
+ops/state/
+memory-guardian-report.json

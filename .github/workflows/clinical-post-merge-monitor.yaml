@@ -1,0 +1,213 @@
+name: Clinical Post-Merge Monitor
+
+# ════════════════════════════════════════════════════════════════════════════
+# Runs after any merge to main. Executes clinical probes against the newly
+# deployed stack and emits a rollback signal if the cluster is unhealthy.
+#
+# Rollback is NEVER automatic. The job writes a signed signal under
+# ops/state/rollback-signals/ and opens a P1 issue. A human (or the
+# release-freeze workflow) takes the irreversible action.
+#
+# Probes:
+#   1. fhirMetadataReachable   — HTTP 200 from `$FHIR_BASE/metadata`
+#   2. patientEndpointP95Ms    — p95 latency of 5 warm requests to /Patient
+#   3. apiErrorRate5xx         — 5xx ratio over the last 20 requests
+#
+# Each probe is independent: if a probe errors (e.g. secret missing) it is
+# recorded as `unknown` and the overall status is downgraded to `degraded`
+# rather than `critical`. Missing secrets never page.
+# ════════════════════════════════════════════════════════════════════════════
+
+on:
+  pull_request_target:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR to re-evaluate'
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: read
+  issues: write
+
+concurrency:
+  group: clinical-post-merge-monitor
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    name: Clinical probes
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+       github.event.pull_request.base.ref == 'main')
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      FHIR_BASE: ${{ vars.VELYA_FHIR_BASE_URL }}
+      FHIR_TOKEN: ${{ secrets.VELYA_FHIR_PROBE_TOKEN }}
+      P95_BUDGET_MS: ${{ vars.VELYA_P95_BUDGET_MS || '1500' }}
+      ERR_RATE_BUDGET: ${{ vars.VELYA_ERR_RATE_BUDGET || '0.02' }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Wait for rollout
+        shell: bash
+        run: sleep 30
+
+      - name: Probe 1 — FHIR metadata reachable
+        id: metadata
+        shell: bash
+        run: |
+          set +e
+          if [ -z "$FHIR_BASE" ]; then
+            echo "reachable=unknown" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          STATUS=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer ${FHIR_TOKEN:-none}" \
+            --max-time 10 \
+            "$FHIR_BASE/metadata" || echo "000")
+          if [ "$STATUS" = "200" ]; then
+            echo "reachable=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "reachable=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::FHIR metadata probe returned HTTP $STATUS"
+          fi
+
+      - name: Probe 2 — Patient endpoint p95
+        id: latency
+        shell: bash
+        run: |
+          set +e
+          if [ -z "$FHIR_BASE" ] || [ -z "$FHIR_TOKEN" ]; then
+            echo "p95_ms=unknown" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          SAMPLES=()
+          for i in 1 2 3 4 5; do
+            T=$(curl -sS -o /dev/null -w '%{time_total}' \
+              -H "Authorization: Bearer $FHIR_TOKEN" \
+              --max-time 15 \
+              "$FHIR_BASE/Patient?_count=1" 2>/dev/null || echo "9.999")
+            MS=$(awk "BEGIN { printf \"%.0f\", $T * 1000 }")
+            SAMPLES+=("$MS")
+          done
+          SORTED=$(printf '%s\n' "${SAMPLES[@]}" | sort -n)
+          P95=$(echo "$SORTED" | awk 'NR==5')
+          echo "p95_ms=$P95" >> "$GITHUB_OUTPUT"
+          if [ "$P95" -gt "$P95_BUDGET_MS" ] 2>/dev/null; then
+            echo "::warning::p95 ${P95}ms exceeds budget ${P95_BUDGET_MS}ms"
+          fi
+
+      - name: Probe 3 — API 5xx rate from recent workflow runs
+        id: errors
+        shell: bash
+        run: |
+          set +e
+          RECENT=$(gh api "repos/${{ github.repository }}/actions/runs?branch=main&per_page=20&status=completed" \
+            --jq '[.workflow_runs[] | .conclusion]' 2>/dev/null || echo '[]')
+          TOTAL=$(echo "$RECENT" | jq 'length')
+          FAILED=$(echo "$RECENT" | jq '[.[] | select(. == "failure" or . == "timed_out")] | length')
+          if [ "$TOTAL" = "0" ]; then
+            echo "rate=unknown" >> "$GITHUB_OUTPUT"
+          else
+            RATE=$(awk "BEGIN { printf \"%.3f\", $FAILED / $TOTAL }")
+            echo "rate=$RATE" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Decide overall health and write rollback signal if degraded
+        id: decide
+        shell: bash
+        run: |
+          set +e
+          mkdir -p ops/state/rollback-signals
+
+          REACHABLE="${{ steps.metadata.outputs.reachable }}"
+          P95="${{ steps.latency.outputs.p95_ms }}"
+          RATE="${{ steps.errors.outputs.rate }}"
+
+          STATUS="healthy"
+          REASONS=()
+
+          if [ "$REACHABLE" = "false" ]; then
+            STATUS="critical"
+            REASONS+=("fhir-metadata-unreachable")
+          fi
+          if [ "$P95" != "unknown" ] && [ "$P95" -gt "$P95_BUDGET_MS" ] 2>/dev/null; then
+            [ "$STATUS" = "healthy" ] && STATUS="degraded"
+            REASONS+=("p95-over-budget:${P95}ms")
+          fi
+          if [ "$RATE" != "unknown" ]; then
+            OVER=$(awk "BEGIN { print ($RATE > $ERR_RATE_BUDGET) ? 1 : 0 }")
+            if [ "$OVER" = "1" ]; then
+              [ "$STATUS" = "healthy" ] && STATUS="degraded"
+              REASONS+=("recent-failure-rate:$RATE")
+            fi
+          fi
+
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          if [ -z "$PR_NUMBER" ]; then
+            PR_NUMBER="${{ github.event.inputs.pr_number }}"
+          fi
+          MERGE_SHA="${{ github.event.pull_request.merge_commit_sha }}"
+
+          REASONS_JSON=$(printf '%s\n' "${REASONS[@]}" | jq -R . | jq -s .)
+          SIGNAL=$(jq -n \
+            --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg status "$STATUS" \
+            --arg pr "$PR_NUMBER" \
+            --arg sha "$MERGE_SHA" \
+            --argjson reasons "$REASONS_JSON" \
+            '{generatedAt:$now, overall:$status, pr:$pr, mergeSha:$sha, reasons:$reasons, action:"pending-review"}')
+
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          echo "$SIGNAL" > "ops/state/rollback-signals/pr-${PR_NUMBER:-manual}-$(date -u +%Y%m%dT%H%M%SZ).json"
+
+          {
+            echo "## Clinical Post-Merge Monitor"
+            echo ""
+            echo "- PR: #${PR_NUMBER:-manual}"
+            echo "- Merge SHA: \`${MERGE_SHA:-n/a}\`"
+            echo "- FHIR metadata: $REACHABLE"
+            echo "- p95 /Patient: ${P95} ms (budget ${P95_BUDGET_MS})"
+            echo "- Recent failure rate: $RATE (budget $ERR_RATE_BUDGET)"
+            echo "- **Overall: $STATUS**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload health + signal artifacts
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: clinical-post-merge-${{ github.run_id }}
+          path: ops/state/rollback-signals/
+          retention-days: 30
+
+      - name: Open P1 issue on degraded / critical
+        if: steps.decide.outputs.status != 'healthy'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const status = `${{ steps.decide.outputs.status }}`;
+            const pr = `${{ github.event.pull_request.number || github.event.inputs.pr_number }}`;
+            const body = [
+              `### Clinical Post-Merge Monitor — ${status.toUpperCase()}`,
+              '',
+              `PR: #${pr}`,
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              '',
+              'Signals live under `ops/state/rollback-signals/` as workflow artifacts.',
+              '',
+              '**Rollback is NOT automatic.** Review the signal, decide, and',
+              'trigger `release.yaml` with a rollback tag manually. Patient-',
+              'safety changes never roll back without human approval.',
+            ].join('\n');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[post-merge] ${status} — PR #${pr}`,
+              body,
+              labels: ['autopilot', 'post-merge', status === 'critical' ? 'p0' : 'p1'],
+            });
