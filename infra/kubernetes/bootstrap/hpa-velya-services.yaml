@@ -2,50 +2,19 @@
 # HorizontalPodAutoscalers — Serviços Realtime Velya
 # Aplica escala horizontal baseada em CPU para serviços request-serving
 # Referência: docs/scaling/hpa-keda-vpa-strategy.md
+#
+# NOTE (2026-04-12): removed a stale first HPA block that was commented
+# `api-gateway` but had its name and scaleTargetRef left as `ai-gateway-hpa`
+# / `ai-gateway`, which collided with the canonical `ai-gateway-hpa` at
+# the end of this file. ArgoCD refused to sync `velya-bootstrap` with
+# `RepeatedResourceWarning: autoscaling/HorizontalPodAutoscaler/
+# velya-dev-platform/ai-gateway-hpa appeared 2 times`.
+#
+# The real `api-gateway-hpa` is a separate object (velya-dev-core,
+# min 3, max 30, class realtime-request-serving) that will land when
+# the `api-gateway` deployment is created. See docs/scaling/hpa-keda-
+# vpa-strategy.md §"HPA: api-gateway (Configuração Completa)".
 
-# api-gateway — serviço de entrada, escala por CPU + custom metrics via KEDA
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: ai-gateway-hpa
-  namespace: velya-dev-platform
-  labels:
-    app.kubernetes.io/part-of: velya-platform
-    velya.io/workload-class: realtime-app
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: ai-gateway
-  minReplicas: 1
-  maxReplicas: 5
-  behavior:
-    scaleUp:
-      stabilizationWindowSeconds: 60
-      policies:
-        - type: Pods
-          value: 2
-          periodSeconds: 60
-    scaleDown:
-      stabilizationWindowSeconds: 300
-      policies:
-        - type: Pods
-          value: 1
-          periodSeconds: 120
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 65
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: 80
----
 # patient-flow — serviço clínico crítico, escala conservadora
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
