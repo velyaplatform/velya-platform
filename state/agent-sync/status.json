@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-12T11:23:59.404Z",
+  "generatedAt": "2026-04-12T11:26:52.972Z",
   "schemaVersion": 1,
   "agents": [
     {
@@ -23,6 +23,12 @@
     {
       "name": "backend-quality-agent",
       "script": "scripts/agents/run-backend-quality.ts",
+      "layer": 1,
+      "status": "active"
+    },
+    {
+      "name": "bootstrap-drift-scanner-agent",
+      "script": "scripts/agents/run-bootstrap-drift-scanner.ts",
       "layer": 1,
       "status": "active"
     },
