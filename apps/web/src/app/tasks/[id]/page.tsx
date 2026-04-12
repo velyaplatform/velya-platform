@@ -361,6 +361,143 @@ function ActionPanel({ task, onStatusChange }: ActionPanelProps) {
   );
 }
 
+/* ── Delegation section ─────────────────────────────────────────── */
+
+interface DelegationSectionProps {
+  task: HospitalTask;
+  onReassigned: () => void;
+}
+
+function DelegationSection({ task, onReassigned }: DelegationSectionProps) {
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('');
+  const [note, setNote] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const terminalStatuses: TaskStatus[] = ['verified', 'cancelled', 'expired', 'declined'];
+  if (terminalStatuses.includes(task.status)) return null;
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim() || !role.trim() || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/hospital-tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          status: 'reassigned',
+          newAssignedTo: {
+            id: `user-${Date.now()}`,
+            name: name.trim(),
+            role: role.trim(),
+          },
+          note: note.trim() || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(body.error ?? `Erro ${res.status}`);
+        return;
+      }
+      setName('');
+      setRole('');
+      setNote('');
+      setShowForm(false);
+      onReassigned();
+    } catch {
+      setError('Erro de rede.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="rounded border border-neutral-200 bg-white p-4 space-y-3">
+      <h3 className="text-sm font-semibold text-neutral-900">Delegacao</h3>
+      <div className="text-sm text-neutral-700">
+        <span className="font-medium text-neutral-900">{task.assignedTo.name}</span>
+        <span className="text-neutral-500 ml-1">({task.assignedTo.role})</span>
+      </div>
+      {!showForm && (
+        <button
+          className="btn btn-outline btn-sm"
+          onClick={() => setShowForm(true)}
+        >
+          Reatribuir
+        </button>
+      )}
+      {showForm && (
+        <form onSubmit={handleSubmit} className="rounded border border-neutral-200 bg-neutral-50 p-4 space-y-3">
+          {error && (
+            <div className="text-sm text-neutral-900 border border-neutral-300 bg-neutral-100 px-3 py-2 rounded">
+              {error}
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
+              Nome do novo destinatario
+            </label>
+            <input
+              type="text"
+              className="w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Nome completo"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
+              Funcao
+            </label>
+            <input
+              type="text"
+              className="w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              placeholder="Ex: Enfermeiro, Tecnico"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
+              Observacao (opcional)
+            </label>
+            <textarea
+              className="w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+              rows={2}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Motivo da reatribuicao"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="btn btn-primary btn-sm"
+              disabled={!name.trim() || !role.trim() || submitting}
+            >
+              {submitting ? 'Processando...' : 'Confirmar'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => { setShowForm(false); setError(null); }}
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}
+
 /* ── Main page ───────────────────────────────────────────────────── */
 
 export default function TaskDetailPage() {
@@ -666,6 +803,9 @@ export default function TaskDetailPage() {
             <p className="mt-2 text-xs text-neutral-500">Processando...</p>
           )}
         </div>
+
+        {/* Delegacao */}
+        <DelegationSection task={task} onReassigned={loadTask} />
 
         {/* Evidence */}
         <div className="rounded border border-neutral-200 bg-white p-4 space-y-3">

@@ -302,7 +302,19 @@ export function updateTaskStatus(input: UpdateTaskStatusInput): HospitalTask | n
       break;
     case 'reassigned':
       if (input.newAssignedTo) {
+        const oldAssignee = task.assignedTo.name;
         task.assignedTo = input.newAssignedTo;
+        // Reset to open for new assignee
+        task.status = 'open';
+        task.statusChangedAt = now;
+        task.receivedAt = undefined;
+        task.acceptedAt = undefined;
+        task.startedAt = undefined;
+        task.acceptedBy = undefined;
+        task.sla = buildSLA(task.priority, now);
+        task.history.push(
+          historyEntry('reassigned', actor, fromStatus, 'open',
+            input.note ?? `Reatribuida de ${oldAssignee} para ${input.newAssignedTo.name}`));
       }
       break;
     case 'cancelled':
