@@ -1198,3 +1198,78 @@ spec:
                 claimName: velya-autopilot-data
             - name: tmp
               emptyDir: {}
+
+---
+# Bootstrap drift scanner agent — roda a cada 30 min (ADR-0016 follow-up)
+# Scans the infra/kubernetes/bootstrap manifests for duplicate resources,
+# stale apiVersions, orphan scalers, and other patterns from the knowledge
+# base at ops/bootstrap-compliance/known-errors.yaml. Read-only.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-bootstrap-drift-scanner
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: bootstrap-drift-scanner
+    velya.io/layer: "1"
+spec:
+  schedule: '*/30 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        metadata:
+          labels:
+            velya.io/agent: bootstrap-drift-scanner
+            velya.io/component: autopilot
+            velya.io/layer: "1"
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-bootstrap-drift-scanner.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_DRY_RUN
+                  value: 'false'
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}

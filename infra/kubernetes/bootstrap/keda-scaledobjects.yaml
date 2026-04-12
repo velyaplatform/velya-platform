@@ -3,12 +3,30 @@ kind: ScaledObject
 metadata:
   name: patient-flow-scaler
   namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/workload-class: realtime-app
 spec:
   scaleTargetRef:
     name: patient-flow
   minReplicaCount: 1
   maxReplicaCount: 5
   cooldownPeriod: 60
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 30
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 600 # 10min — serviço clínico crítico, não reduz rápido
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 300
   triggers:
     - type: prometheus
       metadata:
@@ -22,12 +40,30 @@ kind: ScaledObject
 metadata:
   name: discharge-orchestrator-scaler
   namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/workload-class: async-worker
 spec:
   scaleTargetRef:
     name: discharge-orchestrator
   minReplicaCount: 1
   maxReplicaCount: 4
   cooldownPeriod: 90
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 120
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 120
+        scaleDown:
+          stabilizationWindowSeconds: 600 # workflow durável, escala conservadora
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 300
   triggers:
     - type: prometheus
       metadata:
@@ -41,12 +77,30 @@ kind: ScaledObject
 metadata:
   name: task-inbox-scaler
   namespace: velya-dev-core
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/workload-class: async-worker
 spec:
   scaleTargetRef:
     name: task-inbox
   minReplicaCount: 1
   maxReplicaCount: 5
   cooldownPeriod: 60
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 60
+          policies:
+            - type: Pods
+              value: 2
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 180
   triggers:
     - type: prometheus
       metadata:
@@ -60,12 +114,30 @@ kind: ScaledObject
 metadata:
   name: ai-gateway-scaler
   namespace: velya-dev-platform
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/workload-class: heavy-ai-analytics
 spec:
   scaleTargetRef:
     name: ai-gateway
   minReplicaCount: 1
   maxReplicaCount: 6
   cooldownPeriod: 120
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 90
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 90
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 180
   triggers:
     - type: prometheus
       metadata:
@@ -79,6 +151,9 @@ kind: ScaledObject
 metadata:
   name: agent-orchestrator-scaler
   namespace: velya-dev-agents
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/workload-class: async-worker
 spec:
   scaleTargetRef:
     name: agent-orchestrator

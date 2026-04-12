@@ -307,3 +307,31 @@ claims:
     kind: file_exists
     path: .github/workflows/agent-sync-commit.yaml
     severity: critical
+
+  # --- Bootstrap compliance: drift scanner + knowledge base + gate ------
+  - id: bootstrap-known-errors-kb-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: ops/bootstrap-compliance/known-errors.yaml
+    severity: critical
+  - id: bootstrap-drift-scanner-agent-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: scripts/agents/run-bootstrap-drift-scanner.ts
+    severity: critical
+  - id: bootstrap-drift-scanner-contract-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .claude/agents/bootstrap-drift-scanner-agent.md
+    severity: critical
+  - id: bootstrap-compliance-gate-workflow-present
+    memory: project_velya_platform_state
+    kind: file_exists
+    path: .github/workflows/clinical-bootstrap-compliance-gate.yaml
+    severity: critical
+  - id: bootstrap-drift-in-healer-esteira
+    memory: project_velya_platform_state
+    kind: file_contains
+    path: .github/workflows/argocd-healer.yaml
+    regex: 'run-bootstrap-drift-scanner'
+    severity: critical

@@ -256,6 +256,30 @@ function severityFromStatus(sync: string, health: string): Finding['severity'] {
 }
 
 /**
+ * Detect webhook admission conflicts in ArgoCD operation messages.
+ * Common case: KEDA ScaledObject + manual HPA targeting the same Deployment.
+ * The KEDA webhook (vscaledobject.kb.io) rejects ScaledObjects when a manual
+ * HPA already manages the same workload. This blocks ALL syncs on the app.
+ *
+ * Returns an array of { workload, hpa } pairs if a conflict is detected.
+ */
+function detectWebhookConflicts(
+  opMsg: string,
+  conditions: string,
+): Array<{ workload: string; hpa: string }> {
+  const combined = `${opMsg} ${conditions}`;
+  const conflicts: Array<{ workload: string; hpa: string }> = [];
+  // Pattern: "admission webhook ... denied ... workload 'X' ... already managed by the hpa 'Y'"
+  const regex =
+    /admission webhook.*?denied.*?workload '([^']+)'.*?already managed by the hpa '([^']+)'/gi;
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(combined)) !== null) {
+    conflicts.push({ workload: m[1], hpa: m[2] });
+  }
+  return conflicts;
+}
+
+/**
  * Apply the refresh+sync remediation steps to a single finding, in place.
  * Extracted from main() so it can run under a cooperative lock or bare.
  * The lock scope is exactly this call — the minimum section that mutates
@@ -322,12 +346,17 @@ async function main(): Promise<void> {
       continue;
     }
 
-    const severity = severityFromStatus(sync, health);
+    // Detect webhook admission conflicts (e.g. KEDA vs manual HPA)
+    const webhookConflicts = detectWebhookConflicts(opMsg, conditionMsgs);
+    const isWebhookConflict = webhookConflicts.length > 0;
+
+    const severity = isWebhookConflict ? 'critical' : severityFromStatus(sync, health);
+    const rule = isWebhookConflict ? 'argocd-webhook-conflict' : 'argocd-app-unhealthy';
     const grafanaMatches = correlateAlerts(name, alerts);
 
     const finding: Finding = {
       severity,
-      rule: `argocd-app-unhealthy`,
+      rule,
       application: name,
       namespace: app.metadata.namespace,
       syncStatus: sync,
@@ -338,6 +367,23 @@ async function main(): Promise<void> {
       remediation: 'none',
       grafanaAlerts: grafanaMatches.length ? grafanaMatches : undefined,
     };
+
+    // Webhook conflicts cannot be fixed by refresh+sync — they require
+    // removing conflicting resources from Git (e.g. deleting manual HPAs
+    // when KEDA ScaledObjects exist for the same workloads).
+    if (isWebhookConflict) {
+      finding.remediation = 'escalated';
+      const conflictList = webhookConflicts
+        .map((c) => `workload=${c.workload} hpa=${c.hpa}`)
+        .join('; ');
+      finding.remediationDetail =
+        `webhook admission conflict: ${conflictList}. ` +
+        `Cannot auto-fix via sync — remove conflicting HPAs from bootstrap manifests ` +
+        `(KEDA ScaledObjects create their own HPAs). See hpa-velya-services.yaml.`;
+      console.log(`  ✗ ${name} [WEBHOOK CONFLICT] ${conflictList}`);
+      findings.push(finding);
+      continue;
+    }
 
     console.log(`  ✗ ${name} [${sync}/${health}] ${opPhase ? `op=${opPhase}` : ''}`);
 

@@ -1,0 +1,223 @@
+# Bootstrap Compliance — Known Error Patterns
+#
+# This file is the shared knowledge base consumed by:
+#   1. scripts/agents/run-bootstrap-drift-scanner.ts (L1 agent, in-cluster + CI)
+#   2. .github/workflows/clinical-bootstrap-compliance-gate.yaml (PR gate)
+#   3. argocd-healer esteira (via auto-discovery)
+#
+# Every entry documents an error we have ALREADY seen and fixed. The scanner
+# uses the `detect` section to find recurrences automatically. When a
+# pattern matches, the scanner emits a finding with the severity, rule ID,
+# and the `fix` description so the operator (human or Claude) can resolve
+# it without re-investigating from scratch.
+#
+# Format:
+#   - id: unique kebab-case identifier
+#     severity: critical | high | medium | low
+#     category: one of [duplicate-resource, stale-api-version, missing-netpol,
+#                        orphan-reference, crd-version-mismatch, schema-drift]
+#     title: short human-readable title
+#     description: what the error looks like in ArgoCD / kubectl
+#     root_cause: why it happened
+#     detect:
+#       kind: what to scan (yaml-duplicate | grep-pattern | api-probe)
+#       # fields vary by kind — see inline docs per entry
+#     fix:
+#       action: what to do
+#       pr: reference PR that fixed the original occurrence
+#     added: ISO date when this pattern was catalogued
+#
+# To add a new pattern: append an entry, bump the version, run
+#   npx tsx scripts/agents/run-bootstrap-drift-scanner.ts --dry-run
+# and verify it detects the pattern (or doesn't, if the fix is in place).
+
+schema_version: 2
+last_updated: 2026-04-12
+
+patterns:
+
+  # ──────────────────────────────────────────────────────────────────────
+  # 1. Duplicate (kind, namespace, name) in the same Application path
+  # ──────────────────────────────────────────────────────────────────────
+  - id: duplicate-resource-in-app-path
+    severity: critical
+    category: duplicate-resource
+    title: "Same (kind, namespace, name) appears twice in an ArgoCD Application path"
+    description: |
+      ArgoCD refuses to sync with:
+        "Resource <group>/<kind>/<namespace>/<name> appeared 2 times
+         among application resources."
+      This blocks ALL resources in the Application, not just the duplicate.
+    root_cause: |
+      Copy-paste of a YAML document block where the metadata.name and/or
+      metadata.namespace were not updated. Often happens when creating a
+      new HPA/ScaledObject from an existing template.
+    detect:
+      kind: yaml-duplicate
+      # The scanner walks every YAML file in the target dirs, parses all
+      # documents, and flags any (kind, namespace, name) triple that
+      # appears more than once within the same ArgoCD Application source path.
+      paths:
+        - infra/kubernetes/bootstrap
+        - infra/kubernetes/services
+        - infra/kubernetes/apps
+        - infra/kubernetes/platform
+    fix:
+      action: |
+        Remove or rename the duplicate block. Keep the one whose spec
+        matches the actual workload. If both are needed, one must have
+        a different name.
+      pr: "#34 — fix(bootstrap): remove duplicate ai-gateway-hpa"
+    added: 2026-04-12
+
+  # ──────────────────────────────────────────────────────────────────────
+  # 2. Stale apiVersion that the cluster no longer serves
+  # ──────────────────────────────────────────────────────────────────────
+  - id: stale-api-version
+    severity: critical
+    category: stale-api-version
+    title: "Manifest uses an apiVersion the cluster does not serve"
+    description: |
+      ArgoCD sync fails with:
+        "The Kubernetes API could not find version <old> of <group>/<kind>
+         for requested resource <ns>/<name>. Version <new> is installed
+         on the destination cluster."
+    root_cause: |
+      CRD operator was upgraded (e.g. external-secrets v1beta1→v1,
+      cert-manager v1alpha2→v1) but manifests in the repo still pin the
+      old apiVersion.
+    detect:
+      kind: api-version-probe
+      # The scanner compares every apiVersion in the manifest YAML against
+      # the cluster's `kubectl api-resources` output. A mismatch is a
+      # finding. Offline mode (no cluster): skip this check, emit warning.
+      known_deprecations:
+        - group: external-secrets.io
+          old: v1beta1
+          current: v1
+          kinds: [ExternalSecret, ClusterSecretStore, SecretStore]
+        - group: cert-manager.io
+          old: v1alpha2
+          current: v1
+          kinds: [Certificate, ClusterIssuer, Issuer]
+        - group: keda.sh
+          old: v1alpha1
+          # v1alpha1 is still valid for KEDA — this entry is a watchlist,
+          # not a current deprecation. Flag only when the cluster stops
+          # serving it.
+          current: v1alpha1
+          kinds: [ScaledObject, ScaledJob, TriggerAuthentication]
+    fix:
+      action: |
+        Update the apiVersion field in the manifest to the version the
+        cluster currently serves. Also update README/doc examples that
+        reference the old version.
+      pr: "#35 — fix(bootstrap): ESO v1beta1→v1 + netpol for webhook"
+    added: 2026-04-12
+
+  # ──────────────────────────────────────────────────────────────────────
+  # 3. Missing NetworkPolicy for validating/mutating webhooks
+  # ──────────────────────────────────────────────────────────────────────
+  - id: missing-webhook-netpol
+    severity: critical
+    category: missing-netpol
+    title: "Validating/mutating webhook unreachable due to default-deny NetworkPolicy"
+    description: |
+      kubectl apply or ArgoCD sync fails with:
+        "Internal error: failed calling webhook <name>:
+         Post https://<svc>.<ns>.svc:443/<path>: context deadline exceeded"
+    root_cause: |
+      A namespace has a default-deny-all NetworkPolicy but no explicit
+      ingress rule allowing the kube-apiserver (host network) to reach
+      the webhook pod on its container port. The API server is not a pod,
+      so it can only match `from: []` (any source).
+    detect:
+      kind: webhook-netpol-probe
+      # The scanner lists all ValidatingWebhookConfiguration and
+      # MutatingWebhookConfiguration objects, extracts the service
+      # namespace + name + port, then checks that a NetworkPolicy in
+      # that namespace allows ingress on that port from any source.
+      # If a default-deny exists and no allow rule covers the webhook,
+      # emit a finding.
+    fix:
+      action: |
+        Add a NetworkPolicy in the webhook's namespace:
+          podSelector: matchLabels for the webhook pod
+          ingress: [{ from: [], ports: [{ protocol: TCP, port: <containerPort> }] }]
+      pr: "#35 — fix(bootstrap): netpol for external-secrets-webhook"
+    added: 2026-04-12
+
+  # ──────────────────────────────────────────────────────────────────────
+  # 4. Orphan reference — HPA/ScaledObject targeting nonexistent Deployment
+  # ──────────────────────────────────────────────────────────────────────
+  - id: orphan-scaler-target
+    severity: high
+    category: orphan-reference
+    title: "HPA or ScaledObject targets a Deployment that does not exist"
+    description: |
+      The HPA or ScaledObject is Synced but has no effect because the
+      target Deployment doesn't exist. ArgoCD marks it Healthy (it's a
+      valid object) but it wastes a slot and confuses operators.
+    root_cause: |
+      Deployment was renamed/removed but the autoscaler wasn't updated.
+      Or the autoscaler was created proactively before the workload.
+    detect:
+      kind: orphan-scaler-check
+      # Walk HPAs and ScaledObjects, extract spec.scaleTargetRef.name
+      # and namespace, verify the referenced Deployment exists.
+      # Offline mode: parse YAML only and cross-reference against
+      # Deployment manifests in the same Application path.
+    fix:
+      action: |
+        Either create the missing Deployment, or remove/comment out the
+        orphan autoscaler until the workload ships.
+      pr: "(no PR yet — detected as residual in velya-bootstrap audit)"
+    added: 2026-04-12
+
+  # ──────────────────────────────────────────────────────────────────────
+  # 5. ServiceMonitor targeting a Service that does not exist
+  # ──────────────────────────────────────────────────────────────────────
+  - id: orphan-service-monitor
+    severity: medium
+    category: orphan-reference
+    title: "ServiceMonitor references a Service that does not exist"
+    description: |
+      Prometheus scrape config exists but has 0 targets because the
+      backing Service isn't deployed yet. Silent failure — no alerts fire.
+    root_cause: |
+      ServiceMonitor was created proactively (or the Service was removed).
+    detect:
+      kind: orphan-service-monitor-check
+      # Walk ServiceMonitors, extract spec.selector.matchLabels and
+      # spec.namespaceSelector, verify at least one Service matches.
+    fix:
+      action: |
+        Remove or gate the ServiceMonitor until the Service exists.
+      pr: "(velya-api-gateway ServiceMonitor — detected in bootstrap audit)"
+    added: 2026-04-12
+
+  # ──────────────────────────────────────────────────────────────────────
+  # 6. ValidatingAdmissionPolicy not supported on cluster version
+  # ──────────────────────────────────────────────────────────────────────
+  - id: unsupported-vap
+    severity: medium
+    category: crd-version-mismatch
+    title: "ValidatingAdmissionPolicy defined but cluster does not support it"
+    description: |
+      ArgoCD cannot apply ValidatingAdmissionPolicy or
+      ValidatingAdmissionPolicyBinding because the feature gate is not
+      enabled or the cluster version is too old (requires k8s >= 1.30 GA).
+    root_cause: |
+      Kind cluster or older EKS version without the
+      ValidatingAdmissionPolicy feature gate.
+    detect:
+      kind: api-resource-exists
+      group: admissionregistration.k8s.io
+      resource: validatingadmissionpolicies
+    fix:
+      action: |
+        Enable feature gate `ValidatingAdmissionPolicy=true` in kind
+        config or upgrade EKS to >= 1.30. Or move the policies to a
+        separate Application with SkipDryRunOnMissingResource=true.
+      pr: "(not yet fixed — residual from bootstrap audit)"
+    added: 2026-04-12
