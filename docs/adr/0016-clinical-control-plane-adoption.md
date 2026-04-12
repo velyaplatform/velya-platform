@@ -162,10 +162,20 @@ esteira. The new layer is intentionally conservative:
    `infra/kubernetes/autopilot/agents-cronjobs.yaml` appends a
    `velya-agent-sync-snapshot` CronJob. Needs the next
    `velya-autopilot-agents` image rebuild before first reconcile.
-3. **Open:** Commit the produced `ClinicalAgentSyncState` snapshot from
+3. ~~Commit the produced `ClinicalAgentSyncState` snapshot from
    the CronJob into an `autopilot-state` orphan branch (so memory-guardian
-   CI can read it without mounting the PVC). Deferred — requires either
-   a git-inside-pod pattern or a read-only HTTP exposure of the PVC.
+   CI can read it without mounting the PVC).~~ **Done (CI side).** A new
+   `agent-sync-commit.yaml` workflow builds the snapshot every 15 minutes
+   in CI and commits it to the `autopilot-state` orphan branch under
+   `state/agent-sync/{status.json,last-generated-at.txt}`. The branch is
+   auto-initialised on first run. The CI snapshot tracks the *repo view*
+   of agent inventory (who's declared, which files exist) — the *runtime
+   view* (live locks and live handoffs) still requires the in-cluster
+   CronJob to push from inside the pod, which is a separate sub-follow-up
+   (git-inside-pod pattern) tracked below.
+   - **Sub-follow-up (open):** make the `velya-agent-sync-snapshot`
+     CronJob push its in-cluster snapshot to the same branch. Needs an
+     SSH deploy key or a short-lived token injected via a k8s Secret.
 4. ~~Cross-agent namespace serialization. Today the healer locks
    at `argocd-application` scope and the troubleshooter at `k8s-namespace`
    scope. Two agents mutating the same cluster state still can't race on

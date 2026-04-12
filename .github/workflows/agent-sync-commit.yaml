@@ -1,0 +1,155 @@
+name: Agent Sync Snapshot Commit
+
+# ════════════════════════════════════════════════════════════════════════════
+# ADR-0016 follow-up #3: commits the ClinicalAgentSyncState snapshot to the
+# `autopilot-state` orphan branch so memory-guardian CI (and anyone else)
+# can read it without mounting the shared PVC.
+#
+# What gets committed:
+#   state/agent-sync/status.json — full snapshot produced by
+#     `scripts/agents/build-agent-sync-snapshot.ts`. In CI, the snapshot
+#     sees only the repo layout (agents discovered, no live locks, no
+#     live handoffs, no audit reports), which is already enough to track
+#     drift in agent inventory. The in-cluster CronJob remains
+#     responsible for publishing the live runtime state — a later
+#     follow-up will merge both sources.
+#
+#   state/agent-sync/last-generated-at.txt — plain ISO-8601 for quick
+#     staleness checks.
+#
+# The `autopilot-state` branch is an orphan (no history shared with main)
+# and is recreated if missing. Commits are made by the GitHub Actions bot
+# with `user.email=autopilot-bot@velya.io` to be clearly attributable.
+#
+# This workflow never blocks a merge. Its only signal is the branch's
+# last-commit timestamp, which a follow-up freshness workflow will watch.
+# ════════════════════════════════════════════════════════════════════════════
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/agents/**'
+      - '.claude/agents/**'
+  schedule:
+    # Every 15 min — matches the in-cluster `velya-agent-sync-snapshot`
+    # CronJob cadence so the two sources don't drift by more than a
+    # window.
+    - cron: '*/15 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agent-sync-commit
+  cancel-in-progress: false
+
+jobs:
+  snapshot-and-commit:
+    name: Build + commit snapshot to autopilot-state
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: '22'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Generate snapshot
+        env:
+          VELYA_AUDIT_OUT: /tmp/velya-autopilot
+        run: |
+          set -e
+          mkdir -p /tmp/velya-autopilot
+          npx tsx scripts/agents/build-agent-sync-snapshot.ts \
+            --out /tmp/agent-sync-status.json
+          ls -la /tmp/agent-sync-status.json
+          # Sanity-check that the JSON is valid and has the expected shape
+          jq -e '.schemaVersion == 1 and (.agents | length > 0)' /tmp/agent-sync-status.json >/dev/null
+
+      - name: Ensure autopilot-state orphan branch exists and commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -e
+          git config user.name "autopilot-bot"
+          git config user.email "autopilot-bot@velya.io"
+
+          if git ls-remote --exit-code --heads origin autopilot-state >/dev/null 2>&1; then
+            echo "autopilot-state branch exists — fetching"
+            git fetch origin autopilot-state:autopilot-state
+            git checkout autopilot-state
+            # Ensure tree is clean before overwriting the snapshot
+            git rm -rf --ignore-unmatch state/agent-sync || true
+          else
+            echo "autopilot-state does not exist — creating orphan branch"
+            git checkout --orphan autopilot-state
+            git rm -rf --ignore-unmatch . || true
+            # Seed with a README so the branch is not empty
+            cat > README.md <<'EOF'
+          # autopilot-state
+
+          This orphan branch carries operational state emitted by the
+          Velya autopilot esteira. It is **never merged into main**. It
+          is a one-way publish target.
+
+          Contents:
+          - `state/agent-sync/status.json` — latest ClinicalAgentSyncState
+            produced by `scripts/agents/build-agent-sync-snapshot.ts`
+          - `state/agent-sync/last-generated-at.txt` — ISO-8601 of the
+            last refresh
+
+          Writers:
+          - `.github/workflows/agent-sync-commit.yaml` (CI, every 15 min)
+          - `infra/kubernetes/autopilot/agents-cronjobs.yaml`
+            `velya-agent-sync-snapshot` CronJob (in-cluster, every 15 min,
+            ADR-0016 follow-up — pending a git-inside-pod pattern)
+
+          Readers:
+          - `ops/memory-guardian/claims.yaml` (future freshness claim)
+          - any operator with a curl command
+          EOF
+            git add README.md
+            git commit -m "chore(autopilot-state): initialise orphan branch"
+          fi
+
+          mkdir -p state/agent-sync
+          cp /tmp/agent-sync-status.json state/agent-sync/status.json
+          date -u +%Y-%m-%dT%H:%M:%SZ > state/agent-sync/last-generated-at.txt
+
+          git add state/agent-sync/
+          if git diff --cached --quiet; then
+            echo "no snapshot drift — skipping commit"
+            exit 0
+          fi
+          git commit -m "chore(autopilot-state): refresh agent-sync snapshot at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push origin autopilot-state
+
+      - name: Summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Agent Sync Snapshot"
+            echo ""
+            if [ -f /tmp/agent-sync-status.json ]; then
+              echo "- Agents discovered: $(jq '.agents | length' /tmp/agent-sync-status.json)"
+              echo "- Locks: $(jq '.locks | length' /tmp/agent-sync-status.json)"
+              echo "- Handoffs: $(jq '.handoffs | length' /tmp/agent-sync-status.json)"
+              echo "- Stale agents: $(jq '.staleAgents | length' /tmp/agent-sync-status.json)"
+            else
+              echo "- **No snapshot generated** (previous step failed)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
