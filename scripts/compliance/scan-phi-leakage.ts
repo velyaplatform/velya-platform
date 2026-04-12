@@ -260,7 +260,13 @@ async function run(): Promise<number> {
     console.log('\n| Severity | Rule | File | Line | Message |');
     console.log('|---|---|---|---|---|');
     for (const f of allFindings.slice(0, 50)) {
-      const msg = f.message.replace(/\|/g, '\\|');
+      // Sanitise for markdown table cell: strip newlines, then escape
+      // backslash first (must come before pipe so we don't double-escape
+      // our own escape sequences), then escape pipes.
+      const msg = f.message
+        .replace(/[\r\n]+/g, ' ')
+        .replace(/\\/g, '\\\\')
+        .replace(/\|/g, '\\|');
       console.log(`| ${f.severity} | ${f.rule} | \`${f.file}\` | ${f.line} | ${msg} |`);
     }
     if (allFindings.length > 50) {
