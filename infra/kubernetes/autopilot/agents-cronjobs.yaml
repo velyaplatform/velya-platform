@@ -1198,3 +1198,95 @@ spec:
                 claimName: velya-autopilot-data
             - name: tmp
               emptyDir: {}
+---
+# ============================================================================
+# velya-scorecard-publisher-agent — Layer 1 (Governance support)
+# ----------------------------------------------------------------------------
+# Compiles per-agent scorecards from audit findings on the PVC. Identified
+# as the P0 blocker by the gap-analysis subagent on 2026-04-12: every other
+# governance loop in ADR-0017 (lifecycle-promotion, validator-of-validators,
+# quarantine-enforcer, learning-curator) depends on this one running first.
+# ============================================================================
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-scorecard-publisher-agent
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: scorecard-publisher
+    velya.io/layer: "1"
+spec:
+  schedule: '0 */4 * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            velya.io/agent: scorecard-publisher
+            velya.io/component: autopilot
+            velya.io/layer: "1"
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command: ['npx', 'tsx', 'scripts/agents/run-scorecard-publisher.ts']
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+                - name: VELYA_REPO_ROOT
+                  value: /workspace
+                - name: VELYA_SCORECARD_WINDOW_HOURS
+                  value: "168"
+                - name: VELYA_KILLSWITCH_PATH
+                  value: /var/run/velya-autopilot/killswitch.yaml
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+                - name: killswitch
+                  mountPath: /var/run/velya-autopilot
+                  readOnly: true
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
+            - name: killswitch
+              configMap:
+                name: velya-autopilot-killswitch
+                items:
+                  - key: killswitch.yaml
+                    path: killswitch.yaml

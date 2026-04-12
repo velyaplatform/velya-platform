@@ -1,0 +1,107 @@
+# Autopilot kill-switch ConfigMap
+# ----------------------------------------------------------------------------
+# This is the single source of truth that every autopilot runner reads
+# before doing any side-effecting work. Flipping a key here freezes the
+# corresponding scope within seconds (each runner re-reads the file on
+# every invocation; CronJobs pick it up on the next tick, ≤ schedule
+# interval).
+#
+# Mounted at /var/run/velya-autopilot/killswitch.yaml in every autopilot
+# pod. Path overridable per-runner with VELYA_KILLSWITCH_PATH (used by
+# tests).
+#
+# Schema (consumed by scripts/agents/shared/killswitch.ts):
+#   global.enabled            — when true, halts ALL autopilot agents
+#   layers.{l1,l2,l3,l4}      — halt a single layer
+#   agents.<name>             — halt a single agent (most surgical)
+#   forbidden_targets         — paths no agent may write to, ever
+#   blast_radius_caps         — informational caps; primary enforcement
+#                                lives in memory-guardian invariants
+#
+# Convention: keep this file in source control. Operators flip values via
+# `kubectl edit` for emergency stops; the desired state still ships via
+# ArgoCD so the next sync restores baseline. Audit who touched it via
+# `kubectl get configmap velya-autopilot-killswitch -o yaml` history.
+#
+# See ADR-0017 §Kill switch matrix for the full design.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: velya-autopilot-killswitch
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/layer: control-plane
+    app.kubernetes.io/managed-by: argocd
+data:
+  killswitch.yaml: |
+    # === GLOBAL ESCAPE HATCH ===
+    # Setting global.enabled=true freezes the entire mesh. Use this when
+    # you have no time to figure out which layer is misbehaving and you
+    # want everything to stop NOW.
+    global:
+      enabled: false
+      reason: ""
+
+    # === LAYER SCOPE ===
+    # Halt one of the four layers. The runner reads these on boot and
+    # exits with code 4 (kill-switch engaged) before any side effects.
+    layers:
+      l1: false   # Workers (pin-rot, frontend-quality, ci-failure-triage, etc.)
+      l2: false   # Supervisors (argocd-healer, k8s-troubleshooter, agent-health-manager, etc.)
+      l3: false   # Orchestrator / planners (autopilot-coordinator)
+      l4: false   # Governance (lifecycle-promotion, scorecard-curator, learning-curator)
+
+    # === PER-AGENT SCOPE ===
+    # The most surgical knob. Pause exactly one agent without affecting
+    # the rest of its layer. Useful when an agent is misbehaving and you
+    # want to investigate without losing the rest of the mesh.
+    agents:
+      ci-failure-triage-agent: false
+      repo-settings-auditor-agent: false
+      pin-rot-agent: false
+      frontend-quality-agent: false
+      backend-quality-agent: false
+      infra-health-agent: false
+      argocd-healer-agent: false
+      k8s-troubleshooter-agent: false
+      agent-health-manager: false
+      agent-runtime-supervisor: false
+      meta-governance-auditor: false
+      learning-curator-agent: false
+      scorecard-publisher-agent: false
+      autopilot-orchestrator-agent: false
+
+    # === FORBIDDEN TARGETS ===
+    # Path globs that no agent may EVER write to, regardless of how the
+    # rest of this file is configured. The runner refuses to apply a
+    # patch whose targetFile matches any of these. This is the absolute
+    # boundary — flipping `global.enabled` to false does NOT lift these.
+    forbidden_targets:
+      - ".claude/rules/red-team.md"
+      - ".claude/rules/ai-safety.md"
+      - ".claude/rules/agent-governance.md"
+      - ".claude/rules/security.md"
+      - ".claude/agents/learning-curator-agent.md"
+      - "docs/risk/**"
+      - "ops/memory-guardian/claims.yaml"
+      - "infra/kubernetes/autopilot/killswitch-configmap.yaml"
+      - "infra/tofu/envs/prod/**"
+      - "scripts/agents/shared/killswitch.ts"
+      - "scripts/agents/shared/audit-signature.ts"
+      - "scripts/agents/shared/proposal-store.ts"
+
+    # === BLAST RADIUS CAPS (informational mirror — enforced by memory-guardian) ===
+    # The runner can READ these to short-circuit before submitting an
+    # action it knows will be rejected by the invariant check downstream.
+    # Source of truth lives in ops/memory-guardian/claims.yaml.
+    blast_radius_caps:
+      autopilot_prs_per_hour: 5
+      files_per_pr: 20
+      loc_per_pr: 400
+      autopilot_commits_per_day: 30
+      cronjob_creates_or_deletes_per_day: 0    # always Tier 3 — human only
+      jobs_deleted_in_prod_non_clinical_per_day: 10
+      argocd_force_syncs_per_hour: 6
