@@ -70,9 +70,9 @@ export default function SpecialtyDetailPage() {
         </div>
         <Link
           href="/specialties"
-          className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-700 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
         >
-          ← Voltar à lista
+          Voltar a lista
         </Link>
       </AppShell>
     );
@@ -95,23 +95,23 @@ export default function SpecialtyDetailPage() {
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className="font-mono text-xs text-slate-500">CFM {specialty.cfmCode}</span>
-              <span className="text-xs px-2 py-1 rounded-full bg-blue-900/40 text-blue-800 border border-blue-700/60">
+              <span className="font-mono text-xs text-neutral-500">CFM {specialty.cfmCode}</span>
+              <span className="text-xs px-2 py-1 rounded-full bg-neutral-100 text-neutral-900 border border-neutral-300">
                 {SPECIALTY_CATEGORY_LABELS[specialty.category]}
               </span>
-              <span className="text-xs text-slate-600">
+              <span className="text-xs text-neutral-500">
                 {specialty.residencyYears} anos de residência
               </span>
             </div>
             <h1 className="page-title">
-              <span aria-hidden="true">{'\uD83E\uDE7A'}</span> {specialty.name}
+              {specialty.name}
             </h1>
             <p className="page-subtitle">{specialty.description}</p>
           </div>
           <div className="flex gap-2 flex-wrap">
             <Link
               href="/specialties"
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
             >
               ← Voltar
             </Link>
@@ -126,7 +126,7 @@ export default function SpecialtyDetailPage() {
             />
             <Link
               href={`/edit/medical-specialties/${specialty.id}`}
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-700 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
             >
               Editar
             </Link>
@@ -137,25 +137,25 @@ export default function SpecialtyDetailPage() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <Kpi label="Profissionais envolvidos" value={involvedStaff.length} />
-        <Kpi label="Em plantão agora" value={onDutyCount} accent="green" />
-        <Kpi label="Pacientes atribuídos" value={totalAssignedPatients} accent="blue" />
-        <Kpi label="Alas onde atua" value={relatedWards.length} accent="amber" />
+        <Kpi label="Em plantao agora" value={onDutyCount} />
+        <Kpi label="Pacientes atribuidos" value={totalAssignedPatients} />
+        <Kpi label="Alas onde atua" value={relatedWards.length} />
       </div>
 
       {/* Staff involved */}
       <section
         aria-labelledby="staff-heading"
-        className="bg-white border border-slate-200 rounded-xl p-5 mb-4"
+        className="bg-white border border-neutral-200 rounded-xl p-5 mb-4"
       >
         <h2
           id="staff-heading"
-          className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2"
+          className="text-base font-bold text-neutral-900 mb-3 flex items-center gap-2"
         >
-          <span aria-hidden="true">{'\uD83D\uDC65'}</span> Funcionários envolvidos (
+          Funcionarios envolvidos (
           {involvedStaff.length})
         </h2>
         {involvedStaff.length === 0 ? (
-          <p className="text-sm text-slate-600 text-center py-4">
+          <p className="text-sm text-neutral-500 text-center py-4">
             Nenhum profissional cadastrado nesta especialidade no quadro atual.
           </p>
         ) : (
@@ -163,25 +163,25 @@ export default function SpecialtyDetailPage() {
             {involvedStaff.map((s) => {
               const presenceClass =
                 s.presence === 'on-duty'
-                  ? 'bg-green-50/40 text-green-800 border-green-700/60'
+                  ? 'bg-neutral-100 text-neutral-900 border-neutral-300'
                   : s.presence === 'on-break'
-                    ? 'bg-amber-50/40 text-amber-800 border-amber-700/60'
-                    : 'bg-slate-50 text-slate-600 border-slate-300';
+                    ? 'bg-neutral-50 text-neutral-700 border-neutral-300'
+                    : 'bg-neutral-50 text-neutral-500 border-neutral-300';
               return (
                 <li key={s.id}>
                   <Link
                     href={`/employees/${s.id}`}
-                    className="block bg-slate-50 border border-slate-200 rounded-lg p-4 hover:bg-slate-100 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
+                    className="block bg-neutral-50 border border-neutral-200 rounded-lg p-4 hover:bg-neutral-100 hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-200 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-sm font-bold text-slate-900">{s.name}</h3>
-                        <p className="text-xs text-slate-600">
+                        <h3 className="text-sm font-bold text-neutral-900">{s.name}</h3>
+                        <p className="text-xs text-neutral-500">
                           {ROLE_LABELS[s.role]}
                           {s.specialty && <> · {s.specialty}</>}
                         </p>
                         {s.council && (
-                          <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                          <p className="text-[11px] text-neutral-500 font-mono mt-0.5">
                             {s.council}
                           </p>
                         )}
@@ -192,16 +192,16 @@ export default function SpecialtyDetailPage() {
                         {PRESENCE_LABELS[s.presence]}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-slate-600 mt-2">
+                    <div className="flex items-center justify-between text-xs text-neutral-500 mt-2">
                       <span>
                         {s.ward} · {s.shiftStart}–{s.shiftEnd}
                       </span>
                       {s.contactExtension && (
-                        <span className="font-mono text-blue-700">ramal {s.contactExtension}</span>
+                        <span className="font-mono text-neutral-700">ramal {s.contactExtension}</span>
                       )}
                     </div>
                     {s.assignedPatientMrns.length > 0 && (
-                      <p className="text-[11px] text-slate-500 mt-2">
+                      <p className="text-[11px] text-neutral-500 mt-2">
                         {s.assignedPatientMrns.length} paciente(s) atribuído(s)
                       </p>
                     )}
@@ -216,16 +216,16 @@ export default function SpecialtyDetailPage() {
       {/* Wards */}
       <section
         aria-labelledby="wards-heading"
-        className="bg-white border border-slate-200 rounded-xl p-5 mb-4"
+        className="bg-white border border-neutral-200 rounded-xl p-5 mb-4"
       >
         <h2
           id="wards-heading"
-          className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2"
+          className="text-base font-bold text-neutral-900 mb-3 flex items-center gap-2"
         >
-          <span aria-hidden="true">{'\uD83C\uDFE5'}</span> Alas onde atua ({relatedWards.length})
+          Alas onde atua ({relatedWards.length})
         </h2>
         {relatedWards.length === 0 ? (
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-neutral-500">
             Nenhuma ala vinculada — alas típicas:{' '}
             {specialty.typicalWards.join(', ') || 'não informado'}
           </p>
@@ -235,13 +235,13 @@ export default function SpecialtyDetailPage() {
               <li key={w.id}>
                 <Link
                   href={`/wards`}
-                  className="block bg-slate-50 border border-slate-200 rounded-lg p-3 hover:bg-slate-100 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
+                  className="block bg-neutral-50 border border-neutral-200 rounded-lg p-3 hover:bg-neutral-100 hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-200 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="text-sm font-bold text-slate-900">{w.name}</h3>
-                    <span className="text-[10px] text-slate-500">{w.location.sector}</span>
+                    <h3 className="text-sm font-bold text-neutral-900">{w.name}</h3>
+                    <span className="text-[10px] text-neutral-500">{w.location.sector}</span>
                   </div>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-xs text-neutral-500">
                     {w.capacity} leitos · ocupação {getOccupancyRate(w)}% · {w.operatingHours}
                   </p>
                 </Link>
@@ -255,7 +255,7 @@ export default function SpecialtyDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <ListSection
           title="Condições comuns"
-          icon="\uD83E\uDE7B"
+          icon=""
           items={specialty.commonConditions.map((c) => ({
             primary: c.name,
             secondary: c.code,
@@ -263,7 +263,7 @@ export default function SpecialtyDetailPage() {
         />
         <ListSection
           title="Procedimentos comuns"
-          icon="\u2695\uFE0F"
+          icon=""
           items={specialty.commonProcedures.map((p) => ({
             primary: p.name,
             secondary: p.code,
@@ -271,7 +271,7 @@ export default function SpecialtyDetailPage() {
         />
         <ListSection
           title="Exames comuns"
-          icon="\uD83E\uDDEA"
+          icon=""
           items={specialty.commonExams.map((e) => ({
             primary: e.name,
             secondary: e.code,
@@ -284,15 +284,15 @@ export default function SpecialtyDetailPage() {
         {specialty.areasDeAtuacao.length > 0 && (
           <section
             aria-labelledby="areas-heading"
-            className="bg-white border border-slate-200 rounded-xl p-5"
+            className="bg-white border border-neutral-200 rounded-xl p-5"
           >
             <h2
               id="areas-heading"
-              className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3"
+              className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-3"
             >
               Áreas de atuação (CFM)
             </h2>
-            <ul className="text-sm text-slate-900 list-disc list-inside space-y-1">
+            <ul className="text-sm text-neutral-900 list-disc list-inside space-y-1">
               {specialty.areasDeAtuacao.map((a, i) => (
                 <li key={i}>{a}</li>
               ))}
@@ -302,15 +302,15 @@ export default function SpecialtyDetailPage() {
         {specialty.regulatoryBasis.length > 0 && (
           <section
             aria-labelledby="reg-heading"
-            className="bg-white border border-slate-200 rounded-xl p-5"
+            className="bg-white border border-neutral-200 rounded-xl p-5"
           >
             <h2
               id="reg-heading"
-              className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3"
+              className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-3"
             >
               Base regulatória
             </h2>
-            <ul className="text-sm text-slate-900 list-disc list-inside space-y-1">
+            <ul className="text-sm text-neutral-900 list-disc list-inside space-y-1">
               {specialty.regulatoryBasis.map((r, i) => (
                 <li key={i}>{r}</li>
               ))}
@@ -325,23 +325,16 @@ export default function SpecialtyDetailPage() {
 function Kpi({
   label,
   value,
-  accent,
+  accent: _accent,
 }: {
   label: string;
   value: number;
   accent?: 'green' | 'amber' | 'blue';
 }) {
-  const accentClass =
-    accent === 'green'
-      ? 'text-green-700'
-      : accent === 'amber'
-        ? 'text-amber-800'
-        : accent === 'blue'
-          ? 'text-blue-700'
-          : 'text-slate-900';
+  const accentClass = 'text-neutral-900';
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4">
-      <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
+    <div className="bg-white border border-neutral-200 rounded-xl p-4">
+      <div className="text-[11px] uppercase tracking-wider text-neutral-500 font-semibold">
         {label}
       </div>
       <div className={`text-3xl font-bold mt-1 ${accentClass}`}>{value}</div>
@@ -359,18 +352,18 @@ function ListSection({
   items: { primary: string; secondary?: string }[];
 }) {
   return (
-    <section className="bg-white border border-slate-200 rounded-xl p-5">
-      <h3 className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3 flex items-center gap-2">
+    <section className="bg-white border border-neutral-200 rounded-xl p-5">
+      <h3 className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-3 flex items-center gap-2">
         <span aria-hidden="true">{icon}</span> {title} ({items.length})
       </h3>
       {items.length === 0 ? (
-        <p className="text-sm text-slate-500">Nenhum item cadastrado.</p>
+        <p className="text-sm text-neutral-500">Nenhum item cadastrado.</p>
       ) : (
-        <ul className="text-sm text-slate-900 space-y-1">
+        <ul className="text-sm text-neutral-900 space-y-1">
           {items.map((item, i) => (
             <li key={i} className="flex items-baseline gap-2">
               {item.secondary && (
-                <span className="font-mono text-[11px] text-blue-700 shrink-0">
+                <span className="font-mono text-[11px] text-neutral-700 shrink-0">
                   {item.secondary}
                 </span>
               )}

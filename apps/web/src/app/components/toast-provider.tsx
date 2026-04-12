@@ -22,7 +22,7 @@ import {
  *  - all toasts are aria-atomic="true"
  *  - close button has aria-label
  *  - touch targets are min-h-[44px]
- *  - colors pass WCAG AA on dark slate-900 background
+ *  - colors pass WCAG AA on neutral-900 background
  */
 
 export type ToastVariant = 'success' | 'error' | 'info' | 'warning';
@@ -66,29 +66,29 @@ const VARIANT_STYLES: Record<
   }
 > = {
   success: {
-    container: 'bg-green-50/60 border-green-600 text-green-800',
-    icon: 'text-green-700',
+    container: 'bg-neutral-50/60 border-neutral-900 text-neutral-900',
+    icon: 'text-neutral-700',
     iconChar: '\u2713',
     role: 'status',
     ariaLive: 'polite',
   },
   error: {
-    container: 'bg-red-50/60 border-red-600 text-red-800',
-    icon: 'text-red-700',
-    iconChar: '\u26A0\uFE0F',
+    container: 'bg-neutral-50/60 border-neutral-900 text-neutral-900',
+    icon: 'text-neutral-700',
+    iconChar: '\u26A0',
     role: 'alert',
     ariaLive: 'assertive',
   },
   info: {
-    container: 'bg-blue-900/60 border-blue-600 text-blue-900',
-    icon: 'text-blue-700',
+    container: 'bg-neutral-50/60 border-neutral-300 text-neutral-900',
+    icon: 'text-neutral-700',
     iconChar: '\u24D8',
     role: 'status',
     ariaLive: 'polite',
   },
   warning: {
-    container: 'bg-amber-50/60 border-amber-600 text-amber-800',
-    icon: 'text-amber-700',
+    container: 'bg-neutral-50/60 border-neutral-900 text-neutral-900',
+    icon: 'text-neutral-700',
     iconChar: '\u26A1',
     role: 'status',
     ariaLive: 'polite',

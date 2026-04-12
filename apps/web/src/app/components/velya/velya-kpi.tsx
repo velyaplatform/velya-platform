@@ -25,9 +25,9 @@ export interface VelyaKPIProps {
 }
 
 const TREND_COLORS: Record<KPITrend, string> = {
-  up: 'text-red-600',
-  down: 'text-emerald-600',
-  flat: 'text-slate-500',
+  up: 'text-neutral-700',
+  down: 'text-neutral-700',
+  flat: 'text-neutral-500',
 };
 
 const TREND_ICONS: Record<KPITrend, string> = {
@@ -37,12 +37,12 @@ const TREND_ICONS: Record<KPITrend, string> = {
 };
 
 const ICON_BG: Record<KPITone, string> = {
-  neutral: 'text-slate-700',
-  critical: 'text-red-800',
-  warning: 'text-amber-800',
-  success: 'text-emerald-800',
-  info: 'text-blue-900',
-  accent: 'text-blue-900',
+  neutral: 'text-neutral-300',
+  critical: 'text-neutral-300',
+  warning: 'text-neutral-300',
+  success: 'text-neutral-300',
+  info: 'text-neutral-300',
+  accent: 'text-neutral-300',
 };
 
 export function VelyaKPI({
@@ -63,7 +63,7 @@ export function VelyaKPI({
           className={cn(
             'absolute right-4 top-4 h-12 w-12 transition-colors',
             ICON_BG[tone],
-            'group-hover:text-blue-800',
+            'group-hover:text-neutral-400',
           )}
           strokeWidth={1.5}
           aria-hidden="true"
@@ -71,12 +71,12 @@ export function VelyaKPI({
       )}
 
       <div className="relative">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+        <div className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
           {label}
         </div>
 
         <div className="mt-3 flex items-baseline gap-2">
-          <div className="text-[2.5rem] font-bold leading-none tracking-tight tabular-nums text-slate-900">
+          <div className="text-3xl font-bold leading-none tracking-tight tabular-nums text-neutral-900">
             {value}
           </div>
           {trend && (
@@ -86,7 +86,7 @@ export function VelyaKPI({
           )}
         </div>
 
-        {sublabel && <div className="mt-2 text-xs text-slate-500">{sublabel}</div>}
+        {sublabel && <div className="mt-2 text-sm text-neutral-500">{sublabel}</div>}
 
         {footer && <div className="mt-3">{footer}</div>}
       </div>

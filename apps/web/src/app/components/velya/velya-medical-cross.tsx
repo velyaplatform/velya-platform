@@ -28,8 +28,8 @@ export function VelyaMedicalCross({
 
   const colors =
     tone === 'critical'
-      ? { start: '#f87171', mid: '#ef4444', end: '#dc2626' }
-      : { start: '#38bdf8', mid: '#0ea5e9', end: '#0284c7' };
+      ? { start: '#525252', mid: '#404040', end: '#262626' }
+      : { start: '#737373', mid: '#525252', end: '#404040' };
 
   return (
     <svg

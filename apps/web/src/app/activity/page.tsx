@@ -45,11 +45,11 @@ const TABS: { key: TabKey; label: string; endpoint: string; dataKey: string }[] 
 
 // Background colors for selected/active state buttons — chosen so white text passes WCAG AA (4.5:1)
 const SEVERITY_COLORS: Record<string, string> = {
-  critical: '#b91c1c', /* white text → 6.74:1 */
-  high: '#c2410c',     /* white text → 5.13:1 */
-  warning: '#a16207',  /* white text → 5.04:1 */
-  info: '#1d4ed8',     /* white text → 7.66:1 */
-  error: '#b91c1c',
+  critical: '#171717', /* white text → neutral-900 */
+  high: '#404040',     /* white text → neutral-700 */
+  warning: '#525252',  /* white text → neutral-600 */
+  info: '#737373',     /* white text → neutral-500 */
+  error: '#171717',
 };
 
 const SEVERITY_LABELS: Record<string, string> = {
@@ -215,7 +215,7 @@ export default function ActivityPage() {
                 return totalUnacked > 0 ? (
                   <span
                     style={{
-                      background: '#ef4444',
+                      background: '#171717',
                       color: 'white',
                       borderRadius: '9999px',
                       padding: '0.25rem 0.75rem',
@@ -248,31 +248,31 @@ export default function ActivityPage() {
                 label: 'Sentinelas',
                 total: stats.stats.sentinel.total,
                 unacked: stats.stats.sentinel.unacked,
-                color: '#8b5cf6',
+                color: '#171717',
               },
               {
                 label: 'Alertas',
                 total: stats.stats.alert.total,
                 unacked: stats.stats.alert.unacked,
-                color: '#f97316',
+                color: '#404040',
               },
               {
                 label: 'Eventos',
                 total: stats.stats.event.total,
                 unacked: stats.stats.event.unacked,
-                color: '#3b82f6',
+                color: '#525252',
               },
               {
                 label: 'Erros',
                 total: stats.stats.error.total,
                 unacked: stats.stats.error.unacked,
-                color: '#ef4444',
+                color: '#171717',
               },
               {
                 label: 'Ações',
                 total: stats.stats.action.total,
                 unacked: stats.stats.action.unacked,
-                color: '#10b981',
+                color: '#737373',
               },
             ].map((s) => (
               <div
@@ -283,7 +283,7 @@ export default function ActivityPage() {
                 <div style={{ fontSize: '1.5rem', fontWeight: 700, color: s.color }}>{s.total}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{s.label}</div>
                 {s.unacked > 0 && (
-                  <div style={{ fontSize: '0.625rem', color: '#ef4444', marginTop: '0.25rem' }}>
+                  <div style={{ fontSize: '0.625rem', color: '#171717', marginTop: '0.25rem' }}>
                     {s.unacked} sem ack
                   </div>
                 )}
@@ -503,7 +503,7 @@ export default function ActivityPage() {
                     <td style={{ padding: '0.5rem 0.75rem', textAlign: 'center' }}>
                       {item.acked ? (
                         <span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>
-                          ✓
+                          OK
                         </span>
                       ) : (
                         <button

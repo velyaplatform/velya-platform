@@ -8,7 +8,12 @@
     "dev": "next dev --port 3001",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest"
+    "test": "vitest run",
+    "validate:colors": "tsx ../../scripts/validate/validate-color-policy.ts",
+    "validate:emoji": "tsx ../../scripts/validate/validate-no-emoji.ts",
+    "validate:tokens": "tsx ../../scripts/validate/validate-design-tokens.ts",
+    "validate:labels": "tsx ../../scripts/validate/validate-form-labels.ts",
+    "validate:all": "tsx ../../scripts/validate/validate-design-tokens.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

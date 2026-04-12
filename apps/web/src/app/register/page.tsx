@@ -99,13 +99,13 @@ export default function RegisterPage() {
   // Light-theme input per the Velya UI standard (white bg, dark text, blue
   // accent). min-h-[44px] hits the WCAG 2.2 AA touch-target minimum.
   const inputClass =
-    'w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition';
+    'w-full min-h-[44px] bg-white border border-neutral-300 rounded-lg px-3.5 py-2.5 text-sm text-neutral-900 shadow-sm placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-400 transition';
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-white px-4 py-8">
       <section
         aria-labelledby="register-title"
-        className="w-full max-w-[520px] rounded-2xl border border-slate-200 bg-white p-8 shadow-sm sm:p-10"
+        className="w-full max-w-[520px] rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm sm:p-10"
       >
         {/* Header */}
         <header className="mb-8 text-center">
@@ -123,7 +123,7 @@ export default function RegisterPage() {
           {error && (
             <div
               role="alert"
-              className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+              className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700"
             >
               {error}
             </div>
@@ -131,7 +131,7 @@ export default function RegisterPage() {
 
           {/* Nome Completo */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="nome" className="text-sm font-medium text-slate-700">
+            <label htmlFor="nome" className="text-sm font-medium text-neutral-700">
               Nome Completo *
             </label>
             <input
@@ -148,7 +148,7 @@ export default function RegisterPage() {
 
           {/* Email */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-sm font-medium text-slate-700">
+            <label htmlFor="email" className="text-sm font-medium text-neutral-700">
               Email *
             </label>
             <input
@@ -166,7 +166,7 @@ export default function RegisterPage() {
           {/* Senha row - stacks on mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-slate-700">
+              <label htmlFor="password" className="text-sm font-medium text-neutral-700">
                 Senha *
               </label>
               <input
@@ -181,7 +181,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">
+              <label htmlFor="confirmPassword" className="text-sm font-medium text-neutral-700">
                 Confirmar Senha *
               </label>
               <input
@@ -199,7 +199,7 @@ export default function RegisterPage() {
 
           {/* Profissao */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="role" className="text-sm font-medium text-slate-700">
+            <label htmlFor="role" className="text-sm font-medium text-neutral-700">
               Profissão / Função *
             </label>
             <select
@@ -208,7 +208,7 @@ export default function RegisterPage() {
               aria-label="Profissão ou função no hospital"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full min-h-[44px] cursor-pointer rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full min-h-[44px] cursor-pointer rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 shadow-sm transition focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200"
               required
             >
               <option value="">Selecione sua função</option>
@@ -222,7 +222,7 @@ export default function RegisterPage() {
 
           {/* Setor */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="setor" className="text-sm font-medium text-slate-700">
+            <label htmlFor="setor" className="text-sm font-medium text-neutral-700">
               Setor / Unidade *
             </label>
             <input
@@ -239,7 +239,7 @@ export default function RegisterPage() {
           {/* Registro Profissional (conditional) */}
           {showCouncil && (
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="conselho" className="text-sm font-medium text-slate-700">
+              <label htmlFor="conselho" className="text-sm font-medium text-neutral-700">
                 Registro Profissional
               </label>
               <input
@@ -256,7 +256,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 inline-flex min-h-[48px] w-full cursor-pointer items-center justify-center rounded-lg bg-blue-600 px-6 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-2 inline-flex min-h-[48px] w-full cursor-pointer items-center justify-center rounded-lg bg-neutral-900 px-6 text-base font-semibold text-white shadow-sm transition hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Criando conta...' : 'Criar Conta'}
           </button>
@@ -265,7 +265,7 @@ export default function RegisterPage() {
             <span className="text-sm text-neutral-500">Já tem conta? </span>
             <Link
               href="/login"
-              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-3 text-sm font-semibold text-blue-600 transition hover:text-blue-700 hover:underline"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-3 text-sm font-semibold text-neutral-900 transition hover:text-neutral-700 hover:underline"
             >
               Entrar
             </Link>

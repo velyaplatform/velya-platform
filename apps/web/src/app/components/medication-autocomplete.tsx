@@ -184,10 +184,10 @@ export function MedicationAutocomplete({
 
   return (
     <div className="relative flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="text-sm font-medium text-neutral-700">
         {label}
         {required && (
-          <span aria-hidden="true" className="text-red-700 ml-0.5">
+          <span aria-hidden="true" className="text-neutral-900 ml-0.5">
             *
           </span>
         )}
@@ -216,16 +216,16 @@ export function MedicationAutocomplete({
         aria-activedescendant={
           highlightedIdx >= 0 ? `${listboxId}-option-${highlightedIdx}` : undefined
         }
-        className="w-full min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+        className="w-full min-h-[44px] bg-neutral-50 border border-neutral-300 rounded-md px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-200"
       />
       {isOpen && (
         <ul
           id={listboxId}
           role="listbox"
-          className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-md shadow-2xl max-h-72 overflow-y-auto"
+          className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-md shadow-2xl max-h-72 overflow-y-auto"
         >
           {results.length === 0 && debounced.trim().length >= 2 && (
-            <li className="px-3 py-2 text-sm text-slate-500">Nenhum medicamento encontrado</li>
+            <li className="px-3 py-2 text-sm text-neutral-500">Nenhum medicamento encontrado</li>
           )}
           {results.map((opt, idx) => {
             const isHighlighted = idx === highlightedIdx;
@@ -241,19 +241,19 @@ export function MedicationAutocomplete({
                 }}
                 onMouseEnter={() => setHighlightedIdx(idx)}
                 className={`px-3 py-2 cursor-pointer ${
-                  isHighlighted ? 'bg-blue-700/40' : 'hover:bg-slate-50'
+                  isHighlighted ? 'bg-neutral-100' : 'hover:bg-neutral-50'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-900 font-semibold">{opt.name}</span>
+                  <span className="text-sm text-neutral-900 font-semibold">{opt.name}</span>
                   {opt.source === 'stock' && (
-                    <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-green-50/40 text-green-800 border border-green-700/60">
+                    <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-neutral-50 text-neutral-900 border border-neutral-300">
                       em estoque
                     </span>
                   )}
                 </div>
                 {opt.stockItem && (
-                  <div className="text-xs text-slate-500 mt-0.5">
+                  <div className="text-xs text-neutral-500 mt-0.5">
                     Lote {opt.stockItem.lot} · valid. {opt.stockItem.expiry} ·{' '}
                     {opt.stockItem.stockQty} {opt.stockItem.unit}
                   </div>

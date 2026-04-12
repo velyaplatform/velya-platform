@@ -364,7 +364,7 @@ export function OnboardingTour() {
           />
           {/* Spotlight border */}
           <div
-            className="fixed z-[205] border-2 border-blue-400 rounded-lg shadow-2xl pointer-events-none"
+            className="fixed z-[205] border-2 border-neutral-900 rounded-lg shadow-2xl pointer-events-none"
             style={{
               top: rect.top - 4,
               left: rect.left - 4,
@@ -388,15 +388,15 @@ export function OnboardingTour() {
         aria-modal="true"
         aria-labelledby="onboarding-step-title"
         aria-describedby="onboarding-step-body"
-        className="fixed z-[210] bg-white border-2 border-blue-500 text-slate-900 rounded-xl p-5 max-w-sm shadow-2xl pointer-events-auto"
+        className="fixed z-[210] bg-white border-2 border-neutral-900 text-neutral-900 rounded-xl p-5 max-w-sm shadow-2xl pointer-events-auto"
         style={tooltipStyle}
       >
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] uppercase tracking-wider font-semibold text-blue-700">
+          <span className="text-[11px] uppercase tracking-wider font-semibold text-neutral-700">
             Tour guiado
           </span>
           <span
-            className="text-xs text-slate-600 font-mono"
+            className="text-xs text-neutral-500 font-mono"
             aria-label={`Passo ${stepIndex + 1} de ${totalSteps}`}
           >
             {stepIndex + 1} / {totalSteps}
@@ -404,13 +404,13 @@ export function OnboardingTour() {
         </div>
         <h2
           id="onboarding-step-title"
-          className="text-lg font-bold text-slate-900 mb-2"
+          className="text-lg font-bold text-neutral-900 mb-2"
         >
           {currentStep.title}
         </h2>
         <p
           id="onboarding-step-body"
-          className="text-sm text-slate-700 leading-relaxed mb-4"
+          className="text-sm text-neutral-700 leading-relaxed mb-4"
         >
           {currentStep.body}
         </p>
@@ -418,7 +418,7 @@ export function OnboardingTour() {
           <button
             type="button"
             onClick={() => finishTour('skipped')}
-            className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md text-sm font-semibold text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-200"
           >
             Pular
           </button>
@@ -427,7 +427,7 @@ export function OnboardingTour() {
               type="button"
               onClick={goBack}
               disabled={isFirstStep}
-              className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md text-sm font-semibold bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md text-sm font-semibold bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Voltar
             </button>
@@ -435,7 +435,7 @@ export function OnboardingTour() {
               type="button"
               ref={nextButtonRef}
               onClick={goNext}
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md text-sm font-semibold bg-blue-600 border border-blue-400 text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md text-sm font-semibold bg-neutral-900 border border-neutral-900 text-white hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-200"
             >
               {isLastStep ? 'Concluir' : 'Próximo'}
             </button>

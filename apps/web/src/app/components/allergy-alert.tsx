@@ -81,25 +81,25 @@ export default function AllergyAlert({
     <div
       role="alert"
       aria-live="assertive"
-      className="rounded-lg border-2 border-red-500 bg-red-950 p-5 text-red-50 shadow-lg"
+      className="rounded-lg border-2 border-neutral-300 bg-neutral-100 p-5 text-neutral-900 shadow-lg"
     >
-      <h3 className="text-xl font-bold text-red-800">{'\u26A0 ALERGIA RELATADA'}</h3>
-      <p className="mt-2 text-sm text-red-800">{explanation}</p>
-      <p className="mt-1 text-xs text-red-800">
+      <h3 className="text-xl font-bold text-neutral-900">ALERGIA RELATADA</h3>
+      <p className="mt-2 text-sm text-neutral-700">{explanation}</p>
+      <p className="mt-1 text-xs text-neutral-700">
         Prontuario: <span className="font-semibold">{patientMrn}</span>
       </p>
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <button
           type="button"
           onClick={onRecognize}
-          className="min-h-[44px] rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-50 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300"
+          className="min-h-[44px] rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-200"
         >
           Reconhecer e continuar
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="min-h-[44px] rounded-md bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-400 focus:outline-none focus:ring-2 focus:ring-red-200"
+          className="min-h-[44px] rounded-md bg-neutral-900 px-4 py-2 text-sm font-bold text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-200"
         >
           Cancelar prescricao
         </button>

@@ -16,6 +16,8 @@ import { Navigation, type Role } from './navigation';
 import { PatientQuickSwitcher } from './patient-quick-switcher';
 import { ROLE_DEFINITIONS, resolveUiRole } from '../../lib/access-control';
 import { Avatar, AvatarFallback } from './ui/avatar';
+import { ShortcutProvider } from './shortcuts/shortcut-provider';
+import { ShortcutOverlay } from './shortcuts/shortcut-overlay';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -136,7 +138,9 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
       : sessionData.userName.slice(0, 2).toUpperCase();
 
   return (
+    <ShortcutProvider>
     <div className="app-shell">
+      <ShortcutOverlay />
       {/* ============================================================
           GITHUB-STYLE DARK HEADER (top bar)
           ============================================================ */}
@@ -340,14 +344,14 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
                 onClick={() => router.push('/alerts')}
                 className="btn btn-sm"
                 style={{
-                  color: 'var(--danger-fg)',
-                  background: 'var(--danger-subtle)',
-                  borderColor: '#ffcecb',
+                  color: 'var(--fg-default)',
+                  background: 'var(--canvas-subtle)',
+                  borderColor: 'var(--border-default)',
                 }}
-                aria-label="Ver 5 alertas críticos"
+                aria-label="Ver 5 alertas criticos"
               >
                 <AlertOctagon className="h-3.5 w-3.5" />
-                <span style={{ fontWeight: 600 }}>5 Críticos</span>
+                <span style={{ fontWeight: 600 }}>5 Criticos</span>
               </button>
 
               <div
@@ -383,5 +387,6 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
         </div>
       </div>
     </div>
+    </ShortcutProvider>
   );
 }

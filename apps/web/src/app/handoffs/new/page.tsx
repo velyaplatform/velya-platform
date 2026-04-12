@@ -147,8 +147,8 @@ export default function NewHandoffPage() {
   }
 
   const input =
-    'w-full min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400';
-  const label = 'text-sm font-medium text-slate-700';
+    'w-full min-h-[44px] bg-neutral-50 border border-neutral-300 rounded-md px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-200';
+  const label = 'text-sm font-medium text-neutral-700';
 
   return (
     <AppShell pageTitle="Nova passagem de plantão">
@@ -160,9 +160,9 @@ export default function NewHandoffPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-5">
+      <form onSubmit={handleSubmit} className="bg-white border border-neutral-200 rounded-xl p-5">
         {error && (
-          <div role="alert" className="mb-4 bg-red-950/40 border border-red-700 text-red-800 text-sm rounded-md px-4 py-3">
+          <div role="alert" className="mb-4 bg-neutral-50 border border-neutral-300 text-neutral-700 text-sm rounded-md px-4 py-3">
             {error}
           </div>
         )}
@@ -203,14 +203,14 @@ export default function NewHandoffPage() {
           <textarea id="unitNotes" value={unitNotes} onChange={(e) => setUnitNotes(e.target.value)} rows={2} className={`${input} min-h-[68px]`} placeholder="Ex: Bomba de infusão #3 com defeito · Visita técnica RX agendada para 14h" />
         </div>
 
-        <h2 className="text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">
+        <h2 className="text-sm font-bold text-neutral-900 mb-3 uppercase tracking-wider">
           Pacientes ({patients.length})
         </h2>
 
         <div className="flex flex-col gap-4">
           {patients.map((p, pIdx) => (
-            <fieldset key={p.uid} className="border border-slate-200 rounded-lg p-4 bg-white/40">
-              <legend className="text-sm font-bold text-slate-900 px-2">
+            <fieldset key={p.uid} className="border border-neutral-200 rounded-lg p-4 bg-white/40">
+              <legend className="text-sm font-bold text-neutral-900 px-2">
                 Paciente {pIdx + 1}
               </legend>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -247,7 +247,7 @@ export default function NewHandoffPage() {
                     <strong>A</strong> — Action list
                   </label>
                   {p.actionItems.length === 0 && (
-                    <p className="text-xs text-slate-500">Nenhuma ação. Use o botão abaixo para adicionar.</p>
+                    <p className="text-xs text-neutral-500">Nenhuma ação. Use o botão abaixo para adicionar.</p>
                   )}
                   <ul className="flex flex-col gap-2">
                     {p.actionItems.map((a, aIdx) => (
@@ -276,7 +276,7 @@ export default function NewHandoffPage() {
                           type="button"
                           onClick={() => removeAction(p.uid, aIdx)}
                           aria-label={`Remover ação ${aIdx + 1}`}
-                          className="text-xs text-red-700 hover:text-red-800 px-2 py-1"
+                          className="text-xs text-neutral-700 hover:text-neutral-900 px-2 py-1"
                         >
                           Remover
                         </button>
@@ -286,7 +286,7 @@ export default function NewHandoffPage() {
                   <button
                     type="button"
                     onClick={() => addAction(p.uid)}
-                    className="self-start min-h-[36px] px-3 py-1.5 mt-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="self-start min-h-[36px] px-3 py-1.5 mt-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
                   >
                     + Adicionar ação
                   </button>
@@ -327,7 +327,7 @@ export default function NewHandoffPage() {
                   <button
                     type="button"
                     onClick={() => removePatient(p.uid)}
-                    className="text-xs text-red-700 hover:text-red-800 px-3 py-2"
+                    className="text-xs text-neutral-700 hover:text-neutral-900 px-3 py-2"
                   >
                     Remover paciente {pIdx + 1}
                   </button>
@@ -341,21 +341,21 @@ export default function NewHandoffPage() {
           <button
             type="button"
             onClick={addPatient}
-            className="min-h-[44px] px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="min-h-[44px] px-4 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
           >
             + Adicionar paciente
           </button>
           <div className="flex gap-3">
             <Link
               href="/handoffs"
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
             >
               Cancelar
             </Link>
             <button
               type="submit"
               disabled={submitting}
-              className="min-h-[44px] inline-flex items-center px-5 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-60"
+              className="min-h-[44px] inline-flex items-center px-5 py-2 rounded-md bg-neutral-900 hover:bg-neutral-900 text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-neutral-200 disabled:opacity-60"
             >
               {submitting ? 'Enviando...' : 'Enviar passagem'}
             </button>

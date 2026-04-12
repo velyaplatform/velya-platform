@@ -71,7 +71,7 @@ export default function LoginPage() {
           {error && (
             <div
               role="alert"
-              className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
+              className="flex items-center gap-2 rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-700"
             >
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
@@ -146,7 +146,7 @@ export default function LoginPage() {
             Não tem conta?{' '}
             <Link
               href="/register"
-              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-3 font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-3 font-semibold text-neutral-900 hover:text-neutral-700 hover:underline"
             >
               Cadastrar
             </Link>

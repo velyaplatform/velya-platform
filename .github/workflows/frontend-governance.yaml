@@ -1,0 +1,85 @@
+name: Frontend Governance
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'scripts/validate/**'
+      - 'scripts/ui-audit/**'
+
+concurrency:
+  group: frontend-governance-${{ github.head_ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  stage-1-static-governance:
+    name: 'Stage 1: Static Governance'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+
+      - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a  # v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit --project apps/web/tsconfig.json
+
+      - name: Lint
+        run: cd apps/web && npm run lint
+
+      - name: Validate color policy
+        run: npx tsx scripts/validate/validate-color-policy.ts
+
+      - name: Validate no emoji
+        run: npx tsx scripts/validate/validate-no-emoji.ts
+
+      - name: Validate design tokens
+        run: npx tsx scripts/validate/validate-design-tokens.ts
+
+  stage-2-accessibility:
+    name: 'Stage 2: Accessibility'
+    needs: stage-1-static-governance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a  # v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Build web app
+        run: cd apps/web && npm run build
+      - name: Validate form labels
+        run: |
+          cd apps/web && npm run start &
+          sleep 5
+          npx tsx ../../scripts/validate/validate-form-labels.ts --url=http://localhost:3000
+        env:
+          VELYA_SESSION: ${{ secrets.VELYA_SESSION }}
+
+  stage-3-inventory:
+    name: 'Stage 3: Documentation & Inventory'
+    needs: stage-1-static-governance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a  # v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Generate screen inventory
+        run: npx tsx scripts/validate/generate-screen-inventory.ts
+      - name: Generate component inventory
+        run: npx tsx scripts/validate/generate-component-inventory.ts
+      - name: Check inventory diff
+        run: |
+          git diff --name-only docs/frontend/screen-inventory.md docs/frontend/component-inventory.md || true

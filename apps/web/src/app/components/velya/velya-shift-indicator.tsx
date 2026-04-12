@@ -46,7 +46,7 @@ export function VelyaShiftIndicator({
         className,
       )}
     >
-      <span className="h-2 w-2 shrink-0 rounded-full bg-green-600" />
+      <span className="h-2 w-2 shrink-0 rounded-full bg-neutral-900" />
       <Stethoscope className="h-3.5 w-3.5 text-neutral-500" strokeWidth={2.25} />
       <span className="text-neutral-700">
         Plantão {active} · <span className="font-semibold text-neutral-900">{doctor}</span>

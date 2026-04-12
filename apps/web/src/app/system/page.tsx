@@ -108,10 +108,10 @@ const AGENT_STATUS_LABEL: Record<AgentActivity['status'], string> = {
 };
 
 const CATEGORY_LABELS: Record<ServiceDef['category'], string> = {
-  core: '🏥 Serviços Core',
-  ai: '🤖 IA & Agentes',
-  platform: '🔐 Plataforma',
-  observability: '📊 Observabilidade',
+  core: 'Servicos Core',
+  ai: 'IA & Agentes',
+  platform: 'Plataforma',
+  observability: 'Observabilidade',
 };
 
 interface ServiceCardProps {
@@ -333,17 +333,17 @@ export default function SystemPage() {
       {/* Acessos rápidos centralizados */}
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <div className="card-header">
-          <span className="card-title">🔗 Painéis Centralizados</span>
+          <span className="card-title">Paineis Centralizados</span>
         </div>
         <div className="flex gap-3 flex-wrap">
           <Link href="/observability/metrics" className="btn btn-primary">
-            📊 Métricas
+            Metricas
           </Link>
           <Link href="/observability/deploys" className="btn btn-outline">
-            🔄 Implantações
+            Implantacoes
           </Link>
           <Link href="/system/services" className="btn btn-outline">
-            ⚙️ Serviços
+            Servicos
           </Link>
         </div>
       </div>
@@ -352,7 +352,7 @@ export default function SystemPage() {
       <div className="grid-2" style={{ marginBottom: '1.5rem' }}>
         <div className="card">
           <div className="card-header">
-            <span className="card-title">🔄 Status de Sync ArgoCD</span>
+            <span className="card-title">Status de Sync ArgoCD</span>
           </div>
           <table className="data-table">
             <thead>
@@ -389,7 +389,7 @@ export default function SystemPage() {
 
         <div className="card">
           <div className="card-header">
-            <span className="card-title">⚡ Escalonamento KEDA</span>
+            <span className="card-title">Escalonamento KEDA</span>
           </div>
           <table className="data-table">
             <thead>
@@ -428,7 +428,7 @@ export default function SystemPage() {
       {/* Log de Atividade dos Agentes */}
       <div className="card">
         <div className="card-header">
-          <span className="card-title">🤖 Log de Atividade dos Agentes</span>
+          <span className="card-title">Log de Atividade dos Agentes</span>
           <span className="badge badge-info">Ao Vivo</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>

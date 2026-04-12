@@ -18,31 +18,31 @@ const SEVERITY_CONFIG: Record<
 > = {
   critical: {
     icon: AlertOctagon,
-    ring: 'border-red-200',
-    bg: 'bg-red-50',
-    text: 'text-red-900',
-    iconBg: 'bg-red-100 text-red-600',
+    ring: 'border-neutral-300',
+    bg: 'bg-neutral-50',
+    text: 'text-neutral-900',
+    iconBg: 'bg-neutral-200 text-neutral-700',
   },
   warning: {
     icon: AlertTriangle,
-    ring: 'border-amber-200',
-    bg: 'bg-amber-50',
-    text: 'text-amber-900',
-    iconBg: 'bg-amber-100 text-amber-600',
+    ring: 'border-neutral-300',
+    bg: 'bg-neutral-50',
+    text: 'text-neutral-900',
+    iconBg: 'bg-neutral-200 text-neutral-700',
   },
   info: {
     icon: Info,
-    ring: 'border-blue-200',
-    bg: 'bg-blue-50',
-    text: 'text-blue-900',
-    iconBg: 'bg-blue-100 text-blue-600',
+    ring: 'border-neutral-300',
+    bg: 'bg-neutral-50',
+    text: 'text-neutral-900',
+    iconBg: 'bg-neutral-200 text-neutral-700',
   },
   success: {
     icon: CheckCircle2,
-    ring: 'border-emerald-200',
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-900',
-    iconBg: 'bg-emerald-100 text-emerald-600',
+    ring: 'border-neutral-300',
+    bg: 'bg-neutral-50',
+    text: 'text-neutral-900',
+    iconBg: 'bg-neutral-200 text-neutral-700',
   },
 };
 
@@ -86,7 +86,7 @@ export function VelyaAlertBanner({
       <div className="min-w-0 flex-1">
         <div className={cn('text-sm font-semibold', cfg.text)}>{title}</div>
         {description && (
-          <div className="mt-0.5 text-xs text-slate-600">{description}</div>
+          <div className="mt-0.5 text-xs text-neutral-600">{description}</div>
         )}
       </div>
 

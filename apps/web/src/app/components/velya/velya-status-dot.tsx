@@ -6,11 +6,11 @@ import { cn } from '../../../lib/utils';
 type StatusTone = 'critical' | 'warning' | 'success' | 'info' | 'accent' | 'neutral';
 
 const COLOR: Record<StatusTone, string> = {
-  critical: 'bg-red-600',
-  warning: 'bg-amber-600',
-  success: 'bg-green-600',
-  info: 'bg-blue-600',
-  accent: 'bg-blue-600',
+  critical: 'bg-neutral-500',
+  warning: 'bg-neutral-400',
+  success: 'bg-neutral-400',
+  info: 'bg-neutral-400',
+  accent: 'bg-neutral-400',
   neutral: 'bg-neutral-400',
 };
 

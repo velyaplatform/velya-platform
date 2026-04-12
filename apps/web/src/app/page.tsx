@@ -36,20 +36,14 @@ import {
 } from '../lib/fixtures/home-dashboard';
 
 function TaskRow({ priority, type, description, patient, assignee, due }: TaskRowProps) {
-  const badgeVariant =
-    priority === 'urgent' ? 'critical' : priority === 'warning' ? 'warning' : 'default';
+  const badgeVariant = 'default' as const;
   const badgeLabel =
     priority === 'urgent' ? 'URGENTE' : priority === 'warning' ? 'ALTO' : 'NORMAL';
-  const borderColor =
-    priority === 'urgent'
-      ? 'border-l-red-500'
-      : priority === 'warning'
-        ? 'border-l-amber-500'
-        : 'border-l-slate-300';
+  const borderColor = 'border-l-neutral-300';
 
   return (
     <div
-      className={`group mb-3 flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-slate-300 hover:shadow-md border-l-[3px] ${borderColor}`}
+      className={`group mb-3 flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm transition-all hover:border-neutral-300 hover:shadow-md border-l-[3px] ${borderColor}`}
     >
       <div className="min-w-0 flex-1">
         <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -59,20 +53,20 @@ function TaskRow({ priority, type, description, patient, assignee, due }: TaskRo
           <Badge variant="outline" size="sm">
             {type}
           </Badge>
-          <span className="ml-auto flex items-center gap-1 text-[11px] text-slate-500">
+          <span className="ml-auto flex items-center gap-1 text-[11px] text-neutral-500">
             <Clock className="h-3 w-3" /> {due}
           </span>
         </div>
-        <div className="mb-1 text-sm font-semibold text-slate-900">{description}</div>
-        <div className="text-xs text-slate-500">
-          <span className="font-mono text-blue-700">{patient}</span>
-          <span className="mx-2 text-slate-600">·</span>
-          <span className="text-slate-600">Responsável: {assignee}</span>
+        <div className="mb-1 text-sm font-semibold text-neutral-900">{description}</div>
+        <div className="text-xs text-neutral-500">
+          <span className="font-mono text-neutral-900">{patient}</span>
+          <span className="mx-2 text-neutral-600">.</span>
+          <span className="text-neutral-600">Responsavel: {assignee}</span>
         </div>
       </div>
       <div className="flex shrink-0 flex-col gap-1.5">
         <Button size="xs" variant="default">
-          ✓ Concluir
+          Concluir
         </Button>
         <Button size="xs" variant="ghost">
           <ArrowUpRight className="h-3 w-3" /> Escalar
@@ -92,26 +86,22 @@ function DischargeRow({ mrn, name, ward, los, targetDate, blockers, status }: Di
   return (
     <tr
       className={
-        status === 'blocked'
-          ? 'bg-red-50/50 hover:bg-red-50'
-          : status === 'pending'
-            ? 'bg-amber-50/50 hover:bg-amber-50'
-            : 'hover:bg-slate-50'
+        'hover:bg-neutral-50'
       }
     >
       <td className="py-3 pr-4">
-        <div className="font-semibold text-slate-900">{name}</div>
-        <div className="font-mono text-[11px] text-slate-500">{mrn}</div>
+        <div className="font-semibold text-neutral-900">{name}</div>
+        <div className="font-mono text-[11px] text-neutral-500">{mrn}</div>
       </td>
-      <td className="py-3 pr-4 text-sm text-slate-700">{ward}</td>
+      <td className="py-3 pr-4 text-sm text-neutral-700">{ward}</td>
       <td className="py-3 pr-4">
-        <span className="font-mono font-semibold tabular-nums text-slate-900">{los}</span>
-        <span className="text-xs text-slate-500">d</span>
+        <span className="font-mono font-semibold tabular-nums text-neutral-900">{los}</span>
+        <span className="text-xs text-neutral-500">d</span>
       </td>
-      <td className="py-3 pr-4 text-sm text-slate-700">{targetDate}</td>
+      <td className="py-3 pr-4 text-sm text-neutral-700">{targetDate}</td>
       <td className="py-3 pr-4">
         {blockers.length === 0 ? (
-          <span className="text-xs text-slate-500">—</span>
+          <span className="text-xs text-neutral-500">--</span>
         ) : (
           <div className="flex flex-wrap gap-1">
             {blockers.map((b) => (
@@ -144,20 +134,20 @@ interface ServiceStatusProps {
 
 function ServiceStatus({ name, status, serviceId }: ServiceStatusProps) {
   const cfg = {
-    healthy: { tone: 'success' as const, label: 'Saudável', border: 'border-l-emerald-500' },
-    degraded: { tone: 'warning' as const, label: 'Degradado', border: 'border-l-amber-500' },
-    unknown: { tone: 'neutral' as const, label: 'Desconhecido', border: 'border-l-slate-400' },
+    healthy: { tone: 'neutral' as const, label: 'Saudavel', border: 'border-l-neutral-300' },
+    degraded: { tone: 'neutral' as const, label: 'Degradado', border: 'border-l-neutral-400' },
+    unknown: { tone: 'neutral' as const, label: 'Desconhecido', border: 'border-l-neutral-300' },
   }[status];
 
   return (
     <Link
       href={`/system/services/${serviceId}`}
-      className={`flex items-center gap-3 rounded-lg border border-slate-200 border-l-[3px] bg-white px-3 py-2.5 no-underline transition-all hover:border-slate-300 hover:shadow-sm ${cfg.border}`}
+      className={`flex items-center gap-3 rounded-lg border border-neutral-200 border-l-[3px] bg-white px-3 py-2.5 no-underline transition-all hover:border-neutral-300 hover:shadow-sm ${cfg.border}`}
     >
       <VelyaStatusDot tone={cfg.tone} />
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-slate-900">{name}</div>
-        <div className="text-[11px] text-slate-500">{cfg.label}</div>
+        <div className="text-sm font-semibold text-neutral-900">{name}</div>
+        <div className="text-[11px] text-neutral-500">{cfg.label}</div>
       </div>
     </Link>
   );
@@ -361,24 +351,20 @@ export default function CommandCenterPage() {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="group flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 no-underline transition-all hover:border-blue-300 hover:bg-blue-50"
+                    className="group flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2.5 no-underline transition-all hover:border-neutral-300 hover:bg-neutral-50"
                   >
                     <span
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                        item.tone === 'critical'
-                          ? 'bg-red-50 text-red-600 ring-1 ring-red-200'
-                          : 'bg-amber-50 text-amber-600 ring-1 ring-amber-200'
-                      }`}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200"
                     >
                       <Icon className="h-3.5 w-3.5" />
                     </span>
-                    <span className="flex-1 text-xs font-medium text-slate-800">
+                    <span className="flex-1 text-xs font-medium text-neutral-800">
                       {item.label}
                     </span>
-                    <Badge variant={item.tone} size="sm">
+                    <Badge variant="default" size="sm">
                       {item.count}
                     </Badge>
-                    <ChevronRight className="h-3.5 w-3.5 text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-600" />
+                    <ChevronRight className="h-3.5 w-3.5 text-neutral-500 transition-transform group-hover:translate-x-0.5 group-hover:text-neutral-700" />
                   </Link>
                 );
               })}
@@ -427,7 +413,7 @@ export default function CommandCenterPage() {
         <CardContent className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-200 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+              <tr className="border-b border-neutral-200 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
                 <th className="pb-3 pr-4">Paciente</th>
                 <th className="pb-3 pr-4">Ala</th>
                 <th className="pb-3 pr-4">Tempo de Internação</th>
@@ -437,7 +423,7 @@ export default function CommandCenterPage() {
                 <th className="pb-3 pr-4">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-neutral-100">
               {DISCHARGE_PATIENTS.map((p) => (
                 <DischargeRow key={p.mrn} {...p} />
               ))}

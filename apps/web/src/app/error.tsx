@@ -36,30 +36,30 @@ export default function RootError({ error, reset }: ErrorPageProps) {
     >
       <section
         aria-labelledby="error-title"
-        className="max-w-md w-full bg-white border border-red-700/60 rounded-xl p-8 shadow-2xl"
+        className="max-w-md w-full bg-white border border-neutral-300 rounded-xl p-8 shadow-2xl"
       >
-        <h1 id="error-title" className="text-2xl font-bold text-red-800 mb-2">
+        <h1 id="error-title" className="text-2xl font-bold text-neutral-900 mb-2">
           Algo deu errado
         </h1>
-        <p className="text-slate-600 text-sm mb-4">
+        <p className="text-neutral-500 text-sm mb-4">
           Ocorreu um erro inesperado. O time técnico já foi notificado.
         </p>
         {error.digest && (
-          <p className="text-slate-500 text-xs font-mono mb-4">
-            Código do incidente: <span className="text-slate-700">{error.digest}</span>
+          <p className="text-neutral-500 text-xs font-mono mb-4">
+            Código do incidente: <span className="text-neutral-700">{error.digest}</span>
           </p>
         )}
         <div className="flex gap-3 flex-wrap">
           <button
             type="button"
             onClick={reset}
-            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-800 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
           >
             Tentar novamente
           </button>
           <Link
             href="/"
-            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
           >
             Voltar ao Centro de Comando
           </Link>

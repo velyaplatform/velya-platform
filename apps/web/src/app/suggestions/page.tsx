@@ -119,7 +119,7 @@ export default function SuggestionsPage() {
             setStatusFilter(e.target.value);
             setLoading(true);
           }}
-          className="min-h-[44px] bg-slate-50 border border-slate-300 rounded-lg px-4 py-2 text-sm text-slate-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="min-h-[44px] bg-neutral-50 border border-neutral-300 rounded-lg px-4 py-2 text-sm text-neutral-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-200"
         >
           <option value="all">Todos os status</option>
           <option value="pending">Pendente</option>
@@ -131,9 +131,9 @@ export default function SuggestionsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-slate-600">Carregando sugestões...</div>
+        <div className="text-center py-12 text-neutral-500">Carregando sugestões...</div>
       ) : suggestions.length === 0 ? (
-        <div className="text-center py-12 text-slate-600 bg-white rounded-xl border border-slate-200">
+        <div className="text-center py-12 text-neutral-500 bg-white rounded-xl border border-neutral-200">
           Nenhuma sugestão encontrada.
         </div>
       ) : (
@@ -141,7 +141,7 @@ export default function SuggestionsPage() {
           {suggestions.map((suggestion) => (
             <article
               key={suggestion.id}
-              className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm"
+              className="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm"
             >
               <div className="flex justify-between items-start mb-3 flex-wrap gap-2">
                 <div className="flex gap-2 items-center flex-wrap">
@@ -166,16 +166,16 @@ export default function SuggestionsPage() {
                     {PRIORITY_LABELS[suggestion.priority]}
                   </span>
                 </div>
-                <span className="text-slate-600 text-xs">
+                <span className="text-neutral-500 text-xs">
                   {formatTimestamp(suggestion.timestamp)}
                 </span>
               </div>
 
-              <p className="text-slate-900 text-base leading-relaxed mb-3">{suggestion.text}</p>
+              <p className="text-neutral-900 text-base leading-relaxed mb-3">{suggestion.text}</p>
 
               <div className="flex justify-between items-center flex-wrap gap-3">
-                <span className="text-sm text-slate-600">
-                  Autor: <strong className="text-slate-900">{suggestion.author}</strong>
+                <span className="text-sm text-neutral-500">
+                  Autor: <strong className="text-neutral-900">{suggestion.author}</strong>
                 </span>
 
                 {NEXT_STATUS[suggestion.status].length > 0 && (
@@ -185,7 +185,7 @@ export default function SuggestionsPage() {
                         key={nextStatus}
                         type="button"
                         onClick={() => handleStatusChange(suggestion.id, nextStatus)}
-                        className="min-h-[40px] px-3 py-1.5 rounded-md border text-xs font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="min-h-[40px] px-3 py-1.5 rounded-md border text-xs font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-200"
                         style={{
                           background: 'rgba(15, 23, 42, 0.6)',
                           borderColor: STATUS_COLORS[nextStatus] + '80',

@@ -74,9 +74,9 @@ export const VelyaCombobox = React.forwardRef<HTMLButtonElement, VelyaComboboxPr
             className={cn(
               'inline-flex min-h-[44px] w-full items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm',
               'transition-colors hover:border-neutral-300',
-              'focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20',
+              'focus-visible:outline-none focus-visible:border-neutral-400 focus-visible:ring-2 focus-visible:ring-neutral-200',
               'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-neutral-200',
-              'data-[state=open]:border-blue-500 data-[state=open]:ring-2 data-[state=open]:ring-blue-500/20',
+              'data-[state=open]:border-neutral-400 data-[state=open]:ring-2 data-[state=open]:ring-neutral-200',
               className,
             )}
           >
@@ -150,13 +150,13 @@ export const VelyaCombobox = React.forwardRef<HTMLButtonElement, VelyaComboboxPr
                         className={cn(
                           'relative flex min-h-[44px] cursor-pointer select-none items-start gap-2 rounded-md px-3 py-2 text-sm text-neutral-900 outline-none',
                           'transition-colors',
-                          'data-[selected=true]:bg-blue-50 data-[selected=true]:text-blue-900',
+                          'data-[selected=true]:bg-neutral-100 data-[selected=true]:text-neutral-900',
                           'aria-disabled:pointer-events-none aria-disabled:opacity-50',
                         )}
                       >
                         <Check
                           className={cn(
-                            'mt-0.5 h-4 w-4 shrink-0 text-blue-600',
+                            'mt-0.5 h-4 w-4 shrink-0 text-neutral-900',
                             isSelected ? 'opacity-100' : 'opacity-0',
                           )}
                           aria-hidden="true"

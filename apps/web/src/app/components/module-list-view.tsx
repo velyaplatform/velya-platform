@@ -39,7 +39,7 @@ export function ModuleListView({ moduleId, data }: ModuleListViewProps) {
           <h1 className="page-title">Módulo desconhecido</h1>
           <p className="page-subtitle">
             Não há registro para <strong>{moduleId}</strong> em{' '}
-            <code className="text-blue-700">lib/module-manifest.ts</code>.
+            <code className="text-neutral-700">lib/module-manifest.ts</code>.
           </p>
         </div>
       </AppShell>
@@ -320,9 +320,9 @@ function ModuleListInnerWithUrl({
               <span aria-hidden="true">{module.icon}</span> {module.title}
             </h1>
             <p className="page-subtitle">{module.subtitle}</p>
-            <p className="text-xs text-slate-500 mt-1">
-              FHIR: <code className="text-blue-700">{module.fhirResource}</code> · Classe{' '}
-              <strong className="text-slate-900">{module.dataClass}</strong>
+            <p className="text-xs text-neutral-500 mt-1">
+              FHIR: <code className="text-neutral-700">{module.fhirResource}</code> · Classe{' '}
+              <strong className="text-neutral-900">{module.dataClass}</strong>
               {module.regulatoryBasis && module.regulatoryBasis.length > 0 && (
                 <> · {module.regulatoryBasis.join(' · ')}</>
               )}
@@ -331,7 +331,7 @@ function ModuleListInnerWithUrl({
           {module.newRoute && (
             <Link
               href={module.newRoute}
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-800 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
             >
               + Novo
             </Link>
@@ -345,7 +345,7 @@ function ModuleListInnerWithUrl({
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-3 items-center mb-5 p-3 rounded-lg border border-slate-200 bg-white">
+      <div className="flex flex-wrap gap-3 items-center mb-5 p-3 rounded-lg border border-neutral-200 bg-white">
         <label htmlFor={`search-${module.id}`} className="sr-only">
           Buscar em {module.title}
         </label>
@@ -355,7 +355,7 @@ function ModuleListInnerWithUrl({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar..."
-          className="flex-1 min-w-[220px] min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="flex-1 min-w-[220px] min-h-[44px] bg-neutral-50 border border-neutral-300 rounded-md px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-200"
         />
         {(module.filters ?? []).map((filter) =>
           filter.type === 'select' ? (
@@ -372,7 +372,7 @@ function ModuleListInnerWithUrl({
                 onChange={(e) =>
                   setFilterState({ ...filterState, [filter.key]: e.target.value })
                 }
-                className="min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="min-h-[44px] bg-neutral-50 border border-neutral-300 rounded-md px-3 py-2 text-sm text-neutral-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-200"
               >
                 <option value="all">{filter.label}: todos</option>
                 {(filterOptions[filter.key] ?? []).map((opt) => (
@@ -388,20 +388,20 @@ function ModuleListInnerWithUrl({
           type="button"
           onClick={handleExportCsv}
           aria-label="Exportar resultados como CSV"
-          className="min-h-[44px] px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="min-h-[44px] px-4 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
         >
           Exportar CSV
         </button>
-        <div className="ml-auto text-xs text-slate-600">
+        <div className="ml-auto text-xs text-neutral-500">
           {sorted.length} de {data.length} registros
         </div>
       </div>
 
       {/* Data table */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-700">
+            <thead className="bg-neutral-50 text-neutral-700">
               <tr>
                 {module.columns.map((col) => (
                   <th
@@ -412,10 +412,10 @@ function ModuleListInnerWithUrl({
                     <button
                       type="button"
                       onClick={() => handleHeaderClick(col.key)}
-                      className="bg-transparent border-none text-inherit font-inherit cursor-pointer flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-blue-300 rounded uppercase tracking-wider"
+                      className="bg-transparent border-none text-inherit font-inherit cursor-pointer flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-neutral-200 rounded uppercase tracking-wider"
                     >
                       <span>{col.label}</span>
-                      <span aria-hidden="true" className="text-slate-500">
+                      <span aria-hidden="true" className="text-neutral-500">
                         {sortArrow(col.key)}
                       </span>
                     </button>
@@ -429,12 +429,12 @@ function ModuleListInnerWithUrl({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-neutral-200">
               {sorted.length === 0 && (
                 <tr>
                   <td
                     colSpan={module.columns.length + 1}
-                    className="text-center py-12 text-slate-600"
+                    className="text-center py-12 text-neutral-500"
                   >
                     {hasActiveFilters ? (
                       <div className="flex flex-col items-center gap-3">
@@ -444,7 +444,7 @@ function ModuleListInnerWithUrl({
                         <button
                           type="button"
                           onClick={clearAllFilters}
-                          className="min-h-[44px] px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          className="min-h-[44px] px-4 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
                         >
                           Limpar filtros
                         </button>
@@ -460,12 +460,12 @@ function ModuleListInnerWithUrl({
                 return (
                   <tr
                     key={recordId || `${startIdx + rowIdx}`}
-                    className="hover:bg-slate-50/60 transition-colors"
+                    className="hover:bg-neutral-50/60 transition-colors"
                   >
                     {module.columns.map((col) => (
                       <td
                         key={col.key}
-                        className={`px-4 py-3 text-slate-900 align-top ${col.className ?? ''}`}
+                        className={`px-4 py-3 text-neutral-900 align-top ${col.className ?? ''}`}
                       >
                         {renderCell(col, row)}
                       </td>
@@ -475,7 +475,7 @@ function ModuleListInnerWithUrl({
                         <Link
                           href={`/edit/${module.id}/${encodeURIComponent(recordId)}`}
                           aria-label={`Editar ${recordId}`}
-                          className="inline-flex items-center min-h-[36px] px-3 py-1.5 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-blue-700 hover:border-blue-500 hover:text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          className="inline-flex items-center min-h-[36px] px-3 py-1.5 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-900 hover:border-neutral-300 hover:text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
                         >
                           Editar
                         </Link>
@@ -490,7 +490,7 @@ function ModuleListInnerWithUrl({
       </div>
 
       {/* Pagination controls */}
-      <div className="flex flex-wrap items-center gap-3 mt-4 text-sm text-slate-600">
+      <div className="flex flex-wrap items-center gap-3 mt-4 text-sm text-neutral-500">
         <div>
           Mostrando {totalRows === 0 ? 0 : startIdx + 1} a {endIdx} de {totalRows}
         </div>
@@ -503,7 +503,7 @@ function ModuleListInnerWithUrl({
             aria-label="Registros por página"
             value={pageSize}
             onChange={(e) => setPageSize(Number(e.target.value))}
-            className="min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="min-h-[44px] bg-neutral-50 border border-neutral-300 rounded-md px-3 py-2 text-sm text-neutral-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-200"
           >
             {PAGE_SIZE_OPTIONS.map((size) => (
               <option key={size} value={size}>
@@ -516,11 +516,11 @@ function ModuleListInnerWithUrl({
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={safePage <= 1}
             aria-disabled={safePage <= 1}
-            className="min-h-[44px] px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-50"
+            className="min-h-[44px] px-4 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-neutral-50"
           >
             Anterior
           </button>
-          <span className="text-xs text-slate-500" aria-live="polite">
+          <span className="text-xs text-neutral-500" aria-live="polite">
             Página {safePage} de {totalPages}
           </span>
           <button
@@ -528,7 +528,7 @@ function ModuleListInnerWithUrl({
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={safePage >= totalPages}
             aria-disabled={safePage >= totalPages}
-            className="min-h-[44px] px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-50"
+            className="min-h-[44px] px-4 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-neutral-50"
           >
             Próxima
           </button>
@@ -587,7 +587,7 @@ function renderCell(col: ColumnDef, row: Record<string, unknown>) {
     return (
       <Link
         href={href}
-        className="text-blue-700 hover:text-blue-800 underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-blue-300 rounded"
+        className="text-neutral-700 hover:text-neutral-900 underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-neutral-200 rounded"
       >
         {text}
       </Link>
@@ -605,7 +605,7 @@ function badgeClass(value: string): string {
       v,
     )
   ) {
-    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-green-50/40 text-green-800 border-green-700/60 whitespace-nowrap';
+    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-neutral-50 text-neutral-900 border-neutral-300 whitespace-nowrap';
   }
   // Warning / in-progress / pending / routine
   if (
@@ -613,18 +613,18 @@ function badgeClass(value: string): string {
       v,
     )
   ) {
-    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-blue-900/40 text-blue-800 border-blue-700/60 whitespace-nowrap';
+    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-neutral-100 text-neutral-700 border-neutral-300 whitespace-nowrap';
   }
   // Critical / urgent / stat / emergency / critical / failed / denied
   if (
     /critical|urgent|stat|emergency|failed|denied|crítico|urgente|emerg|negad|falha/.test(v)
   ) {
-    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-red-50/40 text-red-800 border-red-700/60 whitespace-nowrap';
+    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-neutral-200 text-neutral-900 border-neutral-300 whitespace-nowrap';
   }
   // Warning yellow
   if (/warning|warn|on-hold|draft|atras|alerta|rascunho|em-revisao|suspen/.test(v)) {
-    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-amber-50/40 text-amber-800 border-amber-700/60 whitespace-nowrap';
+    return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-neutral-100 text-neutral-700 border-neutral-300 whitespace-nowrap';
   }
   // Default slate
-  return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-slate-50 text-slate-700 border-slate-300 whitespace-nowrap';
+  return 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border bg-neutral-50 text-neutral-700 border-neutral-300 whitespace-nowrap';
 }

@@ -46,8 +46,8 @@ export default function SupplierNewPage() {
   }
 
   const input =
-    'w-full min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400';
-  const label = 'text-sm font-medium text-slate-700';
+    'w-full min-h-[44px] bg-neutral-50 border border-neutral-300 rounded-md px-3 py-2 text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-200';
+  const label = 'text-sm font-medium text-neutral-700';
 
   return (
     <AppShell pageTitle="Novo fornecedor">
@@ -58,12 +58,12 @@ export default function SupplierNewPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white border border-slate-200 rounded-xl p-5 max-w-3xl"
+        className="bg-white border border-neutral-200 rounded-xl p-5 max-w-3xl"
       >
         {error && (
           <div
             role="alert"
-            className="mb-4 bg-red-950/40 border border-red-700/60 text-red-800 text-sm rounded-md px-4 py-3"
+            className="mb-4 bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-md px-4 py-3"
           >
             {error}
           </div>
@@ -71,7 +71,7 @@ export default function SupplierNewPage() {
         {message && (
           <div
             role="status"
-            className="mb-4 bg-green-950/40 border border-green-700/60 text-green-800 text-sm rounded-md px-4 py-3"
+            className="mb-4 bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-md px-4 py-3"
           >
             {message}
           </div>
@@ -145,14 +145,14 @@ export default function SupplierNewPage() {
         <div className="flex justify-end gap-3 mt-6">
           <Link
             href="/suppliers"
-            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
           >
             Cancelar
           </Link>
           <button
             type="submit"
             disabled={saving}
-            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-900 text-white text-sm font-semibold disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-neutral-200"
           >
             {saving ? 'Salvando...' : 'Cadastrar fornecedor'}
           </button>

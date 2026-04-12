@@ -9,33 +9,39 @@
    ============================================================================ */
 
 @theme {
-  /* Tailwind v4 color tokens — legacy "velya" prefix mantido para compat,
-     agora mapeando para valores Primer. Classes antigas continuam funcionando. */
+  /* Velya Design Tokens — Monochromatic Hospital Standard
+     All UI uses neutral palette only. Semantic meaning conveyed by
+     text labels and icons, never by color alone. */
+
+  /* Backgrounds */
   --color-velya-bg: #ffffff;
   --color-velya-surface: #ffffff;
-  --color-velya-elevated: #f6f8fa;
-  --color-velya-border: #d1d9e0;
-  --color-velya-border-strong: #afb8c1;
+  --color-velya-elevated: #f5f5f5;       /* neutral-100 */
+  --color-velya-border: #d4d4d4;          /* neutral-300 */
+  --color-velya-border-strong: #a3a3a3;   /* neutral-400 */
 
-  --color-velya-accent: #0969da;          /* Primer accent.fg */
-  --color-velya-accent-glow: #0969da;
-  --color-velya-accent-soft: #ddf4ff;     /* Primer accent.subtle */
+  /* Text */
+  --color-velya-text: #171717;            /* neutral-900 */
+  --color-velya-text-secondary: #525252;  /* neutral-600 */
+  --color-velya-text-muted: #737373;      /* neutral-500 */
 
-  --color-velya-text: #1f2328;            /* Primer fg.default */
-  --color-velya-text-secondary: #59636e;  /* Primer fg.muted */
-  --color-velya-text-muted: #818b98;      /* Primer fg.subtle */
+  /* Accent (used only for interactive focus rings, links) */
+  --color-velya-accent: #171717;          /* neutral-900 */
+  --color-velya-accent-soft: #f5f5f5;     /* neutral-100 */
 
-  --color-velya-critical: #d1242f;        /* Primer danger.fg */
-  --color-velya-warning: #9a6700;         /* Primer attention.fg */
-  --color-velya-success: #1a7f37;         /* Primer success.fg */
-  --color-velya-info: #0969da;
+  /* Semantic — all mapped to neutral for monochrome */
+  --color-velya-critical: #171717;
+  --color-velya-warning: #404040;
+  --color-velya-success: #525252;
+  --color-velya-info: #525252;
 
-  /* Legacy compat */
-  --color-velya-primary: #0969da;
+  /* Legacy aliases — point to monochrome equivalents */
+  --color-velya-primary: #171717;
   --color-velya-card: #ffffff;
-  --color-velya-muted: #59636e;
-  --color-velya-subtle: #818b98;
-  --color-velya-danger: #d1242f;
+  --color-velya-muted: #525252;
+  --color-velya-subtle: #737373;
+  --color-velya-danger: #171717;
+  --color-velya-accent-glow: #171717;
 }
 
 :root {
@@ -271,14 +277,10 @@
 
 /* ============================================================================
    RESET & BASE — Primer
+   Note: box-sizing/margin/padding reset is handled by Tailwind's @layer base.
+   An unlayered duplicate here would override all layered utilities (margin-left,
+   padding, etc.) due to CSS Cascade Layers precedence rules.
    ============================================================================ */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
 
 html {
   font-size: 16px;

@@ -160,7 +160,7 @@ export function CommandPalette(): React.ReactElement | null {
         title: 'Ver equipe em plantão',
         subtitle: 'Escala ativa, responsáveis por plantão e contatos',
         category: 'Ação rápida',
-        icon: '\uD83D\uDC65',
+        icon: 'E',
         run: () => {
           router.push('/staff-on-duty');
         },
@@ -171,7 +171,7 @@ export function CommandPalette(): React.ReactElement | null {
         title: 'Ver alertas críticos',
         subtitle: 'Alertas clínicos e operacionais de alta prioridade',
         category: 'Ação rápida',
-        icon: '\uD83D\uDEA8',
+        icon: '!',
         run: () => {
           router.push('/alerts?severity=critical');
         },
@@ -182,7 +182,7 @@ export function CommandPalette(): React.ReactElement | null {
         title: 'Abrir prontuário por MRN',
         subtitle: 'Digite o número do prontuário para abrir o paciente',
         category: 'Ação rápida',
-        icon: '\uD83D\uDCCB',
+        icon: '#',
         run: () => {
           if (typeof window === 'undefined') {
             return;
@@ -204,7 +204,7 @@ export function CommandPalette(): React.ReactElement | null {
         title: 'Sair',
         subtitle: 'Encerrar sessão e voltar à tela de login',
         category: 'Ação rápida',
-        icon: '\uD83D\uDEAA',
+        icon: 'X',
         run: () => {
           router.push('/login');
         },
@@ -372,7 +372,7 @@ export function CommandPalette(): React.ReactElement | null {
           aria-modal="true"
           aria-labelledby={dialogTitleId}
           aria-describedby={dialogDescriptionId}
-          className="w-full max-w-2xl overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-900 shadow-2xl shadow-black/60"
+          className="w-full max-w-2xl overflow-hidden rounded-xl border border-neutral-200 bg-white text-neutral-900 shadow-2xl shadow-black/60"
         >
           <h2 id={dialogTitleId} className="sr-only">
             Paleta de comandos Velya
@@ -382,14 +382,13 @@ export function CommandPalette(): React.ReactElement | null {
             navegar, Enter para abrir e Escape para fechar.
           </p>
 
-          <div className="border-b border-slate-200 px-4 py-3">
+          <div className="border-b border-neutral-200 px-4 py-3">
             <label id={inputLabelId} htmlFor="velya-command-palette-input" className="sr-only">
               Pesquisar módulos e ações
             </label>
             <div className="flex items-center gap-3">
-              <span aria-hidden="true" className="text-slate-600">
-                {/* Search glyph — unicode keeps us dependency-free */}
-                {'\uD83D\uDD0D'}
+              <span aria-hidden="true" className="text-neutral-500 text-sm font-bold">
+                /
               </span>
               <input
                 id="velya-command-palette-input"
@@ -410,9 +409,9 @@ export function CommandPalette(): React.ReactElement | null {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={handleInputKeyDown}
-                className="min-h-[44px] w-full bg-transparent text-base text-slate-900 placeholder:text-slate-500 focus:outline-none"
+                className="min-h-[44px] w-full bg-transparent text-base text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
               />
-              <kbd className="hidden shrink-0 rounded border border-slate-300 bg-slate-50 px-2 py-1 font-mono text-xs text-slate-700 sm:inline-block">
+              <kbd className="hidden shrink-0 rounded border border-neutral-300 bg-neutral-50 px-2 py-1 font-mono text-xs text-neutral-700 sm:inline-block">
                 esc
               </kbd>
             </div>
@@ -430,7 +429,7 @@ export function CommandPalette(): React.ReactElement | null {
                 role="option"
                 aria-selected="false"
                 aria-disabled="true"
-                className="px-4 py-6 text-center text-sm text-slate-600"
+                className="px-4 py-6 text-center text-sm text-neutral-500"
               >
                 Nenhum resultado para "{query}"
               </li>
@@ -446,8 +445,8 @@ export function CommandPalette(): React.ReactElement | null {
                     aria-selected={isSelected}
                     className={`mx-2 flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left transition ${
                       isSelected
-                        ? 'bg-blue-700/40 text-white'
-                        : 'text-slate-900 hover:bg-slate-50'
+                        ? 'bg-neutral-100 text-neutral-900'
+                        : 'text-neutral-900 hover:bg-neutral-50'
                     }`}
                     onMouseEnter={() => setSelectedIndex(index)}
                     onMouseDown={(event) => {
@@ -458,19 +457,19 @@ export function CommandPalette(): React.ReactElement | null {
                   >
                     <span
                       aria-hidden="true"
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-50 text-base"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-neutral-50 text-base"
                     >
                       {command.icon}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-slate-900">
+                      <span className="block truncate text-sm font-medium text-neutral-900">
                         {command.title}
                       </span>
-                      <span className="block truncate text-xs text-slate-600">
+                      <span className="block truncate text-xs text-neutral-500">
                         {command.subtitle}
                       </span>
                     </span>
-                    <span className="shrink-0 text-xs font-medium text-blue-700">
+                    <span className="shrink-0 text-xs font-medium text-neutral-500">
                       {command.category}
                     </span>
                   </li>
@@ -479,7 +478,7 @@ export function CommandPalette(): React.ReactElement | null {
             )}
           </ul>
 
-          <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-2 text-xs text-slate-600">
+          <div className="flex items-center justify-between border-t border-neutral-200 bg-white px-4 py-2 text-xs text-neutral-500">
             <span>
               {filteredCommands.length}{' '}
               {filteredCommands.length === 1 ? 'resultado' : 'resultados'}

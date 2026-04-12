@@ -83,7 +83,7 @@ export default function MePage() {
   if (error) {
     return (
       <AppShell pageTitle="Meu Painel">
-        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-800 rounded-md px-4 py-3">
+        <div role="alert" className="bg-neutral-100 border border-neutral-300 text-neutral-900 rounded-md px-4 py-3">
           {error}
         </div>
       </AppShell>
@@ -93,7 +93,7 @@ export default function MePage() {
   if (!data) {
     return (
       <AppShell pageTitle="Meu Painel">
-        <p className="text-slate-600">Carregando...</p>
+        <p className="text-neutral-500">Carregando...</p>
       </AppShell>
     );
   }
@@ -113,7 +113,7 @@ export default function MePage() {
           <div className="flex items-center gap-4">
             <div
               aria-hidden="true"
-              className="w-16 h-16 rounded-full bg-blue-700 flex items-center justify-center text-white text-xl font-bold border-2 border-blue-400"
+              className="w-16 h-16 rounded-full bg-neutral-900 flex items-center justify-center text-white text-xl font-bold border-2 border-neutral-300"
             >
               {initials}
             </div>
@@ -123,7 +123,7 @@ export default function MePage() {
                 {data.profile.email} · {data.profile.setor || 'Sem setor definido'}
               </p>
               {data.profile.conselhoProfissional && (
-                <p className="text-xs text-slate-500 mt-1 font-mono">
+                <p className="text-xs text-neutral-500 mt-1 font-mono">
                   {data.profile.conselhoProfissional}
                 </p>
               )}
@@ -142,7 +142,7 @@ export default function MePage() {
                   window.dispatchEvent(new CustomEvent('velya:start-onboarding'));
                 }
               }}
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-blue-700/60 text-blue-800 hover:bg-blue-900/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-50 border border-neutral-300/60 text-neutral-900 hover:bg-neutral-100/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
             >
               Refazer tour de boas-vindas
             </button>
@@ -150,7 +150,7 @@ export default function MePage() {
               type="button"
               onClick={handleLogout}
               disabled={loggingOut}
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-red-700/60 text-red-800 hover:bg-red-50/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-60"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-50 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200 disabled:opacity-60"
             >
               {loggingOut ? 'Saindo...' : 'Sair da plataforma'}
             </button>
@@ -162,31 +162,31 @@ export default function MePage() {
         {/* Profile + session */}
         <section
           aria-labelledby="profile-heading"
-          className="bg-white border border-slate-200 rounded-xl p-5"
+          className="bg-white border border-neutral-200 rounded-xl p-5"
         >
-          <h2 id="profile-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3">
+          <h2 id="profile-heading" className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-3">
             Sessão
           </h2>
           <dl className="text-sm space-y-2">
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-500">Função</dt>
-              <dd className="text-slate-900 text-right">{data.profile.role}</dd>
+              <dt className="text-neutral-500">Função</dt>
+              <dd className="text-neutral-900 text-right">{data.profile.role}</dd>
             </div>
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-500">Login</dt>
-              <dd className="text-slate-900 text-right">
+              <dt className="text-neutral-500">Login</dt>
+              <dd className="text-neutral-900 text-right">
                 {new Date(data.profile.loginTime).toLocaleString('pt-BR')}
               </dd>
             </div>
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-500">Última atividade</dt>
-              <dd className="text-slate-900 text-right">
+              <dt className="text-neutral-500">Última atividade</dt>
+              <dd className="text-neutral-900 text-right">
                 {new Date(data.profile.lastActivity).toLocaleString('pt-BR')}
               </dd>
             </div>
             {data.profile.isBreakGlass && (
-              <div role="alert" className="bg-amber-950/40 border border-amber-700 text-amber-800 rounded-md px-3 py-2 mt-2">
-                ⚠ Sessão em modo break-glass
+              <div role="alert" className="bg-neutral-100 border border-neutral-300 text-neutral-700 rounded-md px-3 py-2 mt-2">
+                Sessão em modo break-glass
               </div>
             )}
           </dl>
@@ -195,71 +195,71 @@ export default function MePage() {
         {/* On-duty */}
         <section
           aria-labelledby="duty-heading"
-          className="bg-white border border-slate-200 rounded-xl p-5"
+          className="bg-white border border-neutral-200 rounded-xl p-5"
         >
-          <h2 id="duty-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3">
+          <h2 id="duty-heading" className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-3">
             Plantão
           </h2>
           {data.onDuty ? (
             <dl className="text-sm space-y-2">
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-500">Setor</dt>
-                <dd className="text-slate-900 text-right">{data.onDuty.ward}</dd>
+                <dt className="text-neutral-500">Setor</dt>
+                <dd className="text-neutral-900 text-right">{data.onDuty.ward}</dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-500">Turno</dt>
-                <dd className="text-slate-900 text-right">
+                <dt className="text-neutral-500">Turno</dt>
+                <dd className="text-neutral-900 text-right">
                   {data.onDuty.shift} · {data.onDuty.shiftStart}–{data.onDuty.shiftEnd}
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-500">Presença</dt>
-                <dd className="text-slate-900 text-right">{data.onDuty.presence}</dd>
+                <dt className="text-neutral-500">Presença</dt>
+                <dd className="text-neutral-900 text-right">{data.onDuty.presence}</dd>
               </div>
               {data.onDuty.contactExtension && (
                 <div className="flex justify-between gap-2">
-                  <dt className="text-slate-500">Ramal</dt>
-                  <dd className="text-slate-900 text-right font-mono">
+                  <dt className="text-neutral-500">Ramal</dt>
+                  <dd className="text-neutral-900 text-right font-mono">
                     {data.onDuty.contactExtension}
                   </dd>
                 </div>
               )}
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-500">Pacientes atribuídos</dt>
-                <dd className="text-slate-900 text-right">
+                <dt className="text-neutral-500">Pacientes atribuídos</dt>
+                <dd className="text-neutral-900 text-right">
                   {data.onDuty.assignedPatientMrns.length}
                 </dd>
               </div>
             </dl>
           ) : (
-            <p className="text-sm text-slate-500">Você não está no quadro de plantão atual.</p>
+            <p className="text-sm text-neutral-500">Você não está no quadro de plantão atual.</p>
           )}
         </section>
 
         {/* AI policy */}
         <section
           aria-labelledby="ai-heading"
-          className="bg-white border border-slate-200 rounded-xl p-5"
+          className="bg-white border border-neutral-200 rounded-xl p-5"
         >
-          <h2 id="ai-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3">
+          <h2 id="ai-heading" className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-3">
             Política de IA
           </h2>
           <dl className="text-sm space-y-2">
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-500">Perfil</dt>
-              <dd className="text-blue-700 text-right font-semibold">{data.aiPolicy.label}</dd>
+              <dt className="text-neutral-500">Perfil</dt>
+              <dd className="text-neutral-700 text-right font-semibold">{data.aiPolicy.label}</dd>
             </div>
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-500">Capacidades</dt>
-              <dd className="text-slate-900 text-right">{data.aiPolicy.capabilityCount}</dd>
+              <dt className="text-neutral-500">Capacidades</dt>
+              <dd className="text-neutral-900 text-right">{data.aiPolicy.capabilityCount}</dd>
             </div>
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-500">Limite/hora</dt>
-              <dd className="text-slate-900 text-right">{data.aiPolicy.maxRequestsPerHour}</dd>
+              <dt className="text-neutral-500">Limite/hora</dt>
+              <dd className="text-neutral-900 text-right">{data.aiPolicy.maxRequestsPerHour}</dd>
             </div>
           </dl>
-          <p className="text-xs text-slate-500 mt-3">
-            Use <kbd className="bg-slate-50 border border-slate-300 px-1.5 py-0.5 rounded text-slate-900">Ctrl+J</kbd> para abrir o assistente.
+          <p className="text-xs text-neutral-500 mt-3">
+            Use <kbd className="bg-neutral-50 border border-neutral-300 px-1.5 py-0.5 rounded text-neutral-900">Ctrl+J</kbd> para abrir o assistente.
           </p>
         </section>
       </div>
@@ -290,19 +290,19 @@ export default function MePage() {
       {data.charges.length > 0 && (
         <section
           aria-labelledby="charges-heading"
-          className="bg-white border border-slate-200 rounded-xl p-5 mb-4"
+          className="bg-white border border-neutral-200 rounded-xl p-5 mb-4"
         >
-          <h2 id="charges-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3">
+          <h2 id="charges-heading" className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-3">
             Lançamentos recentes
           </h2>
           <ul className="space-y-2">
             {data.charges.map((c) => (
               <li
                 key={c.id}
-                className="flex items-center justify-between gap-3 px-3 py-2 bg-slate-50 rounded-md border border-slate-200"
+                className="flex items-center justify-between gap-3 px-3 py-2 bg-neutral-50 rounded-md border border-neutral-200"
               >
-                <span className="text-sm text-slate-900 truncate">{c.description}</span>
-                <span className="text-xs text-slate-600 whitespace-nowrap">
+                <span className="text-sm text-neutral-900 truncate">{c.description}</span>
+                <span className="text-xs text-neutral-500 whitespace-nowrap">
                   R$ {c.totalPrice.toFixed(2)} · {c.status}
                 </span>
               </li>
@@ -314,25 +314,25 @@ export default function MePage() {
       {data.consents.length > 0 && (
         <section
           aria-labelledby="consents-heading"
-          className="bg-white border border-slate-200 rounded-xl p-5"
+          className="bg-white border border-neutral-200 rounded-xl p-5"
         >
-          <h2 id="consents-heading" className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3">
+          <h2 id="consents-heading" className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-3">
             Consentimentos recentes
           </h2>
           <ul className="space-y-2">
             {data.consents.map((c) => (
               <li
                 key={c.id}
-                className="flex items-center justify-between gap-3 px-3 py-2 bg-slate-50 rounded-md border border-slate-200"
+                className="flex items-center justify-between gap-3 px-3 py-2 bg-neutral-50 rounded-md border border-neutral-200"
               >
                 <Link
                   href={`/patients/${c.patientMrn}`}
-                  className="text-sm text-blue-700 hover:text-blue-800 underline font-mono"
+                  className="text-sm text-neutral-700 hover:text-neutral-900 underline font-mono"
                 >
                   {c.patientMrn}
                 </Link>
-                <span className="text-xs text-slate-600">{c.type}</span>
-                <span className="text-xs text-slate-500">{c.signedAt}</span>
+                <span className="text-xs text-neutral-500">{c.type}</span>
+                <span className="text-xs text-neutral-500">{c.signedAt}</span>
               </li>
             ))}
           </ul>
@@ -355,12 +355,12 @@ function ActivityColumn({
 }) {
   const accentRing =
     accent === 'blue'
-      ? 'border-blue-700/60'
+      ? 'border-neutral-300/60'
       : accent === 'amber'
-        ? 'border-amber-700/60'
-        : 'border-green-700/60';
+        ? 'border-neutral-300'
+        : 'border-neutral-300';
   const accentDot =
-    accent === 'blue' ? 'bg-blue-400' : accent === 'amber' ? 'bg-amber-400' : 'bg-green-400';
+    accent === 'blue' ? 'bg-neutral-700' : accent === 'amber' ? 'bg-neutral-500' : 'bg-neutral-300';
   return (
     <section
       aria-label={title}
@@ -368,34 +368,34 @@ function ActivityColumn({
     >
       <header className="flex items-center gap-2 mb-3">
         <span aria-hidden="true" className={`w-2.5 h-2.5 rounded-full ${accentDot}`} />
-        <h2 className="text-sm font-bold text-slate-900">{title}</h2>
-        <span className="text-xs text-slate-500 ml-auto">{items.length}</span>
+        <h2 className="text-sm font-bold text-neutral-900">{title}</h2>
+        <span className="text-xs text-neutral-500 ml-auto">{items.length}</span>
       </header>
-      <p className="text-[11px] text-slate-500 mb-3">{subtitle}</p>
+      <p className="text-[11px] text-neutral-500 mb-3">{subtitle}</p>
       {items.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-6">Nada por aqui.</p>
+        <p className="text-sm text-neutral-500 text-center py-6">Nada por aqui.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {items.map((item) => (
             <li key={item.id}>
               <Link
                 href={`/patients/${item.mrn}`}
-                className="block px-3 py-2 bg-slate-50 rounded-md border border-slate-200 hover:bg-slate-100 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
+                className="block px-3 py-2 bg-neutral-50 rounded-md border border-neutral-200 hover:bg-neutral-100 hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-200 transition-colors"
               >
-                <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
+                <div className="text-xs text-neutral-500 uppercase tracking-wider font-semibold">
                   {item.type}
                 </div>
-                <div className="text-sm text-slate-900 font-medium mt-0.5">
+                <div className="text-sm text-neutral-900 font-medium mt-0.5">
                   {item.description}
                 </div>
-                <div className="text-xs text-slate-600 mt-1 flex items-center gap-2 flex-wrap">
-                  <span className="font-mono text-blue-700">{item.mrn}</span>
+                <div className="text-xs text-neutral-500 mt-1 flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-neutral-700">{item.mrn}</span>
                   <span>·</span>
                   <span>{item.patient}</span>
                   {item.dueIn && (
                     <>
                       <span>·</span>
-                      <span className="text-amber-800">{item.dueIn}</span>
+                      <span className="text-neutral-700">{item.dueIn}</span>
                     </>
                   )}
                 </div>

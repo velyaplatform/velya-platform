@@ -129,9 +129,9 @@ export function PatientAutocomplete({
 
   return (
     <div className="relative flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="text-sm font-medium text-neutral-700">
         {label}
-        {required && <span className="text-red-700 ml-0.5">*</span>}
+        {required && <span className="text-neutral-900 ml-0.5">*</span>}
       </label>
       <input
         ref={inputRef}
@@ -159,10 +159,10 @@ export function PatientAutocomplete({
         aria-activedescendant={
           highlightedIdx >= 0 ? `${listboxId}-option-${highlightedIdx}` : undefined
         }
-        className="w-full min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+        className="w-full min-h-[44px] bg-neutral-50 border border-neutral-300 rounded-md px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-200"
       />
       {help && (
-        <p id={`${id}-help`} className="text-xs text-slate-500">
+        <p id={`${id}-help`} className="text-xs text-neutral-500">
           {help}
         </p>
       )}
@@ -170,10 +170,10 @@ export function PatientAutocomplete({
         <ul
           id={listboxId}
           role="listbox"
-          className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-md shadow-2xl max-h-72 overflow-y-auto"
+          className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-md shadow-2xl max-h-72 overflow-y-auto"
         >
           {results.length === 0 && debouncedQuery.trim().length >= 2 && (
-            <li className="px-3 py-2 text-sm text-slate-500">Nenhum paciente encontrado</li>
+            <li className="px-3 py-2 text-sm text-neutral-500">Nenhum paciente encontrado</li>
           )}
           {results.map((p, idx) => {
             const isHighlighted = idx === highlightedIdx;
@@ -190,14 +190,14 @@ export function PatientAutocomplete({
                 }}
                 onMouseEnter={() => setHighlightedIdx(idx)}
                 className={`px-3 py-2 cursor-pointer ${
-                  isHighlighted ? 'bg-blue-700/40' : 'hover:bg-slate-50'
+                  isHighlighted ? 'bg-neutral-100' : 'hover:bg-neutral-50'
                 }`}
               >
                 <div className="flex items-baseline gap-2">
-                  <span className="font-mono text-blue-700 text-xs">{p.mrn}</span>
-                  <span className="text-slate-900 font-semibold text-sm">{p.name}</span>
+                  <span className="font-mono text-neutral-700 text-xs">{p.mrn}</span>
+                  <span className="text-neutral-900 font-semibold text-sm">{p.name}</span>
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-neutral-500">
                   {p.age} anos · {p.ward}
                   {p.bed && ` · ${p.bed}`} · {p.diagnosis}
                 </div>
