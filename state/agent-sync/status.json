@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-04-12T06:52:11.805Z",
+  "schemaVersion": 1,
+  "agents": [
+    {
+      "name": "agent-health-manager-agent",
+      "script": "scripts/agents/run-agent-health-manager.ts",
+      "layer": 2,
+      "status": "active"
+    },
+    {
+      "name": "agent-runtime-supervisor-agent",
+      "script": "scripts/agents/run-agent-runtime-supervisor.ts",
+      "layer": 2,
+      "status": "active"
+    },
+    {
+      "name": "argocd-healer-agent",
+      "script": "scripts/agents/run-argocd-healer.ts",
+      "layer": 1,
+      "status": "active"
+    },
+    {
+      "name": "backend-quality-agent",
+      "script": "scripts/agents/run-backend-quality.ts",
+      "layer": 1,
+      "status": "active"
+    },
+    {
+      "name": "ci-failure-triage-agent",
+      "script": "scripts/agents/run-ci-failure-triage.ts",
+      "layer": 1,
+      "status": "active"
+    },
+    {
+      "name": "frontend-quality-agent",
+      "script": "scripts/agents/run-frontend-quality.ts",
+      "layer": 1,
+      "status": "active"
+    },
+    {
+      "name": "infra-health-agent",
+      "script": "scripts/agents/run-infra-health.ts",
+      "layer": 1,
+      "status": "active"
+    },
+    {
+      "name": "k8s-troubleshooter-agent",
+      "script": "scripts/agents/run-k8s-troubleshooter.ts",
+      "layer": 1,
+      "status": "active"
+    },
+    {
+      "name": "meta-governance-auditor-agent",
+      "script": "scripts/agents/run-meta-governance-auditor.ts",
+      "layer": 3,
+      "status": "active"
+    },
+    {
+      "name": "pin-rot-agent",
+      "script": "scripts/agents/run-pin-rot.ts",
+      "layer": 1,
+      "status": "active"
+    },
+    {
+      "name": "repo-settings-auditor-agent",
+      "script": "scripts/agents/run-repo-settings-auditor.ts",
+      "layer": 1,
+      "status": "active"
+    }
+  ],
+  "locks": [],
+  "handoffs": [],
+  "staleAgents": []
+}
