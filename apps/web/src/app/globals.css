@@ -276,11 +276,11 @@
 }
 
 /* ============================================================================
-   RESET & BASE — Primer
-   Note: box-sizing/margin/padding reset is handled by Tailwind's @layer base.
-   An unlayered duplicate here would override all layered utilities (margin-left,
-   padding, etc.) due to CSS Cascade Layers precedence rules.
+   RESET & BASE — inside @layer base so Tailwind utilities can override.
+   CSS Cascade Layers: unlayered styles beat ALL layered styles regardless
+   of specificity. Everything below MUST be inside a @layer.
    ============================================================================ */
+@layer base {
 
 html {
   font-size: 16px;
@@ -328,9 +328,6 @@ kbd {
   color: var(--fg-default);
 }
 
-/* ============================================================================
-   SCROLLBAR — GitHub-like
-   ============================================================================ */
 ::-webkit-scrollbar {
   width: 12px;
   height: 12px;
@@ -350,22 +347,23 @@ kbd {
   border: 3px solid transparent;
 }
 
-/* ============================================================================
-   LINKS — Primer
-   ============================================================================ */
-@layer base {
-  a {
-    color: var(--accent-fg);
-    text-decoration: none;
-  }
-  a:hover {
-    text-decoration: underline;
-  }
+a {
+  color: var(--accent-fg);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
 }
 
+} /* end @layer base */
+
 /* ============================================================================
-   APP SHELL LAYOUT — GitHub-style header + sidebar
+   COMPONENTS — inside @layer components so Tailwind utilities (md:ml-[260px],
+   p-6, translate-x-0, etc.) can override these classes. This is THE fix for
+   the sidebar overlap / padding / margin bug caused by CSS Cascade Layers.
    ============================================================================ */
+@layer components {
+
 .app-shell {
   display: flex;
   flex-direction: column;
@@ -1456,3 +1454,5 @@ textarea.input::placeholder,
   outline-offset: -2px;
   border-radius: var(--radius-md);
 }
+
+} /* end @layer components */
