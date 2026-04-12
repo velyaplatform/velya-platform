@@ -32,7 +32,23 @@ interface Finding {
 const OUT_DIR = process.env.VELYA_AUDIT_OUT ?? '/data/velya-autopilot';
 const DRY_RUN = process.env.VELYA_DRY_RUN === 'true';
 const KUBECTL_CONTEXT = process.env.KUBECTL_CONTEXT ?? '';
+// Smoke CI sets this to 'true' so agents skip their cluster probes. The
+// backend health probes below honour it — otherwise smoke CI would emit a
+// namespace-missing finding for every backend dep on every run.
+const SMOKE_OFFLINE = process.env.VELYA_SMOKE_OFFLINE === 'true';
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+// Backend health probes (ADR-0016 follow-up — brecha #7 from the validation
+// landscape audit). The agent consults k8s directly for NATS JetStream,
+// Temporal, and PostgreSQL by label, so it works with whichever operator
+// the cluster uses without hard-coding resource names. Each env var below
+// can be overridden to match the local operator.
+const NATS_NAMESPACE = process.env.VELYA_NATS_NAMESPACE ?? 'velya-dev-core';
+const NATS_LABEL = process.env.VELYA_NATS_LABEL ?? 'app.kubernetes.io/name=nats';
+const TEMPORAL_NAMESPACE = process.env.VELYA_TEMPORAL_NAMESPACE ?? 'velya-dev-platform';
+const TEMPORAL_LABEL = process.env.VELYA_TEMPORAL_LABEL ?? 'app.kubernetes.io/name=temporal';
+const POSTGRES_NAMESPACE = process.env.VELYA_POSTGRES_NAMESPACE ?? 'velya-dev-core';
+const POSTGRES_LABEL = process.env.VELYA_POSTGRES_LABEL ?? 'application=spilo';
 
 function ensureDir(path: string): void {
   if (!existsSync(path)) mkdirSync(path, { recursive: true });
@@ -75,6 +91,141 @@ function kubectlDelete(kind: string, name: string, namespace: string): { ok: boo
   }
   const result = kubectl(['delete', kind, name, '-n', namespace]);
   return { ok: result.ok, output: `${result.stdout}${result.stderr}` };
+}
+
+/**
+ * Generic health probe for a stateful backend dependency (NATS, Temporal,
+ * Postgres) selected by label. Reports one finding per unhealthy workload
+ * with a descriptive message. No remediation is attempted — these services
+ * need human or helm-level intervention.
+ *
+ * Checks, in order:
+ *   1. Namespace exists — if not, `medium` finding (cluster may not be
+ *      provisioned yet).
+ *   2. Workloads (StatefulSet + Deployment) matching the label selector —
+ *      if none found, `medium` finding (not deployed).
+ *   3. For each workload, `readyReplicas >= spec.replicas` — if not,
+ *      finding at the configured severity.
+ *   4. For each pod in the selector, `status.phase == Running` and
+ *      `containerStatuses[*].ready == true` — if not, finding with the
+ *      most recent waiting reason / termination reason.
+ */
+interface BackendProbeOptions {
+  kind: 'nats' | 'temporal' | 'postgres';
+  namespace: string;
+  label: string;
+  severity: Finding['severity'];
+}
+
+function checkStatefulWorkload(findings: Finding[], opts: BackendProbeOptions): void {
+  const { kind, namespace, label, severity } = opts;
+  console.log(`[infra-health] probing ${kind} in ${namespace} by label ${label}`);
+
+  // 1. Namespace sanity check
+  const ns = kubectl(['get', 'ns', namespace, '-o', 'name']);
+  if (!ns.ok) {
+    findings.push({
+      severity: 'medium',
+      rule: `${kind}-namespace-missing`,
+      description: `${kind} namespace ${namespace} not present — cluster may not be fully provisioned`,
+      namespace,
+      remediation: 'escalated',
+    });
+    return;
+  }
+
+  // 2. Workloads matching the label — check both StatefulSet and Deployment
+  for (const kindArg of ['statefulset', 'deployment'] as const) {
+    const wl = kubectl(['get', kindArg, '-n', namespace, '-l', label, '-o', 'json']);
+    if (!wl.ok) continue;
+    try {
+      const parsed = JSON.parse(wl.stdout) as {
+        items: Array<{
+          metadata: { name: string };
+          spec: { replicas?: number };
+          status: { readyReplicas?: number; availableReplicas?: number };
+        }>;
+      };
+      for (const w of parsed.items) {
+        const desired = w.spec.replicas ?? 1;
+        const ready = w.status.readyReplicas ?? 0;
+        if (ready < desired) {
+          findings.push({
+            severity,
+            rule: `${kind}-under-replicated`,
+            description: `${kind} ${kindArg}/${w.metadata.name} has ${ready}/${desired} ready replicas`,
+            namespace,
+            resource: `${kindArg}/${w.metadata.name}`,
+            remediation: 'escalated',
+          });
+        }
+      }
+    } catch (e) {
+      console.error(`[infra-health] ${kind} ${kindArg} parse failed:`, e);
+    }
+  }
+
+  // 3. Pods matching the label — look for non-Running / not-Ready
+  const podsRes = kubectl(['get', 'pods', '-n', namespace, '-l', label, '-o', 'json']);
+  if (!podsRes.ok) {
+    findings.push({
+      severity: 'medium',
+      rule: `${kind}-not-deployed`,
+      description: `${kind} workloads not found in ${namespace} (label ${label})`,
+      namespace,
+      remediation: 'escalated',
+    });
+    return;
+  }
+  try {
+    const parsed = JSON.parse(podsRes.stdout) as {
+      items: Array<{
+        metadata: { name: string };
+        status: {
+          phase: string;
+          containerStatuses?: Array<{
+            name: string;
+            ready: boolean;
+            restartCount: number;
+            state?: { waiting?: { reason?: string; message?: string } };
+            lastState?: { terminated?: { reason?: string; message?: string } };
+          }>;
+        };
+      }>;
+    };
+    if (parsed.items.length === 0) {
+      findings.push({
+        severity: 'medium',
+        rule: `${kind}-no-pods`,
+        description: `${kind} has 0 pods in ${namespace} (label ${label}) — not deployed or wrong selector`,
+        namespace,
+        remediation: 'escalated',
+      });
+      return;
+    }
+    for (const pod of parsed.items) {
+      const allReady = (pod.status.containerStatuses ?? []).every((c) => c.ready);
+      if (pod.status.phase === 'Running' && allReady) continue;
+      const offender = (pod.status.containerStatuses ?? []).find((c) => !c.ready);
+      const reason =
+        offender?.state?.waiting?.reason ??
+        offender?.lastState?.terminated?.reason ??
+        pod.status.phase;
+      const msg =
+        offender?.state?.waiting?.message ?? offender?.lastState?.terminated?.message ?? '';
+      findings.push({
+        severity,
+        rule: `${kind}-pod-unhealthy`,
+        description: `${kind} pod/${pod.metadata.name} in ${namespace} — ${reason}`,
+        namespace,
+        resource: `pod/${pod.metadata.name}`,
+        remediation: 'escalated',
+        remediationDetail: msg.slice(0, 400),
+      });
+    }
+  } catch (e) {
+    console.error(`[infra-health] ${kind} pod parse failed:`, e);
+  }
 }
 
 async function main(): Promise<void> {
@@ -290,6 +441,34 @@ metadata:
     } catch (e) {
       console.error('[infra-health] pod check parsing failed:', e);
     }
+  }
+
+  // ── Backend dependency health probes ──────────────────────────────────
+  // These checks are READ-ONLY. Every finding is `escalated` (never
+  // auto-remediated) because the fix always requires either a config
+  // change, a helm upgrade, or a human looking at the logs — none of
+  // which this agent has the authority to do.
+  if (SMOKE_OFFLINE) {
+    console.log('[infra-health] VELYA_SMOKE_OFFLINE=true — skipping backend probes');
+  } else {
+    checkStatefulWorkload(findings, {
+      kind: 'nats',
+      namespace: NATS_NAMESPACE,
+      label: NATS_LABEL,
+      severity: 'high',
+    });
+    checkStatefulWorkload(findings, {
+      kind: 'temporal',
+      namespace: TEMPORAL_NAMESPACE,
+      label: TEMPORAL_LABEL,
+      severity: 'high',
+    });
+    checkStatefulWorkload(findings, {
+      kind: 'postgres',
+      namespace: POSTGRES_NAMESPACE,
+      label: POSTGRES_LABEL,
+      severity: 'critical',
+    });
   }
 
   // Output

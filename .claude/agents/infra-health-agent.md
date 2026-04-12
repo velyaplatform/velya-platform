@@ -51,6 +51,27 @@ from inside the cluster with service-account access to the API server.
 - Service selectors matching 0 pods
 - Ingress with no TLS for public hostnames
 
+### Backend dependency health (NATS / Temporal / PostgreSQL)
+
+Looks up each backend dep by label (configurable via env var) rather than
+hard-coded name, so the probe works with whichever operator the cluster
+uses. Overridable:
+
+| Dep | Default namespace env | Default label env | Severity |
+|---|---|---|---|
+| NATS JetStream | `VELYA_NATS_NAMESPACE=velya-dev-core` | `VELYA_NATS_LABEL=app.kubernetes.io/name=nats` | high |
+| Temporal | `VELYA_TEMPORAL_NAMESPACE=velya-dev-platform` | `VELYA_TEMPORAL_LABEL=app.kubernetes.io/name=temporal` | high |
+| PostgreSQL | `VELYA_POSTGRES_NAMESPACE=velya-dev-core` | `VELYA_POSTGRES_LABEL=application=spilo` | critical |
+
+For each dep the agent checks:
+1. Namespace exists → `medium` finding if missing.
+2. StatefulSets + Deployments matching the label → `readyReplicas >= spec.replicas`, otherwise finding at the configured severity.
+3. Pods matching the label → `phase=Running` and all containers `ready=true`, otherwise finding citing the most recent waiting/termination reason.
+
+All findings are `escalated` — the fix always requires a human, a helm
+upgrade, or a config change, none of which this agent has the authority
+to do. Probes are skipped when `VELYA_SMOKE_OFFLINE=true`.
+
 ## Safe auto-remediations
 
 The following can be applied automatically by the agent (logged in evidence):
