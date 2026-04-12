@@ -2,16 +2,20 @@ name: UI Overlap Gate
 
 # Pixel-level regression gate for apps/web.
 #
-# The mandate (2026-04-11): no text overlap, no field-over-field, no letter
-# over letter, no half-visible description, no label cut mid-word. This
-# workflow runs scripts/ui-audit/detect-overlaps.ts against a fresh prod
-# build of apps/web on every PR that touches the frontend. Any critical
-# finding blocks merge. The matching local command is:
+# Mandate (2026-04-11, extended 2026-04-12): no text overlap, no
+# field-over-field, no letter over letter, no half-visible description,
+# no label cut mid-word — across THREE viewports (desktop 1440×900,
+# laptop 1024×768, tablet 820×1180). The 2026-04-12 prod incident
+# happened because the original gate only scanned 1440 and missed
+# responsive bugs in the awkward sub-1280 zone where the sidebar mounts
+# but content has just enough room.
+#
+# Local invocation (script handles all viewports internally):
 #
 #   VELYA_SESSION=<cookie> npx tsx scripts/ui-audit/detect-overlaps.ts \
 #     --url=http://localhost:3003 --fail-on=critical
 #
-# See docs/validation/ui-overlap-gate.md for the full rule list.
+# See .claude/rules/quality.md (section "UI Pixel Gate") for the rule list.
 
 on:
   pull_request:
