@@ -32,7 +32,7 @@ const ALLOWED_HEX = new Set([
   '171717', '262626', '404040', '525252', '737373',
   'a3a3a3', 'd4d4d4', 'e5e5e5', 'f5f5f5', 'fafafa',
   '1f2328', '59636e', '818b98', 'd1d9e0', 'f6f8fa',
-  '32383f', '7d8590', 'afb8c1',
+  '32383f', '7d8590', 'afb8c1', '9198a1',
 ]);
 
 const INLINE_COLOR_REGEX =
