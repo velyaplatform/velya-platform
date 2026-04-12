@@ -51,7 +51,7 @@ export function VelyaVitalSign({
   return (
     <div
       className={cn(
-        'rounded-xl border border-white/[0.08] bg-[rgba(15,22,35,0.6)] p-4 backdrop-blur-md',
+        'rounded-xl border border-slate-200 bg-white p-4',
         className,
       )}
     >

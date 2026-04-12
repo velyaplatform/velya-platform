@@ -318,15 +318,23 @@ export function Navigation({
     <aside
       ref={asideRef}
       className={cn(
-        'fixed left-0 bottom-0 z-40 flex flex-col overflow-y-auto shrink-0',
+        // Mobile (<md): fixed overlay, off-screen by default, slides in.
+        // Desktop (md+): sticky in-flow — takes flex space inside .app-main
+        // so the content wrapper is naturally pushed right. No margin-left
+        // hack needed. This mirrors how github.com lays out its sidebar.
+        'flex flex-col overflow-y-auto shrink-0',
         'border-r bg-white text-neutral-800',
+        // Mobile: fixed overlay
+        'fixed left-0 bottom-0 z-40',
         !isResizing && 'transition-transform duration-300',
-        'md:translate-x-0',
         mobileOpen ? 'translate-x-0' : '-translate-x-full',
+        // Desktop: sticky in-flow (overrides fixed)
+        'md:sticky md:top-[var(--header-height)] md:bottom-auto md:left-auto md:z-auto md:translate-x-0',
       )}
       style={{
         top: 'var(--header-height)',
         width: `${sidebarWidth}px`,
+        height: 'calc(100vh - var(--header-height))',
         borderColor: 'var(--border-default)',
         background: 'var(--canvas-default)',
         color: 'var(--fg-default)',

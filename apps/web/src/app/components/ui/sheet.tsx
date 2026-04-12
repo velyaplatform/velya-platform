@@ -29,7 +29,7 @@ const SheetOverlay = React.forwardRef<
 });
 
 const sheetVariants = cva(
-  'fixed z-50 gap-4 bg-[rgba(15,22,35,0.96)] backdrop-blur-xl border border-white/[0.08] shadow-[0_0_48px_-8px_rgba(0,0,0,0.8)] transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-300',
+  'fixed z-50 gap-4 bg-white border border-slate-200 shadow-xl transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-300',
   {
     variants: {
       side: {

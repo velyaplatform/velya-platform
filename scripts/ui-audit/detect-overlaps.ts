@@ -63,18 +63,62 @@ interface PageSpec {
 }
 
 const PAGES: PageSpec[] = [
+  // Core dashboard
   { path: '/', name: 'home' },
   { path: '/patients', name: 'patients' },
   { path: '/tasks', name: 'tasks' },
   { path: '/alerts', name: 'alerts' },
   { path: '/agents', name: 'agents' },
+  // Clinical
+  { path: '/prescriptions', name: 'prescriptions' },
+  { path: '/lab/orders', name: 'lab-orders' },
+  { path: '/lab/results', name: 'lab-results' },
+  { path: '/imaging/orders', name: 'imaging-orders' },
+  { path: '/imaging/results', name: 'imaging-results' },
+  // Operations
   { path: '/icu', name: 'icu' },
   { path: '/beds', name: 'beds' },
   { path: '/pharmacy', name: 'pharmacy' },
+  { path: '/pharmacy/stock', name: 'pharmacy-stock' },
+  { path: '/surgery', name: 'surgery' },
+  { path: '/ems', name: 'ems' },
+  { path: '/cleaning/tasks', name: 'cleaning' },
+  { path: '/transport/orders', name: 'transport' },
+  { path: '/meals/orders', name: 'nutrition' },
+  { path: '/discharge', name: 'discharge' },
+  // Communication
+  { path: '/inbox', name: 'inbox' },
+  { path: '/delegations', name: 'delegations' },
+  { path: '/handoffs', name: 'handoffs' },
+  { path: '/search', name: 'search' },
+  { path: '/staff-on-duty', name: 'staff-on-duty' },
+  // Governance
+  { path: '/specialties', name: 'specialties' },
+  { path: '/wards', name: 'wards' },
+  // Tools
+  { path: '/tools/sepsis', name: 'sepsis' },
+];
+
+/**
+ * Multi-viewport scanning — the sidebar mounts at md (768) but narrow
+ * viewports (820-1024) historically exposed clipping when gutter was too
+ * thin. Scanning three widths covers the critical breakpoints.
+ */
+interface ViewportSpec {
+  label: string;
+  width: number;
+  height: number;
+}
+
+const VIEWPORTS: ViewportSpec[] = [
+  { label: 'desktop', width: 1440, height: 900 },
+  { label: 'laptop', width: 1024, height: 768 },
+  { label: 'tablet', width: 820, height: 1180 },
 ];
 
 interface Finding {
   page: string;
+  viewport: string;
   severity: 'critical' | 'high' | 'medium';
   rule: string;
   description: string;
@@ -274,7 +318,11 @@ async function collect(page: Page, spec: PageSpec): Promise<Finding[]> {
     `(function() { if (typeof __name === 'undefined') { window.__name = function(fn) { return fn; }; } return (${fnSource})(${JSON.stringify(spec.name)}, ${JSON.stringify(THRESHOLDS)}); })()`,
   );
   if (!Array.isArray(result)) return [];
-  return (result as Omit<Finding, 'page'>[]).map((f) => ({ page: spec.name, ...f }));
+  return (result as Omit<Finding, 'page' | 'viewport'>[]).map((f) => ({
+    page: spec.name,
+    viewport: '',      // filled by the caller
+    ...f,
+  }));
 }
 
 async function main(): Promise<void> {
@@ -287,55 +335,67 @@ async function main(): Promise<void> {
   await mkdir(args.out, { recursive: true });
   console.log(`[detect-overlaps] URL: ${args.url}`);
   console.log(`[detect-overlaps] Out: ${args.out}`);
+  console.log(`[detect-overlaps] Viewports: ${VIEWPORTS.map((v) => `${v.label}(${v.width}x${v.height})`).join(', ')}`);
+  console.log(`[detect-overlaps] Pages: ${PAGES.length}`);
 
   const browser = await chromium.launch({ headless: true });
-  const ctx = await browser.newContext({
-    viewport: { width: 1440, height: 900 },
-    deviceScaleFactor: 1,
-  });
-  await ctx.addCookies([
-    {
-      name: 'velya_session',
-      value: args.sessionCookie,
-      domain: new URL(args.url).hostname,
-      path: '/',
-      httpOnly: true,
-      secure: false,
-      sameSite: 'Lax',
-    },
-  ]);
-  await ctx.addInitScript(() => {
-    try {
-      localStorage.setItem('velya:onboarding-seen', 'true');
-      localStorage.setItem('velya:onboarding-dismissed', 'true');
-    } catch {
-      /* storage disabled */
-    }
-  });
+  const allFindings: Finding[] = [];
 
-  // Walk pages in parallel — independent pages on a shared authenticated
-  // context. Reduces the gate from ~20 s (sequential 8×2.5 s) to ~3-5 s
-  // on a warm prod build.
-  const pageResults = await Promise.all(
-    PAGES.map(async (spec) => {
-      const p = await ctx.newPage();
+  // One BrowserContext per viewport — Playwright bakes viewport into
+  // context creation, so we can't resize mid-context.
+  for (const vp of VIEWPORTS) {
+    console.log(`\n--- ${vp.label} (${vp.width}×${vp.height}) ---`);
+    const ctx = await browser.newContext({
+      viewport: { width: vp.width, height: vp.height },
+      deviceScaleFactor: 1,
+    });
+    await ctx.addCookies([
+      {
+        name: 'velya_session',
+        value: args.sessionCookie,
+        domain: new URL(args.url).hostname,
+        path: '/',
+        httpOnly: true,
+        secure: false,
+        sameSite: 'Lax',
+      },
+    ]);
+    await ctx.addInitScript(() => {
       try {
-        await p.goto(`${args.url}${spec.path}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
-        const findings = await collect(p, spec);
-        console.log(`  ${spec.name}: ${findings.length} findings`);
-        return findings;
-      } catch (e) {
-        console.log(`  ${spec.name}: error ${(e as Error).message.slice(0, 120)}`);
-        return [];
-      } finally {
-        await p.close();
+        localStorage.setItem('velya:onboarding-seen', 'true');
+        localStorage.setItem('velya:onboarding-dismissed', 'true');
+      } catch {
+        /* storage disabled */
       }
-    }),
-  );
+    });
+
+    // Walk pages in parallel within each viewport context.
+    const pageResults = await Promise.all(
+      PAGES.map(async (spec) => {
+        const p = await ctx.newPage();
+        try {
+          await p.goto(`${args.url}${spec.path}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+          const findings = await collect(p, spec);
+          // Tag each finding with this viewport label.
+          for (const f of findings) f.viewport = vp.label;
+          const n = findings.length;
+          if (n > 0) console.log(`  ${vp.label}/${spec.name}: ${n} findings`);
+          return findings;
+        } catch (e) {
+          console.log(`  ${vp.label}/${spec.name}: error ${(e as Error).message.slice(0, 120)}`);
+          return [];
+        } finally {
+          await p.close();
+        }
+      }),
+    );
+
+    allFindings.push(...pageResults.flat());
+    await ctx.close();
+  }
 
   await browser.close();
 
-  const allFindings = pageResults.flat();
   const bySeverity = {
     critical: allFindings.filter((f) => f.severity === 'critical').length,
     high: allFindings.filter((f) => f.severity === 'high').length,
@@ -345,7 +405,9 @@ async function main(): Promise<void> {
   const report = {
     timestamp: new Date().toISOString(),
     url: args.url,
+    viewports: VIEWPORTS.length,
     pages: PAGES.length,
+    combinations: VIEWPORTS.length * PAGES.length,
     totalFindings: allFindings.length,
     bySeverity,
     findings: allFindings,
@@ -355,11 +417,14 @@ async function main(): Promise<void> {
   await writeFile(outFile, JSON.stringify(report, null, 2));
   console.log(`\n[detect-overlaps] report → ${outFile}`);
   console.log(
+    `[detect-overlaps] ${VIEWPORTS.length} viewports × ${PAGES.length} pages = ${VIEWPORTS.length * PAGES.length} combos`,
+  );
+  console.log(
     `[detect-overlaps] crit=${bySeverity.critical} high=${bySeverity.high} med=${bySeverity.medium}`,
   );
 
-  for (const f of allFindings.slice(0, 20)) {
-    console.log(`  [${f.severity}] ${f.page} ${f.rule}: ${f.description}`);
+  for (const f of allFindings.slice(0, 30)) {
+    console.log(`  [${f.severity}] ${f.viewport}/${f.page} ${f.rule}: ${f.description}`);
   }
 
   const shouldFail =
