@@ -177,6 +177,45 @@ jobs:
             exit 1
           fi
 
+  pin-rot-online:
+    name: Pin-rot online check (PR gate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Run the pin-rot agent ONLINE on every PR that touches workflow
+    # files. This is the preventive gate that the smoke job (which is
+    # offline by design) cannot provide. The smoke job parses pins;
+    # this job actually verifies each one against GitHub API + Docker
+    # Hub. Catches deleted upstream SHAs before they reach main.
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: '22'
+      - name: Install deps
+        run: npm ci
+      - name: Run pin-rot online
+        env:
+          # Critical: NO offline flag here. We want real network calls.
+          VELYA_AUDIT_OUT: /tmp/velya-autopilot
+          VELYA_DRY_RUN: 'true'
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/velya-autopilot
+          npx tsx scripts/agents/run-pin-rot.ts
+      - name: Upload pin-rot report
+        if: always()
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
+        with:
+          name: pin-rot-report
+          path: /tmp/velya-autopilot/pin-rot/
+          retention-days: 14
+          if-no-files-found: ignore
+
   build-image:
     name: Build autopilot agents image
     runs-on: ubuntu-latest
