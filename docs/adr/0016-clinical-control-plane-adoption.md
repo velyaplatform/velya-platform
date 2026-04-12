@@ -151,11 +151,25 @@ esteira. The new layer is intentionally conservative:
 
 ## Follow-ups
 
-1. Wire the agent-sync snapshot into `ops/memory-guardian/claims.yaml`
-   as a `file_exists` claim so memory-guardian flags it when stale.
-2. Add a Kubernetes `CronJob` that runs `build-agent-sync-snapshot.ts`
-   inside the cluster every 15 minutes and commits the result to the
-   `autopilot-state` orphan branch (separate PR).
-3. Migrate `run-argocd-healer.ts` and `run-k8s-troubleshooter.ts` to
-   call `withLock()` before mutating ArgoCD / k8s state (separate PR,
-   guarded by feature flag `velya.autopilot.cooperative-locking`).
+1. ~~Migrate `run-argocd-healer.ts` and `run-k8s-troubleshooter.ts` to
+   call `withLock()` before mutating ArgoCD / k8s state, guarded by
+   feature flag `VELYA_COOPERATIVE_LOCKING`.~~ **Done** — second PR
+   `feat/clinical-control-plane-lock-migration`. Flag defaults ON in
+   CI and in the in-cluster CronJobs so deployment is a single env
+   flip to roll back.
+2. ~~Add a Kubernetes `CronJob` that runs `build-agent-sync-snapshot.ts`
+   inside the cluster every 15 minutes.~~ **Done** — same follow-up PR,
+   `infra/kubernetes/autopilot/agents-cronjobs.yaml` appends a
+   `velya-agent-sync-snapshot` CronJob. Needs the next
+   `velya-autopilot-agents` image rebuild before first reconcile.
+3. **Open:** Commit the produced `ClinicalAgentSyncState` snapshot from
+   the CronJob into an `autopilot-state` orphan branch (so memory-guardian
+   CI can read it without mounting the PVC). Deferred — requires either
+   a git-inside-pod pattern or a read-only HTTP exposure of the PVC.
+4. **Open:** Cross-agent namespace serialization. Today the healer locks
+   at `argocd-application` scope and the troubleshooter at `k8s-namespace`
+   scope. Two agents mutating the same cluster state still can't race on
+   the *same* lock. Proposed fix: when the healer touches an app whose
+   destination namespace is known, additionally take a `k8s-namespace`
+   lock on that namespace for the duration of the sync. Needs a survey
+   of ArgoCD `spec.destination` shapes first.

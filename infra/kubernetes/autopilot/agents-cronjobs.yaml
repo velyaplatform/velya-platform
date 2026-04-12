@@ -725,6 +725,11 @@ spec:
                   value: /data/velya-autopilot
                 - name: VELYA_DRY_RUN
                   value: 'false'
+                # Cooperative locking (ADR-0016 follow-up #1). No-op on
+                # images built before lock support; a hazardous rollback
+                # requires flipping this to 'false' and re-rolling.
+                - name: VELYA_COOPERATIVE_LOCKING
+                  value: 'true'
                 # When ARGOCD_SERVER/ARGOCD_AUTH_TOKEN unset, the script falls back
                 # to kubectl on applications.argoproj.io in the argocd namespace.
                 - name: ARGOCD_PROJECT_FILTER
@@ -816,6 +821,10 @@ spec:
                   value: /data/velya-autopilot
                 - name: VELYA_DRY_RUN
                   value: 'false'
+                # Cooperative locking (ADR-0016 follow-up #1). No-op on
+                # images built before lock support.
+                - name: VELYA_COOPERATIVE_LOCKING
+                  value: 'true'
                 - name: VELYA_NS_ALLOWLIST
                   value: 'velya-dev-core,velya-dev-platform,velya-dev-agents,velya-dev-observability'
               resources:
@@ -909,6 +918,95 @@ spec:
                 limits:
                   cpu: 500m
                   memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ['ALL']
+              volumeMounts:
+                - name: data
+                  mountPath: /data/velya-autopilot
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: velya-autopilot-data
+            - name: tmp
+              emptyDir: {}
+
+---
+# Agent sync snapshot builder — roda a cada 15 minutos (ADR-0016 follow-up #2).
+# Reads /data/velya-autopilot/{locks,handoffs,*/latest.json} produced by the
+# other autopilot agents on the shared PVC and writes a single
+# ClinicalAgentSyncState JSON at /data/velya-autopilot/agent-sync/status.json.
+# The clinical-workflow-sentinel and memory-guardian consume this file.
+#
+# Activation: no new RBAC needed (file-system only, no k8s API calls).
+# It reuses the existing velya-autopilot-sa.
+#
+# Caveat: needs the velya-autopilot-agents image to include
+# scripts/agents/build-agent-sync-snapshot.ts. First deploy should happen
+# after the image rebuild that bundles ADR-0016 sources.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: velya-agent-sync-snapshot
+  namespace: velya-dev-platform
+  labels:
+    velya.io/owner: platform-ops
+    velya.io/component: autopilot
+    velya.io/agent: agent-sync-snapshot
+    velya.io/layer: "2"
+spec:
+  schedule: '*/15 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 180
+      template:
+        metadata:
+          labels:
+            velya.io/agent: agent-sync-snapshot
+            velya.io/component: autopilot
+            velya.io/layer: "2"
+        spec:
+          serviceAccountName: velya-autopilot-sa
+          automountServiceAccountToken: false
+          priorityClassName: velya-batch-low
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: agent
+              image: velya-autopilot-agents:v3
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  mkdir -p /data/velya-autopilot/agent-sync
+                  npx tsx scripts/agents/build-agent-sync-snapshot.ts \
+                    --out /data/velya-autopilot/agent-sync/status.json
+              env:
+                - name: VELYA_AUDIT_OUT
+                  value: /data/velya-autopilot
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 96Mi
+                limits:
+                  memory: 192Mi
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true

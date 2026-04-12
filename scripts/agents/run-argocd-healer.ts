@@ -39,6 +39,7 @@
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { withLock, type AgentSessionLock } from './shared/session-lock.js';
 
 interface Finding {
   severity: 'critical' | 'high' | 'medium' | 'low';
@@ -66,6 +67,15 @@ interface ArgoApp {
 
 const OUT_DIR = process.env.VELYA_AUDIT_OUT ?? '/data/velya-autopilot';
 const DRY_RUN = process.env.VELYA_DRY_RUN === 'true';
+// Feature flag: velya.autopilot.cooperative-locking (ADR-0016 follow-up #1).
+// When true, every remediation on an ArgoCD Application takes an exclusive
+// lock via scripts/agents/shared/session-lock.ts. Another agent (e.g.
+// k8s-troubleshooter-agent) that tries to mutate the same target will see
+// the lock and skip, avoiding the race where two healers undo each other.
+// Default OFF so the migration is reversible; we enable per-environment
+// via the VELYA_COOPERATIVE_LOCKING env var in the workflow.
+const COOPERATIVE_LOCKING = process.env.VELYA_COOPERATIVE_LOCKING === 'true';
+const LOCK_TTL_MS = 5 * 60 * 1000; // 5 minutes — longer than the longest sync we've observed
 const ARGOCD_SERVER = process.env.ARGOCD_SERVER ?? '';
 const ARGOCD_AUTH_TOKEN = process.env.ARGOCD_AUTH_TOKEN ?? '';
 const ARGOCD_INSECURE = process.env.ARGOCD_INSECURE === 'true';
@@ -236,8 +246,44 @@ function severityFromStatus(sync: string, health: string): Finding['severity'] {
   return 'low';
 }
 
+/**
+ * Apply the refresh+sync remediation steps to a single finding, in place.
+ * Extracted from main() so it can run under a cooperative lock or bare.
+ * The lock scope is exactly this call — the minimum section that mutates
+ * ArgoCD state for `finding.application`.
+ */
+function remediateApp(finding: Finding): void {
+  const name = finding.application;
+  const sync = finding.syncStatus ?? 'Unknown';
+  const health = finding.healthStatus ?? 'Unknown';
+
+  // Remediation step 1: hard refresh
+  const refresh = refreshApp(name);
+  if (!refresh.ok) {
+    finding.remediation = 'escalated';
+    finding.remediationDetail = `refresh failed: ${refresh.output.slice(0, 500)}`;
+    return;
+  }
+
+  // Remediation step 2: if still OutOfSync after refresh, sync it
+  if (sync === 'OutOfSync' || health === 'Missing') {
+    const synced = syncApp(name);
+    finding.remediation = synced.ok ? 'applied' : 'escalated';
+    finding.remediationDetail = `refresh=ok sync=${synced.ok ? 'ok' : 'failed'}: ${synced.output.slice(0, 500)}`;
+  } else if (health === 'Degraded') {
+    // Degraded usually requires code/image/config fix — escalate
+    finding.remediation = 'escalated';
+    finding.remediationDetail = `refresh=ok; degraded state requires manual fix (likely image/config)`;
+  } else {
+    finding.remediation = 'applied';
+    finding.remediationDetail = `refresh=ok`;
+  }
+}
+
 async function main(): Promise<void> {
-  console.log(`[argocd-healer] mode=${useCli ? 'cli' : 'kubectl'} dryRun=${DRY_RUN}`);
+  console.log(
+    `[argocd-healer] mode=${useCli ? 'cli' : 'kubectl'} dryRun=${DRY_RUN} cooperativeLocking=${COOPERATIVE_LOCKING}`,
+  );
   const findings: Finding[] = [];
 
   const apps = listApps().filter((app) => {
@@ -284,31 +330,35 @@ async function main(): Promise<void> {
       grafanaAlerts: grafanaMatches.length ? grafanaMatches : undefined,
     };
 
-    console.log(
-      `  ✗ ${name} [${sync}/${health}] ${opPhase ? `op=${opPhase}` : ''}`,
-    );
+    console.log(`  ✗ ${name} [${sync}/${health}] ${opPhase ? `op=${opPhase}` : ''}`);
 
-    // Remediation step 1: hard refresh
-    const refresh = refreshApp(name);
-    if (!refresh.ok) {
-      finding.remediation = 'escalated';
-      finding.remediationDetail = `refresh failed: ${refresh.output.slice(0, 500)}`;
-      findings.push(finding);
-      continue;
-    }
-
-    // Remediation step 2: if still OutOfSync after refresh, sync it
-    if (sync === 'OutOfSync' || health === 'Missing') {
-      const synced = syncApp(name);
-      finding.remediation = synced.ok ? 'applied' : 'escalated';
-      finding.remediationDetail = `refresh=ok sync=${synced.ok ? 'ok' : 'failed'}: ${synced.output.slice(0, 500)}`;
-    } else if (health === 'Degraded') {
-      // Degraded usually requires code/image/config fix — escalate
-      finding.remediation = 'escalated';
-      finding.remediationDetail = `refresh=ok; degraded state requires manual fix (likely image/config)`;
+    if (COOPERATIVE_LOCKING) {
+      const result = await withLock(
+        {
+          agent: 'argocd-healer-agent',
+          target: {
+            kind: 'argocd-application',
+            name,
+            namespace: app.metadata.namespace,
+          },
+          ttlMs: LOCK_TTL_MS,
+          reason: `refresh+sync for ${sync}/${health}`,
+        },
+        async (_lock: AgentSessionLock) => {
+          remediateApp(finding);
+          return 'ok' as const;
+        },
+      );
+      if (result === null) {
+        // Another agent holds the lock — skip and escalate so it surfaces
+        // in the report without causing a conflict.
+        finding.remediation = 'escalated';
+        finding.remediationDetail =
+          'skipped: another agent holds the session lock for this application';
+        console.log(`    ↳ lock-held by peer, skipping remediation`);
+      }
     } else {
-      finding.remediation = 'applied';
-      finding.remediationDetail = `refresh=ok`;
+      remediateApp(finding);
     }
 
     findings.push(finding);

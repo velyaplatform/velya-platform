@@ -105,6 +105,11 @@ jobs:
         env:
           VELYA_AUDIT_OUT: /tmp/velya-autopilot
           VELYA_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          # Cooperative locking (ADR-0016 follow-up #1). Enabled by default
+          # in CI so the lock files land on the runner FS (disposable).
+          # Override to 'false' via repo variable to roll back without
+          # editing the workflow.
+          VELYA_COOPERATIVE_LOCKING: ${{ vars.VELYA_COOPERATIVE_LOCKING || 'true' }}
           ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
           ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
           ARGOCD_INSECURE: ${{ vars.ARGOCD_INSECURE || 'false' }}
@@ -126,6 +131,7 @@ jobs:
         env:
           VELYA_AUDIT_OUT: /tmp/velya-autopilot
           VELYA_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          VELYA_COOPERATIVE_LOCKING: ${{ vars.VELYA_COOPERATIVE_LOCKING || 'true' }}
           VELYA_NS_ALLOWLIST: 'velya-dev-core,velya-dev-platform,velya-dev-agents,velya-dev-observability'
         run: |
           set +e
