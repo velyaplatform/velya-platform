@@ -505,14 +505,34 @@ a:hover {
 
 /* Content wrapper — shifted right on desktop to clear the fixed sidebar.
    In plain CSS because Tailwind v4 JIT isn't always picking up
-   md:ml-[260px] as a lone arbitrary-value utility. */
+   md:ml-[260px] as a lone arbitrary-value utility. `min-width: 0` is the
+   flex gotcha that keeps wide children (tables, pre blocks) from pushing
+   the flex item past its container and blowing past the right edge — see
+   incident 2026-04-12 where the AÇÕES column on /prescriptions was clipped
+   off-screen because a wide tbody grew the wrapper beyond viewport. */
 .app-content-wrapper {
   margin-left: 0;
+  min-width: 0;
 }
 @media (min-width: 768px) {
   .app-content-wrapper {
     margin-left: var(--sidebar-width);
+    /* Belt-and-suspenders: flex:1 + margin-left already sizes us to
+       (container - sidebar), but make the intent explicit so a stray
+       min-width or flex-basis override can't push the item past the
+       viewport and back under the sidebar. */
+    width: calc(100% - var(--sidebar-width));
+    max-width: calc(100% - var(--sidebar-width));
   }
+}
+
+/* Every page's inner <main> must contain wide children on its own axis.
+   Tables and timelines that exceed the usable width should scroll
+   horizontally INSIDE main, not push the whole wrapper. */
+.app-content-wrapper > main {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 /* Floating action buttons (AI assistant, etc.) anchored to the gutter
