@@ -12,7 +12,7 @@ export const Avatar = React.forwardRef<
     <AvatarPrimitive.Root
       ref={ref}
       className={cn(
-        'relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-slate-200',
+        'relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-neutral-200',
         className,
       )}
       {...props}
@@ -47,7 +47,7 @@ export const AvatarFallback = React.forwardRef<
       // Solid color instead of gradient so computed backgroundColor is
       // detectable by contrast-audit tools (gradients are background-image,
       // not background-color, and fool naive contrast walkers).
-      style={{ backgroundColor: '#1d4ed8', ...style }}
+      style={{ backgroundColor: '#171717', ...style }}
       {...props}
     />
   );

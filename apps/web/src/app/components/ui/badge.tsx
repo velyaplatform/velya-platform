@@ -8,18 +8,18 @@ import { cn } from '../../../lib/utils';
  * Velya Badge — pill de status clínico em light theme (red-50/amber-50/...).
  */
 const badgeVariants = cva(
-  'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors whitespace-nowrap',
+  'inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-xs font-medium transition-colors whitespace-nowrap',
   {
     variants: {
       variant: {
-        default: 'border-slate-200 bg-slate-100 text-slate-700',
-        critical: 'border-red-200 bg-red-50 text-red-700',
-        warning: 'border-amber-200 bg-amber-50 text-amber-800',
-        success: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-        info: 'border-blue-200 bg-blue-50 text-blue-700',
-        accent: 'border-blue-200 bg-blue-50 text-blue-700',
-        purple: 'border-violet-200 bg-violet-50 text-violet-700',
-        outline: 'border-slate-300 bg-white text-slate-700',
+        default: 'border-neutral-300 bg-neutral-100 text-neutral-800',
+        critical: 'border-neutral-300 bg-neutral-100 text-neutral-800',
+        warning: 'border-neutral-300 bg-neutral-100 text-neutral-800',
+        success: 'border-neutral-300 bg-neutral-100 text-neutral-800',
+        info: 'border-neutral-300 bg-neutral-100 text-neutral-800',
+        accent: 'border-neutral-300 bg-neutral-100 text-neutral-800',
+        purple: 'border-neutral-300 bg-neutral-100 text-neutral-800',
+        outline: 'border-neutral-300 bg-white text-neutral-700',
       },
       size: {
         sm: 'text-[10px] px-2 py-px',
@@ -42,14 +42,14 @@ export interface BadgeProps
 }
 
 const DOT_COLOR: Record<string, string> = {
-  default: 'bg-slate-500',
-  critical: 'bg-red-500',
-  warning: 'bg-amber-500',
-  success: 'bg-emerald-500',
-  info: 'bg-blue-500',
-  accent: 'bg-blue-600',
-  purple: 'bg-violet-500',
-  outline: 'bg-slate-500',
+  default: 'bg-neutral-500',
+  critical: 'bg-neutral-500',
+  warning: 'bg-neutral-500',
+  success: 'bg-neutral-500',
+  info: 'bg-neutral-500',
+  accent: 'bg-neutral-500',
+  purple: 'bg-neutral-500',
+  outline: 'bg-neutral-500',
 };
 
 export function Badge({

@@ -27,44 +27,44 @@ const STATUS_CONFIG: Record<
 > = {
   occupied: {
     label: 'Ocupado',
-    ring: 'border-red-200',
-    bg: 'bg-red-50',
-    text: 'text-red-700',
+    ring: 'border-neutral-300',
+    bg: 'bg-white',
+    text: 'text-neutral-700',
     icon: BedDouble,
   },
   available: {
-    label: 'Disponível',
-    ring: 'border-emerald-200',
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
+    label: 'Disponivel',
+    ring: 'border-neutral-200',
+    bg: 'bg-white',
+    text: 'text-neutral-700',
     icon: BedDouble,
   },
   cleaning: {
-    label: 'Higienização',
-    ring: 'border-amber-200',
-    bg: 'bg-amber-50',
-    text: 'text-amber-700',
+    label: 'Higienizacao',
+    ring: 'border-neutral-200',
+    bg: 'bg-white',
+    text: 'text-neutral-700',
     icon: Sparkles,
   },
   reserved: {
     label: 'Reservado',
-    ring: 'border-blue-200',
-    bg: 'bg-blue-50',
-    text: 'text-blue-700',
+    ring: 'border-neutral-200',
+    bg: 'bg-white',
+    text: 'text-neutral-700',
     icon: UserCheck,
   },
   maintenance: {
-    label: 'Manutenção',
-    ring: 'border-orange-200',
-    bg: 'bg-orange-50',
-    text: 'text-orange-700',
+    label: 'Manutencao',
+    ring: 'border-neutral-200',
+    bg: 'bg-white',
+    text: 'text-neutral-700',
     icon: Wrench,
   },
   blocked: {
     label: 'Bloqueado',
-    ring: 'border-slate-300',
-    bg: 'bg-slate-100',
-    text: 'text-slate-700',
+    ring: 'border-neutral-300',
+    bg: 'bg-white',
+    text: 'text-neutral-700',
     icon: Lock,
   },
 };
@@ -103,7 +103,7 @@ export function VelyaBedTile({
       )}
     >
       <div className="flex w-full items-center justify-between">
-        <span className="font-mono text-lg font-bold text-slate-900 tabular-nums">
+        <span className="font-mono text-lg font-bold text-neutral-900 tabular-nums">
           {bedNumber}
         </span>
         <Icon className={cn('h-4 w-4', cfg.text)} />
@@ -113,8 +113,8 @@ export function VelyaBedTile({
         {cfg.label}
       </div>
 
-      {patient && <div className="min-w-0 truncate text-xs text-slate-700">{patient}</div>}
-      {ward && <div className="text-[10px] text-slate-500">{ward}</div>}
+      {patient && <div className="min-w-0 truncate text-xs text-neutral-700">{patient}</div>}
+      {ward && <div className="text-[10px] text-neutral-500">{ward}</div>}
     </Wrapper>
   );
 }

@@ -92,7 +92,7 @@ export default function DischargePage() {
 
       {blockedCount > 0 && (
         <div className="alert-banner alert-banner-critical">
-          <span>🚨</span>
+          <span>!</span>
           <strong>{blockedCount} pacientes bloqueados</strong>
           <span style={{ fontWeight: 400 }}>
             — intervenção imediata necessária para evitar excesso de Tempo de Internação
@@ -160,7 +160,7 @@ export default function DischargePage() {
         {selected.size > 0 && (
           <>
             <span className="badge badge-info">{selected.size} selecionados</span>
-            <button className="btn btn-primary btn-sm">📋 Atualizar Lote</button>
+            <button className="btn btn-primary btn-sm">Atualizar Lote</button>
             <button className="btn btn-warning btn-sm">↑ Escalar Lote</button>
             <button className="btn btn-outline btn-sm" onClick={() => setSelected(new Set())}>
               Limpar
@@ -198,7 +198,7 @@ export default function DischargePage() {
                 <tr>
                   <td colSpan={9}>
                     <div className="empty-state">
-                      <div className="empty-state-icon">🏠</div>
+                      <div className="empty-state-icon">--</div>
                       <div className="empty-state-title">
                         Nenhum paciente corresponde aos filtros
                       </div>
@@ -282,7 +282,7 @@ export default function DischargePage() {
                               <button className="btn btn-sm btn-danger">Resolver</button>
                             )}
                             {patient.status === 'ready' && (
-                              <button className="btn btn-sm btn-primary">Alta ✓</button>
+                              <button className="btn btn-sm btn-primary">Alta</button>
                             )}
                             {(patient.status === 'pending' || patient.status === 'in-progress') && (
                               <button className="btn btn-sm btn-primary">Atualizar</button>

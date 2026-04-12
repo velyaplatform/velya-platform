@@ -25,16 +25,16 @@ export interface VelyaVitalSignProps {
 }
 
 const SEVERITY_TEXT: Record<VitalSeverity, string> = {
-  normal: 'text-emerald-700',
-  warning: 'text-amber-700',
-  critical: 'text-red-700',
-  unknown: 'text-slate-500',
+  normal: 'text-neutral-900',
+  warning: 'text-neutral-700',
+  critical: 'text-neutral-900',
+  unknown: 'text-neutral-500',
 };
 
 const SEVERITY_GLOW: Record<VitalSeverity, string> = {
-  normal: 'drop-shadow-[0_0_12px_rgba(52,211,153,0.35)]',
-  warning: 'drop-shadow-[0_0_12px_rgba(251,191,36,0.35)]',
-  critical: 'drop-shadow-[0_0_12px_rgba(248,113,113,0.45)]',
+  normal: '',
+  warning: '',
+  critical: '',
   unknown: '',
 };
 
@@ -51,13 +51,13 @@ export function VelyaVitalSign({
   return (
     <div
       className={cn(
-        'rounded-xl border border-slate-200 bg-white p-4',
+        'rounded-xl border border-neutral-200 bg-white p-4',
         className,
       )}
     >
       <div className="flex items-center gap-2">
-        {Icon && <Icon className="h-3.5 w-3.5 text-slate-500" strokeWidth={2} aria-hidden="true" />}
-        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+        {Icon && <Icon className="h-3.5 w-3.5 text-neutral-500" strokeWidth={2} aria-hidden="true" />}
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
           {label}
         </span>
       </div>
@@ -73,12 +73,12 @@ export function VelyaVitalSign({
           {value}
         </span>
         {unit && (
-          <span className="text-xs font-medium text-slate-500">{unit}</span>
+          <span className="text-xs font-medium text-neutral-500">{unit}</span>
         )}
       </div>
 
       {(range || timestamp) && (
-        <div className="mt-2 flex items-center justify-between text-[10px] text-slate-500">
+        <div className="mt-2 flex items-center justify-between text-[10px] text-neutral-500">
           {range && <span>{range}</span>}
           {timestamp && <span className="font-mono">{timestamp}</span>}
         </div>

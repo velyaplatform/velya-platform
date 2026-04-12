@@ -19,11 +19,11 @@ export interface VelyaCardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const TONE_BORDER_LEFT: Record<CardTone, string> = {
   neutral: '',
-  critical: 'border-l-4 border-l-red-500',
-  warning: 'border-l-4 border-l-amber-500',
-  success: 'border-l-4 border-l-emerald-500',
-  info: 'border-l-4 border-l-blue-500',
-  accent: 'border-l-4 border-l-blue-600',
+  critical: '',
+  warning: '',
+  success: '',
+  info: '',
+  accent: '',
 };
 
 export const Card = React.forwardRef<HTMLDivElement, VelyaCardProps>(function Card(
@@ -33,14 +33,14 @@ export const Card = React.forwardRef<HTMLDivElement, VelyaCardProps>(function Ca
   const base = 'relative rounded-2xl border';
   const surfaces: Record<CardVariant, string> = {
     default:
-      'bg-white border-slate-200 shadow-[0_1px_3px_0_rgba(15,23,42,0.04),0_1px_2px_0_rgba(15,23,42,0.06)]',
+      'bg-white border-neutral-200 shadow-[0_1px_3px_0_rgba(15,23,42,0.04),0_1px_2px_0_rgba(15,23,42,0.06)]',
     elevated:
-      'bg-white border-slate-200 shadow-[0_4px_6px_-2px_rgba(15,23,42,0.06),0_12px_20px_-4px_rgba(15,23,42,0.08)]',
-    flat: 'bg-slate-50 border-slate-200 shadow-none',
+      'bg-white border-neutral-200 shadow-[0_4px_6px_-2px_rgba(15,23,42,0.06),0_12px_20px_-4px_rgba(15,23,42,0.08)]',
+    flat: 'bg-neutral-50 border-neutral-200 shadow-none',
     alert:
-      'bg-gradient-to-br from-red-50 via-white to-white border-red-200',
+      'bg-white border-neutral-200',
     kpi:
-      'bg-white border-slate-200 shadow-[0_1px_3px_0_rgba(15,23,42,0.04),0_1px_2px_0_rgba(15,23,42,0.06)] overflow-hidden',
+      'bg-white border-neutral-200 shadow-[0_1px_3px_0_rgba(15,23,42,0.04),0_1px_2px_0_rgba(15,23,42,0.06)] overflow-hidden',
   };
 
   return (
@@ -79,7 +79,7 @@ export const CardTitle = React.forwardRef<
     <h3
       ref={ref}
       className={cn(
-        'text-sm font-semibold tracking-tight text-slate-900',
+        'text-sm font-semibold tracking-tight text-neutral-900',
         className,
       )}
       {...props}
@@ -91,7 +91,7 @@ export const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(function CardDescription({ className, ...props }, ref) {
-  return <p ref={ref} className={cn('text-sm text-slate-500', className)} {...props} />;
+  return <p ref={ref} className={cn('text-sm text-neutral-500', className)} {...props} />;
 });
 
 export const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(

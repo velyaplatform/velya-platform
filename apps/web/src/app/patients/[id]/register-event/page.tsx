@@ -11,16 +11,16 @@ import { PATIENT_INFO } from '../../../../lib/fixtures/patient-cockpits';
 // ---------------------------------------------------------------------------
 
 const EVENT_CATEGORIES = [
-  { value: 'emergencia', label: '\uD83D\uDE91 Emergencia' },
-  { value: 'admissao', label: '\uD83C\uDFE5 Admissao' },
-  { value: 'avaliacao', label: '\uD83D\uDC68\u200D\u2695\uFE0F Avaliacao Clinica' },
-  { value: 'medicacao', label: '\uD83D\uDC8A Medicacao' },
-  { value: 'exame', label: '\uD83D\uDD2C Exame/Resultado' },
-  { value: 'evolucao', label: '\uD83D\uDCCB Evolucao' },
-  { value: 'handoff', label: '\uD83E\uDD1D Handoff' },
-  { value: 'alerta', label: '\u26A0\uFE0F Alerta' },
-  { value: 'chamada', label: '\uD83D\uDCDE Chamada do Paciente' },
-  { value: 'alta', label: '\uD83C\uDFE0 Alta/Transferencia' },
+  { value: 'emergencia', label: 'Emergencia' },
+  { value: 'admissao', label: 'Admissao' },
+  { value: 'avaliacao', label: 'Avaliacao Clinica' },
+  { value: 'medicacao', label: 'Medicacao' },
+  { value: 'exame', label: 'Exame/Resultado' },
+  { value: 'evolucao', label: 'Evolucao' },
+  { value: 'handoff', label: 'Handoff' },
+  { value: 'alerta', label: 'Alerta' },
+  { value: 'chamada', label: 'Chamada do Paciente' },
+  { value: 'alta', label: 'Alta/Transferencia' },
 ] as const;
 
 const PRIORITY_OPTIONS = [
@@ -114,21 +114,21 @@ export default function RegisterEventPage() {
         <div className="mb-4">
           <Link
             href={`/patients/${patientId}`}
-            className="inline-flex items-center gap-1.5 text-sm text-blue-700 hover:text-blue-800 no-underline font-medium"
+            className="inline-flex items-center gap-1.5 text-sm text-neutral-700 hover:text-neutral-900 no-underline font-medium"
           >
             {'\u2190'} Voltar para Jornada
           </Link>
         </div>
 
         {/* Patient info header */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6 shadow-sm">
+        <div className="bg-white rounded-xl border border-neutral-200 p-4 mb-6 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-950/40 text-blue-800 flex items-center justify-center text-lg font-bold shrink-0">
+            <div className="w-10 h-10 rounded-full bg-neutral-100 text-neutral-900 flex items-center justify-center text-lg font-bold shrink-0">
               {patient.name.charAt(0)}
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg font-bold text-slate-900">{patient.name}</h2>
-              <p className="text-sm text-slate-600">
+              <h2 className="text-lg font-bold text-neutral-900">{patient.name}</h2>
+              <p className="text-sm text-neutral-500">
                 {patient.mrn} &middot; {patient.ward} &middot; Leito {patient.bed}
               </p>
             </div>
@@ -136,18 +136,18 @@ export default function RegisterEventPage() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-5">
-          <h3 className="text-base font-bold text-slate-900 mb-1">Novo Evento na Jornada</h3>
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-neutral-200 p-5 shadow-sm space-y-5">
+          <h3 className="text-base font-bold text-neutral-900 mb-1">Novo Evento na Jornada</h3>
 
           {/* Categoria */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-              Categoria do evento <span className="text-red-700">*</span>
+            <label className="block text-sm font-semibold text-neutral-700 mb-1.5">
+              Categoria do evento <span className="text-neutral-700">*</span>
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm text-neutral-900 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-900"
             >
               <option value="">Selecione uma categoria...</option>
               {EVENT_CATEGORIES.map((cat) => (
@@ -160,21 +160,21 @@ export default function RegisterEventPage() {
 
           {/* Titulo */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-              Titulo do evento <span className="text-red-700">*</span>
+            <label className="block text-sm font-semibold text-neutral-700 mb-1.5">
+              Titulo do evento <span className="text-neutral-700">*</span>
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ex: Avaliacao medica emergencial"
-              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-slate-500"
+              className="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm text-neutral-900 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-900 placeholder:text-neutral-500"
             />
           </div>
 
           {/* Descricao */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+            <label className="block text-sm font-semibold text-neutral-700 mb-1.5">
               Descricao detalhada
             </label>
             <textarea
@@ -182,25 +182,25 @@ export default function RegisterEventPage() {
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
               placeholder="Descreva o evento em detalhes..."
-              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-slate-500 resize-y"
+              className="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm text-neutral-900 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-900 placeholder:text-neutral-500 resize-y"
             />
           </div>
 
           {/* Data/Hora + Local */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label className="block text-sm font-semibold text-neutral-700 mb-1.5">
                 Data/Hora
               </label>
               <input
                 type="datetime-local"
                 value={timestamp}
                 onChange={(e) => setTimestamp(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm text-neutral-900 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-900"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label className="block text-sm font-semibold text-neutral-700 mb-1.5">
                 Local
               </label>
               <input
@@ -208,20 +208,20 @@ export default function RegisterEventPage() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Ex: UTI Coronariana, Ala 2A"
-                className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-slate-500"
+                className="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm text-neutral-900 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-900 placeholder:text-neutral-500"
               />
             </div>
           </div>
 
           {/* Prioridade */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+            <label className="block text-sm font-semibold text-neutral-700 mb-1.5">
               Prioridade
             </label>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm text-neutral-900 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-900"
             >
               {PRIORITY_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -233,7 +233,7 @@ export default function RegisterEventPage() {
 
           {/* Error */}
           {error && (
-            <div className="bg-red-950/40 border border-red-700 text-red-800 text-sm rounded-lg px-4 py-3">
+            <div className="bg-neutral-50 border border-neutral-300 text-neutral-700 text-sm rounded-lg px-4 py-3">
               {error}
             </div>
           )}
@@ -246,8 +246,8 @@ export default function RegisterEventPage() {
               className={`
                 px-6 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors
                 ${submitting
-                  ? 'bg-blue-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                  ? 'bg-neutral-500 cursor-not-allowed'
+                  : 'bg-neutral-900 hover:bg-neutral-900 cursor-pointer'
                 }
               `}
             >
@@ -255,7 +255,7 @@ export default function RegisterEventPage() {
             </button>
             <Link
               href={`/patients/${patientId}`}
-              className="px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-white no-underline"
+              className="px-4 py-2.5 rounded-lg text-sm font-medium text-neutral-500 hover:text-white no-underline"
             >
               Cancelar
             </Link>

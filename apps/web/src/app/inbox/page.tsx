@@ -142,16 +142,16 @@ export default function InboxPage() {
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h1 className="page-title">
-              <span aria-hidden="true">{'\uD83D\uDCE5'}</span> Caixa de Entrada
+              Caixa de Entrada
             </h1>
             <p className="page-subtitle">
               {unread > 0 ? (
                 <>
-                  <span className="text-blue-700 font-semibold">{unread}</span>{' '}
-                  notificação(ões) não lida(s)
+                  <span className="text-neutral-900 font-semibold">{unread}</span>{' '}
+                  notificacao(oes) nao lida(s)
                 </>
               ) : (
-                <span className="text-slate-600">Tudo em dia — nenhuma notificação pendente.</span>
+                <span className="text-neutral-500">Tudo em dia -- nenhuma notificacao pendente.</span>
               )}
             </p>
           </div>
@@ -161,7 +161,7 @@ export default function InboxPage() {
               onClick={() => void markAllRead()}
               disabled={unread === 0}
               aria-label="Marcar todas as notificações como lidas"
-              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Marcar todas como lidas
             </button>
@@ -172,7 +172,7 @@ export default function InboxPage() {
       <div
         role="tablist"
         aria-label="Filtros da caixa de entrada"
-        className="flex items-center gap-2 mb-4 border-b border-slate-200"
+        className="flex items-center gap-2 mb-4 border-b border-neutral-200"
       >
         {TABS.map((t) => {
           const selected = tab === t.id;
@@ -186,20 +186,20 @@ export default function InboxPage() {
               aria-controls={`inbox-panel-${t.id}`}
               tabIndex={selected ? 0 : -1}
               onClick={() => setTab(t.id)}
-              className={`min-h-[44px] px-4 py-2 text-sm font-semibold border-b-2 -mb-px focus:outline-none focus:ring-2 focus:ring-blue-300 rounded-t-md ${
+              className={`min-h-[44px] px-4 py-2 text-sm font-semibold border-b-2 -mb-px focus:outline-none focus:ring-2 focus:ring-neutral-200 rounded-t-md ${
                 selected
-                  ? 'border-blue-400 text-blue-800'
-                  : 'border-transparent text-slate-600 hover:text-slate-900'
+                  ? 'border-neutral-900 text-neutral-900'
+                  : 'border-transparent text-neutral-500 hover:text-neutral-900'
               }`}
             >
               {t.label}
               {t.id === 'unread' && unread > 0 && (
-                <span className="ml-2 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                <span className="ml-2 bg-neutral-900 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                   {unread}
                 </span>
               )}
               {t.id === 'following' && subscriptions.length > 0 && (
-                <span className="ml-2 bg-slate-100 text-slate-900 text-xs font-bold px-2 py-0.5 rounded-full">
+                <span className="ml-2 bg-neutral-100 text-neutral-900 text-xs font-bold px-2 py-0.5 rounded-full">
                   {subscriptions.length}
                 </span>
               )}
@@ -209,7 +209,7 @@ export default function InboxPage() {
       </div>
 
       {loading ? (
-        <p className="text-slate-600">Carregando...</p>
+        <p className="text-neutral-500">Carregando...</p>
       ) : tab === 'following' ? (
         <div
           role="tabpanel"
@@ -217,27 +217,27 @@ export default function InboxPage() {
           aria-labelledby="inbox-tab-following"
         >
           {subscriptions.length === 0 ? (
-            <div className="bg-white border border-slate-200 rounded-xl p-6 text-sm text-slate-600">
-              Você ainda não está acompanhando nenhum registro. Abra qualquer
-              paciente, prescrição ou ativo e toque em{' '}
-              <span className="text-blue-700 font-semibold">Acompanhar</span>{' '}
-              para receber notificações quando houver mudanças.
+            <div className="bg-white border border-neutral-200 rounded-xl p-6 text-sm text-neutral-500">
+              Voce ainda nao esta acompanhando nenhum registro. Abra qualquer
+              paciente, prescricao ou ativo e toque em{' '}
+              <span className="text-neutral-900 font-semibold">Acompanhar</span>{' '}
+              para receber notificacoes quando houver mudancas.
             </div>
           ) : (
             <ul className="flex flex-col gap-2">
               {subscriptions.map((s) => (
                 <li
                   key={`${s.scope}:${s.id}`}
-                  className="bg-white border border-slate-200 rounded-xl p-4 flex items-start justify-between gap-3 flex-wrap"
+                  className="bg-white border border-neutral-200 rounded-xl p-4 flex items-start justify-between gap-3 flex-wrap"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-mono text-blue-700">
+                    <div className="text-xs font-mono text-neutral-700">
                       {s.scope}/{s.id}
                     </div>
-                    <div className="text-sm text-slate-900 font-semibold mt-0.5 truncate">
+                    <div className="text-sm text-neutral-900 font-semibold mt-0.5 truncate">
                       {s.label}
                     </div>
-                    <div className="text-xs text-slate-500 mt-1">
+                    <div className="text-xs text-neutral-500 mt-1">
                       Desde {new Date(s.subscribedAt).toLocaleString('pt-BR')}
                     </div>
                   </div>
@@ -245,7 +245,7 @@ export default function InboxPage() {
                     {s.href && (
                       <Link
                         href={s.href}
-                        className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
                       >
                         Abrir
                       </Link>
@@ -254,7 +254,7 @@ export default function InboxPage() {
                       type="button"
                       onClick={() => void unfollow(s.scope, s.id)}
                       aria-label={`Deixar de acompanhar ${s.label}`}
-                      className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-slate-50 border border-red-700 text-red-800 hover:bg-red-50/40 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-300"
+                      className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
                     >
                       Deixar de acompanhar
                     </button>
@@ -271,10 +271,10 @@ export default function InboxPage() {
           aria-labelledby={`inbox-tab-${tab}`}
         >
           {visibleNotifications.length === 0 ? (
-            <div className="bg-white border border-slate-200 rounded-xl p-6 text-sm text-slate-600">
+            <div className="bg-white border border-neutral-200 rounded-xl p-6 text-sm text-neutral-500">
               {tab === 'unread'
-                ? 'Nenhuma notificação não lida.'
-                : 'Você ainda não recebeu notificações.'}
+                ? 'Nenhuma notificacao nao lida.'
+                : 'Voce ainda nao recebeu notificacoes.'}
             </div>
           ) : (
             <ul className="flex flex-col gap-2">
@@ -283,8 +283,8 @@ export default function InboxPage() {
                   key={n.id}
                   className={`border rounded-xl p-4 flex items-start gap-3 ${
                     n.read
-                      ? 'bg-white border-slate-200'
-                      : 'bg-blue-950/30 border-blue-700'
+                      ? 'bg-white border-neutral-200'
+                      : 'bg-neutral-50 border-neutral-300'
                   }`}
                 >
                   <div
@@ -293,22 +293,22 @@ export default function InboxPage() {
                     title={n.read ? 'Lida' : 'Não lida'}
                   >
                     {n.read ? (
-                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-slate-500" />
+                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-neutral-300" />
                     ) : (
-                      <span>{'\uD83D\uDD14'}</span>
+                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-neutral-900" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm text-slate-900">
-                      <span className="font-mono text-blue-700">
+                    <div className="text-sm text-neutral-900">
+                      <span className="font-mono text-neutral-700">
                         {n.scope}/{n.entityId}
                       </span>{' '}
                       <span className="font-semibold">{n.entityLabel}</span>
                     </div>
                     {n.summary && (
-                      <div className="text-sm text-slate-700 mt-1">{n.summary}</div>
+                      <div className="text-sm text-neutral-700 mt-1">{n.summary}</div>
                     )}
-                    <div className="text-xs text-slate-500 mt-1">
+                    <div className="text-xs text-neutral-500 mt-1">
                       <span className="uppercase tracking-wider">{n.action}</span>
                       {' · '}
                       {new Date(n.at).toLocaleString('pt-BR')}
@@ -322,7 +322,7 @@ export default function InboxPage() {
                           if (!n.read) void markOneRead(n.id);
                         }}
                         aria-label={`Abrir ${n.entityLabel}`}
-                        className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-neutral-900 hover:bg-neutral-700 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
                       >
                         Abrir
                       </Link>
@@ -332,7 +332,7 @@ export default function InboxPage() {
                         type="button"
                         onClick={() => void markOneRead(n.id)}
                         aria-label={`Marcar ${n.entityLabel} como lida`}
-                        className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-slate-50 border border-slate-300 text-slate-900 hover:bg-slate-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-md bg-neutral-50 border border-neutral-300 text-neutral-900 hover:bg-neutral-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
                       >
                         Marcar como lida
                       </button>

@@ -48,14 +48,13 @@ export function PatientQuickSwitcher() {
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label="Pacientes recentes"
-        className="min-h-[44px] inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--color-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-blue-300"
+        className="min-h-[44px] inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-[var(--header-fg)] hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-neutral-200"
       >
-        <span aria-hidden="true">{'\uD83D\uDD52'}</span>
         Recentes
         {recentMrns.length > 0 && (
           <span
             aria-hidden="true"
-            className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1 rounded-full bg-blue-700 text-white text-[10px] font-bold"
+            className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1 rounded-full bg-neutral-900 text-white text-[10px] font-bold"
           >
             {recentMrns.length}
           </span>
@@ -66,10 +65,10 @@ export function PatientQuickSwitcher() {
         <div
           role="menu"
           aria-label="Pacientes recentes"
-          className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 p-2 max-h-96 overflow-y-auto"
+          className="absolute right-0 mt-2 w-80 bg-white border border-neutral-200 rounded-xl shadow-2xl z-50 p-2 max-h-96 overflow-y-auto"
         >
           {resolved.length === 0 ? (
-            <p className="text-sm text-slate-600 text-center py-6 px-3">
+            <p className="text-sm text-neutral-500 text-center py-6 px-3">
               Nenhum paciente recente. Os pacientes que você abrir aparecerão aqui.
             </p>
           ) : (
@@ -82,15 +81,15 @@ export function PatientQuickSwitcher() {
                         href={`/patients/${mrn}`}
                         role="menuitem"
                         onClick={() => setIsOpen(false)}
-                        className="block min-h-[44px] px-3 py-2 rounded-md hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="block min-h-[44px] px-3 py-2 rounded-md hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-200"
                       >
                         <div className="flex items-baseline gap-2">
-                          <span className="font-mono text-xs text-blue-700">{mrn}</span>
-                          <span className="text-sm text-slate-900 font-semibold truncate">
+                          <span className="font-mono text-xs text-neutral-700">{mrn}</span>
+                          <span className="text-sm text-neutral-900 font-semibold truncate">
                             {patient.name}
                           </span>
                         </div>
-                        <div className="text-xs text-slate-500 truncate">
+                        <div className="text-xs text-neutral-500 truncate">
                           {patient.age} anos · {patient.ward}
                           {patient.bed && ` · ${patient.bed}`} · {patient.diagnosis}
                         </div>
@@ -99,14 +98,14 @@ export function PatientQuickSwitcher() {
                   ) : null,
                 )}
               </ul>
-              <div className="border-t border-slate-200 mt-2 pt-2">
+              <div className="border-t border-neutral-200 mt-2 pt-2">
                 <button
                   type="button"
                   onClick={() => {
                     clearRecentPatients();
                     setIsOpen(false);
                   }}
-                  className="w-full min-h-[40px] text-xs text-slate-600 hover:text-red-800 hover:bg-red-50/30 rounded-md py-2 focus:outline-none focus:ring-2 focus:ring-red-300"
+                  className="w-full min-h-[40px] text-xs text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50 rounded-md py-2 focus:outline-none focus:ring-2 focus:ring-neutral-200"
                 >
                   Limpar lista
                 </button>

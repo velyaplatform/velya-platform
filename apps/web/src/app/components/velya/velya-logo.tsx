@@ -42,8 +42,8 @@ export function VelyaLogo({
       >
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor={mono ? '#ffffff' : '#2563eb'} />
-            <stop offset="1" stopColor={mono ? '#ffffff' : '#1d4ed8'} />
+            <stop offset="0" stopColor={mono ? '#ffffff' : '#171717'} />
+            <stop offset="1" stopColor={mono ? '#ffffff' : '#171717'} />
           </linearGradient>
         </defs>
 

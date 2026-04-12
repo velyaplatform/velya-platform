@@ -19,17 +19,17 @@ export interface VelyaSparklineProps {
 }
 
 const TONE_STROKE: Record<NonNullable<VelyaSparklineProps['tone']>, string> = {
-  accent: '#2dd4bf',
-  warning: '#fbbf24',
-  critical: '#f87171',
-  success: '#34d399',
+  accent: '#737373',
+  warning: '#737373',
+  critical: '#737373',
+  success: '#737373',
 };
 
 const TONE_AREA: Record<NonNullable<VelyaSparklineProps['tone']>, string> = {
-  accent: 'rgba(45, 212, 191, 0.18)',
-  warning: 'rgba(251, 191, 36, 0.18)',
-  critical: 'rgba(248, 113, 113, 0.2)',
-  success: 'rgba(52, 211, 153, 0.18)',
+  accent: 'rgba(115, 115, 115, 0.12)',
+  warning: 'rgba(115, 115, 115, 0.12)',
+  critical: 'rgba(115, 115, 115, 0.12)',
+  success: 'rgba(115, 115, 115, 0.12)',
 };
 
 export function VelyaSparkline({

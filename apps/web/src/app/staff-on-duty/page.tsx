@@ -15,10 +15,10 @@ import {
 import { getPatientByMrn } from '../../lib/fixtures/patients';
 
 const PRESENCE_BADGE: Record<PresenceStatus, string> = {
-  'on-duty': 'bg-green-50/40 text-green-800 border-green-700/60',
-  'on-break': 'bg-amber-50/40 text-amber-800 border-amber-700/60',
-  'off-duty': 'bg-slate-50 text-slate-700 border-slate-300',
-  'off-shift': 'bg-slate-50 text-slate-600 border-slate-200',
+  'on-duty': 'bg-neutral-50 text-neutral-900 border-neutral-300',
+  'on-break': 'bg-neutral-100 text-neutral-700 border-neutral-300',
+  'off-duty': 'bg-neutral-50 text-neutral-700 border-neutral-300',
+  'off-shift': 'bg-neutral-50 text-neutral-500 border-neutral-200',
 };
 
 export default function StaffOnDutyPage() {
@@ -90,17 +90,17 @@ export default function StaffOnDutyPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center mb-5 p-3 rounded-lg border border-slate-200 bg-white">
+      <div className="flex flex-wrap gap-3 items-center mb-5 p-3 rounded-lg border border-neutral-200 bg-white">
         <label htmlFor="role-filter" className="sr-only">
-          Filtrar por função
+          Filtrar por funcao
         </label>
         <select
           id="role-filter"
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as 'all' | ProfessionalRole)}
-          className="min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="min-h-[44px] bg-neutral-50 border border-neutral-300 rounded-md px-3 py-2 text-sm text-neutral-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-200"
         >
-          <option value="all">Todas as funções</option>
+          <option value="all">Todas as funcoes</option>
           {(Object.entries(ROLE_LABELS) as [ProfessionalRole, string][]).map(([key, label]) => (
             <option key={key} value={key}>
               {label}
@@ -115,7 +115,7 @@ export default function StaffOnDutyPage() {
           id="ward-filter"
           value={wardFilter}
           onChange={(e) => setWardFilter(e.target.value)}
-          className="min-h-[44px] bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="min-h-[44px] bg-neutral-50 border border-neutral-300 rounded-md px-3 py-2 text-sm text-neutral-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-200"
         >
           <option value="all">Todos os setores</option>
           {wards.map((w) => (
@@ -127,45 +127,45 @@ export default function StaffOnDutyPage() {
 
         <Link
           href="/employees"
-          className="ml-auto min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="ml-auto min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-700 text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-neutral-200"
         >
-          Gerenciar funcionários →
+          Gerenciar funcionarios
         </Link>
       </div>
 
       {/* Grouped by ward */}
       <div className="flex flex-col gap-6">
         {Object.entries(staffByWard).length === 0 && (
-          <div className="text-center py-12 text-slate-600 bg-white rounded-xl border border-slate-200">
+          <div className="text-center py-12 text-neutral-500 bg-white rounded-xl border border-neutral-200">
             Nenhum profissional encontrado com os filtros selecionados.
           </div>
         )}
         {Object.entries(staffByWard).map(([ward, members]) => (
           <section key={ward}>
             <div className="flex items-center gap-3 mb-3">
-              <h2 className="text-base font-semibold text-slate-900 uppercase tracking-wider">
+              <h2 className="text-base font-semibold text-neutral-900 uppercase tracking-wider">
                 {ward}
               </h2>
-              <span className="text-xs text-slate-600">
+              <span className="text-xs text-neutral-500">
                 {members.length} profissional(is)
               </span>
-              <div className="flex-1 h-px bg-slate-100" />
+              <div className="flex-1 h-px bg-neutral-100" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {members.map((member) => (
                 <article
                   key={member.id}
-                  className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3"
+                  className="bg-white border border-neutral-200 rounded-xl p-4 flex flex-col gap-3"
                 >
                   <header className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="text-sm font-bold text-slate-900">{member.name}</h3>
-                      <div className="text-xs text-slate-600">
+                      <h3 className="text-sm font-bold text-neutral-900">{member.name}</h3>
+                      <div className="text-xs text-neutral-500">
                         {ROLE_LABELS[member.role]}
                         {member.specialty && <> · {member.specialty}</>}
                       </div>
                       {member.council && (
-                        <div className="text-[11px] text-slate-500 mt-0.5">{member.council}</div>
+                        <div className="text-[11px] text-neutral-500 mt-0.5">{member.council}</div>
                       )}
                     </div>
                     <span
@@ -175,21 +175,21 @@ export default function StaffOnDutyPage() {
                     </span>
                   </header>
 
-                  <div className="flex items-center justify-between text-xs text-slate-600">
+                  <div className="flex items-center justify-between text-xs text-neutral-500">
                     <span>
-                      Turno: <strong className="text-slate-900">{member.shiftStart}–{member.shiftEnd}</strong>
+                      Turno: <strong className="text-neutral-900">{member.shiftStart}--{member.shiftEnd}</strong>
                     </span>
                     {member.contactExtension && (
                       <span>
-                        Ramal: <strong className="text-slate-900">{member.contactExtension}</strong>
+                        Ramal: <strong className="text-neutral-900">{member.contactExtension}</strong>
                       </span>
                     )}
                   </div>
 
                   {member.assignedPatientMrns.length > 0 && (
-                    <div className="border-t border-slate-200 pt-3">
-                      <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-2">
-                        Pacientes atribuídos ({member.assignedPatientMrns.length})
+                    <div className="border-t border-neutral-200 pt-3">
+                      <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold mb-2">
+                        Pacientes atribuidos ({member.assignedPatientMrns.length})
                       </div>
                       <ul className="flex flex-wrap gap-1.5">
                         {member.assignedPatientMrns.map((mrn) => {
@@ -198,10 +198,10 @@ export default function StaffOnDutyPage() {
                             <li key={mrn}>
                               <Link
                                 href={`/patients/${mrn}`}
-                                className="inline-flex items-center px-2 py-1 rounded-md bg-blue-900/40 text-blue-800 border border-blue-700/60 text-[11px] font-medium hover:bg-blue-900/60 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                className="inline-flex items-center px-2 py-1 rounded-md bg-neutral-100 text-neutral-900 border border-neutral-300 text-[11px] font-medium hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-200"
                               >
                                 {mrn}
-                                {p && <span className="ml-1 text-blue-900">· {p.name.split(' ')[0]}</span>}
+                                {p && <span className="ml-1 text-neutral-900">· {p.name.split(' ')[0]}</span>}
                               </Link>
                             </li>
                           );

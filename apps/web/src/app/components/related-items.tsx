@@ -94,23 +94,23 @@ export function RelatedItems({
   return (
     <section
       aria-labelledby={`related-${entityType}-${entityId}-heading`}
-      className={`bg-white border border-slate-200 rounded-xl p-5 ${className ?? ''}`}
+      className={`bg-white border border-neutral-200 rounded-xl p-5 ${className ?? ''}`}
     >
       <h2
         id={`related-${entityType}-${entityId}-heading`}
-        className="text-xs uppercase tracking-wider font-semibold text-slate-600 mb-3 flex items-center gap-2"
+        className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-3 flex items-center gap-2"
       >
-        <span aria-hidden="true">{'\uD83D\uDD17'}</span> {title}
+        {title}
       </h2>
 
-      {loading && <p className="text-sm text-slate-500">Carregando relacionados...</p>}
+      {loading && <p className="text-sm text-neutral-500">Carregando relacionados...</p>}
       {error && (
-        <p role="alert" className="text-sm text-red-700">
-          ⚠ {error}
+        <p role="alert" className="text-sm text-neutral-900">
+          {error}
         </p>
       )}
       {!loading && !error && data && data.groups.length === 0 && (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-neutral-500">
           Nenhum item conectado a este registro ainda.
         </p>
       )}
@@ -119,13 +119,13 @@ export function RelatedItems({
           {data.groups.map((group) => (
             <li key={group.module}>
               <div className="flex items-center justify-between gap-2 mb-1">
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-sm font-bold text-neutral-900">
                   {group.label}{' '}
-                  <span className="text-xs text-slate-500 font-normal">({group.count})</span>
+                  <span className="text-xs text-neutral-500 font-normal">({group.count})</span>
                 </h3>
                 <Link
                   href={group.href}
-                  className="text-xs text-blue-700 hover:text-blue-800 underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-300 rounded"
+                  className="text-xs text-neutral-900 hover:text-neutral-700 underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-neutral-200 rounded"
                 >
                   Ver todos →
                 </Link>
@@ -135,9 +135,9 @@ export function RelatedItems({
                   <li key={entry.id}>
                     <Link
                       href={entry.href}
-                      className="block px-3 py-2 text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="block px-3 py-2 text-xs text-neutral-700 bg-neutral-50 border border-neutral-200 rounded-md hover:bg-neutral-100 hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-200"
                     >
-                      <span className="font-mono text-blue-700 mr-2">{entry.id}</span>
+                      <span className="font-mono text-neutral-700 mr-2">{entry.id}</span>
                       <span className="truncate">{entry.label}</span>
                     </Link>
                   </li>

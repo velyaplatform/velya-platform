@@ -46,17 +46,17 @@ export function FormField({ id, label, help, error, required, children }: FormFi
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="text-sm font-medium text-neutral-700">
         {label}
         {required && (
-          <span aria-hidden="true" className="text-red-700 ml-0.5">
+          <span aria-hidden="true" className="text-neutral-900 ml-0.5">
             *
           </span>
         )}
       </label>
       {childContent}
       {!error && help && (
-        <p id={helpId} className="text-xs text-slate-500">
+        <p id={helpId} className="text-xs text-neutral-500">
           {help}
         </p>
       )}
@@ -65,9 +65,9 @@ export function FormField({ id, label, help, error, required, children }: FormFi
           id={errorId}
           role="alert"
           aria-live="polite"
-          className="text-xs text-red-700 mt-1 font-medium"
+          className="text-xs text-neutral-900 mt-1 font-medium"
         >
-          <span aria-hidden="true">{'\u26A0\uFE0F'}</span> {error}
+          <span aria-hidden="true">{'\u26A0'}</span> {error}
         </p>
       )}
     </div>

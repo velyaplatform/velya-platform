@@ -6,13 +6,13 @@ import { AppShell } from '../components/app-shell';
 import type { Delegation, DelegationStatus } from '@/lib/delegation-store';
 
 const STATUS_BADGE: Record<DelegationStatus, string> = {
-  open: 'bg-blue-900/40 text-blue-800 border-blue-700/60',
-  acknowledged: 'bg-cyan-50/40 text-cyan-800 border-cyan-700/60',
-  'in-progress': 'bg-amber-50/40 text-amber-800 border-amber-700/60',
-  blocked: 'bg-red-50/40 text-red-800 border-red-700/60',
-  completed: 'bg-green-50/40 text-green-800 border-green-700/60',
-  declined: 'bg-slate-50 text-slate-600 border-slate-300',
-  cancelled: 'bg-slate-50 text-slate-500 border-slate-200',
+  open: 'bg-neutral-100 text-neutral-900 border-neutral-300',
+  acknowledged: 'bg-neutral-100 text-neutral-700 border-neutral-300',
+  'in-progress': 'bg-neutral-100 text-neutral-700 border-neutral-300',
+  blocked: 'bg-neutral-100 text-neutral-900 border-neutral-300',
+  completed: 'bg-neutral-100 text-neutral-700 border-neutral-300',
+  declined: 'bg-neutral-50 text-neutral-500 border-neutral-300',
+  cancelled: 'bg-neutral-50 text-neutral-500 border-neutral-200',
 };
 
 const STATUS_LABEL: Record<DelegationStatus, string> = {
@@ -33,10 +33,10 @@ const PRIORITY_LABEL: Record<string, string> = {
 };
 
 const PRIORITY_BADGE: Record<string, string> = {
-  urgent: 'bg-red-50/40 text-red-800 border-red-700/60',
-  high: 'bg-amber-50/40 text-amber-800 border-amber-700/60',
-  normal: 'bg-blue-900/40 text-blue-800 border-blue-700/60',
-  low: 'bg-slate-50 text-slate-600 border-slate-300',
+  urgent: 'bg-neutral-100 text-neutral-900 border-neutral-300',
+  high: 'bg-neutral-100 text-neutral-700 border-neutral-300',
+  normal: 'bg-neutral-100 text-neutral-700 border-neutral-300',
+  low: 'bg-neutral-50 text-neutral-500 border-neutral-300',
 };
 
 export default function DelegationsPage() {
@@ -77,7 +77,7 @@ export default function DelegationsPage() {
           </div>
           <Link
             href="/delegations/new"
-            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="min-h-[44px] inline-flex items-center px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-700 text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-neutral-200"
           >
             + Delegar nova tarefa
           </Link>
@@ -87,17 +87,17 @@ export default function DelegationsPage() {
       <div
         role="tablist"
         aria-label="Filtro de delegações"
-        className="flex gap-2 mb-5 border-b border-slate-200"
+        className="flex gap-2 mb-5 border-b border-neutral-200"
       >
         <button
           type="button"
           role="tab"
           aria-selected={tab === 'inbox'}
           onClick={() => setTab('inbox')}
-          className={`min-h-[44px] px-4 py-2 text-sm font-semibold border-b-2 -mb-px focus:outline-none focus:ring-2 focus:ring-blue-300 ${
+          className={`min-h-[44px] px-4 py-2 text-sm font-semibold border-b-2 -mb-px focus:outline-none focus:ring-2 focus:ring-neutral-200 ${
             tab === 'inbox'
-              ? 'border-blue-400 text-blue-800'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
+              ? 'border-neutral-900 text-neutral-900'
+              : 'border-transparent text-neutral-500 hover:text-neutral-700'
           }`}
         >
           Recebidas
@@ -107,10 +107,10 @@ export default function DelegationsPage() {
           role="tab"
           aria-selected={tab === 'sent'}
           onClick={() => setTab('sent')}
-          className={`min-h-[44px] px-4 py-2 text-sm font-semibold border-b-2 -mb-px focus:outline-none focus:ring-2 focus:ring-blue-300 ${
+          className={`min-h-[44px] px-4 py-2 text-sm font-semibold border-b-2 -mb-px focus:outline-none focus:ring-2 focus:ring-neutral-200 ${
             tab === 'sent'
-              ? 'border-blue-400 text-blue-800'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
+              ? 'border-neutral-900 text-neutral-900'
+              : 'border-transparent text-neutral-500 hover:text-neutral-700'
           }`}
         >
           Enviadas
@@ -118,16 +118,16 @@ export default function DelegationsPage() {
       </div>
 
       {error && (
-        <div role="alert" className="bg-red-950/40 border border-red-700 text-red-800 rounded-md px-4 py-3 mb-4">
+        <div role="alert" className="bg-neutral-50 border border-neutral-300 text-neutral-900 rounded-md px-4 py-3 mb-4">
           {error}
         </div>
       )}
 
       {loading ? (
-        <p className="text-slate-600">Carregando...</p>
+        <p className="text-neutral-500">Carregando...</p>
       ) : items.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center">
-          <p className="text-slate-600 text-sm">
+        <div className="bg-white border border-neutral-200 rounded-xl p-8 text-center">
+          <p className="text-neutral-500 text-sm">
             {tab === 'inbox'
               ? 'Você não tem delegações recebidas no momento.'
               : 'Você ainda não delegou nenhuma tarefa.'}
@@ -135,7 +135,7 @@ export default function DelegationsPage() {
           {tab === 'sent' && (
             <Link
               href="/delegations/new"
-              className="inline-block mt-4 min-h-[44px] px-4 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="inline-block mt-4 min-h-[44px] px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-700 text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-neutral-200"
             >
               Criar primeira delegação
             </Link>
@@ -147,7 +147,7 @@ export default function DelegationsPage() {
             <li key={d.id}>
               <Link
                 href={`/delegations/${d.id}`}
-                className="block bg-white border border-slate-200 rounded-xl p-4 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="block bg-white border border-neutral-200 rounded-xl p-4 hover:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200"
               >
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex-1 min-w-0">
@@ -162,25 +162,25 @@ export default function DelegationsPage() {
                       >
                         {PRIORITY_LABEL[d.priority]}
                       </span>
-                      <span className="text-xs text-slate-500 font-mono">{d.id}</span>
+                      <span className="text-xs text-neutral-500 font-mono">{d.id}</span>
                     </div>
-                    <h2 className="text-base font-bold text-slate-900">{d.title}</h2>
-                    <p className="text-sm text-slate-600 mt-1 line-clamp-2">{d.description}</p>
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-2">
+                    <h2 className="text-base font-bold text-neutral-900">{d.title}</h2>
+                    <p className="text-sm text-neutral-500 mt-1 line-clamp-2">{d.description}</p>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500 mt-2">
                       <span>
-                        De: <strong className="text-slate-700">{d.createdByName}</strong>
+                        De: <strong className="text-neutral-700">{d.createdByName}</strong>
                       </span>
                       <span>
-                        Para: <strong className="text-slate-700">{d.assignedToName}</strong>
+                        Para: <strong className="text-neutral-700">{d.assignedToName}</strong>
                       </span>
                       {d.patientMrn && (
                         <span>
                           Paciente:{' '}
-                          <span className="font-mono text-blue-700">{d.patientMrn}</span>
+                          <span className="font-mono text-neutral-700">{d.patientMrn}</span>
                         </span>
                       )}
                       {d.dueAt && (
-                        <span className="text-amber-800">
+                        <span className="text-neutral-700">
                           Prazo: {new Date(d.dueAt).toLocaleString('pt-BR')}
                         </span>
                       )}

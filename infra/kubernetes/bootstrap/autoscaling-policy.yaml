@@ -1,0 +1,46 @@
+---
+# Autoscaling Policy — Velya Platform
+# Declaração por workload do modo de autoscaling autorizado.
+# Consumido pelo PreSync guard (autoscaling-guard.yaml) para detectar
+# conflitos HPA/KEDA antes do sync principal do ArgoCD.
+#
+# Formato: name|namespace|mode|hpaName|scaledObjectName
+#
+# Modos:
+#   hpa                  — só HPA tradicional, ScaledObject proibido
+#   keda                 — só KEDA ScaledObject, HPA legado proibido
+#   migrate-hpa-to-keda  — takeover formal do HPA existente pelo KEDA
+#
+# Para migrate-hpa-to-keda:
+#   - hpaName é obrigatório (nome do HPA que será absorvido)
+#   - scaledObjectName é obrigatório
+#   - O ScaledObject DEVE ter:
+#     annotation: scaledobject.keda.sh/transfer-hpa-ownership: "true"
+#     spec.advanced.horizontalPodAutoscalerConfig.name: <hpaName>
+#
+# Referência: docs/scaling/hpa-keda-vpa-strategy.md
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: autoscaling-policy
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/component: autoscaling-guard
+data:
+  policy.conf: |
+    # name|namespace|mode|hpaName|scaledObjectName
+    #
+    # velya-dev-core workloads
+    patient-flow|velya-dev-core|keda||patient-flow-scaler
+    task-inbox|velya-dev-core|keda||task-inbox-scaler
+    discharge-orchestrator|velya-dev-core|keda||discharge-orchestrator-scaler
+    #
+    # velya-dev-platform workloads
+    ai-gateway|velya-dev-platform|keda||ai-gateway-scaler
+    #
+    # velya-dev-agents workloads
+    agent-orchestrator|velya-dev-agents|keda||agent-orchestrator-scaler
+    #
+    # velya-dev-web workloads
+    velya-web|velya-dev-web|keda||velya-web-http-scaler

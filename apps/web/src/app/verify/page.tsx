@@ -95,7 +95,7 @@ function VerifyForm() {
     <main className="flex min-h-screen items-center justify-center bg-white px-4 py-8">
       <section
         aria-labelledby="verify-title"
-        className="w-full max-w-[440px] rounded-2xl border border-slate-200 bg-white p-8 shadow-sm sm:p-10"
+        className="w-full max-w-[440px] rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm sm:p-10"
       >
         {/* Header */}
         <header className="mb-6 text-center">
@@ -116,10 +116,10 @@ function VerifyForm() {
         {currentDevCode && (
           <div
             role="status"
-            className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-800"
+            className="mb-4 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-700"
           >
-            <strong>Modo desenvolvimento</strong> — código:{' '}
-            <span className="font-mono text-lg font-bold tracking-[0.15em] text-amber-900">
+            <strong>Modo desenvolvimento</strong> — codigo:{' '}
+            <span className="font-mono text-lg font-bold tracking-[0.15em] text-neutral-900">
               {currentDevCode}
             </span>
           </div>
@@ -130,7 +130,7 @@ function VerifyForm() {
           {error && (
             <div
               role="alert"
-              className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700"
+              className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-700"
             >
               {error}
             </div>
@@ -138,7 +138,7 @@ function VerifyForm() {
           {success && (
             <div
               role="status"
-              className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm text-emerald-700"
+              className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-700"
             >
               {success}
             </div>
@@ -158,7 +158,7 @@ function VerifyForm() {
                 setCode(val);
               }}
               placeholder="000000"
-              className="w-full min-h-[56px] rounded-lg border border-slate-300 bg-white px-4 py-3 text-center font-mono text-2xl tracking-[0.3em] text-neutral-900 shadow-sm placeholder:text-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full min-h-[56px] rounded-lg border border-neutral-300 bg-white px-4 py-3 text-center font-mono text-2xl tracking-[0.3em] text-neutral-900 shadow-sm placeholder:text-neutral-400 transition focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-200"
               maxLength={6}
               autoFocus
               autoComplete="one-time-code"
@@ -169,7 +169,7 @@ function VerifyForm() {
           <button
             type="submit"
             disabled={loading || code.length !== 6}
-            className="inline-flex min-h-[48px] w-full cursor-pointer items-center justify-center rounded-lg bg-blue-600 px-6 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-[48px] w-full cursor-pointer items-center justify-center rounded-lg bg-neutral-900 px-6 text-base font-semibold text-white shadow-sm transition hover:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Verificando...' : 'Verificar'}
           </button>
@@ -179,7 +179,7 @@ function VerifyForm() {
               type="button"
               onClick={handleResend}
               disabled={resending}
-              className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent px-4 text-sm font-semibold text-blue-600 underline transition hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent px-4 text-sm font-semibold text-neutral-700 underline transition hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {resending ? 'Reenviando...' : 'Reenviar código'}
             </button>

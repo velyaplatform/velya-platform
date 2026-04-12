@@ -13,6 +13,7 @@ import {
   Pill,
   FlaskConical,
   BarChart3,
+  Plus,
   ScanLine,
   FileImage,
   UserCheck,
@@ -92,6 +93,8 @@ const NAV_ITEMS: NavItemDef[] = [
   { href: '/', icon: LayoutDashboard, label: 'Centro de Comando', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/patients', icon: Users, label: 'Pacientes', badge: 47, section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/tasks', icon: ListChecks, label: 'Caixa de Tarefas', badge: 12, section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/tasks/new', icon: Plus, label: 'Nova Tarefa', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/tasks/dashboard', icon: BarChart3, label: 'Painel de Tarefas', section: NAV_SECTIONS.GESTAO },
   { href: '/tools/sepsis', icon: HeartPulse, label: 'NEWS2 / Sepse', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/prescriptions', icon: Pill, label: 'Prescrições', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/lab/orders', icon: FlaskConical, label: 'Ordens de Lab', section: NAV_SECTIONS.ASSISTENCIAL },
@@ -164,14 +167,12 @@ const SIDEBAR_WIDTH_STORAGE_KEY = 'velya:sidebar-width';
 
 export function Navigation({
   currentRole,
-  userName,
+  userName: _userName,
   onLogout: _onLogout,
   mobileOpen,
   onMobileClose,
 }: NavigationProps) {
   const pathname = usePathname();
-  const [suggestionText, setSuggestionText] = useState('');
-  const [suggestionStatus, setSuggestionStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
   // sidebarWidth is the React-visible width used at idle, on mount, and
   // for aria-valuenow. During an active drag we bypass it entirely and
   // write only to refs + the DOM (asideRef.style.width and the CSS var)
@@ -290,25 +291,6 @@ export function Navigation({
 
   const sectionOrder = [NAV_SECTIONS.ASSISTENCIAL, NAV_SECTIONS.GESTAO, NAV_SECTIONS.ADMINISTRACAO];
   const showObservability = allowedSections.includes(NAV_SECTIONS.OBSERVABILIDADE);
-
-  async function handleSuggestionSubmit() {
-    const text = suggestionText.trim();
-    if (!text || suggestionStatus === 'sending') return;
-
-    setSuggestionStatus('sending');
-    try {
-      await fetch('/api/suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, author: `${userName} (${currentRole})` }),
-      });
-      setSuggestionText('');
-      setSuggestionStatus('sent');
-      setTimeout(() => setSuggestionStatus('idle'), 2000);
-    } catch {
-      setSuggestionStatus('idle');
-    }
-  }
 
   function handleNavClick() {
     onMobileClose?.();
@@ -469,104 +451,8 @@ export function Navigation({
         )}
       </nav>
 
-      {/* Caixa de Recomendações — estilo Primer */}
-      <div
-        className="p-4"
-        style={{
-          borderTop: '1px solid var(--border-default)',
-          background: 'var(--canvas-subtle)',
-        }}
-      >
-        {suggestionStatus === 'sent' ? (
-          <div
-            role="status"
-            className="gh-flash gh-flash-success"
-            style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 600 }}
-          >
-            ✓ Recomendação enviada
-          </div>
-        ) : (
-          <div>
-            <div className="mb-2 flex items-start gap-2">
-              <Lightbulb
-                className="h-4 w-4 mt-0.5 shrink-0"
-                style={{ color: 'var(--attention-emphasis)' }}
-                strokeWidth={2}
-              />
-              <div className="min-w-0 flex-1">
-                <label
-                  htmlFor="sidebar-suggestion"
-                  className="block"
-                  style={{
-                    fontSize: 'var(--text-sm)',
-                    fontWeight: 600,
-                    color: 'var(--fg-default)',
-                  }}
-                >
-                  Enviar recomendação
-                </label>
-                <p
-                  className="mt-0.5"
-                  style={{
-                    fontSize: 'var(--text-xs)',
-                    color: 'var(--fg-muted)',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  Viu algo que pode melhorar? Conte pra gente.
-                </p>
-              </div>
-            </div>
-
-            <textarea
-              id="sidebar-suggestion"
-              aria-label="Enviar recomendação ou sugestão de melhoria"
-              value={suggestionText}
-              onChange={(e) => setSuggestionText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                  handleSuggestionSubmit();
-                }
-              }}
-              placeholder="Descreva sua recomendação…"
-              disabled={suggestionStatus === 'sending'}
-              rows={3}
-              className="gh-input w-full"
-              style={{ resize: 'none', fontSize: 'var(--text-xs)' }}
-            />
-
-            <button
-              onClick={handleSuggestionSubmit}
-              disabled={!suggestionText.trim() || suggestionStatus === 'sending'}
-              className="btn btn-primary btn-sm mt-2 w-full"
-            >
-              {suggestionStatus === 'sending' ? (
-                <>
-                  <span
-                    className="h-3 w-3 animate-spin rounded-full border-2"
-                    style={{ borderColor: 'rgba(255,255,255,0.4)', borderTopColor: '#fff' }}
-                  />
-                  Enviando…
-                </>
-              ) : (
-                <>
-                  <Lightbulb className="h-3.5 w-3.5" />
-                  Enviar
-                </>
-              )}
-            </button>
-
-            <div
-              className="mt-2 flex items-center justify-center gap-1"
-              style={{ fontSize: 10, color: 'var(--fg-subtle)' }}
-            >
-              <kbd>⌘</kbd>
-              <kbd>↵</kbd>
-              <span>para enviar</span>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Spacer to push content up */}
+      <div className="flex-1" />
     </aside>
   );
 }
