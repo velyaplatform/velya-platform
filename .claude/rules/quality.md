@@ -22,6 +22,20 @@ The rules are absolute:
 
 The detector tolerances (4 px horizontal, 8 px vertical, 30 % field, 50 % actionable) are encoded as constants in `scripts/ui-audit/detect-overlaps.ts`. Changes must update this rule and the script together.
 
+### Multi-viewport scanning (mandatory)
+
+Single-viewport scans miss responsive bugs. Every detector run scans **three viewports** end-to-end:
+
+| viewport | size       | catches                                                                                              |
+| -------- | ---------- | ---------------------------------------------------------------------------------------------------- |
+| desktop  | 1440 × 900 | the canonical layout, wide-screen overlap                                                            |
+| laptop   | 1024 × 768 | the awkward sub-1280 zone where the sidebar mounts but content has just enough room                  |
+| tablet   | 820 × 1180 | the narrow zone where the sidebar competes with content for horizontal space — the source of the 2026-04-12 prod incident |
+
+The viewport list lives in `VIEWPORTS` at the top of `scripts/ui-audit/detect-overlaps.ts`. Adding a new bound requires updating the constant **and** this rule. Findings are reported as `viewport/page rule: description` so triage can locate the failing combination quickly.
+
+`-webkit-line-clamp` is treated as an intentional truncation (same as `text-overflow: ellipsis` + `white-space: nowrap`) and does **not** trigger `text-clipped-vertical`. If you need to truncate by N lines, use `line-clamp-N` (Tailwind) — the detector will respect it.
+
 ## Testing Requirements
 
 ### Unit Tests
