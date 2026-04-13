@@ -30,6 +30,11 @@ import {
 
 const KILL_SWITCH = process.env.VELYA_AGENT_LOOP_DISABLED === 'true';
 
+/** Max findings fetched when processing a single cron run (per-run mode). */
+const MAX_FINDINGS_PER_RUN = 200;
+/** Max findings fetched in catch-up mode (all surfaces, no runId filter). */
+const MAX_FINDINGS_CATCHUP = 500;
+
 interface Recommendation {
   /** Markdown-friendly summary in PT-BR */
   text: string;
@@ -219,7 +224,7 @@ async function processFinding(finding: CronFinding): Promise<void> {
  */
 export async function runAgentLoopForRun(runId: string): Promise<{ processed: number }> {
   if (KILL_SWITCH) return { processed: 0 };
-  const findings = listFindings({ status: 'new', limit: 200 }).filter((f) => f.runId === runId);
+  const findings = listFindings({ status: 'new', limit: MAX_FINDINGS_PER_RUN }).filter((f) => f.runId === runId);
   for (const f of findings) {
     await processFinding(f);
   }
@@ -231,13 +236,14 @@ export async function runAgentLoopForRun(runId: string): Promise<{ processed: nu
  */
 export async function runAgentLoopAll(): Promise<{ processed: number }> {
   if (KILL_SWITCH) return { processed: 0 };
-  const findings = listFindings({ status: 'new', limit: 500 });
+  const findings = listFindings({ status: 'new', limit: MAX_FINDINGS_CATCHUP });
   for (const f of findings) {
     await processFinding(f);
   }
   return { processed: findings.length };
 }
 
+/** Returns true when the agent loop is disabled via VELYA_AGENT_LOOP_DISABLED env var. */
 export function isAgentLoopDisabled(): boolean {
   return KILL_SWITCH;
 }
