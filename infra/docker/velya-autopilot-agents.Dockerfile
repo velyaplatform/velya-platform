@@ -18,8 +18,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       python3-yaml \
     && rm -rf /var/lib/apt/lists/*
 
-# kubectl
-ARG KUBECTL_VERSION=v1.33.0
+# kubectl — MUST be within +/-1 minor of the target cluster (Kubernetes version
+# skew policy). velya-dev cluster runs v1.31, so pin to v1.31.5. When the
+# cluster upgrades minor, bump this ARG in the same window.
+# Skew symptom (if this drifts): kubectl discovery fails with
+# "couldn't get current server API group list: Get http://localhost:8080/api"
+# even with in-cluster config present — see velyaplatform/velya-platform#30.
+ARG KUBECTL_VERSION=v1.31.5
 RUN curl -fsSL -o /usr/local/bin/kubectl \
       "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
     && chmod +x /usr/local/bin/kubectl

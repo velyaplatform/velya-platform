@@ -25,7 +25,7 @@ spec:
   startingDeadlineSeconds: 60
   jobTemplate:
     spec:
-      activeDeadlineSeconds: 240
+      activeDeadlineSeconds: 900
       backoffLimit: 0
       template:
         metadata:
@@ -36,9 +36,18 @@ spec:
           serviceAccountName: velya-sentinel-sa
           restartPolicy: Never
           priorityClassName: velya-batch
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: health-scan
-              image: bitnami/kubectl:1.31
+              image: alpine/k8s:1.31.5
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ['ALL']
               env:
                 - name: VELYA_WEBHOOK_URL
                   value: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel'
@@ -47,6 +56,7 @@ spec:
                   cpu: 50m
                   memory: 64Mi
                 limits:
+                  cpu: 200m
                   memory: 128Mi
               command:
                 - /bin/sh
@@ -163,7 +173,7 @@ spec:
   startingDeadlineSeconds: 60
   jobTemplate:
     spec:
-      activeDeadlineSeconds: 240
+      activeDeadlineSeconds: 480
       backoffLimit: 0
       template:
         metadata:
@@ -173,9 +183,18 @@ spec:
           serviceAccountName: velya-sentinel-sa
           restartPolicy: Never
           priorityClassName: velya-batch
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: silence-detector
-              image: bitnami/kubectl:1.31
+              image: alpine/k8s:1.31.5
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ['ALL']
               env:
                 - name: VELYA_WEBHOOK_URL
                   value: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel'
@@ -184,6 +203,7 @@ spec:
                   cpu: 25m
                   memory: 32Mi
                 limits:
+                  cpu: 100m
                   memory: 64Mi
               command:
                 - /bin/sh
@@ -297,9 +317,18 @@ spec:
           serviceAccountName: velya-sentinel-sa
           restartPolicy: OnFailure
           priorityClassName: velya-batch
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: cost-monitor
-              image: bitnami/kubectl:1.31
+              image: alpine/k8s:1.31.5
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ['ALL']
               env:
                 - name: VELYA_WEBHOOK_URL
                   value: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel'
@@ -308,6 +337,7 @@ spec:
                   cpu: 50m
                   memory: 64Mi
                 limits:
+                  cpu: 200m
                   memory: 128Mi
               command:
                 - /bin/sh
@@ -430,9 +460,18 @@ spec:
           serviceAccountName: velya-sentinel-sa
           restartPolicy: OnFailure
           priorityClassName: velya-batch
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: daily-digest
-              image: bitnami/kubectl:1.31
+              image: alpine/k8s:1.31.5
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ['ALL']
               env:
                 - name: VELYA_WEBHOOK_URL
                   value: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel'
@@ -441,6 +480,7 @@ spec:
                   cpu: 100m
                   memory: 128Mi
                 limits:
+                  cpu: 300m
                   memory: 256Mi
               command:
                 - /bin/sh
@@ -579,9 +619,18 @@ spec:
           serviceAccountName: velya-sentinel-sa
           restartPolicy: OnFailure
           priorityClassName: velya-batch
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: drift-detector
-              image: bitnami/kubectl:1.31
+              image: alpine/k8s:1.31.5
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ['ALL']
               env:
                 - name: VELYA_WEBHOOK_URL
                   value: 'http://velya-web.velya-dev-web.svc.cluster.local:3000/api/sentinel'
@@ -590,6 +639,7 @@ spec:
                   cpu: 100m
                   memory: 128Mi
                 limits:
+                  cpu: 300m
                   memory: 256Mi
               command:
                 - /bin/sh
