@@ -638,6 +638,7 @@ export default function PatientCockpitPage() {
               <TabsTrigger value="exames">Exames</TabsTrigger>
               <TabsTrigger value="sinais">Sinais Vitais</TabsTrigger>
               <TabsTrigger value="equipe">Equipe</TabsTrigger>
+              <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
               <TabsTrigger value="documentos">Documentos</TabsTrigger>
             </TabsList>
 
@@ -663,6 +664,10 @@ export default function PatientCockpitPage() {
 
             <TabsContent value="equipe">
               <EquipeView careTeam={careTeam} internacao={internacao} />
+            </TabsContent>
+
+            <TabsContent value="tarefas">
+              <TarefasPacienteView internacaoId={internacao.id} pacienteMrn={paciente.mrn} />
             </TabsContent>
 
             <TabsContent value="documentos">
@@ -1771,5 +1776,214 @@ function EmptyState({ message }: { message: string }) {
         <p className="text-sm text-neutral-600">{message}</p>
       </CardContent>
     </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tarefas do paciente (delegacao + SLA)
+// ---------------------------------------------------------------------------
+
+interface TarefaPaciente {
+  id: string;
+  codigo: string;
+  titulo: string;
+  tipo: 'medicacao' | 'exame' | 'procedimento' | 'avaliacao' | 'transporte' | 'limpeza' | 'documentacao';
+  prioridade: 'urgente' | 'alta' | 'normal' | 'baixa';
+  status: 'aberta' | 'recebida' | 'aceita' | 'em_andamento' | 'impedida' | 'concluida';
+  destinatarioNome: string;
+  destinatarioPapel: string;
+  criadoEm: string;
+  slaDeadlineEm: string;
+  slaPct: number;
+}
+
+const PRIORITY_LABEL: Record<TarefaPaciente['prioridade'], string> = {
+  urgente: 'URGENTE',
+  alta: 'ALTA',
+  normal: 'NORMAL',
+  baixa: 'BAIXA',
+};
+
+const STATUS_LABEL: Record<TarefaPaciente['status'], string> = {
+  aberta: 'Aberta',
+  recebida: 'Recebida',
+  aceita: 'Aceita',
+  em_andamento: 'Em andamento',
+  impedida: 'Impedida',
+  concluida: 'Concluida',
+};
+
+function TarefasPacienteView({ internacaoId, pacienteMrn }: { internacaoId: string; pacienteMrn: string }) {
+  // Stable fixture-style tasks derived from internacao id so every patient
+  // has a realistic task set without needing a backend call.
+  const tarefas = useMemo<TarefaPaciente[]>(() => {
+    const baseNow = new Date('2026-04-12T10:30:00-03:00').getTime();
+    const seed = internacaoId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const mk = (i: number): TarefaPaciente => {
+      const pri: TarefaPaciente['prioridade'][] = ['urgente', 'alta', 'normal', 'baixa'];
+      const sts: TarefaPaciente['status'][] = ['aberta', 'recebida', 'aceita', 'em_andamento', 'impedida', 'concluida'];
+      const tp: TarefaPaciente['tipo'][] = ['medicacao', 'exame', 'procedimento', 'avaliacao', 'transporte', 'documentacao'];
+      const titles: Record<TarefaPaciente['tipo'], string[]> = {
+        medicacao: ['Administrar antibiotico IV', 'Preparar infusao de noradrenalina', 'Reconciliar prescricao'],
+        exame: ['Coletar hemocultura', 'Solicitar TC de abdome', 'Liberar resultado de gasometria'],
+        procedimento: ['Troca de curativo', 'Passagem de cateter central', 'Sondagem vesical'],
+        avaliacao: ['Avaliacao nutricional', 'Avaliacao fisioterapeutica', 'Reavaliar dor'],
+        transporte: ['Levar ao centro cirurgico', 'Transporte para TC', 'Retorno da sala de recuperacao'],
+        limpeza: ['Limpeza terminal do leito'],
+        documentacao: ['Completar sumario de alta', 'Obter consentimento informado', 'Atualizar prontuario'],
+      };
+      const priority = pri[(seed + i) % pri.length];
+      const status = sts[(seed + i * 2) % sts.length];
+      const tipo = tp[(seed + i) % tp.length];
+      const titleList = titles[tipo];
+      const titulo = titleList[(seed + i) % titleList.length];
+      const slaHours = priority === 'urgente' ? 0.5 : priority === 'alta' ? 2 : priority === 'normal' ? 6 : 24;
+      const createdMs = baseNow - (1 + (i % 4)) * 3600000;
+      const deadline = createdMs + slaHours * 3600000;
+      const pct = Math.min(100, Math.max(0, Math.round(((baseNow - createdMs) / (deadline - createdMs)) * 100)));
+      const destinatarios = [
+        { nome: 'Dra. Marina Albuquerque', papel: 'Coord. UTI' },
+        { nome: 'Enf. Ana Beatriz', papel: 'Enf. assistencial' },
+        { nome: 'Tec. Carlos Mendes', papel: 'Tecnico enfermagem' },
+        { nome: 'Dr. Paulo Ferraz', papel: 'Cardiologia plantao' },
+        { nome: 'Camila Nutri', papel: 'Nutricionista' },
+        { nome: 'Tec. Eduardo Bento', papel: 'Radiologia' },
+      ];
+      const dest = destinatarios[(seed + i) % destinatarios.length];
+      return {
+        id: `task-${internacaoId}-${i}`,
+        codigo: `T-${String((seed + i) % 9999).padStart(4, '0')}`,
+        titulo,
+        tipo,
+        prioridade: priority,
+        status,
+        destinatarioNome: dest.nome,
+        destinatarioPapel: dest.papel,
+        criadoEm: new Date(createdMs).toISOString(),
+        slaDeadlineEm: new Date(deadline).toISOString(),
+        slaPct: pct,
+      };
+    };
+    return Array.from({ length: 6 }, (_, i) => mk(i));
+  }, [internacaoId]);
+
+  const byStatus = useMemo(() => {
+    const map: Record<TarefaPaciente['status'], TarefaPaciente[]> = {
+      aberta: [],
+      recebida: [],
+      aceita: [],
+      em_andamento: [],
+      impedida: [],
+      concluida: [],
+    };
+    for (const t of tarefas) map[t.status].push(t);
+    return map;
+  }, [tarefas]);
+
+  const slaRisco = tarefas.filter((t) => t.slaPct >= 75 && t.status !== 'concluida').length;
+  const slaEstourado = tarefas.filter((t) => t.slaPct >= 100 && t.status !== 'concluida').length;
+
+  function delegar() {
+    window.alert(`Delegar nova tarefa para ${pacienteMrn} — abrirá formulario de delegacao (em desenvolvimento)`);
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <div className="rounded border border-neutral-200 bg-white p-4">
+          <div className="text-xs uppercase tracking-wider text-neutral-500">Total</div>
+          <div className="mt-1 text-2xl font-bold text-neutral-900 tabular-nums">{tarefas.length}</div>
+        </div>
+        <div className="rounded border border-neutral-200 bg-white p-4">
+          <div className="text-xs uppercase tracking-wider text-neutral-500">Em andamento</div>
+          <div className="mt-1 text-2xl font-bold text-neutral-900 tabular-nums">
+            {byStatus.em_andamento.length + byStatus.aceita.length}
+          </div>
+        </div>
+        <div className="rounded border border-neutral-200 bg-white p-4">
+          <div className="text-xs uppercase tracking-wider text-neutral-500">Impedidas</div>
+          <div className="mt-1 text-2xl font-bold text-neutral-900 tabular-nums">
+            {byStatus.impedida.length}
+          </div>
+        </div>
+        <div className="rounded border border-neutral-200 bg-white p-4">
+          <div className="text-xs uppercase tracking-wider text-neutral-500">SLA em risco</div>
+          <div className="mt-1 text-2xl font-bold text-neutral-900 tabular-nums">{slaRisco}</div>
+        </div>
+        <div className="rounded border border-neutral-200 bg-white p-4">
+          <div className="text-xs uppercase tracking-wider text-neutral-500">SLA estourado</div>
+          <div className="mt-1 text-2xl font-bold text-neutral-900 tabular-nums">{slaEstourado}</div>
+        </div>
+      </div>
+
+      {/* Acao delegar */}
+      <div className="flex items-center justify-between rounded border border-neutral-200 bg-white p-4">
+        <div>
+          <h3 className="text-sm font-semibold text-neutral-900">Delegar tarefa</h3>
+          <p className="mt-0.5 text-xs text-neutral-500">
+            Crie uma nova tarefa vinculada a este paciente com SLA e destinatario.
+          </p>
+        </div>
+        <Button variant="default" size="sm" onClick={delegar}>
+          Nova tarefa
+        </Button>
+      </div>
+
+      {/* Lista de tarefas agrupadas */}
+      <div className="space-y-4">
+        {(['aberta', 'recebida', 'aceita', 'em_andamento', 'impedida', 'concluida'] as const)
+          .filter((s) => byStatus[s].length > 0)
+          .map((s) => (
+            <section key={s}>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                {STATUS_LABEL[s]} ({byStatus[s].length})
+              </h3>
+              <div className="space-y-2">
+                {byStatus[s].map((t) => (
+                  <TarefaCard key={t.id} tarefa={t} />
+                ))}
+              </div>
+            </section>
+          ))}
+      </div>
+    </div>
+  );
+}
+
+function TarefaCard({ tarefa }: { tarefa: TarefaPaciente }) {
+  const remaining = new Date(tarefa.slaDeadlineEm).getTime() - new Date('2026-04-12T10:30:00-03:00').getTime();
+  const remainingText = remaining <= 0
+    ? `ATRASADO ${Math.floor(Math.abs(remaining) / 60000)}min`
+    : remaining < 3600000
+      ? `${Math.floor(remaining / 60000)}min restantes`
+      : `${Math.floor(remaining / 3600000)}h ${Math.floor((remaining % 3600000) / 60000)}min restantes`;
+
+  return (
+    <div className="rounded border border-neutral-200 bg-white p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="mb-1 flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-xs font-semibold text-neutral-900">{tarefa.codigo}</span>
+            <Badge variant="default">{PRIORITY_LABEL[tarefa.prioridade]}</Badge>
+            <span className="text-[10px] uppercase tracking-wider text-neutral-500">{tarefa.tipo}</span>
+          </div>
+          <p className="text-sm font-medium text-neutral-900">{tarefa.titulo}</p>
+          <p className="mt-1 text-xs text-neutral-500">
+            {tarefa.destinatarioNome} · {tarefa.destinatarioPapel}
+          </p>
+        </div>
+        <div className="w-32 shrink-0 text-right">
+          <div className="text-[10px] uppercase tracking-wider text-neutral-500">SLA</div>
+          <div className="mt-1 h-1.5 w-full rounded-full bg-neutral-200">
+            <div
+              className={tarefa.slaPct >= 100 ? 'h-1.5 rounded-full bg-neutral-900' : 'h-1.5 rounded-full bg-neutral-700'}
+              style={{ width: `${Math.min(100, tarefa.slaPct)}%` }}
+            />
+          </div>
+          <div className="mt-1 text-[11px] tabular-nums text-neutral-700">{remainingText}</div>
+        </div>
+      </div>
+    </div>
   );
 }

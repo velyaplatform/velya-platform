@@ -323,6 +323,95 @@ export default function SpecialtyDetailPage() {
         />
       </div>
 
+      {/* Passado / Presente / Futuro + delegar */}
+      <section className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <Card>
+          <CardHeader>
+            <h2 className="text-sm font-semibold text-neutral-900">O que aconteceu (24h)</h2>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between border-b border-neutral-100 py-1.5">
+              <span className="text-neutral-500">Pacientes atendidos</span>
+              <span className="font-semibold tabular-nums">{internacoesPrimarias.length}</span>
+            </div>
+            <div className="flex justify-between border-b border-neutral-100 py-1.5">
+              <span className="text-neutral-500">Altas</span>
+              <span className="font-semibold tabular-nums">
+                {internacoesPrimarias.filter((i) => i.status === 'alta_completada').length}
+              </span>
+            </div>
+            <div className="flex justify-between py-1.5">
+              <span className="text-neutral-500">Interconsultas respondidas</span>
+              <span className="font-semibold tabular-nums">
+                {INTERNACOES.reduce((acc, i) => {
+                  return acc + i.consultores.filter((c) => {
+                    const role = getPractitionerRoleById(c.roleId);
+                    return role?.especialidadeIds.includes(especialidade.id) && c.respostaEm;
+                  }).length;
+                }, 0)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <h2 className="text-sm font-semibold text-neutral-900">O que esta acontecendo</h2>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between border-b border-neutral-100 py-1.5">
+              <span className="text-neutral-500">Pacientes internados</span>
+              <span className="font-semibold tabular-nums">
+                {internacoesPrimarias.filter((i) => i.status === 'internado' || i.status === 'alta_solicitada').length}
+              </span>
+            </div>
+            <div className="flex justify-between border-b border-neutral-100 py-1.5">
+              <span className="text-neutral-500">Interconsultas pendentes</span>
+              <span className="font-semibold tabular-nums">{interconsultasPendentes.length}</span>
+            </div>
+            <div className="flex justify-between py-1.5">
+              <span className="text-neutral-500">Profissionais em plantao</span>
+              <span className="font-semibold tabular-nums">
+                {profRows.filter((p) => TURNOS.some((t) => t.practitionerRoleId === p.role.id && t.status === 'em_andamento')).length}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <h2 className="text-sm font-semibold text-neutral-900">O que vai acontecer</h2>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between border-b border-neutral-100 py-1.5">
+              <span className="text-neutral-500">Altas planejadas</span>
+              <span className="font-semibold tabular-nums">
+                {internacoesPrimarias.filter((i) => i.status === 'alta_solicitada').length}
+              </span>
+            </div>
+            <div className="flex justify-between border-b border-neutral-100 py-1.5">
+              <span className="text-neutral-500">Pacientes NEWS &gt;= 5</span>
+              <span className="font-semibold tabular-nums">
+                {internacoesPrimarias.filter((i) => typeof i.newsScore === 'number' && i.newsScore >= 5).length}
+              </span>
+            </div>
+            <div className="flex justify-between py-1.5">
+              <span className="text-neutral-500">Turnos agendados</span>
+              <span className="font-semibold tabular-nums">
+                {profRows.reduce((acc, p) => acc + TURNOS.filter((t) => t.practitionerRoleId === p.role.id && t.status === 'agendado').length, 0)}
+              </span>
+            </div>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => window.alert('Delegar tarefa para ' + especialidade.nome + ' — formulario em desenvolvimento')}
+                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+              >
+                Delegar tarefa
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
       {/* Unidades */}
       <section aria-labelledby="unidades-heading" className="mb-6">
         <h2
@@ -420,7 +509,7 @@ export default function SpecialtyDetailPage() {
                     {rows.map((row) => (
                       <li key={row.role.id}>
                         <Link
-                          href={`/employees/${row.profissional.id}`}
+                          href={`/profissionais/${row.profissional.id}`}
                           className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 rounded-2xl"
                         >
                           <Card interactive className="h-full">

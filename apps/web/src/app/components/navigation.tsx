@@ -8,9 +8,6 @@ import {
   ListChecks,
   Stethoscope,
   Building2,
-  BarChart3,
-  Plus,
-  UserCheck,
   Users,
   LineChart,
   GitBranch,
@@ -54,13 +51,10 @@ const NAV_ITEMS: NavItemDef[] = [
   { href: '/', icon: LayoutDashboard, label: 'Visao Geral', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/pacientes/MRN-001', icon: Users, label: 'Pacientes', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/tasks', icon: ListChecks, label: 'Tarefas', section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/tasks/new', icon: Plus, label: 'Nova Tarefa', section: NAV_SECTIONS.ASSISTENCIAL },
 
   // --- Gestao ---
   { href: '/unidades', icon: Building2, label: 'Unidades', section: NAV_SECTIONS.GESTAO },
   { href: '/specialties', icon: Stethoscope, label: 'Especialidades', section: NAV_SECTIONS.GESTAO },
-  { href: '/staff-on-duty', icon: UserCheck, label: 'Equipe em Plantao', section: NAV_SECTIONS.GESTAO },
-  { href: '/tasks/dashboard', icon: BarChart3, label: 'Painel de Tarefas', section: NAV_SECTIONS.GESTAO },
 ];
 
 const SECTION_LABELS: Record<string, string> = {
