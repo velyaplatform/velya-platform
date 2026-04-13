@@ -29,3 +29,19 @@ spec:
     requests:
       storage: 2Gi
   storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: velya-web-users-pvc
+  namespace: velya-dev-web
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: web
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard

@@ -4,6 +4,48 @@
 # velya-platform-root aponta para infra/argocd/ e gerencia todos os outros Applications.
 # Referência: docs/scaling/durable-workflow-strategy.md
 
+# velya-web — frontend Next.js (velya-dev-web)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velya-web
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: web
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/velyaplatform/velya-platform.git
+    targetRevision: main
+    path: infra/kubernetes/services/velya-dev-web
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velya-dev-web
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: velya-web
+      namespace: velya-dev-web
+      jsonPointers:
+        - /spec/replicas
+        - /spec/template/spec/containers/0/image
+        - /spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt
+---
 # velya-core-services — serviços clínicos core (velya-dev-core)
 apiVersion: argoproj.io/v1alpha1
 kind: Application

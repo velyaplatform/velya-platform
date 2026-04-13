@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: velya-web
+  namespace: velya-dev-web
+  labels:
+    app: velya-web
+    app.kubernetes.io/name: velya-web
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/service: velya-web
+    velya.io/tier: web
+    velya.io/owner: frontend-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: velya-web
+  template:
+    metadata:
+      labels:
+        app: velya-web
+        app.kubernetes.io/name: velya-web
+        app.kubernetes.io/part-of: velya-platform
+        velya.io/service: velya-web
+        velya.io/tier: web
+        velya.io/owner: frontend-platform
+    spec:
+      automountServiceAccountToken: false
+      priorityClassName: velya-core-high
+      securityContext:
+        fsGroup: 1001
+        runAsGroup: 1001
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: web
+          image: velya-web:0.1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: VELYA_AUDIT_PATH
+              value: /data/velya-audit
+            - name: VELYA_EVENT_STORE_PATH
+              value: /data/velya-events
+            - name: VELYA_USER_STORE_PATH
+              value: /data/velya-users
+            - name: VELYA_FROM_EMAIL
+              value: onboarding@resend.dev
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          volumeMounts:
+            - name: audit-data
+              mountPath: /data/velya-audit
+            - name: events-data
+              mountPath: /data/velya-events
+            - name: users-data
+              mountPath: /data/velya-users
+      volumes:
+        - name: audit-data
+          persistentVolumeClaim:
+            claimName: velya-web-audit-pvc
+        - name: events-data
+          persistentVolumeClaim:
+            claimName: velya-web-events-pvc
+        - name: users-data
+          persistentVolumeClaim:
+            claimName: velya-web-users-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: velya-web
+  namespace: velya-dev-web
+  labels:
+    app: velya-web
+    app.kubernetes.io/name: velya-web
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/service: velya-web
+    velya.io/tier: web
+    velya.io/owner: frontend-platform
+spec:
+  selector:
+    app: velya-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP

@@ -124,6 +124,7 @@ jobs:
 
       - name: Deploy to Kind (dev)
         run: |
+          set -euo pipefail
           TAG="${{ needs.build-image.outputs.image_tag }}"
           echo "Deploying ${IMAGE_NAME}:${TAG} to cluster..."
 
@@ -138,16 +139,22 @@ jobs:
           # docker tag ${IMAGE_NAME}:${TAG} $ECR_REGISTRY/${IMAGE_NAME}:${TAG}
           # docker push $ECR_REGISTRY/${IMAGE_NAME}:${TAG}
 
-          # Atualiza a imagem no deployment
+          # Atualiza a imagem no deployment usando o nome real do container.
+          CONTAINER_NAME="$(kubectl get deployment/velya-web -n velya-dev-web -o jsonpath='{.spec.template.spec.containers[0].name}')"
+          if [ -z "${CONTAINER_NAME}" ]; then
+            echo "❌ deployment/velya-web existe, mas não foi possível detectar o container"
+            kubectl get deployment/velya-web -n velya-dev-web -o yaml
+            exit 1
+          fi
+          echo "Deployment target: container=${CONTAINER_NAME}"
           kubectl set image deployment/velya-web \
-            velya-web="${IMAGE_NAME}:${TAG}" \
-            -n velya-dev-web \
-            --record 2>/dev/null || echo "kubectl set image: usando ArgoCD para sync"
+            "${CONTAINER_NAME}=${IMAGE_NAME}:${TAG}" \
+            -n velya-dev-web
 
           # Aguarda rollout
           kubectl rollout status deployment/velya-web \
             -n velya-dev-web \
-            --timeout=120s 2>/dev/null || echo "Rollout status: verificar via ArgoCD"
+            --timeout=120s
 
           echo "✅ Deploy concluído: ${IMAGE_NAME}:${TAG}"
 
