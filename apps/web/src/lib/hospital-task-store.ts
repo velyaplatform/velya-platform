@@ -36,7 +36,7 @@ import {
 } from './hospital-task-types';
 
 const STORAGE_PATH =
-  process.env.VELYA_TASK_PATH || '/data/velya-tasks/tasks.json';
+  process.env.VELYA_TASK_PATH || '/tmp/velya-tasks/tasks.json';
 
 interface StoreShape {
   tasks: HospitalTask[];
