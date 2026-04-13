@@ -96,8 +96,11 @@ function main(): void {
     // Secondary check: byte-level identity (fast path for identical screenshots)
     const isIdentical = baselineBuffer.equals(currentBuffer);
 
-    const status: ComparisonResult['status'] =
-      isIdentical ? 'PASS' : diffPercent > threshold ? 'FAIL' : 'PASS';
+    const status: ComparisonResult['status'] = isIdentical
+      ? 'PASS'
+      : diffPercent > threshold
+        ? 'FAIL'
+        : 'PASS';
 
     results.push({ file, baselineSize, currentSize, diffPercent, status });
   }
@@ -112,18 +115,26 @@ function main(): void {
 
   for (const r of results) {
     const icon =
-      r.status === 'PASS' ? '[PASS]' :
-      r.status === 'FAIL' ? '[FAIL]' :
-      r.status === 'MISSING_BASELINE' ? '[NEW] ' :
-      '[GONE]';
-    const diff = r.status === 'MISSING_BASELINE' || r.status === 'MISSING_CURRENT'
-      ? 'N/A'
-      : `${(r.diffPercent * 100).toFixed(2)}%`;
-    console.log(`  ${icon} ${r.file.padEnd(40)} diff=${diff}  (${r.baselineSize} -> ${r.currentSize} bytes)`);
+      r.status === 'PASS'
+        ? '[PASS]'
+        : r.status === 'FAIL'
+          ? '[FAIL]'
+          : r.status === 'MISSING_BASELINE'
+            ? '[NEW] '
+            : '[GONE]';
+    const diff =
+      r.status === 'MISSING_BASELINE' || r.status === 'MISSING_CURRENT'
+        ? 'N/A'
+        : `${(r.diffPercent * 100).toFixed(2)}%`;
+    console.log(
+      `  ${icon} ${r.file.padEnd(40)} diff=${diff}  (${r.baselineSize} -> ${r.currentSize} bytes)`,
+    );
   }
 
   console.log('─'.repeat(80));
-  console.log(`  Passed: ${passed.length}  |  Regressions: ${regressions.length}  |  New pages: ${newPages.length}`);
+  console.log(
+    `  Passed: ${passed.length}  |  Regressions: ${regressions.length}  |  New pages: ${newPages.length}`,
+  );
 
   // Write markdown report
   const reportLines: string[] = [
@@ -154,12 +165,16 @@ function main(): void {
     reportLines.push('## Regressions');
     reportLines.push('');
     for (const r of regressions) {
-      reportLines.push(`- **${r.file}**: ${(r.diffPercent * 100).toFixed(2)}% size difference (${r.status})`);
+      reportLines.push(
+        `- **${r.file}**: ${(r.diffPercent * 100).toFixed(2)}% size difference (${r.status})`,
+      );
     }
   }
 
   reportLines.push('');
-  reportLines.push('> Note: This comparison uses file-size heuristics. For pixel-accurate diffs, install `pixelmatch` and upgrade to pixel-level comparison.');
+  reportLines.push(
+    '> Note: This comparison uses file-size heuristics. For pixel-accurate diffs, install `pixelmatch` and upgrade to pixel-level comparison.',
+  );
 
   const reportPath = join(currentDir, 'regression-report.md');
   writeFileSync(reportPath, reportLines.join('\n'));

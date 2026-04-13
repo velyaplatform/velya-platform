@@ -35,8 +35,7 @@ import {
   SLA_START_MS as START_SLA,
 } from './hospital-task-types';
 
-const STORAGE_PATH =
-  process.env.VELYA_TASK_PATH || '/tmp/velya-tasks/tasks.json';
+const STORAGE_PATH = process.env.VELYA_TASK_PATH || '/tmp/velya-tasks/tasks.json';
 
 interface StoreShape {
   tasks: HospitalTask[];
@@ -46,10 +45,18 @@ interface StoreShape {
 function ensureStorage(): void {
   const dir = dirname(STORAGE_PATH);
   if (!existsSync(dir)) {
-    try { mkdirSync(dir, { recursive: true }); } catch { /* retry next call */ }
+    try {
+      mkdirSync(dir, { recursive: true });
+    } catch {
+      /* retry next call */
+    }
   }
   if (!existsSync(STORAGE_PATH)) {
-    try { writeFileSync(STORAGE_PATH, JSON.stringify({ tasks: [], sequence: 0 }, null, 2)); } catch { /* best effort */ }
+    try {
+      writeFileSync(STORAGE_PATH, JSON.stringify({ tasks: [], sequence: 0 }, null, 2));
+    } catch {
+      /* best effort */
+    }
   }
 }
 
@@ -90,14 +97,25 @@ function readStore(): StoreShape {
 
 function writeStore(store: StoreShape): void {
   ensureStorage();
-  try { writeFileSync(STORAGE_PATH, JSON.stringify(store, null, 2)); } catch { /* best effort */ }
+  try {
+    writeFileSync(STORAGE_PATH, JSON.stringify(store, null, 2));
+  } catch {
+    /* best effort */
+  }
 }
 
 function generateId(): string {
   return `TASK-${Date.now().toString(36)}-${randomBytes(3).toString('hex')}`.toUpperCase();
 }
 
-function historyEntry(action: TaskAction, actor: ActorRef, from?: TaskStatus, to?: TaskStatus, note?: string, metadata?: Record<string, unknown>): TaskHistoryEntry {
+function historyEntry(
+  action: TaskAction,
+  actor: ActorRef,
+  from?: TaskStatus,
+  to?: TaskStatus,
+  note?: string,
+  metadata?: Record<string, unknown>,
+): TaskHistoryEntry {
   return {
     id: `H-${Date.now().toString(36)}-${randomBytes(2).toString('hex')}`.toUpperCase(),
     action,
@@ -115,7 +133,9 @@ function buildSLA(priority: TaskPriority, now: string): SLAState {
   return {
     receiveBy: new Date(base + RECEIVE_SLA[priority]).toISOString(),
     acceptBy: new Date(base + RECEIVE_SLA[priority] + ACCEPT_SLA[priority]).toISOString(),
-    startBy: new Date(base + RECEIVE_SLA[priority] + ACCEPT_SLA[priority] + START_SLA[priority]).toISOString(),
+    startBy: new Date(
+      base + RECEIVE_SLA[priority] + ACCEPT_SLA[priority] + START_SLA[priority],
+    ).toISOString(),
     completeBy: new Date(base + 24 * 3600_000).toISOString(), // default 24h, overridden per type
     currentPhase: 'receive',
     elapsedMs: 0,
@@ -198,7 +218,13 @@ export function createTask(input: CreateTaskInput): HospitalTask {
     relatedEntityType: input.relatedEntityType,
     relatedEntityId: input.relatedEntityId,
     history: [
-      historyEntry('created', input.createdBy, undefined, 'open', `Tarefa criada e atribuida a ${input.assignedTo.name}`),
+      historyEntry(
+        'created',
+        input.createdBy,
+        undefined,
+        'open',
+        `Tarefa criada e atribuida a ${input.assignedTo.name}`,
+      ),
     ],
     comments: [],
     createdAt: now,
@@ -336,8 +362,14 @@ export function updateTaskStatus(input: UpdateTaskStatusInput): HospitalTask | n
         task.acceptedBy = undefined;
         task.sla = buildSLA(task.priority, now);
         task.history.push(
-          historyEntry('reassigned', actor, fromStatus, 'open',
-            input.note ?? `Reatribuida de ${oldAssignee} para ${input.newAssignedTo.name}`));
+          historyEntry(
+            'reassigned',
+            actor,
+            fromStatus,
+            'open',
+            input.note ?? `Reatribuida de ${oldAssignee} para ${input.newAssignedTo.name}`,
+          ),
+        );
       }
       break;
     case 'cancelled':
@@ -425,7 +457,15 @@ export function attachEvidence(input: AttachEvidenceInput): HospitalTask | null 
   task.evidence.push(evidence);
   task.updatedAt = now;
   task.version += 1;
-  task.history.push(historyEntry('evidence_attached', input.actor, undefined, undefined, `Evidencia ${input.type} anexada`));
+  task.history.push(
+    historyEntry(
+      'evidence_attached',
+      input.actor,
+      undefined,
+      undefined,
+      `Evidencia ${input.type} anexada`,
+    ),
+  );
 
   store.tasks[idx] = task;
   writeStore(store);
@@ -469,7 +509,9 @@ export function addComment(input: AddCommentInput): HospitalTask | null {
   task.comments.push(comment);
   task.updatedAt = now;
   task.version += 1;
-  task.history.push(historyEntry('commented', input.author, undefined, undefined, input.text.trim()));
+  task.history.push(
+    historyEntry('commented', input.author, undefined, undefined, input.text.trim()),
+  );
 
   store.tasks[idx] = task;
   writeStore(store);

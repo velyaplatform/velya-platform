@@ -28,7 +28,7 @@ async function findComponentFiles(dir: string): Promise<string[]> {
   for (const entry of entries) {
     const full = join(dir, entry.name);
     if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
-      files.push(...await findComponentFiles(full));
+      files.push(...(await findComponentFiles(full)));
     } else if (
       entry.isFile() &&
       (entry.name.endsWith('.tsx') || entry.name.endsWith('.ts')) &&
@@ -53,7 +53,9 @@ function extractComponentNames(content: string): string[] {
   }
 
   // export const ComponentName = ...
-  const constMatches = content.matchAll(/export\s+(?:default\s+)?const\s+([A-Z][A-Za-z0-9]*)\s*[=:]/g);
+  const constMatches = content.matchAll(
+    /export\s+(?:default\s+)?const\s+([A-Z][A-Za-z0-9]*)\s*[=:]/g,
+  );
   for (const m of constMatches) {
     names.push(m[1]);
   }
@@ -70,8 +72,10 @@ function extractImportSources(content: string): string[] {
     if (src.startsWith('@radix-ui')) sources.push('radix');
     else if (src.startsWith('lucide-react') || src === 'lucide-react') sources.push('lucide');
     else if (src === 'react' || src === 'react-dom') sources.push('react');
-    else if (src === 'next/link' || src === 'next/navigation' || src === 'next/image') sources.push('next');
-    else if (src.startsWith('class-variance-authority') || src === 'class-variance-authority') sources.push('cva');
+    else if (src === 'next/link' || src === 'next/navigation' || src === 'next/image')
+      sources.push('next');
+    else if (src.startsWith('class-variance-authority') || src === 'class-variance-authority')
+      sources.push('cva');
     else if (src === 'clsx' || src === 'tailwind-merge') sources.push('tailwind-utils');
     else if (src.startsWith('framer-motion')) sources.push('framer-motion');
   }
@@ -135,12 +139,13 @@ async function main() {
   ];
 
   for (const entry of entries) {
-    const names = entry.componentNames.length > 0 ? entry.componentNames.join(', ') : '(none exported)';
+    const names =
+      entry.componentNames.length > 0 ? entry.componentNames.join(', ') : '(none exported)';
     const client = entry.isClientComponent ? 'Yes' : 'No';
     const imports = entry.importSources.length > 0 ? entry.importSources.join(', ') : '-';
 
     output.push(
-      `| \`${entry.file}\` | ${names} | ${entry.lines} | ${client} | ${imports} | ${entry.propsInterface} |`
+      `| \`${entry.file}\` | ${names} | ${entry.lines} | ${client} | ${imports} | ${entry.propsInterface} |`,
     );
   }
 

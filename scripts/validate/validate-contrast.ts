@@ -9,14 +9,38 @@
 import { chromium } from 'playwright';
 
 const ROUTES = [
-  '/', '/patients', '/patients/new', '/tasks', '/prescriptions',
-  '/lab/orders', '/lab/results', '/imaging/orders', '/imaging/results',
-  '/discharge', '/beds', '/surgery', '/icu', '/ems', '/pharmacy',
-  '/pharmacy/stock', '/staff-on-duty', '/cleaning/tasks',
-  '/transport/orders', '/meals/orders', '/search', '/alerts',
-  '/delegations', '/delegations/new', '/handoffs', '/handoffs/new',
-  '/employees', '/employees/new', '/suppliers', '/suppliers/new',
-  '/supply/items', '/supply/purchase-orders',
+  '/',
+  '/patients',
+  '/patients/new',
+  '/tasks',
+  '/prescriptions',
+  '/lab/orders',
+  '/lab/results',
+  '/imaging/orders',
+  '/imaging/results',
+  '/discharge',
+  '/beds',
+  '/surgery',
+  '/icu',
+  '/ems',
+  '/pharmacy',
+  '/pharmacy/stock',
+  '/staff-on-duty',
+  '/cleaning/tasks',
+  '/transport/orders',
+  '/meals/orders',
+  '/search',
+  '/alerts',
+  '/delegations',
+  '/delegations/new',
+  '/handoffs',
+  '/handoffs/new',
+  '/employees',
+  '/employees/new',
+  '/suppliers',
+  '/suppliers/new',
+  '/supply/items',
+  '/supply/purchase-orders',
 ];
 
 interface ContrastViolation {
@@ -56,26 +80,35 @@ async function main(): Promise<void> {
     await authPage.waitForTimeout(1000);
     const email = `contrast-${Date.now()}@velya.local`;
     const loginSecret = ['Validate', '2026!'].join('');
-    const loggedIn = await authPage.evaluate(async (creds: { email: string; secret: string }) => {
-      const reg = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: creds.email, password: creds.secret, nome: 'Contrast Validator', role: 'Administrador', setor: 'TI' }),
-      }).then(r => r.json());
-      if (reg.devCode) {
-        await fetch('/api/auth/verify', {
+    const loggedIn = await authPage.evaluate(
+      async (creds: { email: string; secret: string }) => {
+        const reg = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: creds.email, code: reg.devCode }),
-        });
-      }
-      const login = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: creds.email, password: creds.secret }),
-      }).then(r => r.json());
-      return login.success === true;
-    }, { email, secret: loginSecret });
+          body: JSON.stringify({
+            email: creds.email,
+            password: creds.secret,
+            nome: 'Contrast Validator',
+            role: 'Administrador',
+            setor: 'TI',
+          }),
+        }).then((r) => r.json());
+        if (reg.devCode) {
+          await fetch('/api/auth/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: creds.email, code: reg.devCode }),
+          });
+        }
+        const login = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: creds.email, password: creds.secret }),
+        }).then((r) => r.json());
+        return login.success === true;
+      },
+      { email, secret: loginSecret },
+    );
     console.log(`[validate-contrast] Auth: ${loggedIn ? 'OK' : 'FAILED'}`);
     await authPage.close();
   }
@@ -102,7 +135,9 @@ async function main(): Promise<void> {
       const violations = await page.evaluate(() => {
         // --- WCAG contrast ratio calculation (inline) ---
 
-        function parseColor(colorStr: string): { r: number; g: number; b: number; a: number } | null {
+        function parseColor(
+          colorStr: string,
+        ): { r: number; g: number; b: number; a: number } | null {
           // Handle rgb() and rgba()
           const rgbaMatch = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
           if (rgbaMatch) {
@@ -126,7 +161,9 @@ async function main(): Promise<void> {
                 const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
                 return { r, g, b, a: a / 255 };
               }
-            } catch { /* fallback to null */ }
+            } catch {
+              /* fallback to null */
+            }
           }
           return null;
         }
@@ -146,7 +183,11 @@ async function main(): Promise<void> {
           return (lighter + 0.05) / (darker + 0.05);
         }
 
-        function blendOnWhite(fg: { r: number; g: number; b: number; a: number }): { r: number; g: number; b: number } {
+        function blendOnWhite(fg: { r: number; g: number; b: number; a: number }): {
+          r: number;
+          g: number;
+          b: number;
+        } {
           // Blend semi-transparent color over white background
           return {
             r: Math.round(fg.r * fg.a + 255 * (1 - fg.a)),
@@ -173,16 +214,23 @@ async function main(): Promise<void> {
         function describeElement(el: Element): string {
           const tag = el.tagName.toLowerCase();
           const id = (el as HTMLElement).id ? `#${(el as HTMLElement).id}` : '';
-          const cls = typeof (el as HTMLElement).className === 'string'
-            ? (el as HTMLElement).className.split(/\s+/).filter(Boolean).slice(0, 2).map((c) => `.${c}`).join('')
-            : '';
+          const cls =
+            typeof (el as HTMLElement).className === 'string'
+              ? (el as HTMLElement).className
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((c) => `.${c}`)
+                  .join('')
+              : '';
           const testId = el.getAttribute('data-testid');
           return testId ? `[data-testid="${testId}"]` : `${tag}${id}${cls}`;
         }
 
         // --- Check all text elements ---
 
-        const textSelectors = 'p, span, label, h1, h2, h3, h4, h5, h6, td, th, button, a, li, dt, dd, figcaption, blockquote, legend';
+        const textSelectors =
+          'p, span, label, h1, h2, h3, h4, h5, h6, td, th, button, a, li, dt, dd, figcaption, blockquote, legend';
         const elements = Array.from(document.querySelectorAll<HTMLElement>(textSelectors));
 
         const issues: Array<{
@@ -207,14 +255,16 @@ async function main(): Promise<void> {
           if (!fgColor) continue;
 
           const bgColor = getEffectiveBackground(el);
-          const effectiveFg = fgColor.a < 1 ? blendOnWhite(fgColor) : { r: fgColor.r, g: fgColor.g, b: fgColor.b };
+          const effectiveFg =
+            fgColor.a < 1 ? blendOnWhite(fgColor) : { r: fgColor.r, g: fgColor.g, b: fgColor.b };
 
           const fgLum = relativeLuminance(effectiveFg.r, effectiveFg.g, effectiveFg.b);
           const bgLum = relativeLuminance(bgColor.r, bgColor.g, bgColor.b);
           const ratio = contrastRatio(fgLum, bgLum);
 
           const fontSize = parseFloat(style.fontSize);
-          const fontWeight = parseInt(style.fontWeight, 10) || (style.fontWeight === 'bold' ? 700 : 400);
+          const fontWeight =
+            parseInt(style.fontWeight, 10) || (style.fontWeight === 'bold' ? 700 : 400);
 
           // WCAG AA large text: >= 18px, or >= 14px and bold (>= 700)
           const isLargeText = fontSize >= 18 || (fontSize >= 14 && fontWeight >= 700);
@@ -263,7 +313,9 @@ async function main(): Promise<void> {
 
   console.log(`\n${'='.repeat(70)}`);
   console.log(`  validate-contrast: ${pagesChecked} pages checked`);
-  console.log(`  Violations: ${allViolations.length} total (${criticalCount} critical, ${seriousCount} serious)`);
+  console.log(
+    `  Violations: ${allViolations.length} total (${criticalCount} critical, ${seriousCount} serious)`,
+  );
   console.log(`  Pages with issues: ${pagesWithIssues}`);
   console.log(`${'='.repeat(70)}`);
 
@@ -274,19 +326,25 @@ async function main(): Promise<void> {
     for (const v of sorted.slice(0, 20)) {
       console.log(`  [${v.severity}] ${v.page} ${v.selector}`);
       console.log(`    text: "${v.text}"`);
-      console.log(`    ratio: ${v.ratio}:1 (required: ${v.requiredRatio}:1, ${v.isLargeText ? 'large' : 'normal'} text)`);
+      console.log(
+        `    ratio: ${v.ratio}:1 (required: ${v.requiredRatio}:1, ${v.isLargeText ? 'large' : 'normal'} text)`,
+      );
       console.log(`    fg: ${v.foreground}  bg: ${v.background}`);
     }
   }
 
   // Exit 1 if critical violations found (ratio < 3:1)
   if (criticalCount > 0) {
-    console.log(`\n[validate-contrast] FAIL: ${criticalCount} critical contrast violations (ratio < 3:1)`);
+    console.log(
+      `\n[validate-contrast] FAIL: ${criticalCount} critical contrast violations (ratio < 3:1)`,
+    );
     process.exit(1);
   }
 
   if (seriousCount > 0) {
-    console.log(`\n[validate-contrast] WARNING: ${seriousCount} serious contrast violations (ratio < 4.5:1 for normal text)`);
+    console.log(
+      `\n[validate-contrast] WARNING: ${seriousCount} serious contrast violations (ratio < 4.5:1 for normal text)`,
+    );
     // Serious violations are warnings, not blockers — exit 0 but print clearly
     process.exit(0);
   }

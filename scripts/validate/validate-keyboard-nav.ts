@@ -9,14 +9,38 @@
 import { chromium } from 'playwright';
 
 const ROUTES = [
-  '/', '/patients', '/patients/new', '/tasks', '/prescriptions',
-  '/lab/orders', '/lab/results', '/imaging/orders', '/imaging/results',
-  '/discharge', '/beds', '/surgery', '/icu', '/ems', '/pharmacy',
-  '/pharmacy/stock', '/staff-on-duty', '/cleaning/tasks',
-  '/transport/orders', '/meals/orders', '/search', '/alerts',
-  '/delegations', '/delegations/new', '/handoffs', '/handoffs/new',
-  '/employees', '/employees/new', '/suppliers', '/suppliers/new',
-  '/supply/items', '/supply/purchase-orders',
+  '/',
+  '/patients',
+  '/patients/new',
+  '/tasks',
+  '/prescriptions',
+  '/lab/orders',
+  '/lab/results',
+  '/imaging/orders',
+  '/imaging/results',
+  '/discharge',
+  '/beds',
+  '/surgery',
+  '/icu',
+  '/ems',
+  '/pharmacy',
+  '/pharmacy/stock',
+  '/staff-on-duty',
+  '/cleaning/tasks',
+  '/transport/orders',
+  '/meals/orders',
+  '/search',
+  '/alerts',
+  '/delegations',
+  '/delegations/new',
+  '/handoffs',
+  '/handoffs/new',
+  '/employees',
+  '/employees/new',
+  '/suppliers',
+  '/suppliers/new',
+  '/supply/items',
+  '/supply/purchase-orders',
 ];
 
 const TAB_COUNT = 20;
@@ -48,15 +72,17 @@ async function main(): Promise<void> {
   });
 
   if (sessionCookie) {
-    await context.addCookies([{
-      name: 'velya_session',
-      value: sessionCookie,
-      domain: new URL(baseUrl).hostname,
-      path: '/',
-      httpOnly: true,
-      secure: false,
-      sameSite: 'Lax' as const,
-    }]);
+    await context.addCookies([
+      {
+        name: 'velya_session',
+        value: sessionCookie,
+        domain: new URL(baseUrl).hostname,
+        path: '/',
+        httpOnly: true,
+        secure: false,
+        sameSite: 'Lax' as const,
+      },
+    ]);
   }
 
   const allIssues: FocusIssue[] = [];
@@ -85,9 +111,15 @@ async function main(): Promise<void> {
 
           const tag = el.tagName.toLowerCase();
           const id = (el as HTMLElement).id ? `#${(el as HTMLElement).id}` : '';
-          const cls = typeof (el as HTMLElement).className === 'string'
-            ? (el as HTMLElement).className.split(/\s+/).filter(Boolean).slice(0, 2).map((c) => `.${c}`).join('')
-            : '';
+          const cls =
+            typeof (el as HTMLElement).className === 'string'
+              ? (el as HTMLElement).className
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((c) => `.${c}`)
+                  .join('')
+              : '';
           const testId = el.getAttribute('data-testid');
           const selector = testId ? `[data-testid="${testId}"]` : `${tag}${id}${cls}`;
 
@@ -220,12 +252,16 @@ async function main(): Promise<void> {
   // Focus traps and no-focusable-elements are critical
   const criticalCount = focusTraps + noFocusable;
   if (criticalCount > 0) {
-    console.log(`\n[validate-keyboard-nav] FAIL: ${criticalCount} critical keyboard nav issues (focus traps or unreachable pages)`);
+    console.log(
+      `\n[validate-keyboard-nav] FAIL: ${criticalCount} critical keyboard nav issues (focus traps or unreachable pages)`,
+    );
     process.exit(1);
   }
 
   if (allIssues.length > 0) {
-    console.log(`\n[validate-keyboard-nav] WARNING: ${allIssues.length} keyboard nav issues found (non-blocking)`);
+    console.log(
+      `\n[validate-keyboard-nav] WARNING: ${allIssues.length} keyboard nav issues found (non-blocking)`,
+    );
     process.exit(0);
   }
 
