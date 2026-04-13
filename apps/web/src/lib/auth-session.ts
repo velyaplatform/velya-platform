@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { randomBytes } from 'crypto';
+import { normalizeOwnerSessionRecord } from './platform-owner';
 
 const SESSION_DIR = process.env.VELYA_SESSION_PATH || '/tmp/velya-sessions';
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
@@ -40,7 +41,7 @@ export function createSession(params: {
 }): VelyaSession {
   const sessionId = randomBytes(32).toString('hex');
   const now = new Date();
-  const session: VelyaSession = {
+  const rawSession: VelyaSession = {
     sessionId,
     userId: params.userId,
     userName: params.userName,
@@ -57,6 +58,8 @@ export function createSession(params: {
     isBreakGlass: false,
   };
 
+  const session = normalizeOwnerSessionRecord(rawSession);
+
   writeFileSync(join(SESSION_DIR, `${sessionId}.json`), JSON.stringify(session));
   return session;
 }
@@ -65,7 +68,9 @@ export function getSession(sessionId: string): VelyaSession | null {
   const path = join(SESSION_DIR, `${sessionId}.json`);
   if (!existsSync(path)) return null;
 
-  const session: VelyaSession = JSON.parse(readFileSync(path, 'utf-8'));
+  const session: VelyaSession = normalizeOwnerSessionRecord(
+    JSON.parse(readFileSync(path, 'utf-8')),
+  );
 
   // Check expiry
   if (new Date(session.expiresAt) < new Date()) {

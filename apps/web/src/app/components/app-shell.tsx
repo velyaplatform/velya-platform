@@ -14,7 +14,6 @@ import {
 import { FavoritesMenu } from './favorites-menu';
 import { Navigation, type Role } from './navigation';
 import { PatientQuickSwitcher } from './patient-quick-switcher';
-import { Avatar, AvatarFallback } from './ui/avatar';
 import { ShortcutProvider } from './shortcuts/shortcut-provider';
 import { ShortcutOverlay } from './shortcuts/shortcut-overlay';
 
@@ -127,12 +126,6 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
 
   const currentRole = sessionData.role as Role;
 
-  const nameParts = sessionData.userName.split(' ').filter(Boolean);
-  const initials =
-    nameParts.length >= 2
-      ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
-      : sessionData.userName.slice(0, 2).toUpperCase();
-
   return (
     <ShortcutProvider>
     <div className="app-shell">
@@ -202,17 +195,8 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
 
         {/* Header nav (hidden on small) */}
         <nav className="hidden lg:flex items-center gap-1">
-          <Link href="/pacientes" className="gh-header-nav-link">
-            Pacientes
-          </Link>
-          <Link href="/tasks" className="gh-header-nav-link">
-            Tarefas
-          </Link>
           <Link href="/alerts" className="gh-header-nav-link">
             Alertas
-          </Link>
-          <Link href="/agents" className="gh-header-nav-link">
-            Agentes
           </Link>
         </nav>
 
@@ -241,7 +225,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
 
           <button
             type="button"
-            className="gh-header-icon-btn relative"
+            className="gh-header-icon-btn relative topbar-alerts"
             onClick={() => router.push('/alerts')}
             aria-label="Alertas críticos"
             title="5 alertas críticos"
@@ -269,19 +253,22 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
           <button
             type="button"
             onClick={() => router.push('/me')}
-            className="gh-header-icon-btn"
-            style={{ padding: 0, width: 32, height: 32 }}
+            className="gh-header-icon-btn px-3"
+            style={{
+              width: 'auto',
+              height: 32,
+              maxWidth: 'min(40vw, 320px)',
+              justifyContent: 'flex-start',
+            }}
             aria-label={`Meu painel — ${sessionData.userName}`}
             title={`${sessionData.userName} — Meu painel`}
           >
-            <Avatar className="h-8 w-8" style={{ border: '1px solid rgba(255,255,255,0.15)' }}>
-              <AvatarFallback
-                className="text-[10px]"
-                style={{ background: '#32383f', color: '#ffffff' }}
-              >
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <span
+              className="truncate text-sm font-medium"
+              style={{ color: 'var(--header-fg)' }}
+            >
+              {sessionData.userName}
+            </span>
           </button>
         </div>
       </header>
@@ -302,6 +289,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
         <Navigation
           currentRole={currentRole}
           userName={sessionData.userName}
+          userEmail={sessionData.email}
           onLogout={handleLogout}
           mobileOpen={sidebarOpen}
           onMobileClose={() => setSidebarOpen(false)}

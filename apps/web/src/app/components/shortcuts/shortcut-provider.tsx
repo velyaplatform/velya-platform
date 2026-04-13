@@ -32,6 +32,7 @@ export function useShortcuts() {
 function scopeFromPathname(pathname: string): string {
   const segment = pathname.split('/').filter(Boolean)[0];
   if (!segment) return 'global';
+  if (segment === 'pacientes') return 'patients';
   return segment;
 }
 

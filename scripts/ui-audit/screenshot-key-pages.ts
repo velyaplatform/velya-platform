@@ -173,7 +173,7 @@ async function shoot(
     }
 
     if (pageSpec.name === 'home' && viewport.name === 'desktop') {
-      await page.waitForSelector('#sidebar-suggestion', { timeout: 5_000 });
+      await page.waitForSelector('.gh-sidenav-item[href="/pacientes"]', { timeout: 5_000 });
     }
 
     // Dá um tempo pra fontes, hidratação e requests em background.

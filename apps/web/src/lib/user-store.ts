@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { createHash, randomBytes } from 'crypto';
+import { normalizeOwnerUserRecord } from './platform-owner';
 
 const USER_DIR = process.env.VELYA_USER_STORE_PATH || '/tmp/velya-users';
 
@@ -41,7 +42,7 @@ export function createUser(params: {
   const id = `user-${Date.now()}-${randomBytes(4).toString('hex')}`;
   const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-  const user: VelyaUser = {
+  const rawUser: VelyaUser = {
     id,
     email: params.email.toLowerCase().trim(),
     passwordHash: hashPassword(params.password),
@@ -56,6 +57,7 @@ export function createUser(params: {
     active: true,
   };
 
+  const user = normalizeOwnerUserRecord(rawUser);
   writeFileSync(join(USER_DIR, `${user.email}.json`), JSON.stringify(user, null, 2));
   return { user, verificationCode };
 }
@@ -63,7 +65,9 @@ export function createUser(params: {
 export function findUserByEmail(email: string): VelyaUser | null {
   const path = join(USER_DIR, `${email.toLowerCase().trim()}.json`);
   if (!existsSync(path)) return null;
-  return JSON.parse(readFileSync(path, 'utf-8'));
+  const user = normalizeOwnerUserRecord(JSON.parse(readFileSync(path, 'utf-8')));
+  writeFileSync(path, JSON.stringify(user, null, 2));
+  return user;
 }
 
 export function verifyUser(email: string, code: string): boolean {
@@ -116,5 +120,10 @@ export function listUsers(): VelyaUser[] {
   if (!existsSync(USER_DIR)) return [];
   return readdirSync(USER_DIR)
     .filter((f: string) => f.endsWith('.json'))
-    .map((f: string) => JSON.parse(readFileSync(join(USER_DIR, f), 'utf-8')));
+    .map((f: string) => {
+      const path = join(USER_DIR, f);
+      const user = normalizeOwnerUserRecord(JSON.parse(readFileSync(path, 'utf-8')));
+      writeFileSync(path, JSON.stringify(user, null, 2));
+      return user;
+    });
 }
