@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { appendEvent, getEvents } from '@/lib/event-store';
 import { audit } from '@/lib/audit-logger';
+import { createFinding } from '@/lib/cron-store';
+import { runAgentLoopForRun } from '@/lib/agent-loop';
 
 type SuggestionStatus = 'pending' | 'reviewing' | 'implementing' | 'done' | 'rejected';
 type SuggestionPriority = 'low' | 'medium' | 'high';
+type SuggestionCategory =
+  | 'workflow'
+  | 'usability'
+  | 'alerts'
+  | 'ai'
+  | 'performance'
+  | 'integration'
+  | 'general';
 
 const HIGH_KEYWORDS = [
   'urgente',
@@ -32,6 +42,59 @@ function detectPriority(text: string): SuggestionPriority {
   return 'low';
 }
 
+function detectCategory(text: string): SuggestionCategory {
+  const lower = text.toLowerCase();
+  const hasStandaloneAiToken = /\b(ai|ia)\b/.test(lower);
+  if (
+    lower.includes('fluxo') ||
+    lower.includes('processo') ||
+    lower.includes('etapa') ||
+    lower.includes('alta') ||
+    lower.includes('triagem')
+  ) {
+    return 'workflow';
+  }
+  if (
+    lower.includes('tela') ||
+    lower.includes('botão') ||
+    lower.includes('filtro') ||
+    lower.includes('formul') ||
+    lower.includes('layout') ||
+    lower.includes('usabilidade')
+  ) {
+    return 'usability';
+  }
+  if (lower.includes('alerta') || lower.includes('notifica') || lower.includes('aviso')) {
+    return 'alerts';
+  }
+  if (
+    hasStandaloneAiToken ||
+    lower.includes('assistente') ||
+    lower.includes('recomend')
+  ) {
+    return 'ai';
+  }
+  if (
+    lower.includes('lento') ||
+    lower.includes('demora') ||
+    lower.includes('trav') ||
+    lower.includes('performance') ||
+    lower.includes('veloc')
+  ) {
+    return 'performance';
+  }
+  if (
+    lower.includes('integra') ||
+    lower.includes('api') ||
+    lower.includes('whatsapp') ||
+    lower.includes('erp') ||
+    lower.includes('fhir')
+  ) {
+    return 'integration';
+  }
+  return 'general';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -46,8 +109,35 @@ export async function POST(request: NextRequest) {
     }
 
     const priority = detectPriority(text);
-    const status: SuggestionStatus = 'pending';
+    const category = detectCategory(text);
     const timestamp = new Date().toISOString();
+    const runId = `RUN-user-suggestion-${Date.now().toString(36)}`;
+    let status: SuggestionStatus = 'pending';
+    let autoFindingId: string | null = null;
+
+    try {
+      const finding = createFinding({
+        jobId: 'frontend.component-imports',
+        runId,
+        severity: priority === 'high' ? 'high' : priority === 'medium' ? 'medium' : 'low',
+        surface: 'frontend.component',
+        target: `user-suggestion:${category}`,
+        message: `Sugestão enviada por ${author}: ${text.trim().slice(0, 140)}`,
+        details: {
+          intakeType: 'user-suggestion',
+          author,
+          fullText: text.trim(),
+          priority,
+          category,
+          source: 'web-sidebar',
+        },
+      });
+      autoFindingId = finding.id;
+      await runAgentLoopForRun(runId);
+      status = 'reviewing';
+    } catch (analysisError) {
+      console.error('Erro ao enfileirar análise automática da sugestão:', analysisError);
+    }
 
     const stored = appendEvent('suggestion', {
       timestamp,
@@ -59,6 +149,8 @@ export async function POST(request: NextRequest) {
         author,
         status,
         priority,
+        category,
+        autoFindingId,
       },
     });
 
@@ -69,7 +161,14 @@ export async function POST(request: NextRequest) {
       actor: author,
       resource: `suggestion:${stored.id}`,
       result: 'success',
-      details: { suggestionId: stored.id, priority, text: text.trim() },
+      details: {
+        suggestionId: stored.id,
+        priority,
+        category,
+        text: text.trim(),
+        autoFindingId,
+        autoAnalysisStarted: status === 'reviewing',
+      },
       origin: request.headers.get('x-forwarded-for') || 'unknown',
       clientId: 'velya-web',
       requestPath: '/api/suggestions',
@@ -85,6 +184,8 @@ export async function POST(request: NextRequest) {
         timestamp: stored.receivedAt,
         status,
         priority,
+        category,
+        autoFindingId,
       },
     });
   } catch (error) {
@@ -109,6 +210,8 @@ export async function GET(request: NextRequest) {
       timestamp: event.receivedAt,
       status: (event.data.status as SuggestionStatus) || 'pending',
       priority: (event.data.priority as SuggestionPriority) || 'low',
+      category: (event.data.category as SuggestionCategory | undefined) || 'general',
+      autoFindingId: (event.data.autoFindingId as string | null | undefined) || null,
     }));
 
     if (statusFilter) {
@@ -118,7 +221,10 @@ export async function GET(request: NextRequest) {
       suggestions = suggestions.filter((s) => s.priority === priorityFilter);
     }
 
-    const pendingCount = events.filter((e) => (e.data.status as string) === 'pending').length;
+    const pendingCount = events.filter((e) => {
+      const currentStatus = e.data.status as string;
+      return currentStatus === 'pending' || currentStatus === 'reviewing';
+    }).length;
 
     return NextResponse.json({
       suggestions: suggestions.slice(0, limit),

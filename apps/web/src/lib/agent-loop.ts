@@ -103,6 +103,23 @@ function classify(finding: CronFinding, _job: CronJobDef): Recommendation | null
     };
   }
 
+  if (surface === 'frontend.component' && finding.details?.intakeType === 'user-suggestion') {
+    const category = String(finding.details?.category ?? 'general');
+    const author = String(finding.details?.author ?? 'usuário');
+    const suggestionText = String(finding.details?.fullText ?? finding.message);
+    const priority = String(finding.details?.priority ?? 'low');
+    return {
+      text:
+        `Sugestão recebida de ${author}. Categoria: ${category}. Prioridade inicial: ${priority}. ` +
+        `Próximo passo recomendado: validar impacto no fluxo atual, confirmar se a demanda ` +
+        `já existe no backlog e abrir triagem funcional antes de qualquer implementação. ` +
+        `Resumo da ideia: "${suggestionText.slice(0, 220)}".`,
+      safeToAutoCorrect: false,
+      actionType: 'triage-user-suggestion',
+      patternId: `frontend.feedback:${category}`,
+    };
+  }
+
   // Disk usage rotation candidates
   if (surface === 'infra.disk') {
     return {

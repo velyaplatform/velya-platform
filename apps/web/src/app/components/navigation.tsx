@@ -79,7 +79,7 @@ const SIDEBAR_WIDTH_STORAGE_KEY = 'velya:sidebar-width';
 
 export function Navigation({
   currentRole,
-  userName: _userName,
+  userName,
   onLogout: _onLogout,
   mobileOpen,
   onMobileClose,
@@ -92,10 +92,18 @@ export function Navigation({
   // textarea) does not re-render at 120 Hz.
   const [sidebarWidth, setSidebarWidth] = useState<number>(SIDEBAR_DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
+  const [suggestionText, setSuggestionText] = useState('');
+  const [suggestionSubmitting, setSuggestionSubmitting] = useState(false);
+  const [suggestionFeedback, setSuggestionFeedback] = useState<{
+    tone: 'success' | 'error';
+    message: string;
+  } | null>(null);
   const widthRef = useRef<number>(SIDEBAR_DEFAULT_WIDTH);
   const asideRef = useRef<HTMLElement | null>(null);
   const dragStartXRef = useRef<number>(0);
   const dragStartWidthRef = useRef<number>(SIDEBAR_DEFAULT_WIDTH);
+  const suggestionMinLength = 12;
+  const suggestionMaxLength = 500;
 
   // Hydrate persisted width on mount and sync --sidebar-width CSS var.
   useEffect(() => {
@@ -206,6 +214,57 @@ export function Navigation({
 
   function handleNavClick() {
     onMobileClose?.();
+  }
+
+  async function handleSuggestionSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const text = suggestionText.trim();
+    if (text.length < suggestionMinLength) {
+      setSuggestionFeedback({
+        tone: 'error',
+        message: `Descreva a sugestão com pelo menos ${suggestionMinLength} caracteres.`,
+      });
+      return;
+    }
+
+    setSuggestionSubmitting(true);
+    setSuggestionFeedback(null);
+
+    try {
+      const response = await fetch('/api/suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, author: userName }),
+      });
+      const data = (await response.json()) as {
+        error?: string;
+        suggestion?: { status?: string };
+      };
+
+      if (!response.ok) {
+        setSuggestionFeedback({
+          tone: 'error',
+          message: data.error || 'Não foi possível registrar a sugestão agora.',
+        });
+        return;
+      }
+
+      setSuggestionText('');
+      setSuggestionFeedback({
+        tone: 'success',
+        message:
+          data.suggestion?.status === 'reviewing'
+            ? 'Sugestão registrada e colocada em análise automática.'
+            : 'Sugestão registrada com sucesso.',
+      });
+    } catch {
+      setSuggestionFeedback({
+        tone: 'error',
+        message: 'Falha de rede ao enviar a sugestão.',
+      });
+    } finally {
+      setSuggestionSubmitting(false);
+    }
   }
 
   return (
@@ -361,6 +420,115 @@ export function Navigation({
             </div>
           </div>
         )}
+
+        <section
+          id="sidebar-suggestion"
+          className="mt-auto rounded-xl border p-3"
+          style={{
+            borderColor: 'var(--border-default)',
+            background: 'var(--canvas-subtle)',
+          }}
+          aria-label="Enviar sugestão de melhoria"
+        >
+          <div className="mb-2">
+            <div
+              className="text-sm font-semibold"
+              style={{ color: 'var(--fg-default)' }}
+            >
+              Recomendar melhoria
+            </div>
+            <p
+              className="mt-1 text-xs leading-5"
+              style={{ color: 'var(--fg-muted)' }}
+            >
+              Sua ideia fica registrada e entra automaticamente em análise shadow.
+            </p>
+          </div>
+
+          <form onSubmit={handleSuggestionSubmit} className="flex flex-col gap-2">
+            <label htmlFor="sidebar-suggestion-text" className="sr-only">
+              Descreva a sugestão
+            </label>
+            <textarea
+              id="sidebar-suggestion-text"
+              value={suggestionText}
+              onChange={(event) => {
+                setSuggestionText(event.target.value.slice(0, suggestionMaxLength));
+                if (suggestionFeedback) {
+                  setSuggestionFeedback(null);
+                }
+              }}
+              rows={4}
+              maxLength={suggestionMaxLength}
+              placeholder="Ex.: adicionar atalho para alta, melhorar filtros, revisar fluxo de alertas..."
+              className="w-full resize-y rounded-lg border px-3 py-2 text-sm"
+              style={{
+                borderColor: 'var(--border-default)',
+                background: 'var(--canvas-default)',
+                color: 'var(--fg-default)',
+              }}
+            />
+
+            <div className="flex items-center justify-between gap-2">
+              <span
+                className="text-[11px]"
+                style={{ color: 'var(--fg-muted)' }}
+              >
+                {suggestionText.trim().length}/{suggestionMaxLength}
+              </span>
+
+              <button
+                type="submit"
+                disabled={suggestionSubmitting || suggestionText.trim().length < suggestionMinLength}
+                className="btn btn-sm"
+                style={{
+                  opacity:
+                    suggestionSubmitting || suggestionText.trim().length < suggestionMinLength
+                      ? 0.6
+                      : 1,
+                  cursor:
+                    suggestionSubmitting || suggestionText.trim().length < suggestionMinLength
+                      ? 'not-allowed'
+                      : 'pointer',
+                }}
+              >
+                {suggestionSubmitting ? 'Enviando...' : 'Enviar'}
+              </button>
+            </div>
+          </form>
+
+          {suggestionFeedback && (
+            <p
+              className="mt-2 rounded-md border px-3 py-2 text-xs leading-5"
+              style={{
+                borderColor:
+                  suggestionFeedback.tone === 'success'
+                    ? 'var(--success-border, var(--border-default))'
+                    : 'var(--danger-border, var(--border-default))',
+                background:
+                  suggestionFeedback.tone === 'success'
+                    ? 'var(--success-subtle, var(--canvas-default))'
+                    : 'var(--danger-subtle, var(--canvas-default))',
+                color:
+                  suggestionFeedback.tone === 'success'
+                    ? 'var(--success-fg, var(--fg-default))'
+                    : 'var(--danger-fg, var(--fg-default))',
+              }}
+              role={suggestionFeedback.tone === 'error' ? 'alert' : 'status'}
+            >
+              {suggestionFeedback.message}
+            </p>
+          )}
+
+          <Link
+            href="/suggestions"
+            onClick={handleNavClick}
+            className="mt-3 inline-flex text-xs font-medium"
+            style={{ color: 'var(--accent-fg)' }}
+          >
+            Abrir painel de sugestões
+          </Link>
+        </section>
       </nav>
 
       {/* Spacer to push content up */}

@@ -104,7 +104,7 @@ export default function SuggestionsPage() {
       <div className="page-header">
         <h1 className="page-title">Gestão de Sugestões</h1>
         <p className="page-subtitle">
-          {pendingCount} sugestão(ões) pendente(s) — revise, priorize e atualize o status
+          {pendingCount} sugestão(ões) em triagem ou pendente(s) — revise, priorize e atualize o status
         </p>
       </div>
 
