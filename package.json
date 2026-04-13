@@ -1,6 +1,6 @@
 {
   "name": "velya-platform",
-  "version": "1.58.0",
+  "version": "1.58.1",
   "private": true,
   "description": "Velya - AI-Native Hospital Operations Platform",
   "workspaces": [
