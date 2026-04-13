@@ -445,7 +445,7 @@ export default function TasksPage() {
 
   const fetchTasks = useCallback(async () => {
     try {
-      const res = await fetch('/api/hospital-tasks?inbox=true');
+      const res = await fetch('/api/hospital-tasks?limit=500');
       if (!res.ok) return;
       const data: ApiResponse = await res.json();
       setTasks(data.items);
