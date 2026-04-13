@@ -14,7 +14,6 @@ import {
 import { FavoritesMenu } from './favorites-menu';
 import { Navigation, type Role } from './navigation';
 import { PatientQuickSwitcher } from './patient-quick-switcher';
-import { ROLE_DEFINITIONS, resolveUiRole } from '../../lib/access-control';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { ShortcutProvider } from './shortcuts/shortcut-provider';
 import { ShortcutOverlay } from './shortcuts/shortcut-overlay';
@@ -127,9 +126,6 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
   }
 
   const currentRole = sessionData.role as Role;
-  const professionalRole = resolveUiRole(currentRole);
-  const roleDef = ROLE_DEFINITIONS[professionalRole];
-  const councilBadge = sessionData.conselhoProfissional || roleDef?.professionalCouncil || null;
 
   const nameParts = sessionData.userName.split(' ').filter(Boolean);
   const initials =
@@ -276,7 +272,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
             className="gh-header-icon-btn"
             style={{ padding: 0, width: 32, height: 32 }}
             aria-label={`Meu painel — ${sessionData.userName}`}
-            title="Meu painel"
+            title={`${sessionData.userName} — Meu painel`}
           >
             <Avatar className="h-8 w-8" style={{ border: '1px solid rgba(255,255,255,0.15)' }}>
               <AvatarFallback
@@ -357,6 +353,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
               <div
                 className="hidden md:flex items-center gap-2"
                 style={{ fontSize: 'var(--text-sm)', color: 'var(--fg-muted)' }}
+                title={sessionActive ? 'Sessao ativa' : 'Sessao inativa'}
               >
                 <span
                   className="inline-block h-2 w-2 rounded-full"
@@ -367,10 +364,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
                   }}
                   aria-hidden="true"
                 />
-                <span>{sessionData.userName}</span>
-                {councilBadge && (
-                  <span style={{ color: 'var(--fg-subtle)' }}>· {councilBadge}</span>
-                )}
+                <span>{sessionActive ? 'Sessao ativa' : 'Sessao inativa'}</span>
               </div>
             </div>
           </div>
