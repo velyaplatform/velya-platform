@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   ListChecks,
+  Plus,
   Stethoscope,
   Building2,
   Users,
@@ -49,7 +50,7 @@ interface NavItemDef {
 const NAV_ITEMS: NavItemDef[] = [
   // --- Assistencial ---
   { href: '/', icon: LayoutDashboard, label: 'Visao Geral', section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/pacientes', icon: Users, label: 'Pacientes', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/patients', icon: Users, label: 'Pacientes', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/tasks', icon: ListChecks, label: 'Tarefas', section: NAV_SECTIONS.ASSISTENCIAL },
 
   // --- Gestao ---
@@ -345,43 +346,71 @@ export function Navigation({
               </div>
               <div className="gh-sidenav">
                 {items.map((item) => {
+                  const isPatientsItem = item.href === '/patients';
                   const isActive =
-                    item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+                    item.href === '/'
+                      ? pathname === '/'
+                      : pathname.startsWith(item.href) ||
+                        (isPatientsItem && pathname.startsWith('/pacientes'));
                   const Icon = item.icon;
                   return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={handleNavClick}
-                      className={cn('gh-sidenav-item', isActive && 'is-active')}
-                    >
-                      <Icon
-                        className="h-[16px] w-[16px] shrink-0"
-                        style={{
-                          color: isActive ? 'var(--accent-fg)' : 'var(--fg-muted)',
-                        }}
-                        strokeWidth={2}
-                      />
-                      <span className="truncate">{item.label}</span>
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <span
-                          className="ml-auto gh-label"
+                    <div key={item.href} className="space-y-1">
+                      <Link
+                        href={item.href}
+                        onClick={handleNavClick}
+                        className={cn('gh-sidenav-item', isActive && 'is-active')}
+                      >
+                        <Icon
+                          className="h-[16px] w-[16px] shrink-0"
                           style={{
-                            background:
-                              item.badge >= 5 && item.label.includes('Alerta')
-                                ? 'var(--danger-subtle)'
-                                : 'var(--canvas-subtle)',
-                            color:
-                              item.badge >= 5 && item.label.includes('Alerta')
-                                ? 'var(--danger-fg)'
-                                : 'var(--fg-muted)',
-                            borderColor: 'var(--border-default)',
+                            color: isActive ? 'var(--accent-fg)' : 'var(--fg-muted)',
                           }}
+                          strokeWidth={2}
+                        />
+                        <span className="truncate">{item.label}</span>
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span
+                            className="ml-auto gh-label"
+                            style={{
+                              background:
+                                item.badge >= 5 && item.label.includes('Alerta')
+                                  ? 'var(--danger-subtle)'
+                                  : 'var(--canvas-subtle)',
+                              color:
+                                item.badge >= 5 && item.label.includes('Alerta')
+                                  ? 'var(--danger-fg)'
+                                  : 'var(--fg-muted)',
+                              borderColor: 'var(--border-default)',
+                            }}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+
+                      {isPatientsItem && (
+                        <Link
+                          href="/patients/new"
+                          onClick={handleNavClick}
+                          className={cn(
+                            'gh-sidenav-item ml-6 min-h-[28px] py-1.5 text-sm',
+                            pathname === '/patients/new' && 'is-active',
+                          )}
                         >
-                          {item.badge}
-                        </span>
+                          <Plus
+                            className="h-[14px] w-[14px] shrink-0"
+                            style={{
+                              color:
+                                pathname === '/patients/new'
+                                  ? 'var(--accent-fg)'
+                                  : 'var(--fg-muted)',
+                            }}
+                            strokeWidth={2}
+                          />
+                          <span className="truncate">Novo Paciente</span>
+                        </Link>
                       )}
-                    </Link>
+                    </div>
                   );
                 })}
               </div>

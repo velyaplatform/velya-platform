@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Filter, Users, ClipboardList } from 'lucide-react';
+import { Search, Filter, Users, ClipboardList } from 'lucide-react';
 import { AppShell } from '../components/app-shell';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -113,11 +113,6 @@ export default function PatientsPage() {
             {onTrackCount} no prazo
           </p>
         </div>
-        <Button asChild size="sm">
-          <Link href="/patients/new">
-            <Plus className="h-3.5 w-3.5" /> Novo Paciente
-          </Link>
-        </Button>
       </div>
 
       {/* Status chips — filtros rápidos */}
