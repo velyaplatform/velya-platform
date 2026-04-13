@@ -30,6 +30,7 @@ import {
   getSinaisVitaisPorInternacao,
   getUnidadeById,
 } from '../../../lib/fixtures/hospital-core';
+import { getTarefasPorInternacao } from '../../../lib/fixtures/hospital-tasks-seed';
 import type {
   CareTeamPapel,
   CategoriaProfissional,
@@ -1814,57 +1815,68 @@ const STATUS_LABEL: Record<TarefaPaciente['status'], string> = {
 };
 
 function TarefasPacienteView({ internacaoId, pacienteMrn }: { internacaoId: string; pacienteMrn: string }) {
-  // Stable fixture-style tasks derived from internacao id so every patient
-  // has a realistic task set without needing a backend call.
   const tarefas = useMemo<TarefaPaciente[]>(() => {
     const baseNow = new Date('2026-04-12T10:30:00-03:00').getTime();
-    const seed = internacaoId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    const mk = (i: number): TarefaPaciente => {
-      const pri: TarefaPaciente['prioridade'][] = ['urgente', 'alta', 'normal', 'baixa'];
-      const sts: TarefaPaciente['status'][] = ['aberta', 'recebida', 'aceita', 'em_andamento', 'impedida', 'concluida'];
-      const tp: TarefaPaciente['tipo'][] = ['medicacao', 'exame', 'procedimento', 'avaliacao', 'transporte', 'documentacao'];
-      const titles: Record<TarefaPaciente['tipo'], string[]> = {
-        medicacao: ['Administrar antibiotico IV', 'Preparar infusao de noradrenalina', 'Reconciliar prescricao'],
-        exame: ['Coletar hemocultura', 'Solicitar TC de abdome', 'Liberar resultado de gasometria'],
-        procedimento: ['Troca de curativo', 'Passagem de cateter central', 'Sondagem vesical'],
-        avaliacao: ['Avaliacao nutricional', 'Avaliacao fisioterapeutica', 'Reavaliar dor'],
-        transporte: ['Levar ao centro cirurgico', 'Transporte para TC', 'Retorno da sala de recuperacao'],
-        limpeza: ['Limpeza terminal do leito'],
-        documentacao: ['Completar sumario de alta', 'Obter consentimento informado', 'Atualizar prontuario'],
+    const fromFixture = getTarefasPorInternacao(internacaoId);
+    const mapStatus = (s: string): TarefaPaciente['status'] => {
+      switch (s) {
+        case 'open': return 'aberta';
+        case 'received': return 'recebida';
+        case 'accepted': return 'aceita';
+        case 'in_progress': return 'em_andamento';
+        case 'blocked': return 'impedida';
+        case 'completed': return 'concluida';
+        case 'verified': return 'concluida';
+        default: return 'aberta';
+      }
+    };
+    const mapPriority = (p: string): TarefaPaciente['prioridade'] => {
+      switch (p) {
+        case 'urgent': return 'urgente';
+        case 'high': return 'alta';
+        case 'normal': return 'normal';
+        case 'low': return 'baixa';
+        default: return 'normal';
+      }
+    };
+    const mapTipo = (sub: string): TarefaPaciente['tipo'] => {
+      const mapping: Record<string, TarefaPaciente['tipo']> = {
+        medicacao: 'medicacao',
+        exames: 'exame',
+        procedimentos: 'procedimento',
+        avaliacao: 'avaliacao',
+        parecer: 'avaliacao',
+        alta: 'documentacao',
+        limpeza: 'limpeza',
+        transporte: 'transporte',
+        manutencao: 'procedimento',
+        nutricao: 'procedimento',
+        documentacao: 'documentacao',
+        faturamento: 'documentacao',
+        coordenacao: 'documentacao',
       };
-      const priority = pri[(seed + i) % pri.length];
-      const status = sts[(seed + i * 2) % sts.length];
-      const tipo = tp[(seed + i) % tp.length];
-      const titleList = titles[tipo];
-      const titulo = titleList[(seed + i) % titleList.length];
-      const slaHours = priority === 'urgente' ? 0.5 : priority === 'alta' ? 2 : priority === 'normal' ? 6 : 24;
-      const createdMs = baseNow - (1 + (i % 4)) * 3600000;
-      const deadline = createdMs + slaHours * 3600000;
-      const pct = Math.min(100, Math.max(0, Math.round(((baseNow - createdMs) / (deadline - createdMs)) * 100)));
-      const destinatarios = [
-        { nome: 'Dra. Marina Albuquerque', papel: 'Coord. UTI' },
-        { nome: 'Enf. Ana Beatriz', papel: 'Enf. assistencial' },
-        { nome: 'Tec. Carlos Mendes', papel: 'Tecnico enfermagem' },
-        { nome: 'Dr. Paulo Ferraz', papel: 'Cardiologia plantao' },
-        { nome: 'Camila Nutri', papel: 'Nutricionista' },
-        { nome: 'Tec. Eduardo Bento', papel: 'Radiologia' },
-      ];
-      const dest = destinatarios[(seed + i) % destinatarios.length];
+      return mapping[sub] ?? 'avaliacao';
+    };
+    return fromFixture.map((t) => {
+      const createdMs = new Date(t.createdAt).getTime();
+      const deadlineMs = new Date(t.sla.completeBy).getTime();
+      const total = deadlineMs - createdMs;
+      const elapsed = baseNow - createdMs;
+      const pct = total > 0 ? Math.min(500, Math.max(0, Math.round((elapsed / total) * 100))) : 100;
       return {
-        id: `task-${internacaoId}-${i}`,
-        codigo: `T-${String((seed + i) % 9999).padStart(4, '0')}`,
-        titulo,
-        tipo,
-        prioridade: priority,
-        status,
-        destinatarioNome: dest.nome,
-        destinatarioPapel: dest.papel,
-        criadoEm: new Date(createdMs).toISOString(),
-        slaDeadlineEm: new Date(deadline).toISOString(),
+        id: t.id,
+        codigo: t.shortCode,
+        titulo: t.title,
+        tipo: mapTipo(t.subcategory),
+        prioridade: mapPriority(t.priority),
+        status: mapStatus(t.status),
+        destinatarioNome: t.assignedTo.name,
+        destinatarioPapel: t.assignedTo.role,
+        criadoEm: t.createdAt,
+        slaDeadlineEm: t.sla.completeBy,
         slaPct: pct,
       };
-    };
-    return Array.from({ length: 6 }, (_, i) => mk(i));
+    });
   }, [internacaoId]);
 
   const byStatus = useMemo(() => {

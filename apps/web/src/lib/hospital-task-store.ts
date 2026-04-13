@@ -53,12 +53,28 @@ function ensureStorage(): void {
   }
 }
 
+import { HOSPITAL_TASKS_SEED } from './fixtures/hospital-tasks-seed';
+
+let seedAttempted = false;
+
 function readStore(): StoreShape {
   ensureStorage();
   try {
     const raw = readFileSync(STORAGE_PATH, 'utf8');
     const parsed = JSON.parse(raw) as StoreShape;
     if (!Array.isArray(parsed.tasks)) return { tasks: [], sequence: 0 };
+
+    // Seed from fixture if store is empty (first boot)
+    if (parsed.tasks.length === 0 && !seedAttempted && HOSPITAL_TASKS_SEED.length > 0) {
+      seedAttempted = true;
+      const seeded: StoreShape = {
+        tasks: HOSPITAL_TASKS_SEED as HospitalTask[],
+        sequence: HOSPITAL_TASKS_SEED.length,
+      };
+      writeStore(seeded);
+      return seeded;
+    }
+
     return { tasks: parsed.tasks, sequence: parsed.sequence ?? 0 };
   } catch {
     return { tasks: [], sequence: 0 };
