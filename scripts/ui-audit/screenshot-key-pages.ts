@@ -13,15 +13,16 @@
  *   Metadata JSON em {out}/{timestamp}/manifest.json
  */
 
-import { chromium, type Browser, type Page } from 'playwright';
+import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
+type ContextOptions = NonNullable<Parameters<Browser['newContext']>[0]>;
+type ContextStorageState = ContextOptions['storageState'];
 
 interface CliArgs {
   url: string;
   out: string;
-  authenticated: boolean;
-  sessionCookie?: string;
 }
 
 function parseArgs(): CliArgs {
@@ -33,8 +34,6 @@ function parseArgs(): CliArgs {
   return {
     url: getArg('url', 'https://velyahospitalar.com'),
     out: getArg('out', join(process.cwd(), 'screenshots')),
-    authenticated: args.includes('--authenticated'),
-    sessionCookie: process.env.VELYA_SESSION_COOKIE,
   };
 }
 
@@ -65,50 +64,99 @@ const VIEWPORTS: ViewportSpec[] = [
   { name: 'mobile', width: 390, height: 844 },
 ];
 
-async function loginIfNeeded(page: Page, baseUrl: string): Promise<boolean> {
-  // Tenta autenticar com credenciais de teste (fixtures do app).
-  // O Velya tem um fluxo de login por email+senha, mas as fixtures
-  // de dev aceitam qualquer email+senha do domínio velyaplatform.
-  const testEmail = process.env.VELYA_TEST_EMAIL || 'admin@velyaplatform.com';
-  const testPassword = process.env.VELYA_TEST_PASSWORD || 'admin';
+const ONBOARDING_STORAGE_KEY = 'velya:onboarding-completed-v1';
 
-  await page.goto(`${baseUrl}/login`, { waitUntil: 'networkidle' });
-  await page.fill('#email', testEmail).catch(() => undefined);
-  await page.fill('#password', testPassword).catch(() => undefined);
-  await page.click('button[type="submit"]').catch(() => undefined);
-
-  // Aguarda redirect pra /
-  await page.waitForURL(new RegExp(`${baseUrl.replace(/\//g, '\\/')}/(?!login).*`), {
-    timeout: 5000,
-  }).catch(() => undefined);
-
-  return page.url().includes('/login') === false;
-}
-
-async function shoot(
+async function createContext(
   browser: Browser,
-  baseUrl: string,
-  pageSpec: PageSpec,
   viewport: ViewportSpec,
-  outDir: string,
-  isAuthenticated: boolean,
-): Promise<{ file: string; ok: boolean; error?: string }> {
+  storageState?: ContextStorageState,
+): Promise<BrowserContext> {
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: 1,
     userAgent:
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 VelyaUiAudit/1.0',
+    ...(storageState ? { storageState } : {}),
   });
+  await context.addInitScript((storageKey: string) => {
+    try {
+      window.localStorage.setItem(storageKey, new Date().toISOString());
+    } catch {
+      // ignore localStorage restrictions in locked-down environments
+    }
+  }, ONBOARDING_STORAGE_KEY);
+  return context;
+}
+
+async function authenticateContext(context: BrowserContext, baseUrl: string): Promise<boolean> {
+  const page = await context.newPage();
+  await page.goto(`${baseUrl}/login`, { waitUntil: 'networkidle' });
+  const email = `ui-audit-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@velya.local`;
+  const password = process.env.VELYA_TEST_PASSWORD || 'PixelCheck2026!';
+
+  const loggedIn = await page.evaluate(
+    async (creds: { email: string; password: string }) => {
+      const registerResponse = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: creds.email,
+          password: creds.password,
+          nome: 'UI Audit Bot',
+          role: 'Administrador',
+          setor: 'TI',
+        }),
+      });
+      if (!registerResponse.ok) return false;
+
+      const registerData = (await registerResponse.json()) as { devCode?: string };
+      if (registerData.devCode) {
+        const verifyResponse = await fetch('/api/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: creds.email, code: registerData.devCode }),
+        });
+        if (!verifyResponse.ok) return false;
+      }
+
+      const loginResponse = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: creds.email, password: creds.password }),
+      });
+      if (!loginResponse.ok) return false;
+
+      const loginData = (await loginResponse.json()) as { success?: boolean };
+      return loginData.success === true;
+    },
+    { email, password },
+  );
+
+  if (!loggedIn) {
+    await page.close();
+    return false;
+  }
+
+  await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(1_000);
+  const authenticated = new URL(page.url()).pathname !== '/login';
+  await page.close();
+  return authenticated;
+}
+
+async function shoot(
+  context: BrowserContext,
+  baseUrl: string,
+  pageSpec: PageSpec,
+  viewport: ViewportSpec,
+  outDir: string,
+): Promise<{ file: string; ok: boolean; error?: string }> {
   const page = await context.newPage();
 
   try {
-    if (pageSpec.requireAuth && !isAuthenticated) {
-      await loginIfNeeded(page, baseUrl);
-    }
-
     const url = `${baseUrl}${pageSpec.path}`;
     const response = await page.goto(url, {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
       timeout: 30_000,
     });
 
@@ -119,16 +167,25 @@ async function shoot(
       throw new Error(`HTTP ${response.status()}`);
     }
 
-    // Dá um tempo pra fontes e reidentificações
-    await page.waitForTimeout(800);
+    const pathname = new URL(page.url()).pathname;
+    if (pageSpec.requireAuth && pathname === '/login') {
+      throw new Error('redirected to login');
+    }
+
+    if (pageSpec.name === 'home' && viewport.name === 'desktop') {
+      await page.waitForSelector('#sidebar-suggestion', { timeout: 5_000 });
+    }
+
+    // Dá um tempo pra fontes, hidratação e requests em background.
+    await page.waitForTimeout(1_200);
 
     const file = join(outDir, `${pageSpec.name}-${viewport.name}.png`);
     await page.screenshot({ path: file, fullPage: true });
 
-    await context.close();
+    await page.close();
     return { file, ok: true };
   } catch (error) {
-    await context.close();
+    await page.close();
     return {
       file: '',
       ok: false,
@@ -147,8 +204,10 @@ async function main(): Promise<void> {
   console.log(`[screenshot] Saída: ${outDir}`);
 
   const browser = await chromium.launch({ headless: true });
-
-  let globallyAuthenticated = false;
+  const bootstrapContext = await createContext(browser, VIEWPORTS[0]);
+  const authenticated = await authenticateContext(bootstrapContext, args.url);
+  const authenticatedState = authenticated ? await bootstrapContext.storageState() : undefined;
+  await bootstrapContext.close();
 
   const results: Array<{
     page: string;
@@ -159,32 +218,41 @@ async function main(): Promise<void> {
   }> = [];
 
   try {
-    // Primeiro login (reutiliza contexto conceitualmente — na verdade
-    // cada viewport abre contexto novo, então cada um faz login isolado)
-    for (const pageSpec of PAGES) {
-      for (const viewport of VIEWPORTS) {
-        console.log(`[screenshot] ${pageSpec.name} @ ${viewport.name}…`);
-        const result = await shoot(
-          browser,
-          args.url,
-          pageSpec,
-          viewport,
-          outDir,
-          globallyAuthenticated,
-        );
-        results.push({
-          page: pageSpec.name,
-          viewport: viewport.name,
-          file: result.file,
-          ok: result.ok,
-          error: result.error,
-        });
-        if (result.ok) {
-          console.log(`  ✓ ${result.file}`);
-          globallyAuthenticated = true;
-        } else {
-          console.log(`  ✗ ${result.error}`);
+    for (const viewport of VIEWPORTS) {
+      const publicContext = await createContext(browser, viewport);
+      const authenticatedContext = authenticatedState
+        ? await createContext(browser, viewport, authenticatedState)
+        : await createContext(browser, viewport);
+
+      try {
+        for (const pageSpec of PAGES) {
+          console.log(`[screenshot] ${pageSpec.name} @ ${viewport.name}…`);
+          const result =
+            pageSpec.requireAuth && !authenticated
+              ? { file: '', ok: false, error: 'authentication failed' }
+              : await shoot(
+                  pageSpec.requireAuth ? authenticatedContext : publicContext,
+                  args.url,
+                  pageSpec,
+                  viewport,
+                  outDir,
+                );
+          results.push({
+            page: pageSpec.name,
+            viewport: viewport.name,
+            file: result.file,
+            ok: result.ok,
+            error: result.error,
+          });
+          if (result.ok) {
+            console.log(`  ✓ ${result.file}`);
+          } else {
+            console.log(`  ✗ ${result.error}`);
+          }
         }
+      } finally {
+        await publicContext.close();
+        await authenticatedContext.close();
       }
     }
   } finally {
