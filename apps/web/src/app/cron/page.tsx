@@ -194,9 +194,7 @@ export default function CronDashboardPage() {
       />
 
       <div className="mb-6">
-        <h1 className="page-title">
-          Cron + Agente Autônomo
-        </h1>
+        <h1 className="page-title">Cron + Agente Autônomo</h1>
         <p className="page-subtitle">Shadow mode. Recomenda, nunca aplica sem humano.</p>
       </div>
 

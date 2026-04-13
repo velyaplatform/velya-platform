@@ -164,9 +164,7 @@ export default function AgentsPage() {
 
       {/* Hero — minimal, ícone grande, frase curta */}
       <div className="mb-6">
-        <h1 className="page-title">
-          Frota de agentes Velya
-        </h1>
+        <h1 className="page-title">Frota de agentes Velya</h1>
         <p className="page-subtitle">
           Cinco escritórios. Um propósito: manter a plataforma viva sozinha.
         </p>
@@ -354,7 +352,9 @@ function AgentCard({
       <header className="flex items-start justify-between gap-2 mb-2">
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-bold text-neutral-900 truncate">{agent.fullName}</h3>
-          <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-0.5">{agent.role}</p>
+          <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-0.5">
+            {agent.role}
+          </p>
         </div>
         <span
           className={`text-[10px] font-bold px-2 py-1 rounded-full border ${STAGE_COLOR[stage] ?? STAGE_COLOR.draft}`}
