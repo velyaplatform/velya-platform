@@ -49,7 +49,7 @@ interface NavItemDef {
 const NAV_ITEMS: NavItemDef[] = [
   // --- Assistencial ---
   { href: '/', icon: LayoutDashboard, label: 'Visao Geral', section: NAV_SECTIONS.ASSISTENCIAL },
-  { href: '/pacientes/MRN-001', icon: Users, label: 'Pacientes', section: NAV_SECTIONS.ASSISTENCIAL },
+  { href: '/pacientes', icon: Users, label: 'Pacientes', section: NAV_SECTIONS.ASSISTENCIAL },
   { href: '/tasks', icon: ListChecks, label: 'Tarefas', section: NAV_SECTIONS.ASSISTENCIAL },
 
   // --- Gestao ---
