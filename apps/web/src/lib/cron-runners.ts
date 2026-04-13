@@ -24,7 +24,7 @@ import { STAFF } from './fixtures/staff';
 const PLATFORM_ROUTES = [
   '/',
   '/me',
-  '/patients',
+  '/pacientes',
   '/tasks',
   '/discharge',
   '/beds',

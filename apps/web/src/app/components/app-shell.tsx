@@ -202,7 +202,7 @@ export function AppShell({ children, pageTitle }: AppShellProps) {
 
         {/* Header nav (hidden on small) */}
         <nav className="hidden lg:flex items-center gap-1">
-          <Link href="/patients" className="gh-header-nav-link">
+          <Link href="/pacientes" className="gh-header-nav-link">
             Pacientes
           </Link>
           <Link href="/tasks" className="gh-header-nav-link">

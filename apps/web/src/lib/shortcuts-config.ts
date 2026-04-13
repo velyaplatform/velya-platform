@@ -16,7 +16,7 @@ export const SHORTCUTS: ShortcutDef[] = [
     description: 'Navega para a lista de pacientes',
     scope: 'global',
     action: 'navigate',
-    target: '/patients',
+    target: '/pacientes',
   },
   {
     key: 'g t',

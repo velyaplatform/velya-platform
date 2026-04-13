@@ -395,7 +395,7 @@ export default function PatientCockpitPage() {
                 cadastro.
               </p>
               <div className="mt-4">
-                <Link href="/patients" className="text-sm underline text-neutral-900">
+                <Link href="/pacientes" className="text-sm underline text-neutral-900">
                   Voltar para lista de pacientes
                 </Link>
               </div>
