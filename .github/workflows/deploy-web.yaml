@@ -134,6 +134,16 @@ jobs:
             kind load docker-image "${IMAGE_NAME}:${TAG}" --name velya-local 2>/dev/null || true
           fi
 
+          if ! kubectl cluster-info >/dev/null 2>&1; then
+            if [ -z "${KUBECONFIG:-}" ]; then
+              echo "⚠️ Nenhum cluster acessível no runner e KUBECONFIG não está configurado. Pulando deploy remoto."
+              exit 0
+            fi
+            echo "❌ KUBECONFIG foi fornecido, mas o cluster não está acessível."
+            kubectl config get-contexts || true
+            exit 1
+          fi
+
           # Para EKS (prod): push para ECR
           # aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
           # docker tag ${IMAGE_NAME}:${TAG} $ECR_REGISTRY/${IMAGE_NAME}:${TAG}
