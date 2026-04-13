@@ -56,6 +56,8 @@ function ensureStorage(): void {
 import { HOSPITAL_TASKS_SEED } from './fixtures/hospital-tasks-seed';
 
 let seedAttempted = false;
+const SHOULD_SEED_FIXTURES =
+  process.env.VELYA_TASK_DISABLE_SEED !== '1' && process.env.NODE_ENV !== 'test';
 
 function readStore(): StoreShape {
   ensureStorage();
@@ -65,7 +67,12 @@ function readStore(): StoreShape {
     if (!Array.isArray(parsed.tasks)) return { tasks: [], sequence: 0 };
 
     // Seed from fixture if store is empty (first boot)
-    if (parsed.tasks.length === 0 && !seedAttempted && HOSPITAL_TASKS_SEED.length > 0) {
+    if (
+      SHOULD_SEED_FIXTURES &&
+      parsed.tasks.length === 0 &&
+      !seedAttempted &&
+      HOSPITAL_TASKS_SEED.length > 0
+    ) {
       seedAttempted = true;
       const seeded: StoreShape = {
         tasks: HOSPITAL_TASKS_SEED as HospitalTask[],

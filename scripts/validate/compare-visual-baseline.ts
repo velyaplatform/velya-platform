@@ -9,7 +9,7 @@
  */
 
 import { readdirSync, readFileSync, statSync, writeFileSync, existsSync } from 'node:fs';
-import { join, basename } from 'node:path';
+import { join } from 'node:path';
 
 interface ComparisonResult {
   file: string;

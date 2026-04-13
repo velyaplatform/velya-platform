@@ -70,7 +70,6 @@ async function main(): Promise<void> {
       pagesChecked++;
 
       const pageIssues: FocusIssue[] = [];
-      let previousTag = '';
       let previousSelector = '';
       let bodyStuckCount = 0;
       let consecutiveSameElement = 0;
@@ -94,7 +93,6 @@ async function main(): Promise<void> {
 
           // Check for visible focus indicator
           const style = getComputedStyle(el);
-          const outline = style.outline;
           const boxShadow = style.boxShadow;
           const outlineWidth = parseFloat(style.outlineWidth);
 
@@ -155,7 +153,6 @@ async function main(): Promise<void> {
           });
         }
 
-        previousTag = focusInfo.tag;
         previousSelector = focusInfo.selector;
       }
 

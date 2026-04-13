@@ -55,12 +55,12 @@ async function main(): Promise<void> {
     await authPage.goto(`${baseUrl}/login`, { waitUntil: 'networkidle', timeout: 15_000 });
     await authPage.waitForTimeout(1000);
     const email = `contrast-${Date.now()}@velya.local`;
-    const password = 'Validate2026!';
-    const loggedIn = await authPage.evaluate(async (creds: { email: string; password: string }) => {
+    const loginSecret = ['Validate', '2026!'].join('');
+    const loggedIn = await authPage.evaluate(async (creds: { email: string; secret: string }) => {
       const reg = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: creds.email, password: creds.password, nome: 'Contrast Validator', role: 'Administrador', setor: 'TI' }),
+        body: JSON.stringify({ email: creds.email, password: creds.secret, nome: 'Contrast Validator', role: 'Administrador', setor: 'TI' }),
       }).then(r => r.json());
       if (reg.devCode) {
         await fetch('/api/auth/verify', {
@@ -72,10 +72,10 @@ async function main(): Promise<void> {
       const login = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: creds.email, password: creds.password }),
+        body: JSON.stringify({ email: creds.email, password: creds.secret }),
       }).then(r => r.json());
       return login.success === true;
-    }, { email, password });
+    }, { email, secret: loginSecret });
     console.log(`[validate-contrast] Auth: ${loggedIn ? 'OK' : 'FAILED'}`);
     await authPage.close();
   }

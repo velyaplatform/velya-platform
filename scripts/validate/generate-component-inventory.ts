@@ -85,10 +85,6 @@ function extractPropsInterface(content: string): string {
     const name = interfaceMatch[1];
     const body = interfaceMatch[2].trim();
     if (!body) return `${name} (empty)`;
-    // Count props
-    const propCount = body.split(';').filter((s) => s.trim().length > 0).length +
-                      body.split('\n').filter((s) => s.trim().length > 0 && !s.includes(';')).length;
-    // Deduplicate counting
     const propLines = body.split('\n').filter((s) => s.trim().length > 0);
     return `${name} (${propLines.length} props)`;
   }

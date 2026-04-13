@@ -13,7 +13,7 @@
  *   Metadata JSON em {out}/{timestamp}/manifest.json
  */
 
-import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
+import { chromium, type Browser, type BrowserContext } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
