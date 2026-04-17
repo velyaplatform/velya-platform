@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wazuh-agent-config
+  namespace: velya-security
+  labels:
+    app.kubernetes.io/name: wazuh-agent
+    app.kubernetes.io/component: siem-agent
+data:
+  # Populated from OpenTofu output: module.wazuh_server.private_ip
+  # Or via SSM parameter: /velya/dev/wazuh/private-ip
+  manager-ip: "WAZUH_MANAGER_IP_PLACEHOLDER"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wazuh-agent-ossec-conf
+  namespace: velya-security
+  labels:
+    app.kubernetes.io/name: wazuh-agent
+    app.kubernetes.io/component: siem-agent
+data:
+  ossec.conf: |
+    <ossec_config>
+      <client>
+        <server>
+          <address>WAZUH_MANAGER_IP_PLACEHOLDER</address>
+          <port>1514</port>
+          <protocol>tcp</protocol>
+        </server>
+        <notify_time>10</notify_time>
+        <time-reconnect>60</time-reconnect>
+      </client>
+
+      <!-- File Integrity Monitoring -->
+      <syscheck>
+        <disabled>no</disabled>
+        <frequency>43200</frequency>
+        <scan_on_start>yes</scan_on_start>
+
+        <!-- Monitor critical host paths -->
+        <directories check_all="yes" realtime="yes">/host-etc</directories>
+        <directories check_all="yes">/host/usr/bin</directories>
+        <directories check_all="yes">/host/usr/sbin</directories>
+
+        <!-- Kubernetes-specific paths -->
+        <directories check_all="yes">/host/etc/kubernetes</directories>
+        <directories check_all="yes">/host/var/lib/kubelet</directories>
+
+        <!-- Ignore noisy paths -->
+        <ignore>/host/proc</ignore>
+        <ignore>/host/sys</ignore>
+        <ignore>/host/dev</ignore>
+        <ignore>/host/run</ignore>
+        <ignore>/host/tmp</ignore>
+        <ignore>/var/log</ignore>
+      </syscheck>
+
+      <!-- Log collection -->
+      <localfile>
+        <log_format>json</log_format>
+        <location>/var/log/containers/*.log</location>
+      </localfile>
+
+      <localfile>
+        <log_format>syslog</log_format>
+        <location>/var/log/messages</location>
+      </localfile>
+
+      <localfile>
+        <log_format>syslog</log_format>
+        <location>/var/log/secure</location>
+      </localfile>
+
+      <localfile>
+        <log_format>audit</log_format>
+        <location>/var/log/audit/audit.log</location>
+      </localfile>
+
+      <!-- Rootcheck -->
+      <rootcheck>
+        <disabled>no</disabled>
+        <check_files>yes</check_files>
+        <check_trojans>yes</check_trojans>
+        <check_unixaudit>yes</check_unixaudit>
+        <check_perm>yes</check_perm>
+        <check_dev>yes</check_dev>
+        <check_sys>yes</check_sys>
+        <check_if>yes</check_if>
+        <frequency>43200</frequency>
+        <rootkit_files>/var/ossec/etc/rootcheck/rootkit_files.txt</rootkit_files>
+        <rootkit_trojans>/var/ossec/etc/rootcheck/rootkit_trojans.txt</rootkit_trojans>
+      </rootcheck>
+
+      <!-- Vulnerability detection -->
+      <vulnerability-detector>
+        <enabled>yes</enabled>
+        <interval>12h</interval>
+        <run_on_start>yes</run_on_start>
+        <provider name="canonical">
+          <enabled>no</enabled>
+        </provider>
+        <provider name="redhat">
+          <enabled>yes</enabled>
+        </provider>
+        <provider name="alas">
+          <enabled>yes</enabled>
+        </provider>
+        <provider name="nvd">
+          <enabled>yes</enabled>
+        </provider>
+      </vulnerability-detector>
+
+      <!-- JSON output for structured logging -->
+      <logging>
+        <log_format>json</log_format>
+      </logging>
+    </ossec_config>

@@ -43,3 +43,23 @@ variable "ecr_repository_names" {
     "velya/worker",
   ]
 }
+
+# --- Wazuh SIEM ---
+
+variable "wazuh_instance_type" {
+  description = "EC2 instance type for the Wazuh server"
+  type        = string
+  default     = "t3.xlarge"
+}
+
+variable "wazuh_data_volume_size_gb" {
+  description = "Size of the Wazuh data EBS volume in GB"
+  type        = number
+  default     = 100
+}
+
+variable "wazuh_version" {
+  description = "Wazuh version to install (pinned)"
+  type        = string
+  default     = "4.9.2"
+}

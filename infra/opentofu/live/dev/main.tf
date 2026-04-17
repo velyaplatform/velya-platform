@@ -89,13 +89,43 @@ module "ecr" {
 module "iam" {
   source = "../../modules/iam"
 
-  project_name      = var.project_name
-  environment       = var.environment
-  oidc_provider_arn = module.eks.oidc_provider_arn
-  oidc_provider_url = module.eks.oidc_provider_url
+  project_name        = var.project_name
+  environment         = var.environment
+  oidc_provider_arn   = module.eks.oidc_provider_arn
+  oidc_provider_url   = module.eks.oidc_provider_url
   ecr_repository_arns = values(module.ecr.repository_arns)
 
   secrets_manager_secret_arns = [
     "arn:aws:secretsmanager:${var.region}:*:secret:${var.project_name}/${var.environment}/*"
   ]
+}
+
+############################################
+# Wazuh SIEM Server (EC2)
+# ADR-0021: Wazuh SIEM on standalone EC2
+############################################
+
+module "wazuh_server" {
+  source = "../../modules/wazuh-server"
+
+  project_name      = var.project_name
+  environment       = var.environment
+  vpc_id            = module.vpc.vpc_id
+  subnet_id         = module.vpc.private_subnet_ids[0]
+  availability_zone = var.availability_zones[0]
+
+  # Allow VPC CIDR for agent communication
+  allowed_cidrs           = [var.vpc_cidr]
+  dashboard_allowed_cidrs = [var.vpc_cidr]
+  monitoring_cidrs        = [var.vpc_cidr]
+
+  # Compute
+  instance_type = var.wazuh_instance_type
+  key_pair_name = ""
+
+  # Storage
+  data_volume_size_gb = var.wazuh_data_volume_size_gb
+
+  # Wazuh version - pinned
+  wazuh_version = var.wazuh_version
 }

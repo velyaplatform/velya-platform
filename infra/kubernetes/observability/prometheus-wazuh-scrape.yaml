@@ -1,0 +1,130 @@
+############################################
+# Prometheus Additional Scrape Config - Wazuh Server
+# This Secret is referenced by the kube-prometheus-stack Helm values
+# as additionalScrapeConfigs
+############################################
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prometheus-additional-scrape-wazuh
+  namespace: velya-observability
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: scrape-config
+    app.kubernetes.io/part-of: velya-platform
+type: Opaque
+stringData:
+  wazuh-scrape.yaml: |
+    - job_name: "wazuh-node"
+      static_configs:
+        - targets: ["WAZUH_PRIVATE_IP:9100"]
+          labels:
+            instance: "wazuh-server"
+            service: "siem"
+      scrape_interval: 30s
+      metrics_path: /metrics
+
+    - job_name: "wazuh-app"
+      static_configs:
+        - targets: ["WAZUH_PRIVATE_IP:9101"]
+          labels:
+            instance: "wazuh-server"
+            service: "siem"
+      scrape_interval: 60s
+      metrics_path: /metrics
+---
+############################################
+# PrometheusRule for Wazuh alerts
+# Applied via kube-prometheus-stack CRD
+############################################
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: wazuh-server-alerts
+  namespace: velya-observability
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: alerting-rules
+    app.kubernetes.io/part-of: velya-platform
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+    - name: wazuh-server-health
+      interval: 60s
+      rules:
+        - alert: WazuhApiDown
+          expr: wazuh_api_up == 0
+          for: 5m
+          labels:
+            severity: critical
+            service: siem
+          annotations:
+            summary: "Wazuh API is unreachable"
+            description: "The Wazuh Manager API has been down for 5+ minutes."
+
+        - alert: WazuhIndexerRed
+          expr: wazuh_indexer_cluster_status == 2
+          for: 5m
+          labels:
+            severity: critical
+            service: siem
+          annotations:
+            summary: "Wazuh Indexer cluster is RED"
+
+        - alert: WazuhNoActiveAgents
+          expr: wazuh_agents_total{status="active"} == 0
+          for: 15m
+          labels:
+            severity: critical
+            service: siem
+          annotations:
+            summary: "No active Wazuh agents reporting"
+
+        - alert: WazuhHighCpu
+          expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle", job="wazuh-node"}[5m])) * 100) > 85
+          for: 15m
+          labels:
+            severity: warning
+            service: siem
+          annotations:
+            summary: "Wazuh server CPU > 85%"
+
+        - alert: WazuhHighMemory
+          expr: (1 - node_memory_MemAvailable_bytes{job="wazuh-node"} / node_memory_MemTotal_bytes{job="wazuh-node"}) * 100 > 90
+          for: 10m
+          labels:
+            severity: critical
+            service: siem
+          annotations:
+            summary: "Wazuh server memory > 90%"
+
+        - alert: WazuhDiskCritical
+          expr: (wazuh_data_disk_used_bytes / wazuh_data_disk_total_bytes) * 100 > 92
+          for: 10m
+          labels:
+            severity: critical
+            service: siem
+          annotations:
+            summary: "Wazuh data volume > 92% full"
+
+        - alert: WazuhAgentsDisconnected
+          expr: wazuh_agents_total{status="disconnected"} / (wazuh_agents_total{status="total"} > 0) > 0.2
+          for: 15m
+          labels:
+            severity: warning
+            service: siem
+          annotations:
+            summary: "More than 20% of Wazuh agents disconnected"
+
+    - name: wazuh-server-slo
+      interval: 300s
+      rules:
+        - record: wazuh:api_availability:ratio_5m
+          expr: avg_over_time(wazuh_api_up[5m])
+
+        - record: wazuh:agent_coverage:ratio
+          expr: wazuh_agents_total{status="active"} / (wazuh_agents_total{status="total"} > 0)
+
+        - record: wazuh:data_disk_usage:ratio
+          expr: wazuh_data_disk_used_bytes / wazuh_data_disk_total_bytes

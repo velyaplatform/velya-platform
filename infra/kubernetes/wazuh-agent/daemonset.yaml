@@ -1,0 +1,122 @@
+############################################
+# Wazuh Agent DaemonSet
+# Runs on every EKS node to report to the Wazuh Manager
+# ADR-0021: Wazuh SIEM on EC2
+############################################
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: wazuh-agent
+  namespace: velya-security
+  labels:
+    app.kubernetes.io/name: wazuh-agent
+    app.kubernetes.io/component: siem-agent
+    app.kubernetes.io/part-of: velya-platform
+    app.kubernetes.io/managed-by: argocd
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: wazuh-agent
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: wazuh-agent
+        app.kubernetes.io/component: siem-agent
+      annotations:
+        prometheus.io/scrape: "false"
+    spec:
+      serviceAccountName: wazuh-agent
+      hostPID: true
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      tolerations:
+        # Run on all nodes, including masters and tainted nodes
+        - operator: Exists
+      priorityClassName: system-node-critical
+      containers:
+        - name: wazuh-agent
+          image: wazuh/wazuh-agent:4.9.2@sha256:placeholder
+          # TODO: pin digest after first pull from registry
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+          env:
+            - name: WAZUH_MANAGER
+              valueFrom:
+                configMapKeyRef:
+                  name: wazuh-agent-config
+                  key: manager-ip
+            - name: WAZUH_REGISTRATION_SERVER
+              valueFrom:
+                configMapKeyRef:
+                  name: wazuh-agent-config
+                  key: manager-ip
+            - name: WAZUH_REGISTRATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-agent-credentials
+                  key: registration-password
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            # Host filesystem for FIM (File Integrity Monitoring)
+            - name: host-root
+              mountPath: /host
+              readOnly: true
+            # Host /var/log for log collection
+            - name: host-var-log
+              mountPath: /var/log
+              readOnly: true
+            # Host /etc for configuration audit
+            - name: host-etc
+              mountPath: /host-etc
+              readOnly: true
+            # Persistent agent data (registration key, queue)
+            - name: agent-data
+              mountPath: /var/ossec/data
+            # Agent configuration
+            - name: agent-config-volume
+              mountPath: /var/ossec/etc/ossec.conf
+              subPath: ossec.conf
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          livenessProbe:
+            exec:
+              command:
+                - /var/ossec/bin/wazuh-control
+                - status
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+      volumes:
+        - name: host-root
+          hostPath:
+            path: /
+            type: Directory
+        - name: host-var-log
+          hostPath:
+            path: /var/log
+            type: Directory
+        - name: host-etc
+          hostPath:
+            path: /etc
+            type: Directory
+        - name: agent-data
+          hostPath:
+            path: /var/ossec/data
+            type: DirectoryOrCreate
+        - name: agent-config-volume
+          configMap:
+            name: wazuh-agent-ossec-conf
