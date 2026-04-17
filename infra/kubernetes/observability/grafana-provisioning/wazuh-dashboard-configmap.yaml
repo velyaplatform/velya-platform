@@ -1,0 +1,158 @@
+############################################
+# Grafana Dashboard Provisioning - Wazuh Server
+# Mounted as ConfigMap for Grafana sidecar auto-discovery
+############################################
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-wazuh-server
+  namespace: velya-observability
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: dashboard
+    grafana_dashboard: "true"
+  annotations:
+    grafana-folder: "Infrastructure / Security"
+data:
+  wazuh-server-overview.json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "description": "Wazuh SIEM Server - Infrastructure and Application Monitoring",
+      "editable": false,
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "id": 100,
+          "title": "Service Health",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [{ "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }],
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+          "id": 1,
+          "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+          "title": "Wazuh API",
+          "type": "stat",
+          "targets": [{ "expr": "wazuh_api_up", "refId": "A" }]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [{ "options": { "0": { "color": "green", "text": "GREEN" }, "1": { "color": "yellow", "text": "YELLOW" }, "2": { "color": "red", "text": "RED" } }, "type": "value" }],
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 2 }] }
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+          "id": 2,
+          "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+          "title": "Indexer Cluster",
+          "type": "stat",
+          "targets": [{ "expr": "wazuh_indexer_cluster_status", "refId": "A" }]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } } },
+          "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+          "id": 3,
+          "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] } },
+          "title": "Active Agents",
+          "type": "stat",
+          "targets": [{ "expr": "wazuh_agents_total{status=\"active\"}", "refId": "A" }]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1, "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 0.9 }, { "color": "green", "value": 0.99 }] } } },
+          "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+          "id": 4,
+          "options": { "colorMode": "background", "graphMode": "area", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] } },
+          "title": "API Availability (5m)",
+          "type": "stat",
+          "targets": [{ "expr": "wazuh:api_availability:ratio_5m", "refId": "A" }]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+          "id": 101,
+          "title": "System Resources",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": { "defaults": { "color": { "mode": "continuous-GrYlRd" }, "custom": { "drawStyle": "line", "fillOpacity": 30, "lineWidth": 2 }, "unit": "percent", "min": 0, "max": 100 } },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+          "id": 10,
+          "title": "CPU Usage",
+          "type": "timeseries",
+          "targets": [{ "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\", job=\"wazuh-node\"}[5m])) * 100)", "legendFormat": "CPU %", "refId": "A" }]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": { "defaults": { "color": { "mode": "continuous-GrYlRd" }, "custom": { "drawStyle": "line", "fillOpacity": 30, "lineWidth": 2, "stacking": { "mode": "normal" } }, "unit": "bytes" } },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+          "id": 11,
+          "title": "Memory",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "node_memory_MemTotal_bytes{job=\"wazuh-node\"} - node_memory_MemAvailable_bytes{job=\"wazuh-node\"}", "legendFormat": "Used", "refId": "A" },
+            { "expr": "node_memory_MemAvailable_bytes{job=\"wazuh-node\"}", "legendFormat": "Available", "refId": "B" }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": { "defaults": { "color": { "mode": "continuous-GrYlRd" }, "unit": "percentunit", "min": 0, "max": 1, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.7 }, { "color": "red", "value": 0.85 }] } } },
+          "gridPos": { "h": 6, "w": 12, "x": 0, "y": 14 },
+          "id": 12,
+          "options": { "orientation": "horizontal", "displayMode": "gradient", "reduceOptions": { "calcs": ["lastNotNull"] } },
+          "title": "Disk Usage",
+          "type": "bargauge",
+          "targets": [
+            { "expr": "wazuh_data_disk_used_bytes / wazuh_data_disk_total_bytes", "legendFormat": "/var/ossec/data", "refId": "A" },
+            { "expr": "1 - node_filesystem_avail_bytes{job=\"wazuh-node\", mountpoint=\"/\"} / node_filesystem_size_bytes{job=\"wazuh-node\", mountpoint=\"/\"}", "legendFormat": "/ (root)", "refId": "B" }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2 }, "unit": "Bps" } },
+          "gridPos": { "h": 6, "w": 12, "x": 12, "y": 14 },
+          "id": 13,
+          "title": "Network I/O",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "rate(node_network_receive_bytes_total{job=\"wazuh-node\", device!~\"lo|veth.*\"}[5m])", "legendFormat": "RX {{ device }}", "refId": "A" },
+            { "expr": "-rate(node_network_transmit_bytes_total{job=\"wazuh-node\", device!~\"lo|veth.*\"}[5m])", "legendFormat": "TX {{ device }}", "refId": "B" }
+          ]
+        }
+      ],
+      "schemaVersion": 39,
+      "tags": ["wazuh", "siem", "security"],
+      "templating": {
+        "list": [
+          { "current": {}, "hide": 0, "label": "Datasource", "name": "datasource", "options": [], "query": "prometheus", "refresh": 1, "type": "datasource" }
+        ]
+      },
+      "time": { "from": "now-6h", "to": "now" },
+      "timezone": "America/Sao_Paulo",
+      "title": "Wazuh Server Overview",
+      "uid": "wazuh-server-overview",
+      "version": 1
+    }

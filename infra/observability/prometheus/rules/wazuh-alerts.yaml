@@ -1,0 +1,182 @@
+# ============================================
+# Prometheus Alert Rules - Wazuh Server
+# ============================================
+
+groups:
+  - name: wazuh-server-health
+    interval: 60s
+    rules:
+      # --- API & Service Health ---
+
+      - alert: WazuhApiDown
+        expr: wazuh_api_up == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: siem
+          team: security
+        annotations:
+          summary: "Wazuh API is unreachable"
+          description: "The Wazuh Manager API has been down for over 5 minutes. Agent registration and management are impacted."
+          runbook_url: "https://documentation.wazuh.com/current/user-manual/api/getting-started.html"
+
+      - alert: WazuhExporterDown
+        expr: up{job="wazuh-app"} == 0
+        for: 10m
+        labels:
+          severity: warning
+          service: siem
+          team: platform
+        annotations:
+          summary: "Wazuh Prometheus exporter is unreachable"
+          description: "Cannot scrape metrics from the Wazuh exporter. Monitoring visibility is degraded."
+
+      - alert: WazuhNodeExporterDown
+        expr: up{job="wazuh-node"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: siem
+          team: platform
+        annotations:
+          summary: "Wazuh node_exporter is unreachable"
+          description: "Cannot scrape system metrics from the Wazuh server."
+
+      # --- Indexer Health ---
+
+      - alert: WazuhIndexerRed
+        expr: wazuh_indexer_cluster_status == 2
+        for: 5m
+        labels:
+          severity: critical
+          service: siem
+          team: security
+        annotations:
+          summary: "Wazuh Indexer cluster is RED"
+          description: "The Wazuh Indexer (OpenSearch) cluster status is RED. Data loss or search failures are possible."
+
+      - alert: WazuhIndexerYellow
+        expr: wazuh_indexer_cluster_status == 1
+        for: 30m
+        labels:
+          severity: warning
+          service: siem
+          team: security
+        annotations:
+          summary: "Wazuh Indexer cluster is YELLOW"
+          description: "The Wazuh Indexer cluster has unassigned replicas. Redundancy is degraded."
+
+      - alert: WazuhUnassignedShards
+        expr: wazuh_indexer_unassigned_shards > 0
+        for: 15m
+        labels:
+          severity: warning
+          service: siem
+          team: security
+        annotations:
+          summary: "Wazuh Indexer has {{ $value }} unassigned shards"
+          description: "Unassigned shards indicate potential storage or configuration issues."
+
+      # --- Agent Health ---
+
+      - alert: WazuhNoActiveAgents
+        expr: wazuh_agents_total{status="active"} == 0
+        for: 15m
+        labels:
+          severity: critical
+          service: siem
+          team: security
+        annotations:
+          summary: "No active Wazuh agents"
+          description: "Zero agents are reporting to the Wazuh manager. All endpoint monitoring is blind."
+
+      - alert: WazuhAgentsDisconnected
+        expr: >
+          wazuh_agents_total{status="disconnected"} /
+          (wazuh_agents_total{status="total"} > 0) > 0.2
+        for: 15m
+        labels:
+          severity: warning
+          service: siem
+          team: security
+        annotations:
+          summary: "More than 20% of Wazuh agents are disconnected"
+          description: "{{ $value | humanizePercentage }} of agents are disconnected. Investigate network or agent issues."
+
+      # --- System Resources ---
+
+      - alert: WazuhHighCpuUsage
+        expr: >
+          100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle", job="wazuh-node"}[5m])) * 100) > 85
+        for: 15m
+        labels:
+          severity: warning
+          service: siem
+          team: platform
+        annotations:
+          summary: "Wazuh server CPU usage above 85%"
+          description: "CPU usage on the Wazuh server has been above 85% for 15 minutes. Consider scaling up the instance."
+
+      - alert: WazuhHighMemoryUsage
+        expr: >
+          (1 - node_memory_MemAvailable_bytes{job="wazuh-node"} / node_memory_MemTotal_bytes{job="wazuh-node"}) * 100 > 90
+        for: 10m
+        labels:
+          severity: critical
+          service: siem
+          team: platform
+        annotations:
+          summary: "Wazuh server memory usage above 90%"
+          description: "Memory usage on the Wazuh server is critical. OOM kills may occur."
+
+      - alert: WazuhDiskSpaceLow
+        expr: >
+          (wazuh_data_disk_used_bytes / wazuh_data_disk_total_bytes) * 100 > 80
+        for: 30m
+        labels:
+          severity: warning
+          service: siem
+          team: platform
+        annotations:
+          summary: "Wazuh data volume {{ $value | humanize }}% full"
+          description: "The Wazuh data volume is running low on space. Expand the EBS volume or rotate old indices."
+
+      - alert: WazuhDiskSpaceCritical
+        expr: >
+          (wazuh_data_disk_used_bytes / wazuh_data_disk_total_bytes) * 100 > 92
+        for: 10m
+        labels:
+          severity: critical
+          service: siem
+          team: platform
+        annotations:
+          summary: "Wazuh data volume critically full ({{ $value | humanize }}%)"
+          description: "Immediate action required. The indexer will stop writing new data when the disk is full."
+
+      - alert: WazuhRootDiskFull
+        expr: >
+          (1 - node_filesystem_avail_bytes{job="wazuh-node", mountpoint="/"} / node_filesystem_size_bytes{job="wazuh-node", mountpoint="/"}) * 100 > 85
+        for: 15m
+        labels:
+          severity: warning
+          service: siem
+          team: platform
+        annotations:
+          summary: "Wazuh server root disk above 85%"
+          description: "Root filesystem is filling up. Check log rotation and tmp usage."
+
+  - name: wazuh-server-slo
+    interval: 300s
+    rules:
+      # --- SLO Recording Rules ---
+
+      - record: wazuh:api_availability:ratio_5m
+        expr: avg_over_time(wazuh_api_up[5m])
+
+      - record: wazuh:agent_coverage:ratio
+        expr: >
+          wazuh_agents_total{status="active"} /
+          (wazuh_agents_total{status="total"} > 0)
+
+      - record: wazuh:data_disk_usage:ratio
+        expr: wazuh_data_disk_used_bytes / wazuh_data_disk_total_bytes

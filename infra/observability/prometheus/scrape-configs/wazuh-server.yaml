@@ -1,0 +1,48 @@
+# ============================================
+# Prometheus Scrape Config - Wazuh Server
+# Add this to the prometheus scrape_configs section
+# ============================================
+
+# Node Exporter - system-level metrics (CPU, memory, disk, network)
+- job_name: "wazuh-node"
+  static_configs:
+    - targets: ["${WAZUH_PRIVATE_IP}:9100"]
+      labels:
+        instance: "wazuh-server"
+        service: "siem"
+        environment: "${ENVIRONMENT}"
+  scrape_interval: 30s
+  scrape_timeout: 10s
+  metrics_path: /metrics
+
+# Wazuh Exporter - application-level metrics (agents, alerts, indexer health)
+- job_name: "wazuh-app"
+  static_configs:
+    - targets: ["${WAZUH_PRIVATE_IP}:9101"]
+      labels:
+        instance: "wazuh-server"
+        service: "siem"
+        environment: "${ENVIRONMENT}"
+  scrape_interval: 60s
+  scrape_timeout: 15s
+  metrics_path: /metrics
+
+# SSM-based service discovery (alternative for dynamic IP)
+# Uncomment if using ec2_sd_configs:
+#
+# - job_name: "wazuh-ec2-discovery"
+#   ec2_sd_configs:
+#     - region: us-east-1
+#       port: 9100
+#       filters:
+#         - name: "tag:Service"
+#           values: ["siem"]
+#         - name: "tag:Module"
+#           values: ["wazuh-server"]
+#         - name: "instance-state-name"
+#           values: ["running"]
+#   relabel_configs:
+#     - source_labels: [__meta_ec2_tag_Name]
+#       target_label: instance
+#     - source_labels: [__meta_ec2_tag_Environment]
+#       target_label: environment

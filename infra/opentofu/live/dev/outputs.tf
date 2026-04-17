@@ -53,3 +53,25 @@ output "keda_role_arn" {
   description = "ARN of the KEDA IAM role"
   value       = module.iam.keda_role_arn
 }
+
+# --- Wazuh SIEM ---
+
+output "wazuh_private_ip" {
+  description = "Private IP of the Wazuh SIEM server"
+  value       = module.wazuh_server.private_ip
+}
+
+output "wazuh_instance_id" {
+  description = "EC2 instance ID of the Wazuh server"
+  value       = module.wazuh_server.instance_id
+}
+
+output "wazuh_dashboard_endpoint" {
+  description = "Wazuh Dashboard URL (internal)"
+  value       = module.wazuh_server.wazuh_dashboard_endpoint
+}
+
+output "wazuh_prometheus_targets" {
+  description = "Prometheus scrape targets for the Wazuh server"
+  value       = module.wazuh_server.prometheus_targets
+}
