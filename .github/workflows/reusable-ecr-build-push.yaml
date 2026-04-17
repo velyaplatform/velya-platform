@@ -1,0 +1,162 @@
+# Reusable Workflow: ECR Build, Scan, Push
+# ADR-0017: Autonomous Maintenance Platform
+
+name: "Reusable: ECR Build & Push"
+
+on:
+  workflow_call:
+    inputs:
+      dockerfile:
+        description: "Path to Dockerfile"
+        required: true
+        type: string
+      context:
+        description: "Docker build context"
+        required: false
+        type: string
+        default: "."
+      image-name:
+        description: "ECR image name (without registry prefix)"
+        required: true
+        type: string
+      build-args:
+        description: "Docker build args (multiline KEY=VALUE)"
+        required: false
+        type: string
+        default: ""
+      dispatch-targets:
+        description: "JSON array of repos to notify via repository_dispatch"
+        required: false
+        type: string
+        default: "[]"
+    outputs:
+      image-uri:
+        description: "Full ECR image URI with digest"
+        value: ${{ jobs.build.outputs.image-uri }}
+      image-digest:
+        description: "Image digest (sha256:...)"
+        value: ${{ jobs.build.outputs.image-digest }}
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+
+jobs:
+  build:
+    name: "Build, Scan & Push"
+    runs-on: ubuntu-latest
+    outputs:
+      image-uri: ${{ steps.push.outputs.image-uri }}
+      image-digest: ${{ steps.push.outputs.image-digest }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+
+      - name: Docker Metadata
+        id: meta
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        with:
+          images: ${{ steps.ecr-login.outputs.registry }}/${{ inputs.image-name }}
+          tags: |
+            type=sha,prefix=,format=long
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Build Image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198e19c816612b # v6.18.0
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: ${{ inputs.build-args }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Scan with Trivy
+        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947e2f593a7d7f6ebbb # v0.29.0
+        with:
+          image-ref: ${{ steps.ecr-login.outputs.registry }}/${{ inputs.image-name }}:sha-${{ github.sha }}
+          format: "json"
+          output: "trivy-results.json"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"
+
+      - name: Check Critical CVEs
+        id: cve-check
+        run: |
+          CRITICAL_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-results.json)
+          echo "critical-count=$CRITICAL_COUNT" >> "$GITHUB_OUTPUT"
+          if [[ "$CRITICAL_COUNT" -gt 0 ]]; then
+            echo "::warning::Found $CRITICAL_COUNT CRITICAL CVEs — review required"
+          fi
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@e11c554f704a0b820cbf8c51673f6945e0731532 # v0.18.0
+        with:
+          image: ${{ steps.ecr-login.outputs.registry }}/${{ inputs.image-name }}:sha-${{ github.sha }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Push to ECR
+        id: push
+        run: |
+          IMAGE="${{ steps.ecr-login.outputs.registry }}/${{ inputs.image-name }}:sha-${{ github.sha }}"
+          docker push "$IMAGE"
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE" | cut -d@ -f2)
+          echo "image-uri=${IMAGE}@${DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "image-digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "Pushed: ${IMAGE}@${DIGEST}"
+
+      - name: Sign Image with Cosign
+        if: steps.push.outcome == 'success'
+        run: |
+          # Install cosign
+          COSIGN_VERSION="v2.4.1"
+          curl -sL "https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-amd64" -o cosign
+          chmod +x cosign
+          # Keyless signing via OIDC
+          ./cosign sign --yes "${{ steps.push.outputs.image-uri }}"
+
+      - name: Dispatch to Consumers
+        if: inputs.dispatch-targets != '[]' && steps.push.outcome == 'success'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const targets = JSON.parse('${{ inputs.dispatch-targets }}');
+            for (const target of targets) {
+              await github.rest.repos.createDispatchEvent({
+                owner: context.repo.owner,
+                repo: target,
+                event_type: 'ecr-image-updated',
+                client_payload: {
+                  image_name: '${{ inputs.image-name }}',
+                  image_uri: '${{ steps.push.outputs.image-uri }}',
+                  image_digest: '${{ steps.push.outputs.image-digest }}',
+                  source_sha: context.sha,
+                  source_repo: context.repo.repo
+                }
+              });
+              console.log(`Dispatched ecr-image-updated to ${target}`);
+            }

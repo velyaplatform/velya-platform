@@ -1,0 +1,155 @@
+# Reusable Workflow: OpenTofu Module Validation
+# ADR-0017: Autonomous Maintenance Platform
+# Called by module PRs and live environment PRs
+
+name: "Reusable: OpenTofu Validate"
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: "Path to the OpenTofu module or environment"
+        required: true
+        type: string
+      environment:
+        description: "Target environment (dev, staging, prod)"
+        required: false
+        type: string
+        default: "dev"
+      run-plan:
+        description: "Whether to run tofu plan (requires AWS creds)"
+        required: false
+        type: boolean
+        default: false
+      run-apply:
+        description: "Whether to run tofu apply after plan"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      AWS_ROLE_ARN:
+        description: "AWS IAM Role ARN for OIDC auth"
+        required: false
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  validate:
+    name: "Validate OpenTofu"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@592200f5eea5573df2ef756048b84eb5e6b5cd68 # v1.0.5
+        with:
+          tofu_version: "1.9.0"
+
+      - name: Format Check
+        id: fmt
+        run: tofu fmt -check -recursive -diff
+        continue-on-error: true
+
+      - name: Init
+        id: init
+        run: tofu init -backend=false
+
+      - name: Validate
+        id: validate
+        run: tofu validate -json | tee validate-output.json
+
+      - name: Install TFLint
+        if: always()
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+      - name: Run TFLint
+        id: tflint
+        if: always()
+        run: |
+          tflint --init
+          tflint --format=json | tee tflint-output.json
+        continue-on-error: true
+
+      - name: Install Checkov
+        if: always()
+        run: pip install checkov
+
+      - name: Run Checkov
+        id: checkov
+        if: always()
+        run: |
+          checkov -d . --framework terraform --output json --soft-fail | tee checkov-output.json
+        continue-on-error: true
+
+      - name: Configure AWS Credentials
+        if: inputs.run-plan && secrets.AWS_ROLE_ARN != ''
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Init (with backend)
+        if: inputs.run-plan && secrets.AWS_ROLE_ARN != ''
+        run: tofu init
+
+      - name: Plan
+        id: plan
+        if: inputs.run-plan && secrets.AWS_ROLE_ARN != ''
+        run: |
+          tofu plan -out=tfplan -json | tee plan-output.json
+          tofu show -json tfplan > plan-show.json
+        continue-on-error: true
+
+      - name: Apply
+        id: apply
+        if: inputs.run-apply && steps.plan.outcome == 'success'
+        run: tofu apply -auto-approve tfplan
+        continue-on-error: true
+
+      - name: Comment PR with Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const fmtResult = '${{ steps.fmt.outcome }}';
+            const validateResult = '${{ steps.validate.outcome }}';
+            const tflintResult = '${{ steps.tflint.outcome }}';
+            const checkovResult = '${{ steps.checkov.outcome }}';
+            const planResult = '${{ steps.plan.outcome }}';
+
+            let body = `## OpenTofu Validation — \`${{ inputs.working-directory }}\`\n\n`;
+            body += `| Check | Result |\n|-------|--------|\n`;
+            body += `| Format | ${fmtResult === 'success' ? '✅' : '❌'} |\n`;
+            body += `| Validate | ${validateResult === 'success' ? '✅' : '❌'} |\n`;
+            body += `| TFLint | ${tflintResult === 'success' ? '✅' : '⚠️'} |\n`;
+            body += `| Checkov | ${checkovResult === 'success' ? '✅' : '⚠️'} |\n`;
+            if ('${{ inputs.run-plan }}' === 'true') {
+              body += `| Plan | ${planResult === 'success' ? '✅' : planResult === '' ? '⏭️ skipped' : '❌'} |\n`;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+      - name: Fail if critical checks failed
+        if: always()
+        run: |
+          if [[ "${{ steps.fmt.outcome }}" == "failure" ]] || \
+             [[ "${{ steps.validate.outcome }}" == "failure" ]] || \
+             [[ "${{ steps.plan.outcome }}" == "failure" ]]; then
+            echo "::error::Critical validation checks failed"
+            exit 1
+          fi

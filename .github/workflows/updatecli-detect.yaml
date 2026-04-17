@@ -1,0 +1,71 @@
+# Updatecli: Detect Platform Controller Updates
+# ADR-0017: Autonomous Maintenance Platform
+# Runs weekly to check for new versions of platform controllers
+# that Renovate cannot track (GitHub Releases, Helm repos for non-dependency charts)
+
+name: "Detect: Platform Controller Updates"
+
+on:
+  schedule:
+    - cron: "30 3 * * 1" # Monday 03:30 UTC (00:30 BRT)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: updatecli-platform-controllers
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    name: "Updatecli Detect & Apply"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install Updatecli
+        run: |
+          UPDATECLI_VERSION="0.93.0"
+          curl -sL "https://github.com/updatecli/updatecli/releases/download/v${UPDATECLI_VERSION}/updatecli_Linux_x86_64.tar.gz" | tar xz
+          sudo mv updatecli /usr/local/bin/
+
+      - name: Run Updatecli Diff (dry-run)
+        id: diff
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+        run: |
+          updatecli diff --config .github/updatecli/platform-controllers.yaml 2>&1 | tee updatecli-diff.log
+          if grep -q "Changes detected" updatecli-diff.log; then
+            echo "changes-detected=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changes-detected=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run Updatecli Apply
+        if: steps.diff.outputs.changes-detected == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+        run: |
+          updatecli apply --config .github/updatecli/platform-controllers.yaml
+
+      - name: Dispatch Agent for Complex Updates
+        if: steps.diff.outputs.changes-detected == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'platform-controller-updated',
+              client_payload: {
+                source: 'updatecli',
+                target_path: 'infra/versions/platform-controllers.json',
+                description: 'Platform controller versions updated by Updatecli'
+              }
+            });

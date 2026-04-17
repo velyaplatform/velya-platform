@@ -1,0 +1,107 @@
+# OpenTofu Modules CI
+# ADR-0017: Autonomous Maintenance Platform
+# Validates OpenTofu modules on every PR touching infra/opentofu/modules/
+
+name: "CI: OpenTofu Modules"
+
+on:
+  pull_request:
+    paths:
+      - "infra/opentofu/modules/**"
+      - ".github/workflows/opentofu-modules-ci.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "infra/opentofu/modules/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: opentofu-modules-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  detect-changes:
+    name: "Detect Changed Modules"
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.detect.outputs.modules }}
+      has-changes: ${{ steps.detect.outputs.has-changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Detect Changed Modules
+        id: detect
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD -- infra/opentofu/modules/)
+          else
+            CHANGED_FILES=$(git diff --name-only origin/main...HEAD -- infra/opentofu/modules/)
+          fi
+
+          MODULES=$(echo "$CHANGED_FILES" | \
+            grep -oP 'infra/opentofu/modules/[^/]+' | \
+            sort -u | \
+            jq -R -s -c 'split("\n") | map(select(length > 0))')
+
+          echo "modules=$MODULES" >> "$GITHUB_OUTPUT"
+          if [[ "$MODULES" == "[]" ]]; then
+            echo "has-changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-changes=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Changed modules: $MODULES"
+
+  validate-module:
+    name: "Validate: ${{ matrix.module }}"
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJson(needs.detect-changes.outputs.modules) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@592200f5eea5573df2ef756048b84eb5e6b5cd68 # v1.0.5
+        with:
+          tofu_version: "1.9.0"
+
+      - name: Format Check
+        working-directory: ${{ matrix.module }}
+        run: tofu fmt -check -recursive -diff
+
+      - name: Init
+        working-directory: ${{ matrix.module }}
+        run: tofu init -backend=false
+
+      - name: Validate
+        working-directory: ${{ matrix.module }}
+        run: tofu validate
+
+      - name: Install TFLint
+        run: curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+      - name: Lint
+        working-directory: ${{ matrix.module }}
+        run: |
+          tflint --init
+          tflint --format=compact
+        continue-on-error: true
+
+      - name: Install Checkov
+        run: pip install checkov
+
+      - name: Security Scan
+        working-directory: ${{ matrix.module }}
+        run: checkov -d . --framework terraform --compact --quiet
+        continue-on-error: true

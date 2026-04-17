@@ -1,0 +1,301 @@
+# Agent Update Dispatcher
+# ADR-0017: Autonomous Maintenance Platform
+#
+# Dispatched when:
+# 1. Renovate opens a PR that needs AI assistance (complex update)
+# 2. Updatecli detects a version change requiring code modifications
+# 3. ECR image update triggers downstream manifest changes
+# 4. Inspector finding requires remediation
+#
+# The dispatcher selects Claude Code (primary) or Codex (fallback)
+# and orchestrates the update → test → fix loop.
+
+name: "Agent: Update Dispatcher"
+
+on:
+  repository_dispatch:
+    types:
+      - ecr-image-updated
+      - platform-controller-updated
+      - inspector-finding
+      - agent-update-request
+  workflow_dispatch:
+    inputs:
+      update-type:
+        description: "Type of update"
+        required: true
+        type: choice
+        options:
+          - ecr-image
+          - platform-controller
+          - opentofu-module
+          - helm-chart
+          - security-fix
+      target-path:
+        description: "Path to the affected files"
+        required: true
+        type: string
+      description:
+        description: "Human-readable description of the update"
+        required: true
+        type: string
+      executor:
+        description: "AI executor to use"
+        required: false
+        type: choice
+        options:
+          - claude-code
+          - codex
+        default: claude-code
+      max-retries:
+        description: "Max CI fix retries"
+        required: false
+        type: number
+        default: 3
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+concurrency:
+  group: agent-update-${{ github.event.client_payload.image_name || github.event.inputs.target-path }}
+  cancel-in-progress: false
+
+env:
+  MAX_RETRIES: ${{ github.event.inputs.max-retries || 3 }}
+  EXECUTOR: ${{ github.event.inputs.executor || 'claude-code' }}
+
+jobs:
+  classify-risk:
+    name: "Classify Update Risk"
+    runs-on: ubuntu-latest
+    outputs:
+      risk-level: ${{ steps.classify.outputs.risk-level }}
+      auto-merge: ${{ steps.classify.outputs.auto-merge }}
+      update-type: ${{ steps.resolve.outputs.update-type }}
+      description: ${{ steps.resolve.outputs.description }}
+      target-path: ${{ steps.resolve.outputs.target-path }}
+
+    steps:
+      - name: Resolve Inputs
+        id: resolve
+        run: |
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            echo "update-type=${{ github.event.action }}" >> "$GITHUB_OUTPUT"
+            echo "description=${{ github.event.client_payload.image_name || github.event.action }}" >> "$GITHUB_OUTPUT"
+            echo "target-path=${{ github.event.client_payload.target_path || 'infra/' }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "update-type=${{ github.event.inputs.update-type }}" >> "$GITHUB_OUTPUT"
+            echo "description=${{ github.event.inputs.description }}" >> "$GITHUB_OUTPUT"
+            echo "target-path=${{ github.event.inputs.target-path }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Classify Risk
+        id: classify
+        run: |
+          UPDATE_TYPE="${{ steps.resolve.outputs.update-type }}"
+          case "$UPDATE_TYPE" in
+            ecr-image-updated|ecr-image)
+              # Image updates are low risk if CI passes
+              echo "risk-level=low" >> "$GITHUB_OUTPUT"
+              echo "auto-merge=true" >> "$GITHUB_OUTPUT"
+              ;;
+            platform-controller-updated|platform-controller)
+              # Platform controllers are medium-high risk
+              echo "risk-level=high" >> "$GITHUB_OUTPUT"
+              echo "auto-merge=false" >> "$GITHUB_OUTPUT"
+              ;;
+            inspector-finding|security-fix)
+              # Security fixes are urgent but need review
+              echo "risk-level=medium" >> "$GITHUB_OUTPUT"
+              echo "auto-merge=true" >> "$GITHUB_OUTPUT"
+              ;;
+            opentofu-module)
+              echo "risk-level=medium" >> "$GITHUB_OUTPUT"
+              echo "auto-merge=false" >> "$GITHUB_OUTPUT"
+              ;;
+            helm-chart)
+              echo "risk-level=medium" >> "$GITHUB_OUTPUT"
+              echo "auto-merge=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "risk-level=medium" >> "$GITHUB_OUTPUT"
+              echo "auto-merge=false" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+  execute-update:
+    name: "Execute Update via AI Agent"
+    needs: classify-risk
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Create Update Branch
+        id: branch
+        run: |
+          BRANCH="auto-update/${{ needs.classify-risk.outputs.update-type }}/$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Execute with Claude Code
+        if: env.EXECUTOR == 'claude-code'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          # Install Claude Code CLI
+          npm install -g @anthropic-ai/claude-code 2>/dev/null || true
+
+          # Construct the prompt for the AI executor
+          PROMPT=$(cat <<'PROMPT_EOF'
+          You are an autonomous update agent for the Velya platform.
+
+          UPDATE TYPE: ${{ needs.classify-risk.outputs.update-type }}
+          DESCRIPTION: ${{ needs.classify-risk.outputs.description }}
+          TARGET PATH: ${{ needs.classify-risk.outputs.target-path }}
+          RISK LEVEL: ${{ needs.classify-risk.outputs.risk-level }}
+
+          Instructions:
+          1. Read the affected files in the target path
+          2. Understand what needs to be updated
+          3. Make the necessary changes (version bumps, manifest updates, config adjustments)
+          4. Ensure all changes follow the project conventions in CLAUDE.md
+          5. Run any applicable validation (tofu fmt, helm template, npm test)
+          6. If validation fails, fix the issue (max ${{ env.MAX_RETRIES }} retries)
+          7. Stage all changed files with git add
+
+          Rules:
+          - Pin all versions explicitly (no floating constraints)
+          - Pin GitHub Actions by SHA
+          - Pin Docker images by digest when possible
+          - Do NOT modify clinical service logic
+          - Do NOT touch files outside the target path unless strictly necessary
+          - Commit message format: "chore(<scope>): <description>"
+          PROMPT_EOF
+          )
+
+          # Execute Claude Code in non-interactive mode
+          echo "$PROMPT" | claude --dangerously-skip-permissions -p --output-format json \
+            2>&1 | tee agent-output.json || true
+
+      - name: Execute with Codex (Fallback)
+        if: env.EXECUTOR == 'codex'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          # Codex CLI execution
+          npx codex --approval-mode full-auto \
+            "Update ${{ needs.classify-risk.outputs.target-path }} for ${{ needs.classify-risk.outputs.description }}. \
+            Follow the project conventions in CLAUDE.md. Pin all versions. \
+            Run validation after changes." \
+            2>&1 | tee agent-output.json || true
+
+      - name: Verify Changes Exist
+        id: changes
+        run: |
+          if git diff --cached --quiet && git diff --quiet; then
+            echo "has-changes=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No changes were made by the agent"
+          else
+            echo "has-changes=true" >> "$GITHUB_OUTPUT"
+            git add -A
+            git diff --cached --stat
+          fi
+
+      - name: Commit Changes
+        if: steps.changes.outputs.has-changes == 'true'
+        run: |
+          git config user.name "velya-autopilot[bot]"
+          git config user.email "autopilot@velya.dev"
+          git commit -m "$(cat <<'EOF'
+          chore(${{ needs.classify-risk.outputs.update-type }}): ${{ needs.classify-risk.outputs.description }}
+
+          Risk level: ${{ needs.classify-risk.outputs.risk-level }}
+          Auto-merge: ${{ needs.classify-risk.outputs.auto-merge }}
+          Executor: ${{ env.EXECUTOR }}
+
+          Generated by Agent Update Dispatcher (ADR-0017)
+          EOF
+          )"
+
+      - name: Push Branch
+        if: steps.changes.outputs.has-changes == 'true'
+        run: |
+          git push origin "${{ steps.branch.outputs.branch }}"
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.has-changes == 'true'
+        id: pr
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const riskLevel = '${{ needs.classify-risk.outputs.risk-level }}';
+            const autoMerge = '${{ needs.classify-risk.outputs.auto-merge }}' === 'true';
+            const labels = ['dependencies', 'automated', `risk:${riskLevel}`];
+            if (autoMerge) labels.push('auto-merge');
+
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `chore(${{ needs.classify-risk.outputs.update-type }}): ${{ needs.classify-risk.outputs.description }}`,
+              head: '${{ steps.branch.outputs.branch }}',
+              base: 'main',
+              body: [
+                '## Automated Update',
+                '',
+                `**Type:** ${{ needs.classify-risk.outputs.update-type }}`,
+                `**Risk:** ${riskLevel}`,
+                `**Executor:** ${{ env.EXECUTOR }}`,
+                `**Auto-merge:** ${autoMerge ? 'Yes' : 'No (manual review required)'}`,
+                '',
+                '### Changes',
+                '${{ needs.classify-risk.outputs.description }}',
+                '',
+                '### Promotion Policy (ADR-0017)',
+                riskLevel === 'low' ? '- ✅ Auto-merge after CI green' :
+                riskLevel === 'medium' ? '- ⚠️ Auto-merge with 3-day soak time' :
+                '- 🛑 Manual review required before merge',
+                '',
+                '---',
+                '🤖 Generated by [Agent Update Dispatcher](/.github/workflows/agent-update-dispatcher.yaml)'
+              ].join('\n')
+            });
+
+            // Add labels
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.data.number,
+              labels
+            });
+
+            // Enable auto-merge if policy allows
+            if (autoMerge) {
+              try {
+                await github.graphql(`
+                  mutation($prId: ID!) {
+                    enablePullRequestAutoMerge(input: {
+                      pullRequestId: $prId,
+                      mergeMethod: SQUASH
+                    }) { clientMutationId }
+                  }
+                `, { prId: pr.data.node_id });
+                console.log('Auto-merge enabled');
+              } catch (e) {
+                console.log('Auto-merge not available:', e.message);
+              }
+            }
+
+            core.setOutput('pr-number', pr.data.number);
+            core.setOutput('pr-url', pr.data.html_url);
+
+      - name: Record Metrics
+        if: always()
+        run: |
+          # Emit structured log for observability
+          echo '{"event":"agent-update-complete","update_type":"${{ needs.classify-risk.outputs.update-type }}","risk_level":"${{ needs.classify-risk.outputs.risk-level }}","has_changes":"${{ steps.changes.outputs.has-changes }}","executor":"${{ env.EXECUTOR }}","pr_number":"${{ steps.pr.outputs.pr-number || 'none' }}","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'

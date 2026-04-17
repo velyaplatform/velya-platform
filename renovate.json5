@@ -1,0 +1,186 @@
+// Renovate Configuration — Velya Platform
+// ADR-0017: Autonomous Maintenance Platform
+// Primary dependency detector for all ecosystems
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "docker:pinDigests",
+    ":pinVersions",
+    "schedule:weekly",
+    "group:monorepos",
+    "group:recommended",
+    ":automergeMinor",
+    ":automergePatch",
+    "helpers:pinGitHubActionDigests"
+  ],
+
+  // --- Global settings ---
+  "timezone": "America/Sao_Paulo",
+  "schedule": ["after 2am and before 6am on monday"],
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 4,
+  "rebaseWhen": "behind-base-branch",
+  "labels": ["dependencies", "automated"],
+  "assignees": ["lucaslima4132"],
+  "platformAutomerge": true,
+  "minimumReleaseAge": "3 days",
+
+  // --- Security: auto-merge patch/minor, require review for major ---
+  "separateMajorMinor": true,
+  "separateMinorPatch": false,
+
+  // --- Package Rules ---
+  "packageRules": [
+    // LOW RISK: Patch updates — auto-merge after CI green
+    {
+      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "automerge": true,
+      "automergeType": "pr",
+      "labels": ["dependencies", "automated", "risk:low"]
+    },
+
+    // MEDIUM RISK: Minor updates — auto-merge with 3-day stabilization
+    {
+      "matchUpdateTypes": ["minor"],
+      "automerge": true,
+      "minimumReleaseAge": "3 days",
+      "labels": ["dependencies", "automated", "risk:medium"]
+    },
+
+    // HIGH RISK: Major updates — require manual review
+    {
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "automated", "risk:high", "needs-review"],
+      "reviewers": ["lucaslima4132"]
+    },
+
+    // Group all GitHub Actions updates together
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "labels": ["dependencies", "ci", "automated"],
+      "automerge": true,
+      "pinDigests": true
+    },
+
+    // Group npm dev dependencies
+    {
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "dev-dependencies",
+      "automerge": true
+    },
+
+    // TypeScript ecosystem — group together
+    {
+      "matchPackagePatterns": ["^typescript", "^@typescript-eslint/"],
+      "groupName": "typescript",
+      "labels": ["dependencies", "typescript"]
+    },
+
+    // Vitest ecosystem
+    {
+      "matchPackagePatterns": ["^vitest", "^@vitest/"],
+      "groupName": "vitest"
+    },
+
+    // Docker base images — pin digests, group
+    {
+      "matchDatasources": ["docker"],
+      "pinDigests": true,
+      "labels": ["dependencies", "docker", "automated"],
+      "groupName": "docker-images"
+    },
+
+    // Helm charts
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "labels": ["dependencies", "helm", "automated"],
+      "groupName": "helm-charts"
+    },
+
+    // Platform controllers — never auto-merge major
+    {
+      "matchPackagePatterns": [
+        "kyverno",
+        "karpenter",
+        "prometheus",
+        "grafana",
+        "cert-manager",
+        "external-dns",
+        "external-secrets",
+        "argo"
+      ],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "platform", "risk:high", "needs-review"]
+    },
+
+    // Security: auto-merge vulnerability fixes immediately
+    {
+      "matchCategories": ["security"],
+      "automerge": true,
+      "minimumReleaseAge": "0 days",
+      "labels": ["dependencies", "security", "automated", "risk:low"],
+      "prPriority": 10
+    }
+  ],
+
+  // --- OpenTofu Provider Detection (regex manager) ---
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "OpenTofu provider versions in required_providers blocks",
+      "fileMatch": ["infra/opentofu/.+\\.tf$"],
+      "matchStrings": [
+        "source\\s*=\\s*\"(?<depName>[^\"]+)\"\\s*\\n\\s*version\\s*=\\s*\"~>\\s*(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "terraform-provider",
+      "versioningTemplate": "hashicorp"
+    },
+    {
+      "customType": "regex",
+      "description": "OpenTofu required_version constraint",
+      "fileMatch": ["infra/opentofu/.+\\.tf$"],
+      "matchStrings": [
+        "required_version\\s*=\\s*\">= (?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "opentofu/opentofu",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Helm chart versions in ArgoCD Applications",
+      "fileMatch": ["infra/argocd/.+\\.yaml$", "infra/kubernetes/.+\\.yaml$"],
+      "matchStrings": [
+        "targetRevision:\\s*(?<currentValue>[^\\s]+)\\s*#\\s*renovate:\\s*datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)"
+      ]
+    },
+    {
+      "customType": "regex",
+      "description": "Container image tags in Kustomize overlays",
+      "fileMatch": ["infra/kubernetes/.+\\.yaml$"],
+      "matchStrings": [
+        "newTag:\\s*(?<currentValue>[^\\s]+)\\s*#\\s*renovate:\\s*datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)"
+      ]
+    }
+  ],
+
+  // --- Vulnerability Alerts ---
+  "vulnerabilityAlerts": {
+    "labels": ["security", "automated"],
+    "automerge": true,
+    "minimumReleaseAge": "0 days"
+  },
+
+  // --- Ignore patterns ---
+  "ignoreDeps": [],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/.next/**",
+    "_opensquad/**"
+  ]
+}

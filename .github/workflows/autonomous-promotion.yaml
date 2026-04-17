@@ -1,0 +1,216 @@
+# Autonomous Promotion Pipeline
+# ADR-0017: Autonomous Maintenance Platform
+#
+# Implements the risk-based promotion policy:
+# - LOW risk: auto-merge after CI green
+# - MEDIUM risk: auto-merge after CI green + 3-day soak
+# - HIGH risk: auto to homolog, block prod (require manual review)
+#
+# Triggered when CI checks pass on auto-update PRs.
+
+name: "Promote: Autonomous"
+
+on:
+  pull_request_review:
+    types: [submitted]
+  check_suite:
+    types: [completed]
+  workflow_run:
+    workflows:
+      - "CI: OpenTofu Modules"
+      - "Deploy: OpenTofu Live"
+      - "Deploy: Platform Tools"
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  evaluate-promotion:
+    name: "Evaluate Promotion"
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success' ||
+      github.event.check_suite.conclusion == 'success'
+
+    steps:
+      - name: Find Associated PRs
+        id: find-prs
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            // Find open PRs with the 'automated' label that have all checks passing
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              sort: 'updated',
+              direction: 'desc',
+              per_page: 20
+            });
+
+            const automatedPRs = prs.filter(pr =>
+              pr.labels.some(l => l.name === 'automated')
+            );
+
+            const eligiblePRs = [];
+
+            for (const pr of automatedPRs) {
+              // Check all CI status
+              const { data: checks } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: pr.head.sha
+              });
+
+              const allPassed = checks.check_runs.every(
+                cr => cr.conclusion === 'success' || cr.conclusion === 'skipped'
+              );
+
+              if (!allPassed) continue;
+
+              // Determine risk level from labels
+              const riskLabel = pr.labels.find(l => l.name.startsWith('risk:'));
+              const riskLevel = riskLabel ? riskLabel.name.split(':')[1] : 'medium';
+
+              // Check soak time for medium risk
+              if (riskLevel === 'medium') {
+                const createdAt = new Date(pr.created_at);
+                const soakDays = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+                if (soakDays < 3) {
+                  console.log(`PR #${pr.number} (medium risk) needs ${(3 - soakDays).toFixed(1)} more days soak time`);
+                  continue;
+                }
+              }
+
+              // HIGH risk never auto-promotes
+              if (riskLevel === 'high') {
+                console.log(`PR #${pr.number} (high risk) — skipping auto-promotion`);
+                // Add a comment reminding about manual review
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  body: '✅ All CI checks passed. This is a **high-risk** update — manual review and approval required before merge.\n\n' +
+                    'See [ADR-0017](/docs/adr/0017-autonomous-maintenance-platform.md) for promotion policy.'
+                });
+                continue;
+              }
+
+              eligiblePRs.push({
+                number: pr.number,
+                risk: riskLevel,
+                title: pr.title
+              });
+            }
+
+            core.setOutput('eligible-prs', JSON.stringify(eligiblePRs));
+            console.log(`Found ${eligiblePRs.length} eligible PRs for auto-merge`);
+
+      - name: Auto-merge Eligible PRs
+        if: steps.find-prs.outputs.eligible-prs != '[]'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const prs = JSON.parse('${{ steps.find-prs.outputs.eligible-prs }}');
+
+            for (const pr of prs) {
+              try {
+                // Enable auto-merge
+                const { data: prData } = await github.rest.pulls.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number
+                });
+
+                await github.graphql(`
+                  mutation($prId: ID!) {
+                    enablePullRequestAutoMerge(input: {
+                      pullRequestId: $prId,
+                      mergeMethod: SQUASH
+                    }) { clientMutationId }
+                  }
+                `, { prId: prData.node_id });
+
+                // Add promotion comment
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  body: `🚀 **Auto-promotion triggered**\n\n` +
+                    `Risk: \`${pr.risk}\` | All checks: ✅ | Auto-merge: enabled\n\n` +
+                    `This PR will be squash-merged automatically when branch protection requirements are met.`
+                });
+
+                console.log(`Auto-merge enabled for PR #${pr.number} (${pr.risk} risk)`);
+              } catch (e) {
+                console.log(`Failed to auto-merge PR #${pr.number}: ${e.message}`);
+              }
+            }
+
+  # --- ROLLBACK: Triggered when a post-merge workflow fails ---
+  rollback-check:
+    name: "Rollback Check"
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'failure'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 10
+
+      - name: Check for Auto-Revert
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const failedWorkflow = '${{ github.event.workflow_run.name }}';
+            const headSha = '${{ github.event.workflow_run.head_sha }}';
+
+            // Find the commit and check if it was from an automated PR
+            const { data: commit } = await github.rest.repos.getCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: headSha
+            });
+
+            const isAutomated = commit.commit.message.includes('Generated by Agent Update Dispatcher') ||
+                                commit.commit.message.includes('velya-autopilot[bot]');
+
+            if (!isAutomated) {
+              console.log('Not an automated commit — skipping auto-revert');
+              return;
+            }
+
+            // Create revert issue
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🔴 Auto-revert needed: ${failedWorkflow} failed after automated merge`,
+              labels: ['automated', 'rollback', 'incident'],
+              body: [
+                '## Automated Rollback Required',
+                '',
+                `**Failed workflow:** ${failedWorkflow}`,
+                `**Commit:** ${headSha}`,
+                `**Message:** ${commit.commit.message.split('\n')[0]}`,
+                '',
+                '### Action Required',
+                `\`\`\`bash`,
+                `git revert ${headSha} --no-edit`,
+                `git push origin main`,
+                `\`\`\``,
+                '',
+                'Or dispatch the agent to handle the revert:',
+                '```bash',
+                `gh workflow run agent-update-dispatcher.yaml -f update-type=security-fix -f target-path=. -f description="Revert ${headSha.slice(0, 8)}"`,
+                '```',
+                '',
+                '---',
+                '🤖 Generated by [Autonomous Promotion](/.github/workflows/autonomous-promotion.yaml) (ADR-0017)'
+              ].join('\n')
+            });
+
+            console.log('Rollback issue created');

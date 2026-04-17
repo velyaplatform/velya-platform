@@ -1,0 +1,155 @@
+# Maintenance Platform Observability
+# ADR-0017: Autonomous Maintenance Platform
+# Collects metrics from the autonomous maintenance system weekly
+
+name: "Metrics: Maintenance Platform"
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Monday 09:00 UTC (06:00 BRT)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  collect-metrics:
+    name: "Collect Maintenance Metrics"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Collect PR Metrics
+        id: metrics
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const now = new Date();
+            const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+            const weekAgoISO = weekAgo.toISOString();
+
+            // Get all PRs from the past week with 'automated' label
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              sort: 'created',
+              direction: 'desc',
+              per_page: 100
+            });
+
+            const automatedPRs = prs.filter(pr =>
+              pr.labels.some(l => l.name === 'automated') &&
+              new Date(pr.created_at) >= weekAgo
+            );
+
+            const metrics = {
+              period: { from: weekAgoISO, to: now.toISOString() },
+              total_automated_prs: automatedPRs.length,
+              merged: automatedPRs.filter(pr => pr.merged_at).length,
+              open: automatedPRs.filter(pr => pr.state === 'open').length,
+              closed_without_merge: automatedPRs.filter(pr => pr.state === 'closed' && !pr.merged_at).length,
+              by_risk: {
+                low: automatedPRs.filter(pr => pr.labels.some(l => l.name === 'risk:low')).length,
+                medium: automatedPRs.filter(pr => pr.labels.some(l => l.name === 'risk:medium')).length,
+                high: automatedPRs.filter(pr => pr.labels.some(l => l.name === 'risk:high')).length,
+              },
+              by_type: {
+                dependencies: automatedPRs.filter(pr => pr.labels.some(l => l.name === 'dependencies')).length,
+                security: automatedPRs.filter(pr => pr.labels.some(l => l.name === 'security')).length,
+                platform: automatedPRs.filter(pr => pr.labels.some(l => l.name === 'platform')).length,
+                ci: automatedPRs.filter(pr => pr.labels.some(l => l.name === 'ci')).length,
+              },
+              merge_rate: automatedPRs.length > 0
+                ? ((automatedPRs.filter(pr => pr.merged_at).length / automatedPRs.length) * 100).toFixed(1) + '%'
+                : 'N/A'
+            };
+
+            // Calculate average time to merge
+            const mergedPRs = automatedPRs.filter(pr => pr.merged_at);
+            if (mergedPRs.length > 0) {
+              const avgHours = mergedPRs.reduce((sum, pr) => {
+                return sum + (new Date(pr.merged_at) - new Date(pr.created_at)) / (1000 * 60 * 60);
+              }, 0) / mergedPRs.length;
+              metrics.avg_time_to_merge_hours = avgHours.toFixed(1);
+            }
+
+            // Get rollback issues
+            const { data: rollbackIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'rollback',
+              since: weekAgoISO,
+              state: 'all'
+            });
+            metrics.rollbacks = rollbackIssues.length;
+
+            // Get drift issues
+            const { data: driftIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'drift',
+              since: weekAgoISO,
+              state: 'all'
+            });
+            metrics.drift_detections = driftIssues.length;
+
+            core.setOutput('metrics', JSON.stringify(metrics, null, 2));
+            return metrics;
+
+      - name: Create Weekly Report Issue
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const metrics = JSON.parse('${{ steps.metrics.outputs.metrics }}');
+            const now = new Date().toISOString().split('T')[0];
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `📊 Maintenance Platform Report — Week of ${now}`,
+              labels: ['automated', 'metrics', 'report'],
+              body: [
+                '## Weekly Maintenance Platform Metrics',
+                '',
+                `**Period:** ${metrics.period.from.split('T')[0]} → ${metrics.period.to.split('T')[0]}`,
+                '',
+                '### PR Summary',
+                `| Metric | Value |`,
+                `|--------|-------|`,
+                `| Total automated PRs | ${metrics.total_automated_prs} |`,
+                `| Merged | ${metrics.merged} |`,
+                `| Still open | ${metrics.open} |`,
+                `| Closed (not merged) | ${metrics.closed_without_merge} |`,
+                `| Merge rate | ${metrics.merge_rate} |`,
+                `| Avg time to merge | ${metrics.avg_time_to_merge_hours || 'N/A'} hours |`,
+                '',
+                '### By Risk Level',
+                `| Risk | Count |`,
+                `|------|-------|`,
+                `| Low | ${metrics.by_risk.low} |`,
+                `| Medium | ${metrics.by_risk.medium} |`,
+                `| High | ${metrics.by_risk.high} |`,
+                '',
+                '### By Type',
+                `| Type | Count |`,
+                `|------|-------|`,
+                `| Dependencies | ${metrics.by_type.dependencies} |`,
+                `| Security | ${metrics.by_type.security} |`,
+                `| Platform | ${metrics.by_type.platform} |`,
+                `| CI | ${metrics.by_type.ci} |`,
+                '',
+                '### Incidents',
+                `| Metric | Count |`,
+                `|--------|-------|`,
+                `| Rollbacks triggered | ${metrics.rollbacks} |`,
+                `| Drift detections | ${metrics.drift_detections} |`,
+                '',
+                '---',
+                '🤖 Generated by [Maintenance Metrics](/.github/workflows/maintenance-metrics.yaml) (ADR-0017)'
+              ].join('\n')
+            });
