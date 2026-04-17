@@ -129,7 +129,7 @@ resource "aws_iam_instance_profile" "wazuh" {
 resource "aws_security_group" "wazuh" {
   name_prefix = "${local.server_name}-"
   description = "Wazuh Server - Manager, Indexer, Dashboard"
-  vpc_id      = var.vpc_id
+  vpc_id      = local.resolved_vpc_id
 
   tags = merge(local.common_tags, {
     Name = "${local.server_name}-sg"
@@ -252,7 +252,7 @@ resource "aws_ebs_volume" "wazuh_data" {
 resource "aws_instance" "wazuh" {
   ami                    = var.ami_id != "" ? var.ami_id : data.aws_ami.al2023.id
   instance_type          = var.instance_type
-  subnet_id              = var.subnet_id
+  subnet_id              = local.resolved_subnet_id
   vpc_security_group_ids = [aws_security_group.wazuh.id]
   iam_instance_profile   = aws_iam_instance_profile.wazuh.name
   key_name               = var.key_pair_name != "" ? var.key_pair_name : null

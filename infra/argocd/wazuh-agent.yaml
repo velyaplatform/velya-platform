@@ -1,0 +1,68 @@
+---
+# Wazuh Agent DaemonSet - Security monitoring on all EKS nodes
+# ADR-0021: Wazuh SIEM on EC2
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wazuh-agent
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: security
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: velya-alertas
+    notifications.argoproj.io/subscribe.on-health-degraded.slack: velya-alertas
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/velyaplatform/velya-platform.git
+    targetRevision: main
+    path: infra/kubernetes/wazuh-agent
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velya-security
+  syncPolicy:
+    automated:
+      prune: false # DaemonSet on all nodes — don't prune without review
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m
+---
+# Wazuh Observability - Prometheus rules + Grafana dashboards
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wazuh-observability
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/tier: observability
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/velyaplatform/velya-platform.git
+    targetRevision: main
+    path: infra/kubernetes/observability
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velya-observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

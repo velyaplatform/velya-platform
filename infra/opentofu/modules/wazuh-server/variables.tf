@@ -27,13 +27,15 @@ variable "environment" {
 # --- Network ---
 
 variable "vpc_id" {
-  description = "VPC ID where the Wazuh server will be deployed"
+  description = "VPC ID where the Wazuh server will be deployed (empty = auto-lookup by project/environment tags)"
   type        = string
+  default     = ""
 }
 
 variable "subnet_id" {
-  description = "Subnet ID for the Wazuh server (private subnet recommended)"
+  description = "Subnet ID for the Wazuh server (empty = auto-lookup first private subnet in VPC)"
   type        = string
+  default     = ""
 }
 
 variable "availability_zone" {
