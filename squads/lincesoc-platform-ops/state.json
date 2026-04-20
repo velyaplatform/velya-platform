@@ -1,0 +1,99 @@
+{
+  "squad": "lincesoc-platform-ops",
+  "status": "checkpoint",
+  "step": {
+    "current": 3,
+    "total": 10,
+    "label": "Remover referências legadas e dependências proprietárias"
+  },
+  "agents": [
+    {
+      "id": "soc-detection-engineering-agent",
+      "name": "SOC Detection Engineering",
+      "icon": "SOC",
+      "status": "working",
+      "desk": {
+        "col": 1,
+        "row": 1
+      }
+    },
+    {
+      "id": "frontend-quality-agent",
+      "name": "Frontend Quality",
+      "icon": "FE",
+      "status": "done",
+      "desk": {
+        "col": 2,
+        "row": 1
+      }
+    },
+    {
+      "id": "backend-quality-agent",
+      "name": "Backend Quality",
+      "icon": "BE",
+      "status": "done",
+      "desk": {
+        "col": 3,
+        "row": 1
+      }
+    },
+    {
+      "id": "infra-health-agent",
+      "name": "Infra Health",
+      "icon": "INF",
+      "status": "checkpoint",
+      "desk": {
+        "col": 4,
+        "row": 1
+      }
+    },
+    {
+      "id": "frontend-proxy-agent",
+      "name": "Frontend Proxy",
+      "icon": "PROXY",
+      "status": "working",
+      "desk": {
+        "col": 1,
+        "row": 2
+      }
+    },
+    {
+      "id": "customer-onboarding-agent",
+      "name": "Demo Access",
+      "icon": "USER",
+      "status": "checkpoint",
+      "desk": {
+        "col": 2,
+        "row": 2
+      }
+    },
+    {
+      "id": "observability-agent",
+      "name": "Observability",
+      "icon": "OBS",
+      "status": "working",
+      "desk": {
+        "col": 3,
+        "row": 2
+      }
+    },
+    {
+      "id": "delegation-coordinator-agent",
+      "name": "Dashboard Sync",
+      "icon": "SYNC",
+      "status": "working",
+      "desk": {
+        "col": 4,
+        "row": 2
+      }
+    }
+  ],
+  "handoff": {
+    "from": "infra-health-agent",
+    "to": "customer-onboarding-agent",
+    "message": "Banco ou seed ainda não confirmou o usuário demo administrativo.",
+    "completedAt": "2026-04-15T12:55:09.050Z"
+  },
+  "startedAt": "2026-04-14T21:27:41.733Z",
+  "updatedAt": "2026-04-15T12:55:09.050Z"
+}

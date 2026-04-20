@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: velya-autopilot-config
+  namespace: velya-dev-platform
+  labels:
+    velya.io/cluster-role: opensquad
+data:
+  grafana-url: ""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: velya-autopilot-grafana
+  namespace: velya-dev-platform
+  labels:
+    velya.io/cluster-role: opensquad
+    velya.io/placeholder-secret: "true"
+type: Opaque
+stringData:
+  token: ""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: velya-autopilot-secrets
+  namespace: velya-dev-web
+  labels:
+    velya.io/cluster-role: opensquad
+    velya.io/placeholder-secret: "true"
+type: Opaque
+stringData:
+  gh-token: ""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: velya-autopilot-secrets
+  namespace: velya-dev-platform
+  labels:
+    velya.io/cluster-role: opensquad
+    velya.io/placeholder-secret: "true"
+type: Opaque
+stringData:
+  gh-token: ""

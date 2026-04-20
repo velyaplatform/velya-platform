@@ -9,6 +9,12 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import {
+  buildTriggerRoutingPlan,
+  type ProductContext,
+  type TriggerActionType,
+  type TriggerRoutingPlan,
+} from './contextual-trigger-routing';
 
 export type HandoffSeverity = 'critical' | 'high' | 'medium' | 'low';
 export type ClinicalImpact =
@@ -23,6 +29,9 @@ export interface ClinicalHandoff {
   createdAt: string;
   fromAgent: string;
   toAgent?: string;
+  requestedAction?: TriggerActionType;
+  productContext?: ProductContext;
+  contextTags?: string[];
   severity: HandoffSeverity;
   clinicalImpact?: ClinicalImpact;
   reason: string;
@@ -34,11 +43,15 @@ export interface ClinicalHandoff {
     correlationId?: string;
   };
   suggestedNextSteps?: string[];
+  routing?: TriggerRoutingPlan;
 }
 
 export interface EmitHandoffInput {
   fromAgent: string;
   toAgent?: string;
+  requestedAction?: TriggerActionType;
+  productContext?: ProductContext;
+  contextTags?: string[];
   severity: HandoffSeverity;
   clinicalImpact?: ClinicalImpact;
   reason: string;
@@ -47,6 +60,7 @@ export interface EmitHandoffInput {
   attemptedRemediations?: string[];
   suggestedNextSteps?: string[];
   correlationId?: string;
+  routingMode?: 'manual' | 'contextual-specialist-only';
   /** Override dir. Defaults to `${VELYA_AUDIT_OUT}/handoffs`. */
   handoffDir?: string;
 }
@@ -68,11 +82,34 @@ export function emitHandoff(input: EmitHandoffInput): ClinicalHandoff {
   const dir = input.handoffDir ?? DEFAULT_HANDOFF_DIR();
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
+  const routing =
+    input.routingMode === 'contextual-specialist-only' || (!input.toAgent && input.requestedAction)
+      ? buildTriggerRoutingPlan({
+          fromAgent: input.fromAgent,
+          actionType: input.requestedAction ?? 'validation',
+          contextTags: input.contextTags,
+          productContext: input.productContext,
+          description: [
+            input.reason,
+            input.target.kind,
+            input.target.name,
+            input.attemptedRemediations?.join(' '),
+            input.suggestedNextSteps?.join(' '),
+          ]
+            .filter(Boolean)
+            .join('\n'),
+          target: input.target,
+        })
+      : undefined;
+
   const handoff: ClinicalHandoff = {
     handoffId: randomUUID(),
     createdAt: new Date().toISOString(),
     fromAgent: input.fromAgent,
-    toAgent: input.toAgent,
+    toAgent: input.toAgent ?? routing?.selectedAgentId,
+    requestedAction: input.requestedAction,
+    productContext: input.productContext,
+    contextTags: routing?.contextTags ?? input.contextTags,
     severity: input.severity,
     clinicalImpact: input.clinicalImpact ?? 'none',
     reason: input.reason,
@@ -84,6 +121,7 @@ export function emitHandoff(input: EmitHandoffInput): ClinicalHandoff {
       correlationId: input.correlationId,
     },
     suggestedNextSteps: input.suggestedNextSteps,
+    routing,
   };
 
   const file = join(

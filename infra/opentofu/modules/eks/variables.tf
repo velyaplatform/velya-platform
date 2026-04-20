@@ -60,3 +60,33 @@ variable "endpoint_public_access_cidrs" {
   type        = list(string)
   default     = []
 }
+
+variable "auto_mode_node_pools" {
+  description = "List of EKS Auto Mode pool identifiers to enable for the cluster control plane"
+  type        = list(string)
+  default     = ["general-purpose"]
+}
+
+variable "enable_frontend_node_group" {
+  description = "Whether to create the frontend node group"
+  type        = bool
+  default     = true
+}
+
+variable "enable_backend_node_group" {
+  description = "Whether to create the backend node group"
+  type        = bool
+  default     = true
+}
+
+variable "enable_platform_node_group" {
+  description = "Whether to create the platform node group"
+  type        = bool
+  default     = true
+}
+
+variable "enable_ai_agents_node_group" {
+  description = "Whether to create the AI/agents node group"
+  type        = bool
+  default     = true
+}

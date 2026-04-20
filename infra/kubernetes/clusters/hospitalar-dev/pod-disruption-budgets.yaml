@@ -1,0 +1,32 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: velya-web-pdb
+  namespace: velya-dev-web
+spec:
+  maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: velya-web
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: patient-flow-pdb
+  namespace: velya-dev-core
+spec:
+  maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: patient-flow
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: task-inbox-pdb
+  namespace: velya-dev-core
+spec:
+  maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: task-inbox

@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: hospitalar-dev
+  namespace: argocd
+spec:
+  description: Dedicated GitOps project for the Velya Hospitalar cluster
+  sourceRepos:
+    - https://github.com/velyaplatform/velya-platform.git
+  destinations:
+    - namespace: velya-dev-web
+      server: https://kubernetes.default.svc
+    - namespace: velya-dev-core
+      server: https://kubernetes.default.svc
+    - namespace: velya-dev-platform
+      server: https://kubernetes.default.svc
+    - namespace: velya-dev-observability
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+    - group: ""
+      kind: LimitRange
+    - group: ""
+      kind: ResourceQuota
+    - group: networking.k8s.io
+      kind: NetworkPolicy
+    - group: policy
+      kind: PodDisruptionBudget
+    - group: scheduling.k8s.io
+      kind: PriorityClass
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hospitalar-dev
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/cluster-role: hospitalar
+spec:
+  project: hospitalar-dev
+  source:
+    repoURL: https://github.com/velyaplatform/velya-platform.git
+    targetRevision: main
+    path: infra/kubernetes/clusters/hospitalar-dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velya-dev-core
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

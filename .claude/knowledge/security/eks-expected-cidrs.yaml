@@ -1,0 +1,15 @@
+clusters:
+  lince-hml:
+    required_cidrs:
+      - cidr: 191.19.99.121/32
+        owner: founder-residential
+        dynamic: true
+        max_age_days: 30
+        added: 2026-04-20
+      - cidr: 45.188.18.240/32
+        owner: unknown-2026-04-20
+        dynamic: false
+        note: "TODO: identify owner — pre-existing before audit; do not remove until confirmed"
+    max_total_cidrs: 5
+    public_access_expected: true
+    private_access_expected: true

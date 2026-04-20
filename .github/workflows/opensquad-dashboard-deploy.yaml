@@ -1,0 +1,147 @@
+name: Opensquad Dashboard Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+      - "infra/kubernetes/services/velya-dev-web/opensquad-dashboard.yaml"
+      - "infra/kubernetes/apps/opensquad-dashboard-ingress.yaml"
+      - "infra/kubernetes/clusters/opensquad-dev/**"
+      - "infra/argocd/opensquad-dev-root.yaml"
+      - ".github/workflows/opensquad-dashboard-deploy.yaml"
+  workflow_dispatch:
+
+concurrency:
+  group: opensquad-dashboard-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/opensquad-dashboard
+
+jobs:
+  build-and-publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set image metadata
+        id: meta
+        shell: bash
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          TAG="${SHORT_SHA}-$(date -u +%Y%m%d-%H%M%S)"
+          echo "image_tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Using tag ${TAG}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4fd812986e6c8c2a69e18311145f9371337f27d4 # v3.4.0
+
+      - name: Log in to GHCR
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1 # v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./dashboard
+          file: ./dashboard/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.image_tag }}
+            ${{ env.IMAGE_NAME }}:main
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  update-gitops-manifest:
+    if: github.actor != 'github-actions[bot]'
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update deployment image
+        env:
+          IMAGE: ${{ env.IMAGE_NAME }}:${{ needs.build-and-publish.outputs.image_tag }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          import re
+
+          manifest = Path("infra/kubernetes/services/velya-dev-web/opensquad-dashboard.yaml")
+          content = manifest.read_text()
+          updated = re.sub(
+              r"image:\s*ghcr\.io/velyaplatform/opensquad-dashboard:[^\n]+",
+              f"image: {os.environ['IMAGE']}",
+              content,
+              count=1,
+          )
+          if updated == content:
+              raise SystemExit("image reference was not updated")
+          manifest.write_text(updated)
+          PY
+
+      - name: Commit manifest update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add infra/kubernetes/services/velya-dev-web/opensquad-dashboard.yaml
+          if git diff --cached --quiet; then
+            echo "No manifest drift after image update"
+            exit 0
+          fi
+          git commit -m "chore(opensquad-dashboard): deploy image ${{ needs.build-and-publish.outputs.image_tag }}"
+          git push origin HEAD:main
+
+  sync-and-monitor-argo:
+    if: github.actor != 'github-actions[bot]'
+    needs: update-gitops-manifest
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Sync opensquad-dev in Argo CD
+        env:
+          ARGOCD_SERVER: ${{ vars.ARGOCD_SERVER }}
+          ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${ARGOCD_SERVER:-}" ] || [ -z "${ARGOCD_AUTH_TOKEN:-}" ]; then
+            echo "Argo CD credentials not configured. Skipping live sync."
+            exit 0
+          fi
+
+          curl -sSL -o /tmp/argocd \
+            https://github.com/argoproj/argo-cd/releases/download/v2.14.9/argocd-linux-amd64
+          chmod +x /tmp/argocd
+
+          /tmp/argocd --grpc-web --insecure \
+            --server "${ARGOCD_SERVER}" \
+            --auth-token "${ARGOCD_AUTH_TOKEN}" \
+            app sync opensquad-dev
+
+          /tmp/argocd --grpc-web --insecure \
+            --server "${ARGOCD_SERVER}" \
+            --auth-token "${ARGOCD_AUTH_TOKEN}" \
+            app wait opensquad-dev --health --sync --timeout 600

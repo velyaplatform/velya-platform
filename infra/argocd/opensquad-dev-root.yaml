@@ -1,0 +1,70 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: opensquad-dev
+  namespace: argocd
+spec:
+  description: Dedicated GitOps project for the Opensquad/Autopilot cluster
+  sourceRepos:
+    - https://github.com/velyaplatform/velya-platform.git
+  destinations:
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+    - namespace: velya-dev-web
+      server: https://kubernetes.default.svc
+    - namespace: velya-dev-platform
+      server: https://kubernetes.default.svc
+    - namespace: velya-dev-agents
+      server: https://kubernetes.default.svc
+    - namespace: velya-dev-core
+      server: https://kubernetes.default.svc
+    - namespace: velya-dev-observability
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+    - group: ""
+      kind: LimitRange
+    - group: ""
+      kind: ResourceQuota
+    - group: ""
+      kind: Secret
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: ServiceAccount
+    - group: ""
+      kind: PersistentVolumeClaim
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+    - group: scheduling.k8s.io
+      kind: PriorityClass
+    - group: networking.k8s.io
+      kind: NetworkPolicy
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opensquad-dev
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/cluster-role: opensquad
+spec:
+  project: opensquad-dev
+  source:
+    repoURL: https://github.com/velyaplatform/velya-platform.git
+    targetRevision: main
+    path: infra/kubernetes/clusters/opensquad-dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velya-dev-platform
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

@@ -1,0 +1,53 @@
+squad:
+  code: release-notes
+  name: Release Notes Velya
+  description: |
+    Gera release notes em Português (Brasil) a partir dos commits do padrão
+    chore(release) v* do monorepo velya-platform. Três agents trabalham em
+    pipeline com checkpoints humanos.
+  icon: "📝"
+  version: "1.0.0"
+  language: "Português (Brasil)"
+  agents:
+    - ./agents/commit-collector.agent.md
+    - ./agents/release-writer.agent.md
+    - ./agents/technical-reviewer.agent.md
+
+skills:
+  - web_search
+  - web_fetch
+
+data:
+  - pipeline/data/research-brief.md
+  - pipeline/data/domain-framework.md
+  - pipeline/data/quality-criteria.md
+  - pipeline/data/output-examples.md
+  - pipeline/data/anti-patterns.md
+
+pipeline:
+  steps:
+    - id: collect-commits
+      name: Coletar commits de release
+      agent: commit-collector
+      step_file: pipeline/steps/step-01-collect-commits.md
+      execution: inline
+
+    - id: draft-notes
+      name: Redigir release notes
+      agent: release-writer
+      step_file: pipeline/steps/step-02-draft-notes.md
+      execution: subagent
+      model_tier: powerful
+
+    - id: review-notes
+      name: Revisar release notes
+      agent: technical-reviewer
+      step_file: pipeline/steps/step-03-review-notes.md
+      execution: inline
+
+    - id: finalize
+      name: Aprovar e salvar
+      agent: technical-reviewer
+      step_file: pipeline/steps/step-04-finalize.md
+      execution: inline
+      checkpoint: true

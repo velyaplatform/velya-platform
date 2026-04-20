@@ -1,0 +1,31 @@
+{
+  "squad": "release-notes",
+  "status": "idle",
+  "step": { "current": 0, "total": 4, "label": "" },
+  "agents": [
+    {
+      "id": "commit-collector",
+      "name": "Coletor de Commits",
+      "icon": "🔍",
+      "status": "idle",
+      "desk": { "col": 1, "row": 1 }
+    },
+    {
+      "id": "release-writer",
+      "name": "Redator de Release Notes",
+      "icon": "✍️",
+      "status": "idle",
+      "desk": { "col": 2, "row": 1 }
+    },
+    {
+      "id": "technical-reviewer",
+      "name": "Revisor Técnico",
+      "icon": "🧐",
+      "status": "idle",
+      "desk": { "col": 3, "row": 1 }
+    }
+  ],
+  "handoff": null,
+  "startedAt": null,
+  "updatedAt": "2026-04-14T12:20:00Z"
+}

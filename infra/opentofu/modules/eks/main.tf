@@ -135,7 +135,7 @@ resource "aws_eks_cluster" "this" {
 
   compute_config {
     enabled       = true
-    node_pools    = ["general-purpose"]
+    node_pools    = var.auto_mode_node_pools
     node_role_arn = aws_iam_role.node.arn
   }
 

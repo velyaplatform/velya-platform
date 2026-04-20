@@ -8,6 +8,12 @@ variable "project_name" {
   type        = string
 }
 
+variable "name_suffix" {
+  description = "Optional suffix to avoid IAM role name collisions when multiple control planes exist in the same environment"
+  type        = string
+  default     = ""
+}
+
 variable "environment" {
   description = "Deployment environment (dev, staging, prod)"
   type        = string
@@ -63,7 +69,7 @@ data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
 locals {
-  name_prefix = "${var.project_name}-${var.environment}"
+  name_prefix = "${var.project_name}-${var.environment}${var.name_suffix != "" ? "-${var.name_suffix}" : ""}"
 
   common_tags = {
     Project     = var.project_name

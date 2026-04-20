@@ -28,6 +28,9 @@ applying bulk sed fixes to the same files).
 ### Routing
 - Receive findings from each agent via evidence log
 - Decide which agent validates each finding (per validation chain)
+- Trigger only the specialists whose context tags actually match the finding
+  (`aws`, `fhir`, `github-actions`, `prometheus`, etc). No fan-out to
+  unrelated offices.
 - Forward to human review when chain escalates
 - Deduplicate: if infra-health-agent and frontend-quality-agent report the
   same underlying issue, merge into a single tracking item
@@ -97,6 +100,87 @@ data:
     }
 ```
 
+## Decision logic (v2, 2026-04-20)
+
+Supersedes the implicit routing behaviour previously buried inside `Routing`.
+When a task arrives, the coordinator runs these six steps **in order** — never
+skip, never reorder.
+
+### 1. Intent classification
+
+Match the incoming request against this table (first match wins, multi-match
+triggers sequential chain, not parallel fan-out):
+
+| Intent signal in request                             | Primary specialist(s)                                              |
+| ---------------------------------------------------- | ------------------------------------------------------------------ |
+| backend / API / service / tRPC / REST / node         | `api-designer` → `backend-quality-agent` → `service-architect`     |
+| frontend / component / React / Next / apps/web       | `frontend-quality-agent` → `ui-audit-agent` (visual gate)          |
+| security / OWASP / vuln / auth / secrets             | `security-reviewer` → `iam-reviewer` → `external-secrets-*`        |
+| infra / helm / OpenTofu / ArgoCD / cluster           | `infra-planner` → `eks-operator` → `argocd-specialist-agent`       |
+| CI / pipeline / Actions / GHCR                       | `github-actions-specialist-agent` → `ci-failure-triage-agent`      |
+| FHIR / Medplum / clinical / patient / TISS / TUSS    | `medplum-fhir-specialist-agent` → `clinical-safety-gap-hunter`     |
+| cost / FinOps / budget / spend                       | `finops-reviewer` → `cost-explosion-hunter-agent`                  |
+| observability / metrics / traces / logs / SLO        | `observability-reviewer` → `prom/loki/tempo-specialist-agent`      |
+| marketing / copy / landing / CTA                     | `marketing-copy-agent` → `developer-documentation-agent`           |
+| debug / incident / failure / root-cause              | `systematic-debugging` skill → domain specialist of the failure    |
+| governance / scorecard / audit / office charter      | `agent-governance-reviewer` → `governance-council`                 |
+| red-team / blind-spot / adversarial                  | `red-team-manager-agent` → `adversarial-behavior-analyst-agent`    |
+
+### 2. Risk classification
+
+Drive the validation chain depth from `ai-safety.md` risk classes:
+
+- **Low** → single specialist, async, evidence optional.
+- **Medium** → specialist + one independent validator.
+- **High** → specialist + 2 validators + auditor.
+- **Critical / Clinical** → above + human-in-the-loop block (never auto-merge).
+
+### 3. Memory preamble (mandatory)
+
+Before dispatching to specialist `X`, the coordinator **instructs X to read**:
+
+1. `.claude/agents/_memory/<X>.md` — its own persistent memory (see README there).
+2. The relevant rule files under `.claude/rules/` for the task's domain.
+3. The last 7 days of `.claude/ledger/delegations.jsonl` entries where
+   `from == X` or `to == X` — reveals open or recently rejected work.
+
+A specialist that produces output without evidence of the preamble is a
+**ledger violation** and is sent back by the auditor.
+
+### 4. Fan-out guard
+
+Broadcasting the same task to more than 3 specialists simultaneously is
+**forbidden** unless the task is demonstrably cross-cutting (e.g. an incident
+spanning infra + security + clinical). Default is a sequential chain ordered
+by dependency. The coordinator documents the chain order in the ledger
+`context` field at dispatch time.
+
+### 5. MCP tool allocation
+
+MCP servers declared in `.mcp.json` are tiered per `ai-safety.md` trust
+model. Each specialist cluster gets only what it needs:
+
+| Specialist cluster                                                           | MCP servers granted    | Trust tier          |
+| ---------------------------------------------------------------------------- | ---------------------- | ------------------- |
+| `argocd-*`, `eks-operator`, `helm-*`, `kyverno-*`, `k8s-troubleshooter-agent`| `kubernetes`           | Tier 1 (write, internal) |
+| `aws-specialist-agent`, `external-secrets-specialist-agent`, `iam-reviewer`, `finops-reviewer` | `aws`  | Tier 0 (read-only: `READ_OPERATIONS_ONLY=true`) |
+| `github-actions-specialist-agent`, `ci-failure-triage-agent`, `dependency-updater-agent`, `repo-settings-auditor-agent` | `github` | Tier 2 (write, external) — human approval for destructive ops |
+| `ui-audit-agent`, `frontend-quality-agent`, `marketing-copy-agent`           | `playwright`           | Tier 0 (read-only)  |
+
+An agent that requests an MCP outside its allocated cluster triggers an
+`excessive-agency` finding routed to the Red Team Office per `ai-safety.md`.
+
+### 6. Ambiguous intent — default chain
+
+When classification in step 1 yields no confident match:
+
+1. Dispatch to `Explore` subagent (read-only) for scope discovery.
+2. Route the narrowed finding to `proactive-bug-hunter-agent`.
+3. Return to coordinator with refined intent before dispatching a specialist.
+
+**Never** dispatch to a specialist on ambiguous intent — that is the failure
+mode flagged as "autopilot hallucination" by the Adversarial Behavior Analyst.
+
 ## Validation chain (global)
 
 For every finding produced by any agent:
@@ -131,6 +215,14 @@ the coordinator processes it:
 1. Parse findings
 2. Deduplicate against the last 24h of findings
 3. Assign validator per chain
+4. Build a contextual trigger plan:
+   - `validation` → validator(s) específicos do domínio
+   - `testing` → gate/test specialist do domínio
+   - `monitoring` → watchdog/monitor do domínio
+   - `correction` → remediator do domínio
+   - `improvement` → improvement specialist do domínio
+   - if multiple specialists are equally relevant, route to the coordinator
+     with ordered candidates instead of broadcasting to everyone
 4. Track state in ConfigMap `velya-autopilot-findings-state`
 5. Open PR / apply fix / escalate as decided
 6. Update KPIs

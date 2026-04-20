@@ -1,0 +1,27 @@
+pipeline:
+  name: Release Notes Velya
+  version: "1.0.0"
+  description: |
+    Coleta commits de release → redige changelog + anúncio → revisa → finaliza.
+  steps:
+    - id: collect-commits
+      file: steps/step-01-collect-commits.md
+      agent: commit-collector
+      execution: inline
+
+    - id: draft-notes
+      file: steps/step-02-draft-notes.md
+      agent: release-writer
+      execution: subagent
+      model_tier: powerful
+
+    - id: review-notes
+      file: steps/step-03-review-notes.md
+      agent: technical-reviewer
+      execution: inline
+
+    - id: finalize
+      file: steps/step-04-finalize.md
+      agent: technical-reviewer
+      execution: inline
+      checkpoint: true

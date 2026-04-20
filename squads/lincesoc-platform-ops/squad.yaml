@@ -1,0 +1,18 @@
+squad:
+  code: lincesoc-platform-ops
+  name: Lincesoc Platform Ops
+  description: |
+    Operational squad for the local Lincesoc runtime. Tracks the open-source
+    replacement work, cluster health, demo access readiness, and live
+    synchronization with the OpenSquad dashboard.
+  icon: "Lince"
+  version: "1.0.0"
+  language: "Portuguese"
+  agents:
+    - ../../.claude/agents/soc-detection-engineering-agent.md
+    - ../../.claude/agents/frontend-quality-agent.md
+    - ../../.claude/agents/backend-quality-agent.md
+    - ../../.claude/agents/infra-health-agent.md
+    - ../../.claude/agents/argocd-healer-agent.md
+    - ../../.claude/agents/customer-onboarding-agent.md
+    - ../../.claude/agents/delegation-coordinator-agent.md

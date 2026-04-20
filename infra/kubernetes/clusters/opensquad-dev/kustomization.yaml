@@ -1,0 +1,90 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: opensquad-dev-cluster
+
+resources:
+  - namespaces.yaml
+  - placeholders.yaml
+  - limit-ranges.yaml
+  - resource-quotas.yaml
+  - network-policies.yaml
+  - ../../bootstrap/priority-classes.yaml
+  - ../../services/velya-dev-web/opensquad-dashboard.yaml
+  - ../../apps/opensquad-dashboard-ingress.yaml
+  - ../../services/velya-dev-platform/ai-gateway.yaml
+  - ../../services/velya-dev-platform/memory-service.yaml
+  - ../../services/velya-dev-platform/policy-engine.yaml
+  - ../../services/velya-dev-agents/agent-orchestrator.yaml
+  - ../../autopilot/agents-cronjobs.yaml
+  - ../../memory-guardian/cronjob.yaml
+
+patches:
+  - target:
+      kind: Deployment
+      namespace: velya-dev-platform
+      labelSelector: app in (ai-gateway,memory-service,policy-engine)
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ignored
+      spec:
+        template:
+          metadata:
+            labels:
+              velya.io/cluster-role: opensquad
+          spec:
+            nodeSelector:
+              velya.io/tier: ai
+            tolerations:
+              - key: velya.io/ai-workload
+                operator: Equal
+                value: "true"
+                effect: NoSchedule
+  - target:
+      kind: Deployment
+      namespace: velya-dev-agents
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ignored
+      spec:
+        template:
+          metadata:
+            labels:
+              velya.io/cluster-role: opensquad
+          spec:
+            nodeSelector:
+              velya.io/tier: ai
+            tolerations:
+              - key: velya.io/ai-workload
+                operator: Equal
+                value: "true"
+                effect: NoSchedule
+  - target:
+      kind: CronJob
+      namespace: velya-dev-platform
+    patch: |-
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: ignored
+      spec:
+        jobTemplate:
+          spec:
+            ttlSecondsAfterFinished: 900
+            template:
+              metadata:
+                labels:
+                  velya.io/cluster-role: opensquad
+              spec:
+                nodeSelector:
+                  velya.io/tier: platform
+                tolerations:
+                  - key: velya.io/platform
+                    operator: Equal
+                    value: "true"
+                    effect: NoSchedule

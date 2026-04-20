@@ -1,0 +1,15 @@
+squad:
+  code: lincesoc-aws-migration
+  name: Lincesoc AWS Migration
+  description: |
+    Automatic operations squad that mirrors the real AWS migration state for
+    Lincesoc into the orchestration dashboard, shared handoff, and specialist
+    ledger.
+  icon: "AWS"
+  version: "1.0.0"
+  language: "English"
+  agents:
+    - ../../.claude/agents/aws-specialist-agent.md
+    - ../../.claude/agents/terragrunt-specialist-agent.md
+    - ../../.claude/agents/support-sla-tracker-agent.md
+    - ../../.claude/agents/github-actions-specialist-agent.md

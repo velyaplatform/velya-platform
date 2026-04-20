@@ -23,9 +23,18 @@ locals {
 
   nat_gateway_count = var.single_nat_gateway ? 1 : 3
 
-  eks_cluster_tag = var.cluster_name != "" ? {
-    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-  } : {}
+  cluster_tag_names = distinct(
+    concat(
+      var.cluster_name != "" ? [var.cluster_name] : [],
+      var.cluster_names,
+    )
+  )
+
+  eks_cluster_tags = length(local.cluster_tag_names) > 0 ? merge([
+    for cluster_name in local.cluster_tag_names : {
+      "kubernetes.io/cluster/${cluster_name}" = "shared"
+    }
+  ]...) : {}
 
   common_tags = {
     Project     = var.project_name
@@ -44,7 +53,7 @@ resource "aws_vpc" "this" {
   enable_dns_support   = true
   enable_dns_hostnames = true
 
-  tags = merge(local.common_tags, local.eks_cluster_tag, {
+  tags = merge(local.common_tags, local.eks_cluster_tags, {
     Name = "${local.name_prefix}-vpc"
   })
 }
@@ -73,10 +82,10 @@ resource "aws_subnet" "public" {
   availability_zone       = var.availability_zones[count.index]
   map_public_ip_on_launch = true
 
-  tags = merge(local.common_tags, local.eks_cluster_tag, {
-    Name                        = "${local.name_prefix}-public-${var.availability_zones[count.index]}"
-    "kubernetes.io/role/elb"    = "1"
-    Tier                        = "public"
+  tags = merge(local.common_tags, local.eks_cluster_tags, {
+    Name                     = "${local.name_prefix}-public-${var.availability_zones[count.index]}"
+    "kubernetes.io/role/elb" = "1"
+    Tier                     = "public"
   })
 }
 
@@ -91,7 +100,7 @@ resource "aws_subnet" "private" {
   cidr_block        = local.private_subnet_cidrs[count.index]
   availability_zone = var.availability_zones[count.index]
 
-  tags = merge(local.common_tags, local.eks_cluster_tag, {
+  tags = merge(local.common_tags, local.eks_cluster_tags, {
     Name                              = "${local.name_prefix}-private-${var.availability_zones[count.index]}"
     "kubernetes.io/role/internal-elb" = "1"
     Tier                              = "private"

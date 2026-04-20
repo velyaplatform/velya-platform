@@ -68,6 +68,7 @@ const AUDIT_OUT = process.env.VELYA_AUDIT_OUT ?? '/data/velya-autopilot';
 // Known expected cadences per agent (minutes). Used to flag staleness.
 // Source of truth is docs/operations/clinical-control-plane.md.
 const EXPECTED_CADENCE_MIN: Record<string, number> = {
+  'delegation-coordinator-agent': 15,
   'argocd-healer-agent': 15,
   'k8s-troubleshooter-agent': 15,
   'infra-health-agent': 30,
@@ -82,6 +83,7 @@ const EXPECTED_CADENCE_MIN: Record<string, number> = {
 // Layer mapping — follows the esteira described in feedback_argocd_healer_esteira.
 // L1 = reactive healers, L2 = supervisors, L3 = governance.
 const LAYER: Record<string, 1 | 2 | 3> = {
+  'delegation-coordinator-agent': 2,
   'argocd-healer-agent': 1,
   'k8s-troubleshooter-agent': 1,
   'infra-health-agent': 1,
@@ -132,6 +134,7 @@ function readLatestReport(agentDir: string): LatestReport | null {
 
 // Map agent name → directory name under VELYA_AUDIT_OUT used by run-*.ts
 const AUDIT_DIRS: Record<string, string> = {
+  'delegation-coordinator-agent': 'delegation-coordinator',
   'argocd-healer-agent': 'argocd-audit',
   'k8s-troubleshooter-agent': 'k8s-troubleshoot',
   'infra-health-agent': 'infra-audit',

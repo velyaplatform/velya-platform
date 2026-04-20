@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # Velya Platform
 
 AI-native hospital platform built on AWS EKS. TypeScript/Node.js backend, FHIR-first clinical data model via Medplum, event-driven architecture.
@@ -7,6 +9,33 @@ AI-native hospital platform built on AWS EKS. TypeScript/Node.js backend, FHIR-f
 - **Domain rules**: `.claude/rules/` (security, naming, infrastructure, agents, architecture, quality)
 - **Subagents**: `.claude/agents/` (specialized AI agents for platform tasks)
 - **Skills**: `.claude/skills/` (reusable automation skills)
+- **Delegation ledger**: `.claude/ledger/delegations.jsonl` (append-only — ver `README.md` no mesmo diretório)
+
+## Opensquad
+
+This repository also includes **Opensquad** for non-clinical, operational/creative squads.
+
+- Entry point in Claude Code: `/opensquad`
+- Supported shortcuts:
+  - `/opensquad help`
+  - `/opensquad create <description>`
+  - `/opensquad list`
+  - `/opensquad run <name>`
+  - `/opensquad edit <name> <changes>`
+  - `/opensquad skills`
+- The command behavior is defined in `.claude/skills/opensquad/SKILL.md`.
+- Before creating or running squads, load `_opensquad/_memory/company.md` and `_opensquad/_memory/preferences.md`.
+- Before running a squad, also load `squads/<name>/squad.yaml`, `squads/<name>/_memory/memories.md`, and `_opensquad/core/runner.pipeline.md`.
+- Do not manually edit `_opensquad/core/` unless you are intentionally changing the framework itself.
+
+## Delegation protocol (mandatory)
+
+Whenever an agent (including Claude Code main sessions or subagents invoked via `Task`) delegates work to another agent, the delegation MUST be appended to `.claude/ledger/delegations.jsonl`:
+
+1. **At request time** — append line with `status: "pending"` containing `{id, ts, from, to, task, context, status, evidencePath}`.
+2. **At completion** — append a new line with the same `id` and `status: "completed"` (or `"blocked"` / `"rejected"`) and `evidencePath` pointing to the artifact (PR, doc, review).
+3. **Never edit prior lines** — the ledger is append-only. The dashboard and the `delegation-coordinator-agent` aggregate by `id` and use the latest status.
+4. The `delegation-coordinator-agent` supervises integrity (stale pending entries, delegation loops, orphaned tasks).
 - **Full taxonomy**: `docs/product/naming-taxonomy.md`
 - **Hospital modules map (single source of truth)**: `docs/product/hospital-modules-map.md` — canonical mapping of every clinical/operational module to its FHIR resource, data class, web route, authorized roles, compliance gate, and backlog priority. Every new hospital feature MUST appear here before the PR merges.
 

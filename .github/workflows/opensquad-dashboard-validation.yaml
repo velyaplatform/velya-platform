@@ -1,0 +1,312 @@
+name: Opensquad Dashboard Validation
+
+on:
+  workflow_run:
+    workflows: ["Opensquad Dashboard Deploy"]
+    types: [completed]
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+concurrency:
+  group: opensquad-dashboard-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate-build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install dashboard dependencies
+        working-directory: dashboard
+        run: npm ci
+
+      - name: Build dashboard
+        working-directory: dashboard
+        run: npm run build
+
+      - name: Install Playwright browser
+        run: npx playwright install chromium
+
+      - name: Write fixture snapshot
+        shell: bash
+        run: |
+          cat > "${RUNNER_TEMP}/opensquad-snapshot.json" <<'EOF'
+          {
+            "type": "SNAPSHOT",
+            "squads": [
+              {
+                "code": "release-notes",
+                "name": "Release Notes",
+                "description": "Ala operacional de conteudo.",
+                "icon": "📝",
+                "agents": ["release-notes/writer", "release-notes/reviewer"]
+              }
+            ],
+            "activeStates": {
+              "release-notes": {
+                "squad": "release-notes",
+                "status": "running",
+                "step": { "current": 4, "total": 7, "label": "Revisando changelog" },
+                "agents": [
+                  {
+                    "id": "release-notes/writer",
+                    "name": "release-notes/writer",
+                    "icon": "Male1",
+                    "status": "working",
+                    "gender": "male",
+                    "desk": { "col": 2, "row": 3 }
+                  },
+                  {
+                    "id": "release-notes/reviewer",
+                    "name": "release-notes/reviewer",
+                    "icon": "Female2",
+                    "status": "checkpoint",
+                    "gender": "female",
+                    "desk": { "col": 4, "row": 3 }
+                  }
+                ],
+                "handoff": null,
+                "startedAt": "2026-04-14T18:00:00.000Z",
+                "updatedAt": "2026-04-14T18:05:00.000Z"
+              }
+            },
+            "company": {
+              "updatedAt": "2026-04-14T18:05:00.000Z",
+              "offices": [
+                {
+                  "id": "executive",
+                  "name": "Executivo",
+                  "description": "Direcao executiva.",
+                  "hierarchy": "executive",
+                  "product": "shared",
+                  "reportsTo": null,
+                  "agents": [
+                    {
+                      "id": "executive/ceo",
+                      "name": "Joao Lucas Lima Freire",
+                      "description": "CEO.",
+                      "officeId": "executive",
+                      "source": "executive",
+                      "product": "shared",
+                      "displayName": "Joao Lucas Lima Freire",
+                      "role": "CEO",
+                      "descriptionPtBr": "CEO e fundador.",
+                      "leadership": "ceo",
+                      "gender": "m"
+                    }
+                  ]
+                },
+                {
+                  "id": "opensquad-alas",
+                  "name": "Alas Operacionais e Criativas",
+                  "description": "Execucao operacional compartilhada.",
+                  "hierarchy": "squad-ala",
+                  "product": "shared",
+                  "reportsTo": "governance-council",
+                  "agents": [
+                    {
+                      "id": "release-notes/writer",
+                      "name": "Release Notes Writer",
+                      "description": "Produz resumo de entrega.",
+                      "officeId": "opensquad-alas",
+                      "source": "opensquad",
+                      "product": "shared",
+                      "displayName": "Heitor Martins Costa",
+                      "role": "Especialista em Release Notes",
+                      "descriptionPtBr": "Coordena a narrativa da entrega.",
+                      "leadership": "coordenador",
+                      "gender": "m"
+                    },
+                    {
+                      "id": "release-notes/reviewer",
+                      "name": "Release Notes Reviewer",
+                      "description": "Valida consistencia final.",
+                      "officeId": "opensquad-alas",
+                      "source": "opensquad",
+                      "product": "shared",
+                      "displayName": "Aurora Lemos Duarte",
+                      "role": "Revisora de Publicacao",
+                      "descriptionPtBr": "Valida o texto final da ala.",
+                      "leadership": null,
+                      "gender": "f"
+                    }
+                  ]
+                }
+              ]
+            },
+            "delegations": [
+              {
+                "id": "deleg-1",
+                "ts": "2026-04-14T18:04:00.000Z",
+                "from": "executive/ceo",
+                "to": "release-notes/writer",
+                "task": "Consolidar ultimas entregas",
+                "context": "Preparar resumo executivo.",
+                "status": "in-progress",
+                "origin": "ledger"
+              }
+            ],
+            "handoffs": [],
+            "sync": {
+              "snapshotGeneratedAt": "2026-04-14T18:05:00.000Z",
+              "activeSquads": {
+                "total": 1,
+                "running": 1,
+                "checkpoint": 0,
+                "completed": 0,
+                "updatedAt": "2026-04-14T18:05:00.000Z"
+              },
+              "ledger": {
+                "total": 1,
+                "active": 1,
+                "pending": 0,
+                "inProgress": 1,
+                "blocked": 0,
+                "updatedAt": "2026-04-14T18:04:00.000Z"
+              },
+              "coordination": {
+                "available": true,
+                "filePath": "state/agent-sync/status.json",
+                "generatedAt": "2026-04-14T18:05:00.000Z",
+                "observedAt": "2026-04-14T18:05:00.000Z",
+                "totalAgents": 2,
+                "reportingAgents": 2,
+                "staleAgents": []
+              }
+            }
+          }
+          EOF
+
+      - name: Start production server
+        working-directory: dashboard
+        env:
+          OPENSQUAD_SNAPSHOT_MODE: file
+          OPENSQUAD_SNAPSHOT_FILE: ${{ runner.temp }}/opensquad-snapshot.json
+          PORT: 3000
+        shell: bash
+        run: |
+          node server.js > "${RUNNER_TEMP}/opensquad-dashboard.log" 2>&1 &
+          echo $! > "${RUNNER_TEMP}/opensquad-dashboard.pid"
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/api/health >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 1
+          done
+          tail -n 100 "${RUNNER_TEMP}/opensquad-dashboard.log" || true
+          exit 1
+
+      - name: Smoke endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS http://127.0.0.1:3000/api/health | jq -e '.ok == true' >/dev/null
+          curl -fsS http://127.0.0.1:3000/api/snapshot | jq -e '.type == "SNAPSHOT"' >/dev/null
+          curl -fsS http://127.0.0.1:3000/metrics | grep -q 'opensquad_dashboard_up 1'
+
+      - name: Capture validation screenshots
+        run: |
+          node scripts/validate-opensquad-dashboard.mjs \
+            --url http://127.0.0.1:3000 \
+            --out "${RUNNER_TEMP}/opensquad-validation"
+
+      - name: Upload validation screenshots
+        if: always()
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: opensquad-dashboard-build-validation
+          path: ${{ runner.temp }}/opensquad-validation/
+          retention-days: 7
+
+      - name: Stop production server
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "${RUNNER_TEMP}/opensquad-dashboard.pid" ]; then
+            kill "$(cat "${RUNNER_TEMP}/opensquad-dashboard.pid")" 2>/dev/null || true
+          fi
+
+  validate-deployed-environment:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install chromium
+
+      - name: Probe deployed URL
+        id: probe
+        env:
+          DASHBOARD_URL: ${{ vars.OPENSQUAD_DASHBOARD_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${DASHBOARD_URL:-}" ]; then
+            echo "reachable=false" >> "$GITHUB_OUTPUT"
+            echo "No OPENSQUAD_DASHBOARD_URL configured."
+            exit 0
+          fi
+          STATUS="$(curl -s -o /dev/null -w '%{http_code}' --max-time 8 --connect-timeout 5 "${DASHBOARD_URL}/api/health" || true)"
+          if [ "${STATUS}" = "200" ] || [ "${STATUS}" = "503" ]; then
+            echo "reachable=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "reachable=false" >> "$GITHUB_OUTPUT"
+            echo "Dashboard URL ${DASHBOARD_URL} not reachable (HTTP ${STATUS:-000})."
+          fi
+
+      - name: Smoke deployed endpoints
+        if: steps.probe.outputs.reachable == 'true'
+        env:
+          DASHBOARD_URL: ${{ vars.OPENSQUAD_DASHBOARD_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS "${DASHBOARD_URL}/api/health" | jq -e '.status == "ok" or .status == "degraded"' >/dev/null
+          curl -fsS "${DASHBOARD_URL}/api/snapshot" | jq -e '.type == "SNAPSHOT"' >/dev/null
+          curl -fsS "${DASHBOARD_URL}/metrics" | grep -q 'opensquad_dashboard_snapshot_refresh_total'
+
+      - name: Capture deployed screenshots
+        if: steps.probe.outputs.reachable == 'true'
+        env:
+          DASHBOARD_URL: ${{ vars.OPENSQUAD_DASHBOARD_URL }}
+        run: |
+          node scripts/validate-opensquad-dashboard.mjs \
+            --url "${DASHBOARD_URL}" \
+            --out "${RUNNER_TEMP}/opensquad-live-validation"
+
+      - name: Upload deployed screenshots
+        if: always() && steps.probe.outputs.reachable == 'true'
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: opensquad-dashboard-live-validation
+          path: ${{ runner.temp }}/opensquad-live-validation/
+          retention-days: 7

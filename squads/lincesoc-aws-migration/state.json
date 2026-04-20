@@ -1,0 +1,59 @@
+{
+  "squad": "lincesoc-aws-migration",
+  "status": "checkpoint",
+  "step": {
+    "current": 3,
+    "total": 5,
+    "label": "Waiting for AWS Support case 177618647600516"
+  },
+  "agents": [
+    {
+      "id": "aws-specialist-agent",
+      "name": "AWS Specialist",
+      "icon": "AWS",
+      "status": "working",
+      "desk": {
+        "col": 1,
+        "row": 1
+      }
+    },
+    {
+      "id": "terragrunt-specialist-agent",
+      "name": "Terragrunt Specialist",
+      "icon": "TG",
+      "status": "done",
+      "desk": {
+        "col": 2,
+        "row": 1
+      }
+    },
+    {
+      "id": "support-sla-tracker-agent",
+      "name": "Support SLA Tracker",
+      "icon": "SUP",
+      "status": "working",
+      "desk": {
+        "col": 3,
+        "row": 1
+      }
+    },
+    {
+      "id": "github-actions-specialist-agent",
+      "name": "GitHub Runtime Gate",
+      "icon": "GH",
+      "status": "checkpoint",
+      "desk": {
+        "col": 4,
+        "row": 1
+      }
+    }
+  ],
+  "handoff": {
+    "from": "aws-specialist-agent",
+    "to": "support-sla-tracker-agent",
+    "message": "Await AWS response on case 177618647600516",
+    "completedAt": "2026-04-15T12:54:16.749Z"
+  },
+  "startedAt": "2026-04-15T12:54:16.749Z",
+  "updatedAt": "2026-04-15T12:54:16.749Z"
+}

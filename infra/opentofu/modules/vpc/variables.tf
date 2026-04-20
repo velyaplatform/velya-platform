@@ -50,3 +50,9 @@ variable "cluster_name" {
   type        = string
   default     = ""
 }
+
+variable "cluster_names" {
+  description = "Additional EKS cluster names for subnet tagging when multiple clusters share the same VPC"
+  type        = list(string)
+  default     = []
+}

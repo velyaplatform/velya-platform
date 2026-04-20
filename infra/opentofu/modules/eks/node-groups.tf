@@ -10,6 +10,8 @@
 # ============================================================================
 
 resource "aws_eks_node_group" "frontend" {
+  count = var.enable_frontend_node_group ? 1 : 0
+
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "${var.cluster_name}-frontend"
   node_role_arn   = aws_iam_role.node.arn
@@ -47,6 +49,8 @@ resource "aws_eks_node_group" "frontend" {
 # ============================================================================
 
 resource "aws_eks_node_group" "backend" {
+  count = var.enable_backend_node_group ? 1 : 0
+
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "${var.cluster_name}-backend"
   node_role_arn   = aws_iam_role.node.arn
@@ -85,6 +89,8 @@ resource "aws_eks_node_group" "backend" {
 # ============================================================================
 
 resource "aws_eks_node_group" "platform" {
+  count = var.enable_platform_node_group ? 1 : 0
+
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "${var.cluster_name}-platform"
   node_role_arn   = aws_iam_role.node.arn
@@ -129,6 +135,8 @@ resource "aws_eks_node_group" "platform" {
 # ============================================================================
 
 resource "aws_eks_node_group" "ai_agents" {
+  count = var.enable_ai_agents_node_group ? 1 : 0
+
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "${var.cluster_name}-ai-agents"
   node_role_arn   = aws_iam_role.node.arn
@@ -172,21 +180,21 @@ resource "aws_eks_node_group" "ai_agents" {
 # ============================================================================
 
 output "node_group_frontend_name" {
-  value       = aws_eks_node_group.frontend.node_group_name
+  value       = var.enable_frontend_node_group ? aws_eks_node_group.frontend[0].node_group_name : null
   description = "Name of the frontend node group"
 }
 
 output "node_group_backend_name" {
-  value       = aws_eks_node_group.backend.node_group_name
+  value       = var.enable_backend_node_group ? aws_eks_node_group.backend[0].node_group_name : null
   description = "Name of the backend node group"
 }
 
 output "node_group_platform_name" {
-  value       = aws_eks_node_group.platform.node_group_name
+  value       = var.enable_platform_node_group ? aws_eks_node_group.platform[0].node_group_name : null
   description = "Name of the platform node group"
 }
 
 output "node_group_ai_agents_name" {
-  value       = aws_eks_node_group.ai_agents.node_group_name
+  value       = var.enable_ai_agents_node_group ? aws_eks_node_group.ai_agents[0].node_group_name : null
   description = "Name of the AI/agents node group"
 }

@@ -1,0 +1,4 @@
+id,displayName,icon,role,execution,path
+commit-collector,Coletor de Commits,🔍,Analista de histórico git,inline,./agents/commit-collector.agent.md
+release-writer,Redator de Release Notes,✍️,Redator técnico sênior,subagent,./agents/release-writer.agent.md
+technical-reviewer,Revisor Técnico,🧐,Revisor de conteúdo técnico,inline,./agents/technical-reviewer.agent.md

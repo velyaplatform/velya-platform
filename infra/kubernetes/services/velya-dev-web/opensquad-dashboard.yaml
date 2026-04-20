@@ -1,0 +1,145 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensquad-dashboard
+  namespace: velya-dev-web
+  labels:
+    app: opensquad-dashboard
+    app.kubernetes.io/name: opensquad-dashboard
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/service: opensquad-dashboard
+    velya.io/tier: web
+    velya.io/owner: autopilot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opensquad-dashboard
+  template:
+    metadata:
+      labels:
+        app: opensquad-dashboard
+        app.kubernetes.io/name: opensquad-dashboard
+        app.kubernetes.io/part-of: velya-platform
+        velya.io/service: opensquad-dashboard
+        velya.io/tier: web
+        velya.io/owner: autopilot
+    spec:
+      automountServiceAccountToken: false
+      priorityClassName: velya-core-high
+      securityContext:
+        fsGroup: 1001
+        runAsGroup: 1001
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: dashboard
+          image: ghcr.io/velyaplatform/opensquad-dashboard:bootstrap
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "3000"
+            - name: OPENSQUAD_SNAPSHOT_MODE
+              value: github
+            - name: OPENSQUAD_GITHUB_OWNER
+              value: velyaplatform
+            - name: OPENSQUAD_GITHUB_REPO
+              value: velya-platform
+            - name: OPENSQUAD_GITHUB_BRANCH
+              value: autopilot-state
+            - name: OPENSQUAD_GITHUB_PATH
+              value: state/opensquad/dashboard-snapshot.json
+            - name: OPENSQUAD_SNAPSHOT_POLL_MS
+              value: "10000"
+            - name: OPENSQUAD_SNAPSHOT_STALE_AFTER_MS
+              value: "180000"
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: velya-autopilot-secrets
+                  key: gh-token
+                  optional: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensquad-dashboard
+  namespace: velya-dev-web
+  labels:
+    app: opensquad-dashboard
+    app.kubernetes.io/name: opensquad-dashboard
+    app.kubernetes.io/part-of: velya-platform
+    velya.io/service: opensquad-dashboard
+    velya.io/tier: web
+    velya.io/owner: autopilot
+spec:
+  selector:
+    app: opensquad-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+  type: ClusterIP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: opensquad-dashboard
+  namespace: velya-dev-observability
+  labels:
+    app.kubernetes.io/part-of: velya-platform
+    release: prometheus
+spec:
+  namespaceSelector:
+    matchNames:
+      - velya-dev-web
+  selector:
+    matchLabels:
+      app: opensquad-dashboard
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
