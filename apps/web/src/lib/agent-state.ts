@@ -24,6 +24,13 @@ import { AGENTS, type AgentDef, type LifecycleStage, type AgentScorecard } from 
 
 const STORAGE_PATH = process.env.VELYA_AGENT_STATE_PATH || '/data/velya-cron/agent-state.json';
 
+/** Auto-quarantine thresholds — must stay in sync with docs/adr/agent-governance.md. */
+const QUARANTINE_MIN_VALIDATION_PASS_RATE = 0.6;
+const QUARANTINE_MIN_AUDIT_PASS_RATE = 0.65;
+const QUARANTINE_MIN_EVIDENCE_COMPLETENESS = 0.7;
+const QUARANTINE_MIN_SLA_ADHERENCE = 0.6;
+const QUARANTINE_MAX_CORRECTION_RECURRENCE = 0.4;
+
 interface AgentState {
   agentId: string;
   /** Live lifecycle stage — overrides the static `lifecycleStage` from registry */
@@ -145,15 +152,15 @@ export function recordAgentRun(
     (1 - ALPHA) * cur.scorecard.correctionRecurrence + ALPHA * (outcome.correctionRecurred ? 1 : 0);
   cur.scorecard.updatedAt = cur.lastRunAt;
 
-  // Auto-quarantine when scorecard goes critical (any metric < 0.6 or
-  // recurrence > 0.4) — matches the thresholds in agent-governance.md.
+  // Auto-quarantine when scorecard goes critical — thresholds defined above,
+  // kept in sync with docs/adr/agent-governance.md.
   const sc = cur.scorecard;
   const critical =
-    sc.validationPassRate < 0.6 ||
-    sc.auditPassRate < 0.65 ||
-    sc.evidenceCompleteness < 0.7 ||
-    sc.slaAdherence < 0.6 ||
-    sc.correctionRecurrence > 0.4;
+    sc.validationPassRate < QUARANTINE_MIN_VALIDATION_PASS_RATE ||
+    sc.auditPassRate < QUARANTINE_MIN_AUDIT_PASS_RATE ||
+    sc.evidenceCompleteness < QUARANTINE_MIN_EVIDENCE_COMPLETENESS ||
+    sc.slaAdherence < QUARANTINE_MIN_SLA_ADHERENCE ||
+    sc.correctionRecurrence > QUARANTINE_MAX_CORRECTION_RECURRENCE;
   if (critical && !cur.quarantined) {
     cur.quarantined = true;
     cur.quarantineReason = 'Scorecard caiu para crítico (auto-quarantine via watchdog)';
